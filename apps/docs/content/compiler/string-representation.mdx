@@ -1,0 +1,526 @@
+---
+title: String representation and performance
+description: How Prismio stores inline, owned, and view strings in 16 bytes, proves view lifetimes, and measures the resulting performance.
+status: implemented
+version: "0.1.0"
+lastUpdated: "2026-09-05"
+tags: [compiler, strings, memory, ownership, performance]
+related: [stdlib/strings, compiler/aif, guides/memory-and-aif, specification/memory-model]
+---
+
+Prismio represents every `String` as a 16-byte pair. The same pair can hold a
+short string directly, own a heap allocation, or view a range inside another
+string. This page explains the representation, the invariants that make it
+sound, and the measurements that led to it.
+
+This is an implementation deep dive for compiler and runtime contributors. It
+describes Prismio 0.1 at compiler commit
+[`43107cff86c1`](https://github.com/prismio-lang/prismio/commit/43107cff86c140fbf130c27211379d775d25c727),
+not a stable ABI promise. Application developers should use the source-level
+[`String` API](/stdlib/strings); code cannot select or observe a storage class.
+
+## What application developers need to know
+
+- A `String` has the same source-level behavior in all three storage classes.
+- Length, indexing, iteration, comparison, and slicing are byte-oriented in
+  Prismio 0.1. See [`String` properties and methods](/stdlib/strings).
+- A long substring can share the source string's storage internally. Prismio's
+  ownership analysis keeps that source alive for as long as the substring needs
+  it.
+- Containers and foreign calls receive owned or temporary copies when their
+  ownership or NUL-termination rules require one.
+- The 16-byte layout and 2 GiB implementation limit described below apply to
+  current 64-bit targets and may change in a later compiler version.
+
+## Representation at a glance
+
+Two tag bits in the length word select one of three storage classes:
+
+| Storage class | Where the bytes live | Storage relationship | Creation cost |
+| --- | --- | --- | --- |
+| **Inline** | In the 16-byte pair, up to 12 bytes | Self-contained | Copy up to 12 bytes |
+| **Owned** | In a NUL-terminated heap block | Owns the block | Allocation and copy |
+| **View** | In a range inside another string's block | Borrows the base | No allocation or byte copy |
+
+<StringStorageDiagram />
+
+The design belongs to the family introduced in the
+[*Umbra: A Disk-Based System with In-Memory Performance*](https://www.vldb.org/cidrdb/papers/2020/p29-neumann-cidr20.pdf)
+paper and often called a *German string* or *StringView*. Prismio's additional
+property is that the view lifetime is carried by the ownership analysis instead
+of being left as a programmer obligation.
+
+On the maintained `tokenization` benchmark—54,000 tokens of one to eight bytes
+cut from a 204 KB buffer—the complete sequence of changes measured as follows:
+
+| Stage | Minimum | Median | Relative to C++ |
+| --- | ---: | ---: | ---: |
+| Original heap `String` | 1,002,959 ns | 1,063,041 ns | 4.09× |
+| + small-block recycler | 542,167 ns | 579,583 ns | 2.23× |
+| + German-string layout | 274,958 ns | 294,375 ns | 1.13× |
+| + copy ladder, pair equality, and `borrow` lowering | 260,625 ns | 285,333 ns | 1.10× |
+| **+ view storage class** | **210,833 ns** | **218,750 ns** | **0.84×** |
+| C++ (`libc++` SSO) | 230,917 ns | 260,208 ns | 1.00× |
+| Rust (`String::to_string`) | 864,834 ns | 969,959 ns | 3.73× |
+
+That is a **4.86× end-to-end improvement** from the original representation.
+The final binary measured at 0.84× the C++ time and 0.23× the Rust owned-string
+time. At benchmark scale 1, Prismio's `--verify` ledger fell from **13,502
+allocations to 2**.
+
+These figures are local microbenchmarks, not portable performance guarantees.
+They were collected in 31-sample alternating A/B runs on an Apple M5 system with
+10 CPU cores, 16 GB of memory, macOS 25.5, and LLVM 22.1.8. The maintained suite
+builds C++ with `clang++ -O3 -std=c++20` and Rust with `rustc -C opt-level=3`.
+Checksums are compared before timings are accepted.
+
+## The measured problem
+
+The initial decision was driven by a profile rather than by the shape of another
+language's `String`. `tokenization` was the slowest row in Prismio's
+cross-language suite at 3.4× the C++ time.
+
+Removing token materialization and moving input construction outside the timed
+region separated scanning from producing each token:
+
+| Work | Prismio before the representation work | C++ |
+| --- | ---: | ---: |
+| Scan 204,000 bytes | 148 µs | 149 µs |
+| Materialize 54,000 tokens | 777 µs | 97 µs |
+
+The scanner already matched the generated `clang -O3` loop. `charIsSpace`
+inlined to a 64-bit bitmask test, byte access was a GEP followed by a load, and
+the copy loop vectorized. Producing a token accounted for the gap.
+
+Interposing `malloc` showed the same boundary:
+
+| Runtime | `malloc` calls | Bytes requested |
+| --- | ---: | ---: |
+| Prismio | 54,033 | 436,452 |
+| Rust | 54,037 | 367,722 |
+| **C++** | **29** | 226,139 |
+
+The interposed `malloc` count and the `--verify` count in the summary use
+different counters and benchmark scales; they should not be compared directly.
+The former includes allocator traffic from the whole process. The latter counts
+Prismio-managed allocations in the scale-1 workload.
+
+C++ was faster because it usually did not allocate. On the measured platform,
+`libc++`'s `std::string` held each token in its small-string buffer. Prismio and
+the Rust owned-string version allocated once per token. A profile placed 67% of
+the Prismio run in the macOS allocator's free path, with over half of that time
+inside `mach_absolute_time` used by allocator quarantine bookkeeping.
+
+This supported two independent changes: improve small-block recycling, then
+change the string representation so the common case does not allocate.
+
+## Why this representation family
+
+Common string representations make different size and capability tradeoffs:
+
+| Design | Value size | Inline capacity | Additional property |
+| --- | ---: | ---: | --- |
+| `libc++` SSO | 24 B | 22 bytes | — |
+| `fbstring`, `smartstring` | 24 B | 23 bytes | — |
+| `compact_str` | 24 B | 24 bytes | Uses UTF-8 validity to recover tag space |
+| `ecow` | 16 B | 15 bytes | Constant-time clone |
+| **German / Umbra** | **16 B** | **12 bytes** | Prefix and storage classes |
+| Interning (`rustc`'s `Symbol`) | 4 B | — | Constant-time equality and deduplication |
+| Slice (`&str`) | 16 B | — | No allocation or byte copy |
+
+The exact capacities depend on implementation and target ABI. The comparison is
+about the design space, not an API compatibility claim. Raymond Chen's
+[`std::string` implementation comparison](https://devblogs.microsoft.com/oldnewthing/20240510-00/?p=109742)
+describes the 22-byte `libc++` form, and the
+[`string-rosetta-rs`](https://github.com/rosetta-rs/string-rosetta-rs)
+project collects the Rust representation variants.
+
+Two properties made the German-string family a good fit for Prismio.
+
+First, it remains 16 bytes. `String` was already a `{ptr, i64}` pair, so a local,
+parameter, or structure field containing one does not grow.
+
+Second, the tags leave room for an unowned long form. A tokenizer can represent
+a token as a pointer and length into its input instead of allocating a separate
+buffer. Umbra calls this form a *transient string* and requires callers to copy it
+when it must outlive the source. Prismio uses the compiler's ownership analysis
+to prove the required lifetime instead.
+
+This choice was not treated as an automatic win. Apache DataFusion reported
+that a direct StringView implementation initially
+[`slowed down almost every query`](https://datafusion.apache.org/blog/2024/09/13/string-view-german-style-strings-part-1/)
+until its construction and use paths were specialized. Each Prismio change was
+therefore measured against the preceding stage, and changes that measured flat
+or worse were removed.
+
+## Choosing the inline capacity from Prismio workloads
+
+Copying Umbra's 12-byte choice without checking Prismio's allocation mix would
+have borrowed somebody else's workload. The compiler's `str_with_capacity`
+path was instrumented instead, then the compiler was run on its own front end.
+
+The run observed **444,798 string allocations** during
+`prismio check src/main.psm`:
+
+| Length | Share | Cumulative | Covered by |
+| --- | ---: | ---: | --- |
+| ≤ 4 bytes | 53.3% | 53.3% | Any inline form |
+| ≤ 8 bytes | 21.3% | 74.6% | Any 8-byte inline form |
+| ≤ 12 bytes | 6.7% | **81.3%** | Prismio's representation |
+| ≤ 14 bytes | 4.5% | 85.7% | A 16-byte tagged pair without a prefix |
+| ≤ 16 bytes | 6.4% | 92.1% | — |
+| ≤ 22 bytes | 4.4% | **96.5%** | 24-byte `libc++` SSO |
+| ≤ 30 bytes | 2.3% | 98.8% | — |
+| > 30 bytes | 1.2% | 100% | — |
+
+More than half of the strings allocated by the compiler were four bytes or
+shorter. Any inline representation captures most of that traffic. The difference
+between 12, 14, and 22 bytes concerns the next fifteen percentage points, and
+many values beyond twelve bytes are substrings that the view class can represent
+without copying.
+
+An allocator-wide histogram gave a misleading answer: 47.9% of requests at 16
+bytes or less and 35.3% at 64 bytes or less. It mixed AST nodes and list blocks
+with strings. Only instrumentation at `str_with_capacity` measured the relevant
+population.
+
+## The 16-byte layout
+
+The LLVM-level value remains a two-field pair:
+
+```text
+%prismio.str = { ptr, i64 }
+
+field 1, bits  0..30   byte length (maximum 2 GiB)
+field 1, bit      31   INLINE
+field 1, bits 32..63   INLINE ? data[8..11]
+                              : bit 32 = VIEW, bits 33..63 reserved
+field 0                INLINE ? data[0..7]
+                              : data pointer
+```
+
+Bit 32 is text data when `INLINE` is set and the `VIEW` flag when it is clear.
+The tests are unambiguous because every consumer checks `INLINE` first.
+
+Three choices in this layout are load-bearing.
+
+### The inline tag is bit 31
+
+Putting the tag in bit 63 would make it share a byte with the twelfth inline
+character. The inline form would then cover about 80% rather than 81.3% of the
+measured allocation population. Using bit 31 caps the byte length at just under
+2 GiB instead of 4 GiB and adds one mask operation to `.length()`.
+
+### The tag is explicit
+
+The compiler cannot use `length <= 12` as the discriminant. `fatFromPtr` wraps a
+`char*` returned by C and may produce a short string whose bytes still live on
+the heap. Reading that value as inline would interpret text bytes as an address.
+
+### The long form remains compatible with the previous compiler
+
+An untagged long pair is bit-for-bit identical to the representation emitted
+before the inline form existed. Producers could be migrated incrementally:
+unchanged producers kept making valid owned strings, while readers used the new
+path only when `INLINE` was set.
+
+The implementation is in
+[`runtime/llvm-api-backend.c`](https://github.com/prismio-lang/prismio/blob/43107cff86c140fbf130c27211379d775d25c727/runtime/llvm-api-backend.c#L426-L474).
+
+### Why Prismio does not store a four-byte prefix
+
+German strings commonly store the first four bytes of a long string beside its
+length. Equality can reject many mismatches before dereferencing the pointer.
+
+Prismio's long-string construction model does not have a single point at which
+that prefix can reliably be stamped. `str_with_capacity` returns an
+uninitialized buffer, and callers fill it incrementally through operations such
+as `strCopyRangeInto` and the builders in `std/string.psm`. Database engines
+often materialize a value in one operation and can compute a prefix as the bytes
+pass through; Prismio's current builders do not provide that hook.
+
+The reserved bits remain available for future measurements. They do not contain
+a prefix today.
+
+## Representation invariants
+
+The implementation depends on five invariants:
+
+| # | Invariant | Established by | Failure if violated |
+| ---: | --- | --- | --- |
+| 1 | Bytes after an inline string's length are zero | `ir_str_inline` zeroes the pair before writing `[0, n)` | Inline equality can return the wrong result |
+| 2 | `INLINE` dominates `VIEW` in tag tests | Consumers check bit 31 before interpreting bit 32 | Text bytes can be passed to the deallocator |
+| 3 | `count > 12` implies the source is not inline before a view is created | `strSubstring` checks the count immediately before choosing the view path | A view can offset a non-pointer |
+| 4 | A view is not assumed to be NUL-terminated | Its end is described by its length inside a larger buffer | A consumer can read past the view |
+| 5 | `__builtin_string_put_byte` writes only long-form buffers | Callers write into fresh `str_with_capacity` results | A write can land in a temporary materialization and be lost |
+
+The first invariant enables the short-string equality fast path. If lengths and
+text are equal and every byte beyond the length is zero, the complete 16-byte
+values are identical. Equality therefore becomes two integer comparisons in
+registers, without a pointer dereference or function call. Four million
+short-string comparisons measured at **193 µs**, compared with **9.35 ms**
+through `strcmp`: a **48× improvement** on that microbenchmark.
+
+The same zero-tail rule constrains the copy ladder. For lengths from 8 through
+12, the intervals `[0, 8)` and `[n-8, n)` cover exactly the initialized range;
+the equivalent four-byte case follows the same rule. Overlapping loads and
+stores do not disturb the zeroed tail.
+
+The second invariant also lets one mask answer whether the deallocator owns
+anything. `word & (INLINE | VIEW)` is nonzero for both unowned forms. When
+`INLINE` is set, bit 32 may be text data, but either result still correctly says
+that there is no external block to release.
+
+## Why a view is safe
+
+A view contains a pointer into storage owned by another string. The compiler
+must keep that base storage alive for every use of the view.
+
+`__builtin_string_view(source, start, count)` is declared to alias its first
+argument by
+[`aifFfiAliasOf`](https://github.com/prismio-lang/prismio/blob/43107cff86c140fbf130c27211379d775d25c727/src/aif/contracts.psm#L231-L245).
+This is Prismio's existing FFI `alias` contract: the return value reaches memory
+through an argument rather than introducing a fresh allocation.
+
+Two properties follow:
+
+- The view has no allocation site of its own, so nothing releases it as an
+  independent heap block.
+- The view carries the base string's allocation provenance. A use that outlives
+  the immediate expression extends the required lifetime of that base.
+
+`strSubstring` returns `__builtin_string_view` on its long path. The analysis
+then marks `strSubstring` as a function that may return a view of its parameter,
+and propagates that fact through compiler and standard-library callers. At the
+recorded commit, the self-hosted compiler reached a fixpoint, the full suite
+passed 285/285 tests, and the verification ledger balanced. These are practical
+implementation checks; they are not presented as a formal proof of the entire
+runtime.
+
+<StringViewLifetimeDiagram />
+
+For the broader lifetime model, see [Memory and AIF](/guides/memory-and-aif) and
+the [memory-model specification](/specification/memory-model).
+
+## Costs at ownership and ABI boundaries
+
+A view has no terminator of its own. Its logical end can occur in the middle of
+a buffer that continues, so three boundaries require special handling.
+
+### Equality uses the known length
+
+`strcmp` cannot compare a view safely because it waits for a terminator. The
+slow equality path calls `str_equals_n` after the fast path has established that
+both strings have the same length.
+
+### Containers take an owned copy
+
+A container slot stores one word and releases the value it contains. A view
+entering a list is copied through `str_own`. An inline string uses the same path
+because its bytes live inside the caller's pair rather than behind a stable data
+pointer. Neither form can use `str_clone`, which searches for a NUL terminator.
+
+### C receives a temporary NUL-terminated copy
+
+When a view crosses a C FFI boundary, code generation creates a terminated copy
+behind a branch and releases it after the call. Inline and owned strings do not
+pay for the view-specific branch body. See [Foreign functions](/language/ffi)
+for the source-level contract rules.
+
+Byte access and owned-string release required no further representation change:
+a view supplies a usable data pointer in field 0, while its tag already tells
+the release path that the allocation belongs to its base.
+
+## Results
+
+### Tokenization breakdown
+
+With input construction outside the timed region, one 54,000-token pass measured:
+
+| Work | Before representation work | Current | C++ |
+| --- | ---: | ---: | ---: |
+| Scan | 148 µs | 150 µs | 123 µs |
+| Materialize tokens | 450 µs | **52 µs** | 95 µs |
+| Total | 598 µs | **202 µs** | 218 µs |
+
+The “before” column begins after the small-block recycler had already landed;
+that is why its 450 µs materialization figure differs from the original 777 µs
+measurement. The final 202 µs and the 218.750 µs median in the summary also come
+from related but separately recorded breakdown and alternating-suite runs. They
+should be used for ratios within their own table, not mixed as one sample set.
+
+Token materialization became cheaper than C++'s on this workload. `libc++`
+still copies each token into its small-string buffer, while a Prismio view copies
+no bytes.
+
+### Effect on the maintained suite
+
+Across all 34 implemented workloads, measured against the commit immediately
+before the final view-class change, every checksum stayed unchanged:
+
+- `tokenization` became **1.31× faster**.
+- 31 workloads remained within 3%.
+- `fft` measured at 0.91× and `knapsack` at 0.90×.
+
+The 1.31× result uses the immediately preceding implementation as its baseline;
+the 4.86× result in the summary spans the entire sequence from the original heap
+representation. They answer different questions.
+
+The two apparent numeric regressions did not touch strings, and their generated
+instruction sequences were byte-identical in the compared builds. Only function
+addresses moved to a different 64-byte alignment. On this host, code placement
+moved tight numeric loops by approximately ±10%, while the practical noise floor
+for a single pass was about ±4%.
+
+### Supporting measurements
+
+| Measurement | Result |
+| --- | --- |
+| Four million short-string comparisons | 193 µs vs 9.35 ms through `strcmp`—**48×** |
+| `malloc_size`, used for recycler bucket lookup | Approximately 14.5 ns per call |
+| 54,000 small blocks: malloc/free vs pool vs no allocation | 2,225 µs / 168 µs / 176 µs |
+| `borrow` → `readonly`, short haystack searched in a loop | Minimum 5.28 ms → 4.84 ms |
+| Copy ladder vs `memcpy` call | 1.107× on the complete tokenization row |
+
+## Experiments that were rejected
+
+Recording negative results prevents attractive but ineffective changes from
+being repeated.
+
+### Region placement around tokenization
+
+Prismio's existing `region` syntax placed zero token objects in the arena. The
+allocation occurred inside `str_with_capacity`, an external function with 80
+call sites in the measured binary, so the relevant call-site bracketing
+obligations did not hold. AIF reported 100% T2 for the program: ownership was
+statically known, but allocation was not cheap.
+
+### Routing generated allocations through the runtime seam
+
+Emitting `rt_base_alloc` beside `rt_free` appeared symmetrical but did not help
+the string allocations, which were already made inside the runtime. It also hid
+information from LLVM: TargetLibraryInfo recognizes `malloc` and supplies
+attributes such as `noalias` and `allocsize`, while an opaque runtime symbol must
+be treated more conservatively. `tree_traversal` measured at 0.88× with the swap
+and 1.00× without it, so the change was reverted.
+
+### Curating `rt_free` into the generated module
+
+Inlining the release gate removed one call per release but did not produce a
+measurable improvement: `tokenization` measured at 1.67× versus 1.72× uncurated,
+and `tree_traversal` at 0.953× versus 0.960×. Both differences were inside the
+noise floor, while the change required exporting three runtime-private symbols.
+
+### Caching the canonical pointer per SSA value
+
+Each variable use emits a separate load of the pair, so a cache keyed by SSA
+value missed every later use. Computing the pointer at the pair's definition
+then produced invalid control flow in an early implementation. The successful
+design keys the result by source binding: a `let` or parameter resolves the
+representation once at its binding, which dominates all of its uses.
+
+### Branching around short-string materialization
+
+Unconditional writes into scratch storage prevent loop-invariant code motion
+because the selected pointer may refer to that same scratch. A branch removed
+the aliasing concern but measured at 328 µs versus 262 µs; its control-flow cost
+was greater than the stores it avoided.
+
+### Masking the copy length before `llvm.memcpy`
+
+Masking `count` to four bits made the maximum length visible to LLVM, but the
+generated code still called `memcpy`. The mask was removed. The explicit
+overlapping-load copy ladder is what eliminated the call.
+
+### Removing `charAt` bounds checks
+
+C++ indexed without a bounds check, making `charAt` an obvious suspect for the
+remaining scan difference. Replacing it with unchecked `byteAt` produced paired
+measurements of 229/214, 229/229, and 194/194 µs. LLVM had already proved the
+index from the loop guard, so removing the source-level check did not help.
+
+## Reproducing the maintained measurements
+
+Run the current cross-language workload with:
+
+```bash
+prismio bench --only tokenization --runs 9
+```
+
+The historical A/B figures on this page did not come from one invocation of that
+command. Two compiler revisions were built and their outputs run in alternating
+sample order. Running one complete binary and then the other allowed machine
+drift to exceed the differences being measured.
+
+Count Prismio-managed allocations for the string test with:
+
+```bash
+prismio build tests/test_09_strings.psm -o /tmp/prismio-string-probe --verify
+/tmp/prismio-string-probe
+```
+
+The exact historical values are tied to commit `43107cff86c1`. The maintained
+runner, language build flags, workload catalog, checksum policy, and output files
+are documented in
+[`benchmarks/README.md`](https://github.com/prismio-lang/prismio/blob/43107cff86c140fbf130c27211379d775d25c727/benchmarks/README.md).
+
+The allocation-length histogram was produced by temporary instrumentation in
+`str_with_capacity` and is not part of the maintained harness. It cannot be
+reproduced from the two commands above without restoring that instrumentation.
+
+After editing `runtime/*.c`, rebuild the compiler before measuring generated
+programs. The compiler embeds a snapshot of the runtime sources in
+`embedded_sources.h`; otherwise the object cache can reuse stale runtime input.
+
+## Open work
+
+### The scan remains slower than C++
+
+The measured scan is 150 µs versus C++'s 123 µs. Bounds checks and conditional
+short-string materialization have both been eliminated as explanations. Three
+materialization stores remain visible in `benchTokenization`'s inner digit loop,
+but their cost has not been isolated.
+
+### Views begin above twelve bytes
+
+Results of twelve bytes or less stay inline. They already copy into registers
+and do not create a lifetime dependency, so preferring a view below the inline
+threshold is not clearly beneficial and has not been measured.
+
+### LLVM `captures(none)` is not emitted
+
+LLVM 22 spells the former `nocapture` concept as `captures(none)`. The old name
+does not map through `LLVMGetEnumAttributeKindForName`, so Prismio skips that
+attribute. `readonly`, the property required for the measured loop hoisting,
+does map correctly.
+
+### Reserved bits remain unused
+
+Bits 33–63 of a long string's length word are available. The current incremental
+construction path prevents a reliable prefix, but a cached hash is a possible
+future experiment rather than a committed design.
+
+## References
+
+- Thomas Neumann and Michael Freitag,
+  [*Umbra: A Disk-Based System with In-Memory Performance*](https://www.vldb.org/cidrdb/papers/2020/p29-neumann-cidr20.pdf),
+  CIDR 2020—the original layout.
+- CedarDB,
+  [*Why German Strings are Everywhere*](https://cedardb.com/blog/german_strings/)
+  and
+  [*A Deep Dive into German Strings*](https://cedardb.com/blog/strings_deep_dive/)—storage
+  classes and prefix comparisons.
+- Apache DataFusion,
+  [*Using StringView to Make Queries Faster*](https://datafusion.apache.org/blog/2024/09/13/string-view-german-style-strings-part-1/)—benefits
+  and construction-path pitfalls.
+- Polar Signals,
+  [*Das Problem mit German Strings*](https://www.polarsignals.com/blog/posts/2025/08/26/das-problem-mit-german-strings)—the
+  memory-overhead counterargument.
+- [`string-rosetta-rs`](https://github.com/rosetta-rs/string-rosetta-rs)—sizes
+  and inline capacities across Rust string implementations.
+- [musl's AArch64 `memcpy`](https://git.musl-libc.org/cgit/musl/tree/src/string/aarch64/memcpy.S)
+  and [Folly's `memcpy`](https://github.com/facebook/folly/blob/main/folly/memcpy.S)—examples
+  of overlapping-load small-copy strategies.
+- Raymond Chen,
+  [*An informal comparison of the three major implementations of `std::string`*](https://devblogs.microsoft.com/oldnewthing/20240510-00/?p=109742)—the
+  measured platform's `libc++` small-string capacity.

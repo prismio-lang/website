@@ -14,7 +14,12 @@
     "@repo/ui": "workspace:*",
     "next": "16.3.4",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "@heroui/react": "3.1.0",
+    "@heroui/styles": "3.1.0",
+    "framer-motion": "^12.40.0",
+    "hamburger-react": "^2.5.2",
+    "lucide-react": "1.17.0"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
@@ -23,6 +28,8 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",
     "eslint": "10.9.1",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "@tailwindcss/postcss": "^4",
+    "tailwindcss": "^4.3.0"
   }
 }
