@@ -18,7 +18,7 @@ importers:
         specifier: 7.0.2
         version: 7.0.2
 
-  apps/docs:
+  apps/developers:
     dependencies:
       '@fontsource-variable/inter':
         specifier: ^5.3.0
@@ -32,7 +32,7 @@ importers:
       '@heroui/styles':
         specifier: 3.1.0
         version: 3.1.0(tailwind-merge@3.4.0)(tailwindcss@4.3.3)
-      '@repo/ui':
+      '@prismio/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       concurrently:
@@ -69,10 +69,98 @@ importers:
         specifier: ^3.21.0
         version: 3.23.0
     devDependencies:
-      '@repo/eslint-config':
+      '@prismio/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
-      '@repo/typescript-config':
+      '@prismio/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+      '@shikijs/rehype':
+        specifier: ^3.21.0
+        version: 3.23.0
+      '@tailwindcss/postcss':
+        specifier: ^4
+        version: 4.3.3
+      '@types/node':
+        specifier: 26.4.1
+        version: 26.4.1
+      '@types/react':
+        specifier: 19.2.18
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: 19.2.5
+        version: 19.2.5(@types/react@19.2.18)
+      babel-plugin-react-compiler:
+        specifier: 1.0.0
+        version: 1.0.0
+      eslint:
+        specifier: 10.9.1
+        version: 10.9.1(jiti@2.7.0)(supports-color@8.1.1)
+      tailwindcss:
+        specifier: ^4.3.0
+        version: 4.3.3
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+      velite:
+        specifier: ^0.3.1
+        version: 0.3.1(supports-color@8.1.1)
+
+  apps/docs:
+    dependencies:
+      '@fontsource-variable/inter':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource-variable/jetbrains-mono':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@heroui/react':
+        specifier: 3.1.0
+        version: 3.1.0(@react-spectrum/provider@3.11.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(tailwindcss@4.3.3)
+      '@heroui/styles':
+        specifier: 3.1.0
+        version: 3.1.0(tailwind-merge@3.4.0)(tailwindcss@4.3.3)
+      '@prismio/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      concurrently:
+        specifier: ^9.2.1
+        version: 9.2.4
+      framer-motion:
+        specifier: ^12.40.0
+        version: 12.43.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      github-slugger:
+        specifier: 2.0.0
+        version: 2.0.0
+      hamburger-react:
+        specifier: ^2.5.2
+        version: 2.5.2(react@19.2.8)
+      lucide-react:
+        specifier: 0.562.0
+        version: 0.562.0(react@19.2.8)
+      marked:
+        specifier: 17.0.1
+        version: 17.0.1
+      mitt:
+        specifier: 3.0.1
+        version: 3.0.1
+      next:
+        specifier: 16.3.4
+        version: 16.3.4(@babel/core@8.0.1)(@types/node@26.4.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+      react-dom:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
+      shiki:
+        specifier: ^3.21.0
+        version: 3.23.0
+    devDependencies:
+      '@prismio/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@prismio/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
       '@shikijs/rehype':
@@ -114,7 +202,7 @@ importers:
       '@heroui/styles':
         specifier: 3.1.0
         version: 3.1.0(tailwind-merge@3.4.0)(tailwindcss@4.3.3)
-      '@repo/ui':
+      '@prismio/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       framer-motion:
@@ -136,10 +224,10 @@ importers:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
     devDependencies:
-      '@repo/eslint-config':
+      '@prismio/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
-      '@repo/typescript-config':
+      '@prismio/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
       '@tailwindcss/postcss':
@@ -211,10 +299,10 @@ importers:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
     devDependencies:
-      '@repo/eslint-config':
+      '@prismio/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      '@repo/typescript-config':
+      '@prismio/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       '@types/node':
@@ -229,6 +317,9 @@ importers:
       eslint:
         specifier: 10.9.1
         version: 10.9.1(jiti@2.7.0)(supports-color@8.1.1)
+      next:
+        specifier: 16.3.4
+        version: 16.3.4(@babel/core@8.0.1)(@types/node@26.4.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       typescript:
         specifier: 7.0.2
         version: 7.0.2
@@ -1610,6 +1701,7 @@ packages:
   acorn@8.18.0:
     resolution: {integrity: sha512-lGq+9yr1/GuAWaVYIHRjvvySG5/4VfKIvC8EWxStPdcDh/Ka7FG3twP6v4d5BkravUilhIAsG4Qj83t02LWUPQ==}
     engines: {node: '>=0.4.0'}
+    hasBin: true
 
   ajv@6.15.0:
     resolution: {integrity: sha512-fgFx7Hfoq60ytK2c7DhnF8jIvzYgOMxfugjLOSMHjLIPgenqa7S7oaagATUq99mV6IYvN2tRmC0wnTYX6iPbMw==}
@@ -1643,6 +1735,7 @@ packages:
   baseline-browser-mapping@2.11.18:
     resolution: {integrity: sha512-1iEmLEYSiE1SeBoAfPo/Mnx3PzfzHUkDK61ASkCpuk3YXugYLH5DYK1SzqV55F8FMI6s0F+/tCP7Polz1QRjxw==}
     engines: {node: '>=6.0.0'}
+    hasBin: true
 
   brace-expansion@5.0.9:
     resolution: {integrity: sha512-ScQ4IuvIEF1TMlP7Zt+vjJ//9zlPb2SDcxWxM3bk8s6t6GGdJ7KO1dCcTidOPJKePW30LE/2cT7wCyPho9/Wxg==}
@@ -2681,6 +2774,7 @@ packages:
   typescript@7.0.2:
     resolution: {integrity: sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==}
     engines: {node: '>=16.20.0'}
+    hasBin: true
 
   undici-types@8.3.0:
     resolution: {integrity: sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==}
@@ -2734,6 +2828,7 @@ packages:
   which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
     engines: {node: '>= 8'}
+    hasBin: true
 
   word-wrap@1.2.5:
     resolution: {integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==}

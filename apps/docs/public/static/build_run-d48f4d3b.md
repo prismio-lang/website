@@ -412,7 +412,7 @@ prismio fmt
 prismio fmt --check
 
 # Format a specific file
-prismio fmt src/parser.pr
+prismio fmt components/parser.pr
 ```
 
 Sample formatting rules:

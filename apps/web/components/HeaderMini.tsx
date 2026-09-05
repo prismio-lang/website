@@ -2,7 +2,7 @@
 
 import React, {useEffect, useState} from "react";
 import {AnimatePresence, motion} from "framer-motion";
-import Logo from "./Logo";
+import Logo from "@prismio/ui/Logo";
 
 const Header = () => {
     const [isOpen, setOpen] = useState(false);

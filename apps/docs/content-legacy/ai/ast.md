@@ -480,7 +480,7 @@ For now, compiler internals use **manual recursive matching** on the enum varian
 The compiler can emit the full AST as JSON for debugging and tooling:
 
 ```bash
-prismio ast --json src/main.prism
+prismio ast --json components/main.prism
 ```
 
 > 🚧 **Coming Soon** – The `--json` flag and the stable JSON schema for AST nodes will be available in a future compiler release.
@@ -490,7 +490,7 @@ A sample JSON output for a simple program:
 ```json
 {
   "kind": "Program",
-  "file": "src/main.prism",
+  "file": "components/main.prism",
   "span": { "start": 0, "end": 87 },
   "imports": [
     {

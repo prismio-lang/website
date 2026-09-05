@@ -218,7 +218,7 @@ prismio test -- --nocapture         # show stdout from tests
 
 ```bash
 prismio fmt                         # format all .pr files in project
-prismio fmt src/main.pr             # format a specific file
+prismio fmt components/main.pr             # format a specific file
 prismio fmt --check                 # check formatting without modifying
 prismio fmt --diff                  # show diff of formatting changes
 ```

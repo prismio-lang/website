@@ -11,7 +11,7 @@ import {
     Download,
     ArrowRight,
 } from "lucide-react";
-import Logo from "@/components/Logo";
+import Logo from "@prismio/ui/Logo";
 
 const navLinks = [
     { title: "Home",        icon: House,     href: "/",           desc: "Back to the main page" },

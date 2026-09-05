@@ -78,8 +78,8 @@ Compare canonicalized outputs appropriate to the repository workflow rather than
 Emit the compiler IR with both generations and compare it byte for byte:
 
 ```bash
-build/gen1 build src/main.psm -o /tmp/a.ll
-build/gen2 build src/main.psm -o /tmp/b.ll
+build/gen1 build components/main.psm -o /tmp/a.ll
+build/gen2 build components/main.psm -o /tmp/b.ll
 cmp /tmp/a.ll /tmp/b.ll
 ```
 

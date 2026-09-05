@@ -21,7 +21,7 @@ This recursively finds every `.prism` file under the project's `src/` directory 
 ### Format a Specific File
 
 ```bash
-prismio fmt src/utils.prism
+prismio fmt components/utils.prism
 ```
 
 ### Check Mode (CI-Friendly)

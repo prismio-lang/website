@@ -198,7 +198,7 @@ export default function InstallPage() {
                 }
 
                 setReleases(parsedReleases);
-                setSelectedVersion(Object.keys(parsedReleases)[0]);
+                setSelectedVersion(Object.keys(parsedReleases)[0] ?? '');
                 setLoading(false);
             } catch (error: any) {
                 console.error('GitHub API error:', error);
@@ -293,7 +293,7 @@ export default function InstallPage() {
     const versions = Object.keys(releases);
 
     // Get currently selected release details
-    const activeReleaseData = releases[selectedVersion] || releases[versions[0]];
+    const activeReleaseData = releases[selectedVersion] || (versions[0] ? releases[versions[0]] : undefined);
     const activePlatformData = activeReleaseData?.platforms[activeTab];
 
     // Check if current tab platform has assets

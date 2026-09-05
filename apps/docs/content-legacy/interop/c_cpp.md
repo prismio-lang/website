@@ -197,7 +197,7 @@ For large C APIs, manually writing `extern "C"` declarations for every function 
 
 ```bash
 # Generate Prismio bindings from a C header
-ums bindgen --header /usr/include/sqlite3.h --output src/bindings/sqlite3.prism
+ums bindgen --header /usr/include/sqlite3.h --output components/bindings/sqlite3.prism
 ```
 
 The generated file looks like:

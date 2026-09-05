@@ -21,7 +21,7 @@ This analyzes every `.prism` file reachable from the project's root module and p
 ### Lint a Specific File
 
 ```bash
-prismio lint src/utils.prism
+prismio lint components/utils.prism
 ```
 
 ### Auto-Fix Mode

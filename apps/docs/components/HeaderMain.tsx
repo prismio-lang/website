@@ -11,6 +11,13 @@ import { siteConfig } from "@/config/site";
 
 export default function HeaderMain() {
     const [isOpen, setOpen] = useState(false);
+    const [shortcutKey, setShortcutKey] = useState("⌘ K");
+
+    useEffect(() => {
+        if (typeof navigator !== "undefined" && !/(Mac|iPhone|iPod|iPad)/i.test(navigator.userAgent)) {
+            setShortcutKey("Ctrl K");
+        }
+    }, []);
 
     useEffect(() => {
         const openSearch = () => setOpen(false);
@@ -39,7 +46,7 @@ export default function HeaderMain() {
                     >
                         <Search aria-hidden="true" size={15} />
                         <span>Search concepts, errors, and examples</span>
-                        <kbd className="ml-auto rounded border border-zinc-200 bg-white px-1.5 py-0.5 font-mono text-[0.65rem] dark:border-zinc-700 dark:bg-zinc-800">⌘ K</kbd>
+                        <kbd className="ml-auto rounded border border-zinc-200 bg-white px-1.5 py-0.5 font-mono text-[0.65rem] dark:border-zinc-700 dark:bg-zinc-800">{shortcutKey}</kbd>
                     </button>
 
                     <div className="ml-auto hidden items-center gap-2 lg:flex">
@@ -54,17 +61,18 @@ export default function HeaderMain() {
                             href="https://www.prismio.org/install"
                             target="_blank"
                             rel="noreferrer"
-                            className="button button--md button--tertiary h-10 px-6 rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-gray-800 dark:bg-white hover:bg-zinc-100 dark:hover:bg-gray-100 transition-colors"
+                            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full border border-zinc-200 bg-white px-4 text-xs font-semibold text-zinc-800 transition-colors hover:bg-zinc-100 hover:text-zinc-950 dark:border-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
                         >
-                            Install
+                            <span>Install</span>
+                            <ArrowUpRight aria-hidden="true" size={13} />
                         </Link>
                     </div>
 
                     <div className="ml-auto flex items-center gap-2 lg:hidden">
-                        <button type="button" onClick={() => emitter.emit("openSearchModal")} aria-label="Search documentation" className="inline-flex size-9 items-center justify-center rounded-lg border border-zinc-200 text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
+                        <button type="button" onClick={() => emitter.emit("openSearchModal")} aria-label="Search documentation" className="inline-flex size-9 items-center justify-center rounded-lg border border-zinc-200 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900">
                             <Search aria-hidden="true" size={18} />
                         </button>
-                        <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={isOpen} aria-controls="mobile-docs-nav" aria-label={isOpen ? "Close navigation" : "Open navigation"} className="inline-flex size-9 items-center justify-center rounded-lg border border-zinc-200 text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
+                        <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={isOpen} aria-controls="mobile-docs-nav" aria-label={isOpen ? "Close navigation" : "Open navigation"} className="inline-flex size-9 items-center justify-center rounded-lg border border-zinc-200 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900">
                             {isOpen ? <X aria-hidden="true" size={19} /> : <Menu aria-hidden="true" size={19} />}
                         </button>
                     </div>
@@ -72,12 +80,17 @@ export default function HeaderMain() {
             </header>
 
             {isOpen && (
-                <div id="mobile-docs-nav" className="fixed inset-x-0 bottom-0 top-16 z-[70] overflow-y-auto bg-white px-5 py-6 lg:hidden dark:bg-[#0b0b0d]">
+                <div id="mobile-docs-nav" className="fixed inset-x-0 bottom-0 top-16 z-[70] overflow-y-auto no-scrollbar bg-white px-5 py-6 lg:hidden dark:bg-[#0b0b0d]">
                     <div className="mb-5 flex items-center justify-between gap-3 border-b border-zinc-200 pb-5 dark:border-zinc-800">
                         <Link href="https://www.prismio.org/install" target="_blank" rel="noreferrer" onClick={() => setOpen(false)} className="flex items-center gap-1 text-sm font-semibold text-zinc-700 hover:underline dark:text-zinc-300">
                             Install compiler <ArrowUpRight aria-hidden="true" size={14} />
                         </Link>
-                        <ThemeToggle />
+                        <div className="flex items-center gap-2">
+                            <a href={siteConfig.links.github} target="_blank" rel="noreferrer" aria-label="Prismio on GitHub" className="inline-flex size-9 items-center justify-center rounded-lg border border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-white">
+                                <Github aria-hidden="true" size={17} />
+                            </a>
+                            <ThemeToggle />
+                        </div>
                     </div>
                     <DocsNav onItemClick={() => setOpen(false)} className="pb-16" />
                 </div>

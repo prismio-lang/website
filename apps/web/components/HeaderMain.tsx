@@ -2,11 +2,11 @@
 
 import React, {useState, useEffect} from "react";
 import Link from "next/link";
-import Logo from "@/components/Logo";
 import {ArrowUpRight} from "lucide-react";
 import {Cross as Hamburger} from "hamburger-react";
 import {AnimatePresence, motion} from "framer-motion";
 import {Button} from "@heroui/react";
+import Logo from "@prismio/ui/Logo"
 
 const HeaderMain: React.FC = () => {
     const [scrolled, setScrolled] = useState(false);

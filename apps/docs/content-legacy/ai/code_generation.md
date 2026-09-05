@@ -283,13 +283,13 @@ During development, you can inspect the generated LLVM IR:
 
 ```bash
 # Emit unoptimized LLVM IR
-ums build --emit-ir src/main.prism
+ums build --emit-ir components/main.prism
 
 # Emit optimized LLVM IR (after O2 passes)
-ums build --release --emit-ir src/main.prism
+ums build --release --emit-ir components/main.prism
 
 # Emit human-readable assembly
-ums build --release --emit-asm src/main.prism
+ums build --release --emit-asm components/main.prism
 ```
 
 > 🚧 **Coming Soon** – The `--emit-ir` and `--emit-asm` flags will be available in a future compiler release.

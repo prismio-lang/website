@@ -1,0 +1,726 @@
+---
+title: AIF compiler internals
+description: How Prismio builds and solves the Adaptive Inference Framework fact graph, selects memory strategies, lowers ownership, and verifies the result.
+status: implemented
+version: "0.1.0"
+lastUpdated: "2026-09-05"
+tags: [compiler, aif, memory, ownership, internals]
+related: [compiler/aif, guides/compiler-development, specification/memory-model, compiler/string-representation]
+---
+
+The **Adaptive Inference Framework (AIF)** is the compiler pass that turns a
+legal ownership program into concrete allocation, placement, layout, and
+reclamation decisions. It runs after semantic analysis and before LLVM IR
+generation. It does not decide whether a move or borrow is legal; the semantic
+pass has already answered that question.
+
+This is a contributor-level implementation guide for Prismio 0.1 at compiler
+commit
+[`43107cff86c1`](https://github.com/prismio-lang/prismio/commit/43107cff86c140fbf130c27211379d775d25c727).
+It describes the compiler that exists, including its conservative
+approximations and runtime seams. The shorter [AIF overview](/compiler/aif) is
+the application-facing page. Neither the tier numbers nor the internal data
+structures documented here are a stable source or binary interface.
+
+> **Safety invariant:** failure to prove a cheaper strategy may reduce
+> performance, but it must not change program behavior or make an otherwise
+> valid program fail to compile. A truncated solve is therefore widened to a
+> conservative state before any tier is selected.
+
+The only intentional exceptions are false source assertions: a converged solve
+may reject an unsound `pin`, and a proven region budget overrun may reject the
+declared budget. Those are contradictions in the program's constraints, not
+inference failures.
+
+## Where AIF sits in the compiler
+
+The build driver parses and merges imports, runs semantic analysis, optionally
+measures a declared workload, runs AIF, and only then resets and enters IR
+generation. AIF keeps its result in native-side tables. It does not annotate or
+rewrite the AST. Code generation queries those tables by AST node, type, field,
+function, or scope.
+
+<AifPipelineDiagram />
+
+The pass has three frontend stages and two native stages:
+
+```text
+aif_reset()
+aifDeclare(module)                  # functions, scopes, types, contracts
+aifBuild(module)                    # sites, keys, value sets, constraints
+aif_layout_select()                 # field order from static/measured profile
+aifComputeSizes(module)             # target-aware natural layout
+aif_layout_split_select()           # hot/cold choice after safety vetoes
+converged = aif_solve(roundBudget)  # points-to, then E × A × T × C
+if !converged: aif_widen()
+aif_check_pins(converged)
+aif_place_arenas()
+aif_check_placement_pins(converged)
+```
+
+`aifRunProfiled` in
+[`src/aif/report.psm`](https://github.com/prismio-lang/prismio/blob/43107cff86c140fbf130c27211379d775d25c727/src/aif/report.psm)
+owns this order. Changing it is a semantic change: sizes depend on chosen field
+order, tiers depend on sizes, arena placement depends on converged tiers, and
+placement pins cannot be checked until arenas exist.
+
+### Implementation map
+
+| Area | Primary implementation | Responsibility |
+| --- | --- | --- |
+| Model construction | [`src/aif/model.psm`](https://github.com/prismio-lang/prismio/blob/43107cff86c140fbf130c27211379d775d25c727/src/aif/model.psm) | Declarations, scopes, sites, constraints, orchestration |
+| AST abstract evaluation | [`src/aif/walk.psm`](https://github.com/prismio-lang/prismio/blob/43107cff86c140fbf130c27211379d775d25c727/src/aif/walk.psm) | Value sets, points-to edges, calls, stores, returns, tasks, views |
+| FFI policy | [`src/aif/contracts.psm`](https://github.com/prismio-lang/prismio/blob/43107cff86c140fbf130c27211379d775d25c727/src/aif/contracts.psm) | Declared, builtin, runtime, and fallback ownership contracts |
+| Size and layout | [`src/aif/layout.psm`](https://github.com/prismio-lang/prismio/blob/43107cff86c140fbf130c27211379d775d25c727/src/aif/layout.psm) | Type graph, target sizes, split vetoes, exact struct size |
+| Reports and diagnostics | [`src/aif/report.psm`](https://github.com/prismio-lang/prismio/blob/43107cff86c140fbf130c27211379d775d25c727/src/aif/report.psm) | Human report, summary, manifest, explanations, pin and budget checks |
+| Solver and placement | [`runtime/aif_support.c`](https://github.com/prismio-lang/prismio/blob/43107cff86c140fbf130c27211379d775d25c727/runtime/aif_support.c) | Interning, points-to, fixed point, widening, tiering, arenas, release queries |
+| IR integration | [`src/ir`](https://github.com/prismio-lang/prismio/tree/43107cff86c140fbf130c27211379d775d25c727/src/ir) | Allocation hooks, drop lists, container policy, generated release functions |
+| Runtime mechanisms | [`runtime/lang_runtime.c`](https://github.com/prismio-lang/prismio/blob/43107cff86c140fbf130c27211379d775d25c727/runtime/lang_runtime.c) | Arenas, verifier, RC headers, cycle collector, container teardown |
+| LLVM bridge | [`runtime/llvm-api-backend.c`](https://github.com/prismio-lang/prismio/blob/43107cff86c140fbf130c27211379d775d25c727/runtime/llvm-api-backend.c) | Stack, heap, arena, RC, cycle allocation and release calls |
+
+The self-hosted frontend files total more than 4,400 lines. The native solver is
+also the compatibility boundary that lets the self-hosted compiler use dense
+bitsets, hash tables, and worklists not yet practical to express in Prismio.
+
+## The graph AIF actually solves
+
+AIF is a whole-program, flow-insensitive abstract interpretation over merged
+source. Its graph contains several kinds of identity; treating all of them as
+"a value" is a common source of incorrect fixes.
+
+### Allocation sites
+
+An allocation site is a syntactic operation with independent identity:
+
+- a struct literal;
+- an array or list construction;
+- a string-producing call;
+- a boxed enum payload; or
+- an opaque or foreign return when its provenance is not known.
+
+String literals and other static storage are excluded. A site is not a runtime
+allocation count: one site inside a loop can allocate millions of instances.
+The site stores its defining function and scope, source position, ordinal,
+resolved type, size when known, and current `E`, `A`, `T`, and `C` facts.
+
+The AIF 1.2 design defines an abstract value as an allocation site paired with
+an ownership context. Prismio 0.1 does **not** yet instantiate functions by
+ownership context: the current compiler analyzes one context-insensitive site
+per source operation. This is one reason returned callee allocations initially
+escape to `Caller`, and why call-site bracketing is implemented as a separate
+placement proof.
+
+### Keys and value sets
+
+Keys represent storage locations rather than allocations. The native solver
+interns keys for variables, struct fields, function returns, parameters, extern
+contracts, and container elements. A value set may contain a direct site or a
+key that must be resolved through points-to edges.
+
+The AST walker evaluates each expression abstractly into one of these value
+sets. Arguments are placed on an explicit stack so every argument is evaluated
+exactly once, even when multiple contracts refer to it. Assignments, parameter
+binding, returns, field stores, and container operations then connect sets to
+keys.
+
+Container element keys are based on the full container type, such as
+`List<Actor>`, so unrelated element types do not collapse immediately. The
+solver reconciles unresolved spellings such as `List` or `List<Invalid>` to a
+conservative compatible key when type information is incomplete.
+
+### Owners and views are separate relations
+
+The ordinary points-to relation answers which sites a key may denote. Two
+additional relations answer different lifetime questions:
+
+- **holders** record bindings or fields that may hold a site;
+- **container owners** record which container site retains an element site;
+- **view provenance** records which owner supplies storage for a slice, string
+  view, data view, or element reference.
+
+A view is not a new allocation site. Its provenance raises the owner collection
+to the lifetime required by the view. The edge points from the view requirement
+back to the storage owner; reversing it releases the base too early. View
+creation intentionally does not raise aliasing: overlapping mutable views are a
+language rule outside AIF's memory-lifetime proof.
+
+### Type, scope, and call graphs
+
+The type graph contains an edge from a nominal type to every nominal type its
+fields can reach. A missing edge is unsound because it can make a real cycle
+look acyclic. Transitive closure identifies types in non-trivial strongly
+connected components and limits cycle traversal to fields inside the same SCC.
+
+The scope tree gives escape joins a lexical least common ancestor, drives
+region containment, and records statement positions for non-lexical arena
+extents. The call graph records visible callees and opaque calls separately;
+call-site bracketing computes a fixed-point closure over visible callees, so
+recursion and mutual recursion are handled as graph problems rather than a
+single DFS guess.
+
+## The four fact domains
+
+Every site starts at the cheapest point in four finite lattices. Transfer rules
+only raise facts. This monotonicity makes termination and conservative fallback
+tractable.
+
+<AifTierDecisionDiagram />
+
+| Domain | Meaning | Join behavior |
+| --- | --- | --- |
+| `E` — escape | Latest region known to contain the value | Nested scopes join at their lexical LCA; unrelated functions become `Caller`; `Global` is top |
+| `A` — aliasing | Strength of simultaneous references | `Unique < Borrowed < Shared` |
+| `T` — thread affinity | Whether access stays local, moves, or overlaps | `Isolated < Transferred < CrossThread` |
+| `C` — cyclicity | Whether the value may participate in a cycle | `Acyclic < MaybeCyclic` |
+
+Lifetime determinacy is derived rather than solved: a region escape is
+scope-bound, a unique or borrowed owner is owner-bound, and the remaining case
+is dynamic.
+
+### Representative transfer rules
+
+The solver groups constraints by the fact they can change. These are the rules
+contributors encounter most often:
+
+| Event | Effect |
+| --- | --- |
+| Bind or pass an argument | Adds points-to and holder edges; a normal call raises the argument to at least `Borrowed` |
+| Store into a field or retained container | The value inherits the owner's escape, alias, and thread facts |
+| Return from a function | Raises escape to `Caller`; provenance owners of returned views rise with it |
+| Store into static state or declared `retain` | Raises escape to `Global` |
+| Opaque call or unknown return | Treats provenance as unknown and raises the relevant value toward `Caller`/`Shared` |
+| Two live holders of a copyable site | Raises aliasing to `Shared` |
+| Two containers hold the same site | Raises aliasing to `Shared`, including move-only values |
+| `unique` assertion | Cuts alias propagation after semantic move checking has established the source obligation |
+| `consume` or explicit `drop` | Marks the site transferred and ineligible for stack/individual duplicate release |
+| Joined spawn | Raises escape to the join scope and thread affinity to `Transferred` |
+| Unjoined spawn | Raises escape to `Global`; shared transferred data becomes `CrossThread` |
+| Unique site or acyclic type graph | Proves `Acyclic`; otherwise cyclicity may rise to `MaybeCyclic` |
+
+Field sensitivity is object-insensitive in Prismio 0.1: every instance of
+`World.items` shares one field key. The analysis is also flow-insensitive and
+interprocedurally path-insensitive. This can merge values that never coexist and
+raise their tier, but it is conservative in the performance-only direction.
+
+## Fixed point, budgets, and widening
+
+The solver first resolves the points-to graph, then iterates the fact transfer
+rules. Deterministic node and constraint ordering is part of the implementation
+contract: the same source and settings must produce the same manifest, not a
+result chosen by hash order or thread timing.
+
+The default budget is 200 rounds. If points-to resolution exhausts the budget,
+every site is widened because the compiler cannot know which unresolved key
+would reach which site. If fact propagation exhausts the budget, AIF widens the
+last changed frontier and its transitive `STORE`/`RETAIN_IN` successors:
+
+```text
+E := Global
+A := Shared
+C := MaybeCyclic
+T := CrossThread only when the program contains tasks
+```
+
+Widening is mandatory. Merely stopping an ascending iteration would leave facts
+too cheap and could select a strategy whose proof has not completed. Widened
+sites are marked `budget-exhausted` in the manifest.
+
+`--debug` is the zero-analysis configuration. The compiler still builds the
+graph and records constraints, then uses zero solve rounds and widens to the
+safe end. This preserves diagnostics such as refuted pins while removing
+optimization proofs.
+
+The retained derivation stores one maximal predecessor per fact. `--why` can
+therefore print a stable witness explaining why a fact rose. It is a useful
+cause chain, but it is not guaranteed to be the globally shortest proof.
+
+## From facts to tiers
+
+The current native derivation is a first-match ladder. Prismio's `T0` check is
+slightly narrower than the general AIF specification: it currently admits a
+compiler-owned struct no larger than 256 target bytes, with a known size, in its
+defining scope, at most borrowed, and not foreign, explicitly dropped, or owned
+by a container.
+
+```text
+T0  own defining scope, A ≤ Borrowed, eligible struct, known size ≤ 256 B
+T1  E is a lexical Region rather than Caller or Global
+T2  A ≤ Borrowed and T ≤ Transferred
+T3  T ≤ Transferred and C = Acyclic
+T4a T = CrossThread
+T4b otherwise, including MaybeCyclic thread-local residue
+```
+
+`T4a` has the higher internal ordinal so a raised cross-thread fact never looks
+like a cheaper result. Reports still print `T4b` before `T4a` because they follow
+the model's ladder terminology.
+
+### A tier is not the emitted mechanism
+
+Tier states an obligation. Placement and representability decide which concrete
+mechanism the current compiler can emit. The manifest records both:
+
+| Tier | Preferred mechanism | Important implementation fallback |
+| --- | --- | --- |
+| `T0` | Entry-block `alloca`; one reusable slot per syntactic site | No allocation or release call |
+| `T1` | Bump allocation in a written or automatic arena | `region:none`: scoped heap allocation with individual release |
+| `T2` | Unique heap ownership and deterministic release | A proven bracketed call may place the allocation in its caller's arena while retaining tier `T2` |
+| `T3` | Non-atomic reference count | `rc:none` when the pointer lacks a compiler-owned header or no container edge can maintain the count |
+| `T4a` | Atomic reference count | `rc:none` when the representation cannot carry the count; cyclic values also require collector participation |
+| `T4b` | Count plus trial-deletion cycle collection | `cycle:none` for opaque, unowned, or otherwise uncollectable sites |
+
+`rc:none` and `cycle:none` are intentionally honest outputs. They indicate a
+conservative tier whose preferred runtime mechanism could not be installed at
+that site. A contributor must inspect both columns before claiming that a tier
+change altered the generated binary.
+
+## Arena placement
+
+Every lexical scope is a potential region. A written `region name {}` pins an
+arena to its scope. For unannotated code, AIF considers scopes innermost first
+and places an arena only when all served values fit its lifetime and the static
+cost estimate is positive.
+
+<AifRegionPlacementDiagram />
+
+The current integer cost model is:
+
+```text
+benefit = served allocations × (90 − 3)
+        − region entries × 40
+        − 0.02 × (bytes held until reset − estimated peak live bytes)
+```
+
+Sites inside loops are weighted by an estimated trip count for each loop
+between the site and candidate scope, capped to prevent overflow. Unknown-sized
+sites contribute no fabricated byte estimate and are reported separately in the
+manifest's peak-arena line.
+
+Placement is greedy and innermost-first. An inner arena takes the values that
+die sooner; outer candidates see only what remains. Automatic placement does
+not insert a nested arena inside an explicit region, because that would make the
+named region inert and weaken the programmer's placement assertion.
+
+### Non-lexical arena extents
+
+The walker records a statement cursor and the last statement that uses each
+relevant key. For an automatically placed arena, the placement pass attempts to
+derive a range from the first served allocation or bracketed call through the
+last use. IR generation emits `arena_push` and `arena_pop` around that range.
+
+If a site or call cannot be positioned in the candidate block's statement
+numbering, the compiler uses the whole lexical block. Narrowing is a performance
+optimization; an uncertain range never shortens a lifetime.
+
+### Call-site bracketing
+
+A lexical region in a caller cannot directly name a scope inside a callee. AIF
+instead proves that the callee's transitive allocation extent always runs under
+one placement regime, then lets the runtime's dynamically scoped arena serve
+those allocations while the call executes.
+
+The proof rejects an extent when any of these conditions holds:
+
+- an allocation reaches static/global state;
+- the extent stores into an owner allocated outside the extent;
+- a sealed or opaque body lacks a complete ownership summary;
+- an explicit `drop` requires an individual deallocator;
+- an allocating body is also reachable from outside the proposed regime; or
+- a call result or caller binding may outlive the region.
+
+Multiple call sites are allowed when all of them use the same region as their
+innermost arena. Otherwise one static callee body would need to free heap memory
+on one path and avoid freeing arena memory on another. Ownership-context
+specialization could support that second regime in the future; Prismio 0.1
+refuses the placement instead.
+
+The compiler also verifies the inverse ownership obligation: an arena-served
+container must not own a heap element from outside the bracketed extent. Arena
+reset removes the container teardown, so admitting such a container would leak
+the external element's decrement.
+
+## Ownership lowering and release
+
+IR generation queries AIF at the points where lifetime facts become executable
+behavior. The major query sites are allocation, call return, container
+construction, field store, reassignment, scope exit, and region entry/exit.
+
+### Allocation hooks
+
+Struct construction selects one of five backend paths:
+
+| Query result | LLVM/runtime path |
+| --- | --- |
+| Arena serves the node | `ir_alloc_region` → `arena_alloc` |
+| Tier is `T0` | `ir_alloc_stack` → entry-block `alloca` |
+| Site is countable `T3`/`T4a` | `ir_alloc_rc` → `rc_alloc` |
+| Site is collectable `T4b`/cyclic `T4a` | `ir_alloc_cycle` → `cyc_alloc` |
+| No specialized mechanism | `ir_alloc_object` → configured heap allocator |
+
+The `T0` slot is hoisted to the function entry block and reused across loop
+iterations. This is safe only because the site is proven not to outlive its
+defining scope. A mistaken escape fact here is a miscompile, not a small
+performance regression, which is why T0 eligibility is intentionally narrow.
+
+Runtime-produced strings and lists allocate behind the direct object-allocation
+seam. When such a producing call is arena-placed, code generation brackets the
+call with `rt_arena_hint_push` and `rt_arena_hint_pop`; runtime allocation then
+consults the active arena. Arguments are evaluated before the hint is enabled,
+so unrelated argument construction is not accidentally redirected.
+
+### Scope drops and overwrite release
+
+The statement emitter keeps a drop list per lexical scope. Eligible move-only
+bindings are released newest first on normal exit and on every early exit. A
+binding is omitted when its value is stack storage, arena-served, explicitly
+dropped, transferred, owned by a container, or released by an owning field.
+
+Reassignment asks a separate `aif_releases_on_overwrite_node` query. The value
+being displaced may have escaped the syntactic allocation scope while still
+being uniquely owned by that one mutable slot. Releasing it on overwrite closes
+the accumulator pattern without pretending its site is scope-local.
+
+### Containers carry an element disposition
+
+A list knows the number of elements but not their source-level types at runtime,
+so code generation stamps one element disposition at construction:
+
+```text
+NONE | OBJECT | LIST | TYPED | RC | CYCLE | RC_ATOMIC | CYCLE_ATOMIC
+```
+
+Push and set retain counted elements; replacement and teardown perform the
+matching release. The solver requires every possible element site to agree on
+one disposition. A mixed or unknown container gets `NONE`, preferring a visible
+leak over freeing an object with the wrong mechanism.
+
+Element storage and ownership are coupled. A counted or collected element
+cannot be stored inline because its header and independent identity live before
+the object pointer. The type-level `aif_type_is_counted` query conservatively
+forces boxing when any site of the element type needs a count.
+
+### Struct fields use generated release functions
+
+Struct fields are statically known, so they do not carry a runtime disposition
+word. For each type that owns fields, the compiler generates
+`__aif_release_<Type>` with one field-specific action. The actions may free an
+object, release a list, call another typed release, or decrement a count.
+
+Inline fields own no pointer and are skipped. Recursive unique fields may use a
+tail loop for the final self field, preventing stack overflow on long linked
+chains. Fields that belong to a collectable SCC are traversed by the cycle
+descriptor rather than recursively released a second time.
+
+Hot/cold split types always receive a generated release function even when they
+own no fields: the function frees the cold block before the hot base. RC objects
+store the cold-link byte offset in spare prefix-header space so container
+teardown can reclaim both blocks without knowing the source type.
+
+## Reference counting and cycle collection
+
+The current compiler installs an RC header only for compiler-allocated struct
+sites held by containers. Opaque returns, strings, lists, arrays, explicitly
+dropped sites, and values without a maintained container edge do not receive a
+header. This is the representability boundary behind `rc:none`.
+
+Non-atomic and atomic operations have separate runtime entry points. The
+compiler chooses between them statically; the common T3 path does not branch on
+a header flag at every retain or release. A transferred value remains
+non-atomic when the task handoff serializes access. Simultaneous reachability
+from two tasks requires the T4a atomic path.
+
+The T4b collector is synchronous trial deletion over candidate roots. It is not
+a tracing collector over the whole heap:
+
+1. a decrement that does not reach zero marks a collectable object purple and
+   buffers it;
+2. `MarkGrey` subtracts internal counts through cyclic fields;
+3. `Scan` restores black objects reachable from outside the candidate graph;
+4. `CollectWhite` reclaims the remaining unreachable cycle.
+
+Generated child visitors traverse only fields whose source and destination
+types are in the same strongly connected component. Every value-level cycle
+must follow a cycle in the type graph, so this restriction finds all cycles
+without walking the large acyclic object graphs attached to them.
+
+If no nominal type lies in a non-trivial SCC, the manifest reports that the
+collector is unnecessary and the compiler omits collector participation. A
+T4a value whose type is also cyclic uses atomic counting **and** cycle
+participation; the two costs are not conflated.
+
+## Concurrency model
+
+The thread lattice is driven by structured task syntax and reachability:
+
+- a value passed to a task that is joined on every path before scope exit stays
+  bounded by that join scope;
+- a moved value becomes `Transferred`, not automatically `CrossThread`;
+- a value reachable from both parent and child, or from global state in a
+  program with tasks, becomes `CrossThread`;
+- an unjoined task makes captured values global because its lifetime is no
+  longer bounded by the spawning scope.
+
+Join analysis is syntactic and deliberately conservative. It handles straight
+line code, intervening statements and loops, and branches that join on every
+exit. It does not assume match exhaustiveness and does not infer that a loop
+executes. If any path can leave without joining, the task is treated as
+unjoined.
+
+This is the reason thread transfer and simultaneous sharing are separate facts:
+isolated concurrency should not charge atomic reference counts merely because a
+value moved from one task to another.
+
+## FFI is an ownership proof barrier
+
+Contracts are resolved in this precedence order:
+
+1. an ownership contract written on the declaration;
+2. compiler builtin knowledge;
+3. the runtime contract table; and
+4. conservative fallback behavior.
+
+Parameter contracts are `borrow`, `retain`, `consume`, `out`, and
+`retain_in(k)`. Returns are `alias` or `produce(free_fn)`. `retain_in(k)` connects
+an argument to the owner supplied at argument `k`; `alias` returns an existing
+value or view rather than registering a new allocation site; `produce` gives the
+caller an owned result and identifies its release function.
+
+A call is considered fully summarized only when every parameter and the return
+are described. Partial knowledge is insufficient for arena bracketing: the one
+unspecified argument may be retained, and guessing `borrow` there would permit
+arena memory to escape.
+
+Some runtime operations require more precise rules than their surface
+signatures suggest. `list_get` returns the list's element key rather than an
+alias of the list itself. `chan_recv` produces ownership of an existing foreign
+allocation rather than allocating at the receive site, so it is barred from T0
+and arena placement. String views alias argument storage and carry view
+provenance back to the base.
+
+## Layout is part of the same decision system
+
+AIF records field accesses and traversal shape while walking the AST. A declared
+workload can replace that static estimate with a measured profile; workload
+failure warns and falls back to static data rather than failing the build.
+
+Field layout uses target pointer width and natural alignment. It can reorder
+fields and select a hot/cold split. The split is vetoed when it would break a
+representation the compiler cannot safely rewrite, including:
+
+- a type embedded as an inline struct field;
+- an inline owner the frontend cannot model exactly;
+- a list traversed as a full sequential record; or
+- a type exposed through an explicit SoA data view whose physical offsets must
+  remain stable.
+
+Observed numeric ranges are profile advice, not proof. Prismio does not narrow a
+field merely because one workload happened to observe small values; doing so
+would make behavior depend on the profile used to compile the program.
+
+Layout selection runs before exact struct sizing because field order changes
+padding and therefore the T0 byte threshold. Split selection runs after size
+calculation and before tier solving. Layout and lifetime optimization share the
+pipeline, but neither is permitted to change observable program behavior.
+
+## Assertions, diagnostics, and reports
+
+`unique` is an aliasing axiom checked by the semantic move rules. `pin(Tn)` is
+an output constraint: a more expensive pin is sound and honored, while a
+converged proof that requires a more expensive tier refutes a cheaper pin. A
+budget-limited solve warns that the pin is unproven and drops it. `pin(region)`
+is checked after arena placement because it asserts a physical placement rather
+than a tier.
+
+Current AIF diagnostics are:
+
+| Code | Meaning |
+| --- | --- |
+| `P5001` | Measured workload profile matched no type; static profile used |
+| `P5002` | Tier pin refuted by converged inference |
+| `P5003` | Tier pin unproven after budget exhaustion |
+| `P5004` | Region placement pin unproven |
+| `P5005` | Region placement pin refuted |
+| `P5006` | Proven region byte budget exceeded |
+| `P5007` | Written region serves no allocation |
+
+Use the report modes for different questions:
+
+```bash
+prismio aif app.psm
+prismio aif app.psm --summary
+prismio aif app.psm --manifest
+prismio aif app.psm --why=build_scene__Void#0
+prismio aif app.psm --layout
+prismio aif app.psm --budget=1
+prismio build app.psm --verify
+```
+
+- The default report groups application and imported sites by actual storage
+  mechanism and gives each row a short numeric ID.
+- `--summary` exposes tier distribution, allocation kinds, thread affinity,
+  cyclic types, bracketing blockers, and placed calls.
+- `--manifest` is the stable line-oriented artifact for CI. It sorts records by
+  function symbol and source-site ordinal rather than source line, so unrelated
+  line movement does not rewrite every identity.
+- `--why` explains one numeric ID or stable manifest symbol, including its fact
+  witness, arena blockers, bracket obligations, pin verdict, and ranked repairs.
+- `--layout` shows the chosen candidate and ranked alternatives.
+
+The manifest header records the conformance level, exceeded capabilities,
+budget, convergence, points-to and fact rounds, stack threshold, FFI default,
+compiler and LLVM versions, target-aware arena estimate, profile source, and
+cycle-collector population. Prismio 0.1 reports `AIF-1` and separately records
+that its thread inference and isolation concurrency behavior exceed that base
+level.
+
+### Reading one manifest row
+
+```text
+tier_one_string__Void#0  T1  Isolated  region:auto  String  AoS  inferred  app.psm:18:14
+```
+
+Read this from left to right:
+
+1. `tier_one_string__Void#0` is allocation site zero in the mangled function;
+2. the fact ladder selected `T1`;
+3. no task transfer or simultaneous sharing was inferred;
+4. the cost model placed an automatic arena that actually serves the site;
+5. the abstract value is a `String`;
+6. the selected physical layout is array-of-structures;
+7. no source pin forced the result; and
+8. the final field points back to the allocation syntax.
+
+If the placement were `region:none`, the tier would still be T1 but the binary
+would use scoped heap storage. That distinction is why CI should diff the full
+record instead of tier alone.
+
+## Verification and release evidence
+
+`--verify` swaps the ordinary allocator pair for a ledger-backed allocator and
+compiles the runtime against the same shims. Each live allocation is tracked,
+released exactly once, and poisoned on release. Arena chunks remain bulk-owned;
+the verifier accounts for the allocation/free pair at the correct layer rather
+than pretending each bump allocation has an individual free.
+
+Verification is strongest when fixtures exercise normal exit, early return,
+loop reassignment, container replacement and teardown, FFI calls, task transfer,
+and cyclic release. It catches supported leaks, duplicate releases, and releases
+of pointers that are not live. It cannot validate a false foreign contract or
+observe arbitrary ownership behavior inside external code.
+
+The v0.1 release-candidate evidence records:
+
+- a two-generation byte-identical compiler fixpoint, including the frozen RC
+  reproducing its own IR;
+- the full suite passing **202/202**;
+- the independent AIF oracle agreeing on **19/19** sources;
+- 30 corpus programs built and run;
+- AddressSanitizer and ThreadSanitizer sweeps with no reports; and
+- `--verify` reporting zero leaks and zero lifecycle violations on every checked
+  program.
+
+See the checked-in
+[`v0.1 release-candidate gate`](https://github.com/prismio-lang/prismio/blob/43107cff86c140fbf130c27211379d775d25c727/aif/evidence/RESULTS-v01-release-candidate.md)
+for the exact commands and limitations. These results establish the tested
+compiler state; they are not a proof that every future transfer rule is sound.
+
+## Debugging an AIF change
+
+Use a layered workflow so a correct-looking final tier cannot hide a wrong
+reason or a missing code-generation mechanism.
+
+<Steps>
+
+### Reduce to one allocation site
+
+Write the smallest fixture whose only difference is the fact under test. Keep
+controls that prevent an always-on rule from passing accidentally. For task
+tests, include a no-task control; for alias tests, keep a same-shape unique case;
+for bracketing, isolate each failed obligation.
+
+### Compare the independent model
+
+Use `prismio dump-ast` with `aif/prototype/aif.py`, or run
+`tools/aif_differential.py`. When comparing the prototype with the compiler,
+pass `--theta-fields` so both use the prototype's field-count stack threshold.
+This comparison catches a silently wrong transfer function better than a test
+that only checks the final count.
+
+### Inspect the fact witness
+
+Run the human report, copy the numeric ID or stable symbol, and use `--why`.
+Check the domain that selected the tier, the source edge that raised it, the
+placement blockers, and any repair suggestion. A fix that changes the tier for
+an unrelated reason is not a valid regression fix.
+
+### Inspect the mechanism
+
+Use `--manifest` and verify `placement`, `thread`, `layout`, and `origin` in
+addition to `tier`. For regions, inspect bracketed-call counts and inert-region
+warnings. For RC and cycles, confirm that the row says `rc`, `rc-atomic`, or
+`rc+cycle`, not a `none` fallback.
+
+### Exercise emitted ownership
+
+Build the fixture with `--verify`, run it, and assert the allocation, release,
+leak, violation, arena, RC, or collector counters relevant to the change. Inspect
+LLVM when the change touches allocation selection, generated release functions,
+or retain/release placement.
+
+### Rebuild the compiler to a fixed point
+
+AIF compiles the compiler that implements AIF. Complete the focused fixture,
+the full suite, independent differential, corpus verification, sanitizer checks,
+and two-generation bootstrap/fixpoint gate. Compare function mnemonics before
+interpreting timing changes so metadata-only IR movement does not look like a
+code-generation regression.
+
+</Steps>
+
+## Known conservative boundaries
+
+The current implementation is intentionally narrower than the full AIF 1.2
+design in several places:
+
+- one context-insensitive site represents all ownership contexts of a source
+  allocation;
+- the analysis is flow-insensitive, field-sensitive, object-insensitive, and
+  interprocedurally path-insensitive;
+- structured join proof is syntactic and treats uncertain control flow as
+  unjoined;
+- unknown or mixed container element dispositions reclaim nothing rather than
+  choosing an unsafe teardown;
+- `T3`/`T4` headers are available only for compiler-owned struct sites whose
+  reference edges the runtime can maintain;
+- arrays use frame storage in current code generation even though the abstract
+  model registers them as affine allocation sites;
+- call-site bracketing supports one static placement regime per emitted callee
+  body; ownership-context specialization is not implemented; and
+- observed workload ranges can guide layout but never justify narrowing or a
+  semantic assumption.
+
+Each boundary should cost optimization opportunity, not correctness. When a new
+feature makes one of these approximations unsound, extend the representation or
+reject the optimization; do not add a special case that assumes the missing
+fact.
+
+## Contributor checklist
+
+When changing AIF, keep these paired mechanisms in sync:
+
+- AST allocation-site registration and every code-generation query for that
+  node;
+- the type reference graph and generated cyclic-child visitors;
+- container retain operations and every replacement/teardown release;
+- field disposition and generated typed release functions;
+- hot/cold allocation and the corresponding cold-block release path;
+- arena admission, non-lexical extent, and every early-exit pop;
+- FFI contract tables in analysis and the concrete runtime ABI;
+- widening rules, pin adjudication, manifest output, and `--why` derivations;
+- target-aware layout sizing and the LLVM target data layout; and
+- release fixtures, verifier counters, differential expectations, and bootstrap
+  evidence.
+
+The governing principle is simple: AIF may become more precise, but every cheap
+mechanism must remain the consequence of a completed proof, and every runtime
+owner must have exactly one matching teardown path.

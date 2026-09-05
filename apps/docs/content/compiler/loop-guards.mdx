@@ -1,0 +1,298 @@
+---
+title: Loop guards and container access
+description: How Prismio proves a container's representation and index range once per loop, versions the loop on that proof, and emits unchecked access inside it.
+status: implemented
+version: "0.1.0"
+lastUpdated: "2026-09-05"
+tags: [compiler, loops, containers, codegen, performance, vectorization]
+related: [compiler/aif-internals, compiler/string-representation, stdlib/lists, specification/memory-model]
+---
+
+A `list_get` in Prismio is not one machine instruction. It is a representation
+test, a bounds test, and two loads from the list header, and a loop pays all of
+them on every iteration. **Loop guards** move that work out of the loop: one
+predicate in the preheader proves what every access in the body needs, LLVM
+versions the loop on it, and the fast version accesses memory directly.
+
+This page describes the mechanism, the analysis that decides which loops qualify,
+the soundness argument for each thing it removes, and the measurements. It is an
+implementation deep dive for compiler and runtime contributors; nothing here is
+observable from the source language except speed.
+
+## What application developers need to know
+
+- Container access has the same meaning whether or not a loop is guarded.
+  `list_get` past the end still returns the element type's zero, and `list_set`
+  past the end is still a no-op.
+- You do not opt in. A `while` loop over a `List<Int>` is guarded when the
+  compiler can prove it, and takes the ordinary path when it cannot.
+- Two source patterns decide whether the loop can also **vectorize**: write the
+  update as an unconditional store, and prefer `std.math`'s `max`/`min` over a
+  hand-written branch. A conditional store cannot be widened by any compiler.
+- A call inside a hot loop is no longer automatically a performance cliff, but a
+  call that can *grow* a list still is. See [What may appear in a guarded
+  loop](#what-may-appear-in-a-guarded-loop).
+
+## The cost being removed
+
+`RtList` is a 40-byte header holding, among other fields, a data pointer, a
+length, and an `elem_size` stamp that records whether elements are stored inline
+or as pointers. A scalar read compiles to `list_get_inline_scalar`, whose body is:
+
+```c
+unsigned long long list_get_inline_scalar(void* lp, int index, int elem_size) {
+    RtList* l = (RtList*)lp;
+    if ((unsigned)index >= (unsigned)l->len) return 0;   // bounds
+    if (l->elem_size != elem_size) {                     // representation
+        return (unsigned long long)(uintptr_t)l->data[index];
+    }
+    ...
+}
+```
+
+Both tests are load-bearing. The representation test exists because
+`list_get_inline` returns two different *kinds* of thing — a slot's address for
+an inline list, a slot's contents for a boxed one — and only a scalar element can
+tell those apart. The bounds test exists because `list_get` is **total**: it
+returns zero rather than trapping.
+
+Inlined into a DP loop, one iteration of a 1-D knapsack emitted three
+representation tests, two bounds tests, and six or seven reloads of the header.
+The equivalent C++ inner loop is two loads, a compare, a `csel`, and a store.
+
+### The bounds check is why the header reloads
+
+This is the non-obvious part, and it is what makes the guard worth building
+rather than hand-optimising the runtime.
+
+`l->data` is loaded **only on the in-range path**. A conditional load is one LICM
+will not hoist, because it cannot prove the address dereferenceable on the path
+that skips it. So the bounds check is not a cost sitting *beside* the header
+reload — it is the *cause* of it. Remove the condition and LLVM hoists the
+pointer into a register by itself.
+
+Measured on a model of the same loop over the real `RtList` layout:
+
+| variant | min ns | vs raw C array |
+| --- | ---: | ---: |
+| representation test per access | 505,000 | 2.89x |
+| representation proved per loop | 309,000 | 1.77x |
+| `(base, len)` hoisted into the preheader by hand | 310,000 | **1.77x** |
+| one range precondition per loop, then unchecked | 176,000 | **1.01x** |
+| no bounds checks at all (unsound; the ceiling) | 173,000 | 0.99x |
+
+The third row is the one worth pausing on. Hoisting the base pointer yourself —
+the obvious fix, and the one an earlier design note recommended — is worth
+**nothing**. Removing the check gets the hoist for free, and adding the hoist on
+top of that changes nothing again.
+
+## The guard
+
+One `i1` per loop, computed in the preheader, is the conjunction of everything
+the body needs. It carries two kinds of fact.
+
+### Representation
+
+For every guarded access, `elem_size == stride`, where `stride` is the static
+inline width of the element type. One conjunction rather than one test per site:
+LLVM will not clone a loop for `2^n` independent invariant conditions, and a
+fused loop over five lists measured worse with per-site tests than with none.
+
+### Range
+
+For every guarded access, `0 <= lowest index` and `highest index < len`,
+evaluated in `i64` so the arithmetic cannot wrap a 32-bit `Int`.
+
+The range is recovered from the loop itself. For a `while (V op B)` loop whose
+body updates `V` exactly once, as its last statement, and every one of whose
+guarded accesses indexes `V`, `V + E` or `V - E` for a loop-invariant `E`, the
+values `V` takes in the body are exactly `[B, V_init]` going down or
+`[V_init, B]` going up — and `V_init` needs no symbolic reasoning, because the
+preheader still holds it.
+
+> **Why the restriction is not cosmetic:** the update must be the body's **last** statement, and an earlier version of this
+> analysis shows why the restriction is not cosmetic. Widening the range by one
+> step to allow the update anywhere makes the lower bound of `at - weight` equal
+> `weight - 1 - weight`, which is `-1`, so the conjunct `>= 0` is false at run time
+> *always*. The guard never fired, the loop still paid to be versioned, and the
+> result was **1.29x slower** — with correct output, correct-looking IR, and a
+> passing test suite. Only the benchmark distinguished a guard that fires from one
+> that cannot.
+
+## Loop versioning, and why totality survives
+
+The guard is a loop-invariant `i1`, so LLVM versions the loop on it: two copies,
+one entered when it holds and one when it does not.
+
+The false version is byte-for-byte what the compiler emitted before guards
+existed. That is the whole soundness story for the language's semantics. Nothing
+in this mechanism can make an out-of-range access do something new; it can only
+decide which of two loops runs, and a loop whose indices are not provably in
+range runs the one that checks them.
+
+This is HotSpot's *loop predication* with a better failure mode. HotSpot must
+deoptimise when a hoisted check fails; Prismio keeps both loops and picks one.
+
+## What may appear in a guarded loop
+
+A call in the body can invalidate the guard, so the compiler needs an answer for
+each one. The question is narrower than "does this touch a list", and the
+difference is most of the language.
+
+The guard proves the element representation and the index range. **A read cannot
+change either. Nor can a write** — `list_set` and its inline siblings store into
+a slot that already exists. Only moving the element block can: growth reallocates
+it, `list_set_elem_inline` frees and re-widths it, and release frees it.
+
+So the compiler classifies every function in the module by whether it can reach
+one of those primitives:
+
+```
+irPrimitiveMovesBlock   list_push and family, list_inline_grow,
+                        list_set_elem_inline, list_release,
+                        rc_release, cyc_release
+irPrimitiveIsSettled    list_get, list_set, list_len, rc_retain, ...
+```
+
+A module pass then runs a **greatest fixed point** over the call graph. Every
+function with a body starts assumed settled; each sweep takes that away from any
+function reaching a block-moving primitive, an unknown `extern fn`, or a `spawn`.
+Sweeps repeat until nothing changes, which terminates because a verdict only ever
+moves one way and the module is finite.
+
+Starting optimistic is what admits recursion: a function that calls only itself
+moves no block, and a pessimistic start would wait on itself forever.
+
+The table is keyed by **source name**, because the guard sees a spelling at the
+call site rather than a resolved symbol. Overloading therefore means one unsafe
+overload poisons the name for all of them.
+
+### Why not inlining
+
+The obvious explanation for a call being expensive is that it was not inlined,
+and it is wrong here. A two-line `maxInt(a, b)` helper called from a DP loop
+measured **1.79x slower than the branch it replaced** — and the disassembly
+contains no call to it. LLVM inlined it.
+
+It was slower because the guard analysis runs in *Prismio's* codegen, before LLVM
+sees the module at all. The loop lost its guards at that point, and inlining
+afterwards could not give them back. **Inlining was never the missing piece;
+looking through the call was.**
+
+## Emission
+
+Inside the true version, an access skips what the guard already proved:
+
+| | representation test | bounds test | header loads |
+| --- | --- | --- | --- |
+| unguarded | per access | per access | per access |
+| representation guard only | preheader | per access | per access |
+| representation and range | preheader | preheader | hoisted by LICM |
+
+The read is `ir_list_flat_scalar_elem` with `check_bounds` cleared; the write is
+`ir_list_flat_scalar_set`. Both branch on the guard and fall back to the ordinary
+runtime entry point on the false arm.
+
+> **Implementation note:** Every access this backend emits carries a TBAA leaf, and the store above was
+> briefly written without one. An untagged store may alias anything — including the
+> `data` pointer loaded from the header two instructions earlier — so LICM could not
+> hoist that load, the base was re-read every iteration, and cross-iteration
+> dependence analysis was impossible. The loop stayed scalar with nothing in the
+> assembly to say why. One `tag_scalar` call fixed it, and it is what lets a
+> guarded loop vectorize at all.
+
+## Vectorization, and the one thing source code controls
+
+With the guard in place the inner loop is straight-line memory access, which is
+the precondition for LLVM to widen it. Whether it actually does is decided by one
+property of the source: **is the store unconditional?**
+
+```prismio
+// Conditional store. Correct, and cannot be vectorized — by any compiler.
+if (candidate > list_get(best, at)) { list_set(best, at, candidate) }
+
+// Unconditional store of a select. Widens to four elements per iteration.
+list_set(best, at, max(list_get(best, at), candidate))
+```
+
+This is not a Prismio limitation. Modelled on a raw C array, the same loop is
+220,000ns with `if` and 188,000ns with `max`, 7 NEON operations against 22. LLVM
+declines to speculate a store it cannot prove safe to execute unconditionally,
+and so does every other production compiler.
+
+`std.math`'s `max`, `min` and `abs` exist for this reason. They lower to
+`llvm.smax.i32`, `llvm.smin.i32` and `llvm.abs.i32`, which LLVM lists as
+*trivially vectorizable* — a branch written by hand is not.
+
+## Measurements
+
+`knapsack`, a 1-D DP over `List<Int>` with 576,000 inner iterations, against C++
+`-O3` and Rust `opt-level=3` on the same machine, 31 alternating samples,
+checksums equal:
+
+| stage | vs C++ | vs Rust |
+| --- | ---: | ---: |
+| before loop guards | 3.49x | 1.17x |
+| `list_set` stops vetoing the guard | 2.55x | 0.85x |
+| range guard, unchecked reads | 1.91x | 0.64x |
+| unchecked writes | 1.42x | 0.50x |
+| TBAA on the store | 1.37x | 0.47x |
+| source written as an unconditional `max` | **1.03x** | **0.35x** |
+
+Rust is scalar on this workload and pays bounds checks Prismio no longer does,
+which is why Prismio is roughly three times faster there while still level with
+C++.
+
+The mechanism is not specific to one benchmark. Across the 34-program suite it
+changed 13 of 53 functions, and `tokenization` — a string workload with no DP
+loop at all — is **0.56x of C++**.
+
+> **Measurement warning:** This suite is layout-sensitive well past its recorded noise floor. `gcd_lcm` read
+> **0.868x** reproducibly across 31 alternating samples on **byte-identical code**;
+> the symbol had merely moved 132 bytes, changing its 64-byte alignment. Before
+> believing any number here, diff the per-symbol mnemonic sequences of the two
+> binaries and measure only the functions that actually changed.
+
+## What is declined
+
+The analysis is deliberately narrow, and each of these is a separate widening
+with its own soundness argument:
+
+- `for` and `loop` forms. Only `while` carries the guard today.
+- An induction variable updated anywhere but the body's last statement, more than
+  once, or by a non-literal step.
+- An index that is not `V`, `V + E` or `V - E` for a loop-invariant `E`.
+- A receiver reached through a field (`w.items`). A stale length is an
+  out-of-bounds *store*, and an assignment through a field is not what the
+  module pass inspects.
+- Any loop calling a function that can reach a block-moving primitive, an
+  unknown `extern fn`, or a `spawn`.
+- Struct elements in the write path, whose setter can run a user releaser.
+
+## Implementation map
+
+| Concern | Location |
+| --- | --- |
+| Guard construction, range recovery | `generateLoopFlatGuard`, `generateLoopRangeGuards` in `src/ir/expr.psm` |
+| Which calls decline a loop | `irFlatGuardCount` in `src/ir/expr.psm` |
+| Effect analysis and fixed point | `irBodyMovesNoBlock` and the sweep in `src/ir/module.psm` |
+| Guard-safe function table | `ir_mark_guard_safe_fn`, `ir_is_guard_safe_fn` in `runtime/ir_symbols.c` |
+| Unchecked read and write | `ir_list_flat_scalar_elem`, `ir_list_flat_scalar_set` in `runtime/llvm-api-backend.c` |
+| min/max/abs intrinsics | `src/sema/builtins.psm`, `src/ir/expr.psm`, `std/math.psm` |
+| Tests | `tests/test_119_loop_range_guard.psm`, `test_120_min_max_abs.psm`, `test_121_guard_effect_analysis.psm` |
+
+## Debugging a guard change
+
+**Ask whether the guard fired before asking whether it helped.** A guard that is
+emitted and always false looks identical in the test suite to one that works.
+Count `cmp` against the stride in the disassembly: once, in the preheader, means
+it fired; once per access means it did not.
+
+**Then check the fast version, not the first loop you find.** A versioned loop has
+two bodies, and the checked one is often the one your eye lands on first.
+
+**Write the adversarial test before the optimistic one.** A helper that pushes to
+the list under test must decline the guard; so must one that reaches a pusher
+through another call. Those two cases are the entire soundness claim of the
+effect analysis, and they fail loudly — a stale length past a `list_push` is an
+out-of-bounds access, not a wrong answer.
