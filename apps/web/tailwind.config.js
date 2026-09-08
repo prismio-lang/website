@@ -7,10 +7,15 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ["Inter", "sans-serif"],
+                sans: ["var(--font-geist-sans)", "Inter", "sans-serif"],
+                mono: ["var(--font-geist-mono)", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
             },
             colors: {
-                dark: "#111111"
+                dark: "#070709",
+                prismio: {
+                    DEFAULT: "#47d7b5",
+                    dim: "rgba(71, 215, 181, 0.15)",
+                }
             }
         },
     },

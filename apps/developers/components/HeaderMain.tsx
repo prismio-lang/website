@@ -67,7 +67,7 @@ export default function HeaderMain() {
 
                         <div className="ml-auto hidden md:flex items-center gap-3">
 
-                            <Link href="https:/prismio.org/install">
+                            <Link href="https://prismio.org/install">
                                 <Button
                                     variant="tertiary"
                                     className="
