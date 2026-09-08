@@ -1,3 +1,5 @@
+/* global process */
+
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join, relative, resolve, sep } from "node:path";
@@ -5,7 +7,9 @@ import { spawnSync } from "node:child_process";
 
 const docsRoot = resolve(import.meta.dirname, "..");
 const contentRoot = join(docsRoot, "content");
-const compiler = resolve(process.env.PRISMIO ?? join(docsRoot, "..", "prismio", "build", process.platform === "win32" ? "gen6.exe" : "gen6"));
+// The override is intentionally local to this compiler-backed documentation check.
+// eslint-disable-next-line turbo/no-undeclared-env-vars
+const compiler = resolve(process.env.PRISMIO ?? join(docsRoot, "..", "..", "..", "prismio", "build", process.platform === "win32" ? "gen6.exe" : "gen6"));
 const work = mkdtempSync(join(tmpdir(), "prismio-docs-"));
 
 function walk(directory) {

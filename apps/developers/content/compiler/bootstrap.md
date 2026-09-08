@@ -5,7 +5,7 @@ status: implemented
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [compiler, bootstrap, self-hosting, reproducibility]
-related: [start/installation, guides/compiler-development, specification/conformance]
+related: [start/development-setup, start/local-compiler-loop, testing/fixed-point-verification]
 ---
 
 Self-hosting creates a cycle: Prismio source needs a Prismio compiler. The repository breaks it with committed, target-neutral LLVM IR for a seed compiler.
@@ -33,6 +33,12 @@ PowerShell provides the corresponding Windows workflow. Each generation compiles
 
 The scripts also coordinate the pinned LLVM line and platform-specific executable naming/link requirements. Use them instead of manually reproducing their link command when validating self-hosting.
 
+`tools/bootstrap.sh` and `tools/bootstrap.ps1` are maintained counterparts. In seed mode they lower
+`bootstrap/prismio-seed.ll`; in compiler mode they invoke the named compiler's `bootstrap` command.
+Both compile the current C sources with real LLVM headers, use content-derived cache keys, link to a
+staging path, and atomically install the result. `PRISMIO_LLVM_DIR` overrides the toolchain recorded
+by `tools/setup_llvm.py`; `PRISMIO_OBJ_CACHE=0` provides a cache-bypass diagnostic path.
+
 ## Why runtime/backend sources are rebuilt
 
 An ordinary application build links the runtime installed/embedded with that compiler. Compiler development can change the C runtime/backend bridge itself. A bootstrap must compile those current-tree sources; otherwise a new Prismio frontend could be linked against stale support code and appear to pass only by accident.
@@ -42,6 +48,13 @@ For that reason, do not replace the bootstrap workflow with an older binary's or
 ## Fixed-point meaning
 
 A fixed-point check compares successive compiler outputs. It detects a compiler whose behavior depends on the generation used to build it. CI also rejects duplicate symbols in generated IR and verifies that the seed contains no host-specific target triple.
+
+`tools/release_gate.py` makes the comparison concrete. `check_generations()` bootstraps two
+successors from the release candidate, `check_fixpoint()` emits their compiler IR and compares the
+canonical result, `check_rc_reproduces()` checks that the release candidate reproduces generation
+one, and `check_seed()` confirms the compiler command can still reconstruct a usable seed-derived
+compiler. The same gate then runs the regression suite, AIF differential, corpus, verifier sweep,
+JIT, cross-target, and packaging checks.
 
 A fixed point does not prove the compiler implements the intended language; two generations can agree on the same bug. Positive/negative regression tests and specification conformance remain necessary. The fixed point specifically establishes generation stability for the checked artifacts.
 

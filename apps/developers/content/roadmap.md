@@ -1,89 +1,78 @@
 ---
-title: Roadmap and feature status
-description: Implementation status for current and planned Prismio language, tooling, platform, and library capabilities.
+title: Engineering roadmap
+description: Evidence-backed Prismio compiler, AIF, runtime, tooling, and standard-surface priorities without invented release dates.
 status: draft
 version: "0.1.0"
-lastUpdated: "2026-08-29"
-tags: [roadmap, status, coming-soon]
-related: [start/overview, releases/0.1.0, faq]
+lastUpdated: "2026-09-08"
+tags: [roadmap, compiler, status]
+related: [start, releases/0.1.0, performance/investigation-method]
 ---
 
-This page distinguishes shipped compiler behavior from intent. It does not assign release dates.
+This roadmap distinguishes shipped behavior, measured problems, and proposed engineering work. It
+does not assign release dates.
 
-| Area | 0.1 status |
-| --- | --- |
-| Self-hosted frontend and LLVM backend | Implemented |
-| Native Windows, macOS, and Linux CI | Implemented |
-| Ownership checks and AIF | Experimental |
-| Cross-compilation (`--target`, `--sysroot`) | Implemented |
-| WebAssembly past IR | Blocked |
-| Importable standard-library modules | Implemented |
-| Module qualifiers (`std.string.strTrim(x)`) | Implemented (calls only, by full import path) |
-| Visibility: `public`, `private`, `internal` | Implemented (`fn` and `extern fn`; `public` is the default) |
-| Selective imports (`import m.name`) | Implemented |
-| Aliased imports (`import m as n`) | Coming Soon |
-| Method call syntax and `impl` blocks | Implemented |
-| Traits and bounded generics | Implemented |
-| Generics, monomorphization, and per-specialization container layout | Implemented |
-| Inline storage for eligible `List<T>` structs | Implemented |
-| `Slice<T>` list views and nested slicing | Implemented |
-| Programmer-directed AoS↔SoA data views | Experimental (conversion, checked reads, mutation and round trip implemented) |
-| Payload enums, `Option` and `Result` | Implemented |
-| Closures | Implemented |
-| User-written lifetimes | Coming Soon |
-| Exceptions or result propagation syntax | Coming Soon |
-| Tasks: `spawn`, `join`, `Task<R>` | Experimental |
-| Blocking typed channels: `Channel<T>` | Implemented |
-| Async functions, `await`, atomics, synchronization types | Coming Soon |
-| Macros and compiler plug-ins | Coming Soon |
-| Package manifest (`build.ums`), lockfile, path dependencies | Implemented |
-| Package registry and version solving | Coming Soon |
-| Formatter, linter, and language server | Coming Soon |
-| Android and iOS toolchains | Coming Soon |
+## Established baseline
 
-`std.io`, `std.string`, `std.fs`, `std.process`, `std.list`, `std.map`, `std.option`, `std.key`,
-`std.ord` and `std.copy` are ordinary importable modules; `std.io` is an import rather than a
-prelude, so a program that names no I/O carries none.
+- Self-hosted frontend, semantic analysis, AIF, and LLVM 22 backend.
+- Native artifacts, direct C ABI integration, debug information, JSON diagnostics, and UMS projects.
+- Generics, traits, associated items, trait objects, `impl Trait`, closures, payload enums, slices,
+  DataView, native tasks, and blocking typed channels.
+- AIF storage plans, explanations, manifests, runtime verification, and an independent oracle.
+- A 73-workload cross-language benchmark catalog with 57 implemented workloads.
 
-Channels are the exception to "a library is a module you import": `Channel<T>` and its seven
-operations are compiler builtins, in the same category as `list_get` and `list_push`, so they need
-no import. There is no executor and no `await` — a send blocks while the channel is full and a
-receive blocks until a message arrives or the channel closes. See
-[concurrency](/language/concurrency).
+## Foundational memory work
 
-Generic functions are specialized before type checking and code generation reaches their bodies.
-Consequently, an eligible concrete `List<Flat>` instantiation may use inline storage while another
-instantiation of the same template remains boxed; there is no erased generic body that guesses the
-element representation at runtime.
+The active memory tracker ranks first-class allocation and lifetime telemetry, thread-safe region
+and cycle state, container-aware layout pricing, a memory-aware middle IR, and interprocedural
+ownership and region summaries as foundational directions.
 
-**WebAssembly is blocked, not in progress.** Prismio emits wasm32 IR, but there is no C library for
-`wasm32-unknown-unknown`, so the runtime cannot be built for it from this repository — what `print`
-resolves to on the web is an embedder's decision. A cross build with no shipped runtime archive
-says so and names the file it looked for. Cross-compilation to other targets works and has been
-built and run against `x86_64-apple-macos`.
+These are proposals with acceptance criteria, not promised speedups. Most require new measurements
+before a performance claim is possible.
 
-`impl` is parsed and implemented: concrete specializations and generic inherent blocks such as
-`impl<T> Box<T>` attach methods, and `x.f(a)` is rewritten to `f(x, a)` before overload resolution.
-See [methods and `impl` blocks](/language/methods). `impl <Trait> for <Type>` and
-`impl<T: Bound> Trait for Box<T>` are accepted and are how concrete or structurally matched types
-satisfy a bound. Applicability includes the impl bounds, and coherence rejects overlapping generic
-and concrete targets. Trait declarations and applications may also be generic, as in
-`trait From<T>`, `impl From<Int> for String`, and the bound `U: From<Int>`; trait arguments are part
-of applicability and coherence rather than being folded into a textual name.
+Implementation would span `src/aif/model.psm` and `walk.psm` for facts, the solver for propagation,
+`report.psm` for explanations and machine evidence, `src/ir` for mechanism selection, and
+`runtime/lang_runtime.c` for any new counter or allocator path. A proposal does not become active
+because a report can name it; codegen, the runtime, differential oracle, and verifier must consume
+the same meaning.
 
-Closures are implemented the same way, and it is the same mechanism: a closure is a struct plus a
-`call` function, resolved by overloading after monomorphisation, so there is no function pointer and
-no indirect call. Parameter types are written, the body is an expression, and captures are by value.
-See [closures](/language/closures).
+## Measured optimization directions
 
-Traits are implemented as a **static check**, not a dispatch mechanism: a bound is verified at the
-instantiation, where the concrete type is known, and the trait method call is resolved by ordinary
-overload resolution. There are no trait objects and no vtables. Multiple bounds on one type
-parameter are joined with `+`, or written after the signature in a `where` clause. A trait may
-declare type parameters, default method bodies, supertraits, and associated constants, and an
-`impl` may be generic. See
-[traits and bounds](/language/traits).
+Current investigations identify container-context layout selection, contiguous typed loop views,
+general destination passing, scalar replacement, return-slot construction, preserved string
+length across boundaries, runtime specialization, and explicit region capabilities as possible
+follow-on work. Each remains gated by correctness and discriminating A/B evidence.
 
-The keyword token for `throw` exists in the frontend, but no statement using it is parsed. Token
-presence is not implementation; its reference page stays Coming Soon until end-to-end tests establish
-otherwise.
+For layout work, `aif_layout_select()` and candidate ranking must expose the exact emitted choice, and
+`--force-layout` must build that candidate for A/B measurement. For destination passing or return
+slots, ownership/AIF must prove that construction targets do not alias live values before
+`generateExpression()` changes storage. Runtime specialization must keep `PRISMIO_CURATED_OPS` and
+its symbol closure synchronized with every operation codegen can emit.
+
+Each accepted optimization needs four artifacts: a source-level correctness regression, an AIF or
+IR assertion proving the mechanism, raw interleaved benchmark samples above A/A noise, and
+self-hosting fixed-point agreement. Rejected candidates remain in `aif/evidence` with their measured
+failure mode.
+
+## Unsupported surface
+
+The benchmark catalog records missing deques and ordered containers, priority queues, map deletion,
+regex, JSON, generic serialization, user-facing atomics and locks, work stealing, async I/O,
+sockets, memory-mapped files, explicit SIMD types, and custom collection allocators.
+
+Missing does not mean scheduled. A feature becomes a roadmap commitment only when its semantics,
+owner, implementation plan, tests, and acceptance evidence are defined.
+
+## Toolchain and platform work
+
+The project also tracks stronger packaged-toolchain separation, target runtime coverage, manifest
+evolution, editor protocol stability, and release reproducibility. These changes are owned by
+`runtime/build_driver.c`, `tools/package.py`, `ums`, `IDE_PROTOCOL.md`, and
+`tools/release_gate.py` respectively. LLVM accepting a triple is only backend capability; Prismio
+target support additionally requires a runtime, SDK/link strategy, tests, and a packaged smoke test.
+
+## How roadmap status changes
+
+A proposed item should name its current reproducer or measurement, exact source owner, unsafe or
+compatibility boundary, smallest discriminating test, and removal/rollback plan. Move it to the
+implemented baseline only after the ordinary compiler path uses it and the release gate proves it.
+Keep dates out until a release owner and verified artifact exist.

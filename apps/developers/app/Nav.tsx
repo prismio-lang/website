@@ -31,7 +31,7 @@ export default function DocsNav({ className, onItemClick }: DocsNavProps) {
     const pathname = usePathname();
     const activeLinkRef = useRef<HTMLAnchorElement>(null);
     const pathBranch = useMemo(() => activeBranch(DocsNavList, pathname), [pathname]);
-    const [openKeys, setOpenKeys] = useState<string[]>(() => pathBranch.length ? pathBranch : ["Getting started"]);
+    const [openKeys, setOpenKeys] = useState<string[]>(() => pathBranch.length ? pathBranch : ["Start contributing"]);
 
     useEffect(() => {
         if (!pathBranch.length) return;

@@ -16,8 +16,8 @@ export default function FooterMain() {
                     </Link>
 
                     <p className="text-gray-400 leading-relaxed max-w-xs">
-                        A systems programming language focused on performance, safety, and
-                        AI-native tooling, built in the open.
+                        A self-hosted systems language with explainable memory inference,
+                        LLVM-native code generation, and direct C interoperability.
                     </p>
                 </div>
 
@@ -42,6 +42,7 @@ export default function FooterMain() {
                 {/* Column — Community */}
                 <div className="space-y-3 md:pl-12">
                     <h5 className="font-medium text-gray-200 tracking-tight">Community</h5>
+                    <FooterLink href="/community">Community Overview</FooterLink>
                     <FooterLink href="https://discord.gg/RUXJjnJF" external>Discord Community</FooterLink>
                     <FooterLink href="https://github.com/prismio-lang/prismio/discussions" external>Discussions</FooterLink>
                     <FooterLink href="https://x.com/prismio_lang" external>Twitter / X</FooterLink>
@@ -49,7 +50,7 @@ export default function FooterMain() {
             </div>
 
             <div className="border-t border-white/10 px-8 py-6 text-center text-xs text-gray-500">
-                © {new Date().getFullYear()} Prismio Language Contributors. Built with open-source rigor.
+                © {new Date().getFullYear()} Prismio Language Contributors.
             </div>
         </footer>
     );
@@ -77,5 +78,4 @@ function FooterLink({ href, children, external }: { href: string; children: Reac
         </Link>
     );
 }
-
 

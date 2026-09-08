@@ -1,124 +1,89 @@
-import React from "react";
-import { Check, X, Minus } from "lucide-react";
+import React from 'react';
+import {ArrowDown, CheckCircle2} from 'lucide-react';
+
+const STEPS = [
+    {
+        command: 'prismio aif app.psm',
+        title: 'Inspect the storage plan',
+        copy: 'See every potential allocation site grouped by stack, compiler-placed arena, owned heap, shared heap, cycle management, and thread transfer.',
+    },
+    {
+        command: 'prismio aif app.psm --why=7',
+        title: 'Ask why a decision was made',
+        copy: 'Trace the minimal cause of one placement and see which repairs are valid—and which would contradict facts already proven by the analysis.',
+    },
+    {
+        command: 'prismio build app.psm --verify',
+        title: 'Check the emitted program',
+        copy: 'Run the real binary against verifier shims that report allocations, releases, leaks, and invalid releases without changing the program’s code generation decisions.',
+    },
+];
 
 export default function WhyPrismio() {
-    const comparisonData = [
-        {
-            feature: "Memory Model",
-            prismio: "Automatic Invalidation Flow (AIF)",
-            cpp: "Manual free() / smart pointers",
-            rust: "Affine Borrow Checker",
-            go: "Concurrent Tracing GC",
-            zig: "Manual allocators & defer",
-        },
-        {
-            feature: "GC Pauses / Latency",
-            prismio: "Zero (0 ms)",
-            cpp: "Zero (0 ms)",
-            rust: "Zero (0 ms)",
-            go: "Non-zero GC stop/mark",
-            zig: "Zero (0 ms)",
-        },
-        {
-            feature: "String Layout",
-            prismio: "16B German string (12B inline)",
-            cpp: "24B-32B std::string SSO",
-            rust: "24B String (no inline)",
-            go: "16B string header",
-            zig: "16B slice (ptr + len)",
-        },
-        {
-            feature: "Generics Dispatch",
-            prismio: "Monomorphized (Zero-cost)",
-            cpp: "Templates (Zero-cost)",
-            rust: "Monomorphized (Zero-cost)",
-            go: "Hybrid gcshape + dict",
-            zig: "Comptime duck-typed",
-        },
-        {
-            feature: "Compilation Backend",
-            prismio: "LLVM 18/19 AOT (Clang/LLD)",
-            cpp: "Clang / GCC / MSVC",
-            rust: "LLVM AOT",
-            go: "Go Compiler backend",
-            zig: "LLVM / Self-hosted",
-        },
-        {
-            feature: "Module Architecture",
-            prismio: "Unified Module System (@pkg)",
-            cpp: "Header includes / Modules",
-            rust: "Cargo Crates & mod",
-            go: "Go Packages & modules",
-            zig: "Build.zig packages",
-        },
-        {
-            feature: "Grammar Predictability",
-            prismio: "Deterministic LL(1) / LR",
-            cpp: "Context-sensitive / Most Vexing",
-            rust: "Macro-expanded AST",
-            go: "Simplified LR",
-            zig: "Comptime AST evaluation",
-        },
-    ];
-
     return (
-        <section className="px-6 py-24 max-w-7xl mx-auto z-20">
-            {/* Header */}
-            <div className="max-w-3xl mx-auto text-center mb-16 space-y-4">
-                <span className="text-xs font-mono text-indigo-400 uppercase tracking-widest">
-                    Architectural Comparison
-                </span>
-                <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white">
-                    Where Prismio fits in the systems landscape
-                </h2>
-                <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
-                    Prismio is deliberately designed to provide the memory predictability of C++, the memory safety invariants of modern languages, and the ergonomics of expressive modern syntax—without GC pauses.
-                </p>
-            </div>
+        <section className="relative py-28 md:py-36">
+            <div className="absolute inset-0 bg-indigo-950/[0.13]"/>
+            <div className="relative mx-auto max-w-7xl px-6">
+                <div className="grid gap-14 lg:grid-cols-12 lg:gap-16">
+                    <div className="lg:col-span-5">
+                        <h2 className="max-w-xl text-4xl font-semibold tracking-[-0.035em] text-white md:text-5xl">
+                            Memory decisions you can inspect, diff, and verify.
+                        </h2>
+                        <p className="mt-6 max-w-xl text-base leading-7 text-zinc-300">
+                            The Adaptive Inference Framework analyzes escape behavior, ownership,
+                            thread transfer, and layout before code generation. It chooses the
+                            cheapest safe placement it can prove—and produces evidence for the decision.
+                        </p>
 
-            {/* Comparison Matrix Table */}
-            <div className="bg-[#0b0b10] border border-white/[0.08] rounded-2xl overflow-hidden shadow-2xl">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-xs">
-                        <thead>
-                            <tr className="border-b border-white/[0.08] bg-[#12121a] text-gray-400 font-mono text-[11px] uppercase tracking-wider">
-                                <th className="py-4 px-5">Dimension</th>
-                                <th className="py-4 px-5 bg-indigo-950/40 text-indigo-300 font-bold border-x border-indigo-500/20">
-                                    <span className="font-mono text-xs text-indigo-300 tracking-wider">
-                                        PRISMIO
-                                    </span>
-                                </th>
-                                <th className="py-4 px-4 text-gray-300">C++20</th>
-                                <th className="py-4 px-4 text-gray-300">Rust</th>
-                                <th className="py-4 px-4 text-gray-300">Go</th>
-                                <th className="py-4 px-4 text-gray-300">Zig</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/[0.04]">
-                            {comparisonData.map((row) => (
-                                <tr key={row.feature} className="hover:bg-white/[0.02] transition-colors">
-                                    <td className="py-4 px-5 font-semibold text-white font-mono">
-                                        {row.feature}
-                                    </td>
-                                    <td className="py-4 px-5 bg-indigo-950/20 font-semibold text-indigo-200 border-x border-indigo-500/20 font-mono">
-                                        {row.prismio}
-                                    </td>
-                                    <td className="py-4 px-4 text-gray-400">
-                                        {row.cpp}
-                                    </td>
-                                    <td className="py-4 px-4 text-gray-400">
-                                        {row.rust}
-                                    </td>
-                                    <td className="py-4 px-4 text-gray-400">
-                                        {row.go}
-                                    </td>
-                                    <td className="py-4 px-4 text-gray-400">
-                                        {row.zig}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                        <blockquote className="mt-10 max-w-lg border-t border-white/[0.1] pt-6 text-xl leading-8 tracking-[-0.02em] text-indigo-200">
+                            Inference is not a black box when its output affects performance.
+                        </blockquote>
+
+                        <div className="mt-10 grid grid-cols-2 gap-8 text-sm">
+                            <div>
+                                <div className="font-mono text-2xl font-semibold text-white">T0–T4</div>
+                                <div className="mt-1 leading-5 text-zinc-500">A graded storage model, not one universal allocation strategy.</div>
+                            </div>
+                            <div>
+                                <div className="font-mono text-2xl font-semibold text-white">AIF-1</div>
+                                <div className="mt-1 leading-5 text-zinc-500">The compiler’s current declared conformance level.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="lg:col-span-7">
+                        <div className="overflow-hidden rounded-2xl bg-[#0a0b0f] ring-1 ring-white/[0.09]">
+                            <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4">
+                                <span className="text-sm font-medium text-zinc-200">AIF workflow</span>
+                                <span className="font-mono text-xs text-zinc-600">manifest schema 1</span>
+                            </div>
+
+                            <div className="px-5 sm:px-7">
+                                {STEPS.map((step, index) => (
+                                    <React.Fragment key={step.command}>
+                                        <article className="grid gap-4 py-7 sm:grid-cols-[12rem_1fr] sm:gap-8 sm:py-8">
+                                            <code className="text-xs leading-5 text-indigo-300">{step.command}</code>
+                                            <div>
+                                                <h3 className="text-lg font-semibold text-zinc-100">{step.title}</h3>
+                                                <p className="mt-2 text-sm leading-6 text-zinc-400">{step.copy}</p>
+                                            </div>
+                                        </article>
+                                        {index < STEPS.length - 1 && (
+                                            <div className="flex items-center gap-3 border-t border-white/[0.06] text-zinc-700">
+                                                <ArrowDown size={14}/>
+                                                <span className="text-[10px] uppercase tracking-[0.14em]">next</span>
+                                            </div>
+                                        )}
+                                    </React.Fragment>
+                                ))}
+                            </div>
+
+                            <div className="flex items-center gap-2 border-t border-white/[0.07] bg-emerald-500/[0.04] px-5 py-4 text-xs text-emerald-300 sm:px-7">
+                                <CheckCircle2 size={15}/>
+                                <span>Use <code>--manifest</code> to create a stable, diffable record for CI.</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

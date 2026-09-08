@@ -5,7 +5,7 @@ status: implemented
 version: "0.1.0"
 lastUpdated: "2026-09-03"
 tags: [compiler, cli, flags, commands]
-related: [start/build-and-run, compiler/aif, compiler/targets]
+related: [start/local-compiler-loop, aif/overview, tooling/debugging-targets-and-build-tracing]
 ---
 
 ## General commands
@@ -14,6 +14,7 @@ related: [start/build-and-run, compiler/aif, compiler/targets]
 prismio build <source.psm> [-o output] [options]
 prismio run <source.psm> [options]
 prismio bootstrap [source.psm] [-o output]
+prismio check <source.psm> [--diagnostic-format=json]
 prismio dump-ast <source.psm>
 prismio aif <source.psm> [aif-options]
 prismio runtime-hash
@@ -30,7 +31,8 @@ prismio build|run|test|clean [--release]
 prismio <declared-command> [args...]
 ```
 
-Built-in commands take precedence, so a manifest cannot redefine one. See [the package manager](/package-manager) for the manifest and for declaring commands.
+Built-in commands take precedence, so a manifest cannot redefine one. See the
+[`build.ums` reference](/tooling/build-manifest) for project configuration and declared commands.
 
 `--help` prints the command summary. `--version` reports the Prismio compiler and linked/pinned LLVM version information used to identify documentation compatibility.
 
@@ -62,7 +64,9 @@ prismio bootstrap components/main.psm -o build/prismio-next
 
 ## Inspection commands
 
-`dump-ast` parses a source entry and prints the compiler's current AST representation for development. The textual representation is diagnostic/internal and is not a stable machine protocol.
+`dump-ast` runs imports and semantic analysis through `dumpAstCommand()` and prints JSON consumed by
+the independent AIF oracle. The schema is an internal compiler/oracle contract rather than a public
+application protocol, but changes must update the oracle and differential fixtures together.
 
 `runtime-hash` prints the identity used to reason about the embedded/installed runtime content. It helps distinguish a compiler built with different runtime sources.
 
@@ -72,15 +76,24 @@ prismio bootstrap components/main.psm -o build/prismio-next
 | --- | --- |
 | `-o <path>` | Select output path; `.ll` emits LLVM IR only |
 | `-O0` … `-O3` | Select requested optimization level |
+| `-g` | Emit DWARF and lower the program object at `-O0` for inspectable locals |
 | `--verify` | Instrument and check allocation/free behavior |
 | `--debug` | Use conservative analysis and extra debugging behavior |
-| `--target wasm32` | Emit a WebAssembly-targeted module (experimental) |
+| `--overflow-checks` | Emit checked integer arithmetic where implemented |
+| `--target <triple>` | Select an LLVM target triple and target data layout |
+| `--sysroot <path>` | Pass a target SDK to the native link step |
+| `--jit` | Run through ORC JIT; valid only with `run` and not with `--target` |
 
-`-O0` through `-O3` are accepted front-end optimization requests. In 0.1, the object-generation driver also has current Clang optimization behavior, so a flag should not be interpreted as a frozen end-to-end pipeline contract. Record the complete compiler version and command in benchmarks.
+`-O0` through `-O3` control the in-process LLVM module pass pipeline. Native object generation uses
+the build driver's current Clang policy; `-g` deliberately changes the program object step to
+`-O0`. Record the complete compiler version and command in benchmarks rather than treating the
+front-end flag as a frozen whole-toolchain recipe.
 
 `--verify` adds supported allocation/free lifecycle instrumentation. It can change performance and is intended for testing. `--debug` selects conservative analysis/debug behavior; it is not a promise of an integrated source debugger.
 
-WebAssembly changes target layout/pointer width but does not provide complete browser or WASI packaging.
+`--target` calls `targetSelect()` and asks LLVM for the triple's pointer width and data layout. The
+native build still requires a matching packaged runtime or target C environment. WebAssembly target
+selection does not by itself provide browser or WASI packaging.
 
 ## AIF options
 
@@ -90,11 +103,22 @@ WebAssembly changes target layout/pointer width but does not provide complete br
 | `--summary` | Print an allocation-tier summary |
 | `--why=<ID\|symbol>` | Explain a numbered report decision or stable manifest symbol |
 | `--budget=<n>` | Set a positive analysis budget |
-| `--theta-fields` | Include theta field information |
+| `--theta-fields` | Evaluate the stack threshold by field count for oracle comparison |
 | `--owned-collections` | Treat collection ownership explicitly |
 | `--copyable-collections` | Select copyable collection analysis mode |
+| `--layout` | Print ranked layout candidates and the emitted selection |
+| `--force-layout=<Type>:<hot>` | Force one candidate for measurement |
+| `--target <triple>` | Evaluate target-dependent sizes for reports/layout |
 
 Unknown commands and malformed flags exit nonzero. The default AIF report is an interactive interface and may evolve; use `aif --manifest` when automation needs the stable line-oriented protocol.
+
+## Dispatch implementation
+
+`main()` gives project-shaped invocations to `dispatchToUmsHost()` and the UMS command layer; a
+source argument selects the single-file driver. `cliAif()` parses analysis flags and calls
+`aifCommand()`. `cliBootstrap()` fixes compiler-build mode and accepts only source, `-o`, and `-g`.
+The build/run parser validates incompatible pairs such as `--jit` with `--target` before calling
+`compileSource()`.
 
 ## Exit behavior
 

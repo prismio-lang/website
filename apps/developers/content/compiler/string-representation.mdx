@@ -5,7 +5,7 @@ status: implemented
 version: "0.1.0"
 lastUpdated: "2026-09-05"
 tags: [compiler, strings, memory, ownership, performance]
-related: [stdlib/strings, compiler/aif, guides/memory-and-aif, specification/memory-model]
+related: [runtime/supported-surface, aif/overview, aif/regions-views-and-provenance, runtime/collection-representations]
 ---
 
 Prismio represents every `String` as a 16-byte pair. The same pair can hold a
@@ -17,13 +17,13 @@ This is an implementation deep dive for compiler and runtime contributors. It
 describes Prismio 0.1 at compiler commit
 [`43107cff86c1`](https://github.com/prismio-lang/prismio/commit/43107cff86c140fbf130c27211379d775d25c727),
 not a stable ABI promise. Application developers should use the source-level
-[`String` API](/stdlib/strings); code cannot select or observe a storage class.
+[standard-library boundary](/runtime/supported-surface); code cannot select or observe a storage class.
 
 ## What application developers need to know
 
 - A `String` has the same source-level behavior in all three storage classes.
 - Length, indexing, iteration, comparison, and slicing are byte-oriented in
-  Prismio 0.1. See [`String` properties and methods](/stdlib/strings).
+  Prismio 0.1. Application-facing behavior belongs to the language documentation.
 - A long substring can share the source string's storage internally. Prismio's
   ownership analysis keeps that source alive for as long as the substring needs
   it.
@@ -299,8 +299,8 @@ runtime.
 
 <StringViewLifetimeDiagram />
 
-For the broader lifetime model, see [Memory and AIF](/guides/memory-and-aif) and
-the [memory-model specification](/specification/memory-model).
+For the broader lifetime model, see [AIF overview](/aif/overview) and
+[regions, views, and provenance](/aif/regions-views-and-provenance).
 
 ## Costs at ownership and ABI boundaries
 
@@ -324,7 +324,7 @@ pointer. Neither form can use `str_clone`, which searches for a NUL terminator.
 
 When a view crosses a C FFI boundary, code generation creates a terminated copy
 behind a branch and releases it after the call. Inline and owned strings do not
-pay for the view-specific branch body. See [Foreign functions](/language/ffi)
+pay for the view-specific branch body. See [AIF foreign-function contracts](/aif/ffi-contracts)
 for the source-level contract rules.
 
 Byte access and owned-string release required no further representation change:

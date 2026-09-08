@@ -5,22 +5,22 @@ import { siteConfig } from "@/config/site";
 import { docs } from "@/libs/velite";
 
 export const metadata: Metadata = {
-    title: "Canonical Prismio language and compiler reference",
-    description: "Learn Prismio 0.1 from compiler-audited guides, language rules, formal semantics, verified examples, and permanent diagnostic pages.",
+    title: "Prismio compiler developer reference",
+    description: "Build, inspect, test, and extend the self-hosted Prismio compiler, AIF, LLVM backend, runtime, and UMS project system.",
     alternates: { canonical: "/" },
 };
 
 const foundations = [
-    { href: "/start/installation", label: "Install and bootstrap", detail: "Configure LLVM 22 and build the self-hosted compiler." },
-    { href: "/tutorials/first-program", label: "Write a complete program", detail: "Use functions, ranges, mutable bindings, and output." },
-    { href: "/language/ownership-and-borrowing", label: "Understand ownership", detail: "Learn default borrows, sink transfers, inout, and drop." },
+    { href: "/start/repository-tour", label: "Tour the repository", detail: "Find the compiler stage, runtime component, test, or evidence record that owns a change." },
+    { href: "/start/local-compiler-loop", label: "Build the local compiler", detail: "Use UMS host routing, staged promotion, and an explicit test generation." },
+    { href: "/start/first-compiler-change", label: "Trace one change end to end", detail: "Carry behavior through the frontend, semantics, AIF, LLVM, runtime, tests, and docs." },
 ];
 
 const reference = [
-    { href: "/language", label: "Language reference", detail: "Accepted syntax and compiler behavior, feature by feature." },
-    { href: "/specification", label: "Draft specification", detail: "Grammar, types, names, evaluation, memory, and conformance." },
-    { href: "/errors", label: "Error reference", detail: "Permanent pages for every negative-suite failure class." },
-    { href: "/compiler/overview", label: "Compiler internals", detail: "Self-hosting, AIF, LLVM generation, bootstrap, and targets." },
+    { href: "/compiler/overview", label: "Compiler internals", detail: "Frontend, semantic analysis, ownership, generics, traits, closures, and lowering." },
+    { href: "/aif/overview", label: "AIF and memory", detail: "Allocation tiers, facts, regions, views, layout, reuse, reports, and verification." },
+    { href: "/llvm/overview", label: "LLVM backend", detail: "IR types, calls, control flow, the C API bridge, DWARF, and optimization." },
+    { href: "/tooling/ums-overview", label: "UMS and tooling", detail: "Manifests, build graphs, compiler promotion, diagnostics, IDEs, and targets." },
 ];
 
 export default function DocsHomePage() {
@@ -42,19 +42,14 @@ export default function DocsHomePage() {
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
             <section className="border-b border-zinc-200 pb-16 dark:border-zinc-800">
-                <div className="mb-7 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.13em] text-violet-700 dark:text-violet-300">
-                    <span>Prismio {siteConfig.currentVersion}</span>
-                    <span aria-hidden="true" className="text-zinc-300 dark:text-zinc-700">/</span>
-                    <span className="text-zinc-500 dark:text-zinc-400">Compiler-audited reference</span>
-                </div>
                 <h1 className="max-w-4xl text-balance text-5xl font-bold tracking-[-0.055em] text-zinc-950 sm:text-7xl dark:text-white">
-                    One source of truth for Prismio.
+                    Work on the compiler with the whole system in view.
                 </h1>
                 <p className="mt-7 max-w-2xl text-pretty text-lg leading-8 text-zinc-600 sm:text-xl dark:text-zinc-300">
-                    Documentation derived from the self-hosted compiler and its tests—written for developers, searchable by machines, and honest about what has not shipped.
+                    A source-linked reference for Prismio contributors: frontend, semantics, AIF, LLVM, runtime, UMS, testing, performance, and self-hosting.
                 </p>
                 <div className="mt-9 flex flex-wrap gap-3">
-                    <Link href="/start/overview" className="inline-flex h-11 items-center gap-2 rounded-lg bg-zinc-950 px-5 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200">
+                    <Link href="/start" className="inline-flex h-11 items-center gap-2 rounded-lg bg-zinc-950 px-5 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200">
                         Start reading <ArrowRight aria-hidden="true" size={16} />
                     </Link>
                     <Link href="/releases/0.1.0" className="inline-flex h-11 items-center rounded-lg border border-zinc-300 px-5 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900">
@@ -65,16 +60,16 @@ export default function DocsHomePage() {
 
             <section aria-labelledby="status-heading" className="grid gap-px overflow-hidden border-b border-zinc-200 bg-zinc-200 md:grid-cols-3 dark:border-zinc-800 dark:bg-zinc-800">
                 <h2 id="status-heading" className="sr-only">Documentation status</h2>
-                <StatusFact icon={<Check size={17} />} value="Implemented" detail="Native compiler, core language, ownership, imports, FFI" />
-                <StatusFact icon={<FlaskConical size={17} />} value="Experimental" detail="AIF memory policy and WebAssembly targeting" />
-                <StatusFact icon={<FileWarning size={17} />} value="Coming Soon" detail="Traits, generics, packages, std modules, concurrency" />
+                <StatusFact icon={<Check size={17} />} value="Implemented" detail="Self-hosted compiler, LLVM 22 backend, UMS projects, native tasks, and typed channels" />
+                <StatusFact icon={<FlaskConical size={17} />} value="Experimental" detail="AIF policy, automatic layout choices, regions, and advanced memory optimization" />
+                <StatusFact icon={<FileWarning size={17} />} value="Unsupported" detail="Async I/O, networking, regex, JSON, user atomics, explicit SIMD, and registry solving" />
             </section>
 
             <section aria-labelledby="path-heading" className="grid gap-10 border-b border-zinc-200 py-16 lg:grid-cols-[0.7fr_1.3fr] dark:border-zinc-800">
                 <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.13em] text-violet-700 dark:text-violet-300">Learning path</p>
                     <h2 id="path-heading" className="mt-3 text-3xl font-bold tracking-tight">From zero to owned data.</h2>
-                    <p className="mt-4 max-w-md leading-7 text-zinc-600 dark:text-zinc-300">A short route through the toolchain and the language rules that matter first.</p>
+                    <p className="mt-4 max-w-md leading-7 text-zinc-600 dark:text-zinc-300">A short route from checkout to a tested compiler change.</p>
                 </div>
                 <ol className="divide-y divide-zinc-200 border-y border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
                     {foundations.map((item, index) => (
@@ -98,7 +93,7 @@ export default function DocsHomePage() {
                     <p className="text-xs font-semibold uppercase tracking-[0.13em] text-violet-700 dark:text-violet-300">Canonical reference</p>
                         <h2 id="reference-heading" className="mt-3 text-3xl font-bold tracking-tight">Find the rule, not a guess.</h2>
                     </div>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">{docs.length} versioned Markdown pages</p>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">{docs.length} source-linked implementation pages</p>
                 </div>
                 <div className="grid border-l border-t border-zinc-200 sm:grid-cols-2 dark:border-zinc-800">
                     {reference.map((item) => (
@@ -112,7 +107,7 @@ export default function DocsHomePage() {
             </section>
 
             <footer className="flex flex-col justify-between gap-4 border-t border-zinc-200 pt-8 text-sm text-zinc-500 sm:flex-row dark:border-zinc-800 dark:text-zinc-300">
-                <p>Canonical for Prismio 0.1.0 · Last compiler audit: 9 Aug 2026</p>
+                <p>Prismio {siteConfig.currentVersion} implementation reference · Updated 8 Sep 2026</p>
                 <div className="flex gap-5">
                     <Link href="/glossary" className="hover:text-zinc-950 dark:hover:text-white">Glossary</Link>
                     <Link href="/faq" className="hover:text-zinc-950 dark:hover:text-white">FAQ</Link>

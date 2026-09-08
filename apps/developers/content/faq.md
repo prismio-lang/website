@@ -1,89 +1,70 @@
 ---
 title: Frequently asked questions
-description: Concise answers about Prismio 0.1 stability, self-hosting, memory, platforms, packages, and documentation status.
+description: Current answers about Prismio stability, self-hosting, AIF, LLVM, platforms, standard modules, UMS, and compiler support.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-08-09"
+lastUpdated: "2026-09-08"
 tags: [faq, support, status]
-related: [start/overview, roadmap, compiler/targets]
+related: [start, roadmap, tooling/debugging-targets-and-build-tracing]
 ---
 
 ## Is Prismio production-ready?
 
-No. Version 0.1 is active compiler development. Implemented features are tested, but syntax, runtime contracts, AIF policy, and ABI details may change.
+No. Prismio 0.1 is active compiler development. Implemented behavior is tested, but syntax,
+runtime contracts, manifests, diagnostics, AIF policy, and ABI details may change. Pin a compiler
+revision for persistent work.
 
-Use it for compiler/language development and controlled experiments. Pin the compiler revision for any persistent project and keep upgrade tests around ownership, FFI, and generated artifacts.
+## Is the compiler really self-hosted?
 
-## Is the compiler really written in Prismio?
+Yes. The lexer, parser, AST, import resolver, semantic analysis, AIF, and LLVM IR generator are
+written in Prismio. A committed LLVM IR seed breaks the initial bootstrap cycle. Later generations
+compile the current source and are checked for fixed-point agreement.
 
-Yes. A committed LLVM IR seed breaks the initial bootstrapping cycle; subsequent generations compile the Prismio compiler source.
+## What does AIF stand for?
 
-The repository checks multiple generations and fixed points. Self-hosting proves the language/compiler can express and rebuild itself; it does not prove the compiler is bug-free.
+Adaptive Inference Framework. It classifies allocation sites across stack, region, unique heap,
+shared, and cycle-aware strategies and can explain or verify decisions. Source ownership rules do
+not depend on receiving an aggressive tier.
 
-## Does Prismio use garbage collection?
+## Does Prismio use LLVM?
 
-There is no single implicit tracing-GC model. The compiler enforces moves and borrows for move-only values, while experimental AIF classifies allocations across stack, region, unique, reference-counted, and cycle-aware tiers.
+Yes. LLVM 22 is the supported backend line. Self-hosted Prismio code constructs the module through
+a narrow C wrapper around the LLVM C API. LLVM IR is verified before emission.
 
-Source ownership rules remain the same regardless of the selected allocation tier. AIF policy is experimental and should not be reduced to “Prismio is GC” or “Prismio is always manual memory.”
+## Which language mechanisms are implemented?
 
-## Which platforms are supported?
+The current suite covers generics, inherent and trait implementations, default trait methods,
+multiple bounds, supertraits, associated constants and types, trait objects, `impl Trait`,
+closures, payload enums, pattern matching, slices, DataView conversion, native tasks, and typed
+blocking channels. Their exact stability and limitations remain documented per article and test.
 
-The compiler is exercised in CI on Windows, macOS, and Linux. WebAssembly targeting exists experimentally at the IR/runtime layer. Android and iOS toolchains are Coming Soon.
+## What standard modules exist?
 
-Native support does not yet imply a stable binary distribution, cross-compilation SDK, or ABI. LLVM 22.1.8 is the pinned backend line.
+The compiler tree includes `std.io`, `std.string`, `std.fs`, `std.process`,
+`std.list`, `std.map`, `std.option`, `std.key`, `std.ord`, `std.copy`,
+`std.eq`, `std.display`, and `std.iter`. There is no prelude. Standard-library search can
+select checkout-local or packaged modules; inspect `prismio --version` when debugging resolution.
 
-## Where is the standard library?
+## Does Prismio have a package registry?
 
-There are ten importable modules: `std.io`, `std.string`, `std.fs`, `std.process`, `std.list`, `std.map`, `std.option`, `std.key`, `std.ord` and `std.copy`. `std.io` is an ordinary import rather than a prelude, so a program that names no I/O carries none. `std.*` resolves against the compiler's own library, so a local `std/` directory cannot shadow it.
+No. UMS supplies `build.ums`, targets, workspaces, local path dependencies, lock information,
+native link inputs, and the project compiler host. It does not currently fetch packages from a
+registry or solve remote version constraints.
 
-Concurrency is not one of them, and that is not an omission: `spawn`/`join`/`Task<R>` and `Channel<T>` are language features rather than libraries. Networking and time still require local FFI integration; their pages are marked Coming Soon.
+## What concurrency model exists?
 
-## Does Prismio have Cargo, npm, or Go modules?
+`spawn`, `join`, and `Task<R>` use native OS threads. `Channel<T>` is a typed blocking
+channel. There is no async runtime, `await`, work-stealing executor, or user-facing atomic and
+mutex surface.
 
-Not yet, in the sense that matters: there is no registry and nothing to fetch from one.
+## What does the benchmark suite cover?
 
-Prismio 0.1 has a `build.ums` manifest and a lockfile, and dependencies may name a local path. There is no registry and no dependency solver: a version constraint is recorded, not satisfied, and a dependency without a local path cannot be fetched. A resolved path is not yet on the import search either, so vendor source below the entry root and pin external revisions through source control. See [package manager](/package-manager).
+The maintained catalog has 73 workloads: 57 implemented and 16 marked unsupported. Implemented
+workloads compare equivalent Prismio, C++, and Rust algorithms with checksum validation. Missing
+features are recorded rather than replaced with benchmark-only substitutes.
 
-## Why does a keyword appear in highlighting but fail to compile?
+## Which documentation is authoritative?
 
-Lexer or editor vocabulary can precede parser and semantic support. Only features marked Implemented or Experimental on this site should be expected to compile.
-
-`trait`, `impl`, and `throw` are concrete examples: the lexer reserves them, but 0.1 does not parse their features.
-
-## Are ordinary function parameters moved?
-
-Not for move-only values. An ordinary string, list, or struct parameter borrows by default. Use `sink` to consume ownership and `inout` for caller-visible mutable borrowing. Scalars and fieldless enums copy.
-
-## Does Prismio have references and lifetime syntax?
-
-No general source-level `&` reference or user-written lifetime parameter exists in 0.1. The compiler still enforces call-scoped borrow modes, moves, scope, loop restrictions, and local-array escape checks.
-
-## Why does `Int` not accept every integer operation?
-
-`Int` is specifically signed 32-bit. Other widths and signedness are distinct. Prismio does not insert implicit numeric promotion, so cast intentionally with `as` after considering range.
-
-## Can I return an array?
-
-A locally created `[T]` stack array cannot escape its function through return. Return a computed scalar/result, keep work local, or use an owned runtime `List<T>` when a growable value must escape.
-
-## Are optionals available for every type?
-
-No. `T?` is limited to reference-shaped structs, strings, lists, and raw pointers. Scalar numbers, booleans, characters, enums, and arrays cannot be optional in 0.1. Compare with `none` and call `expect`; comparison does not flow-narrow.
-
-## Can I use methods, traits, generics, or closures?
-
-[Generics](/language/generics) yes — functions, structs, and enums take type parameters, and each instantiation is compiled separately. Methods, traits, and closures no; use named top-level functions.
-
-`List<T>` is separate from that: it is built into the compiler and predates generics rather than being an instance of them.
-
-## How are errors represented in programs?
-
-There are no exceptions, `try`, `catch`, propagation operator, or built-in generic result type. Use integers, booleans, fieldless enums, optional reference-shaped values, or explicit output parameters according to the API.
-
-## Are documentation error IDs compiler codes?
-
-No. URLs such as `/errors/use-after-move` are permanent documentation keys. Compiler 0.1 emits prose diagnostics without stable numeric codes.
-
-## Which documentation should I trust?
-
-Use pages with version `0.1.0` and status Implemented or Experimental for current code. The draft specification is canonical prose; tested reference-compiler behavior is the 0.1 executable oracle. Coming Soon pages are non-normative.
+The current compiler source and regression tests are the executable authority. Implementation
+articles explain the code; specifications explain intended contracts; evidence records explain
+measurements and rejected alternatives. When they differ, record the discrepancy and add a test.

@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/create-next-app).
+# Prismio Developers
 
-## Getting Started
+The contributor reference for Prismio's self-hosted compiler, AIF memory analysis, LLVM backend, runtime, UMS project system, tests, and performance evidence.
 
-First, run the development server:
+## Local development
+
+From the website workspace root:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm --filter developers dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The site runs at <http://localhost:3002>. Velite watches `content/` and regenerates `.velite/` alongside Next.js.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Content contract
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load Inter, a custom Google Font.
+Every Markdown or MDX page under `content/` must include the metadata defined in `velite.config.ts`: title, description, version, implementation status, verification date, source links, and tags. Internal links are root-relative and must resolve to another content slug.
 
-## Learn More
+Run the contributor checks before publishing:
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+pnpm --filter developers build:content
+pnpm --filter developers audit:content
+pnpm --filter developers verify:examples
+pnpm --filter developers lint
+pnpm --filter developers check-types
+pnpm --filter developers build
+```

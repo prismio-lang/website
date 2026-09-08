@@ -8,18 +8,17 @@ import { docs, type Docs } from "@/libs/velite";
 import { statusLabel } from "@/components/DocStatus";
 
 const categories: Record<string, string> = {
-    start: "Getting started",
-    tutorials: "Tutorials",
-    guides: "Guides",
-    language: "Language",
-    specification: "Specification",
+    start: "Start contributing",
     compiler: "Compiler",
-    stdlib: "Standard library",
-    "package-manager": "Packages",
-    examples: "Examples",
+    aif: "AIF and memory",
+    llvm: "LLVM",
+    runtime: "Runtime",
+    tooling: "UMS and tooling",
+    testing: "Testing",
+    performance: "Performance",
     cookbook: "Cookbook",
+    project: "Project reference",
     migration: "Migration",
-    errors: "Errors",
     releases: "Releases",
 };
 
@@ -157,14 +156,14 @@ export default function SearchModal() {
                 <h2 id="search-title" className="sr-only">Search Prismio documentation</h2>
                 <div className="flex items-center gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
                     <Search aria-hidden="true" size={20} className="shrink-0 text-zinc-500 dark:text-zinc-300" />
-                    <input ref={inputRef} value={query} onChange={(event) => { setQuery(event.target.value); setActiveIndex(0); }} aria-controls="search-results" aria-activedescendant={results[activeIndex] ? `search-result-${activeIndex}` : undefined} placeholder="Search concepts, errors, APIs, examples…" className="h-10 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-zinc-500 dark:placeholder:text-zinc-400" />
+                    <input ref={inputRef} value={query} onChange={(event) => { setQuery(event.target.value); setActiveIndex(0); }} aria-controls="search-results" aria-activedescendant={results[activeIndex] ? `search-result-${activeIndex}` : undefined} placeholder="Search compiler internals, AIF, LLVM, UMS…" className="h-10 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-zinc-500 dark:placeholder:text-zinc-400" />
                     <button type="button" onClick={() => setIsOpen(false)} aria-label="Close search" className="inline-flex size-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">
                         <X aria-hidden="true" size={17} />
                     </button>
                 </div>
 
                 <div id="search-results" role="listbox" className="max-h-[60vh] min-h-44 overflow-y-auto p-2">
-                    {!query.trim() && <p className="px-4 py-12 text-center text-sm text-zinc-500 dark:text-zinc-300">Search {docs.length} versioned reference pages by title, concept, status, or compiler error.</p>}
+                    {!query.trim() && <p className="px-4 py-12 text-center text-sm text-zinc-500 dark:text-zinc-300">Search {docs.length} versioned implementation pages by title, subsystem, source concept, or diagnostic.</p>}
                     {query.trim() && results.length === 0 && <p className="px-4 py-12 text-center text-sm text-zinc-500 dark:text-zinc-300">No documentation matched “{query}”.</p>}
                     {results.map(({ doc, snippet }, index) => (
                         <button key={doc.slug} id={`search-result-${index}`} type="button" role="option" aria-selected={index === activeIndex} onMouseEnter={() => setActiveIndex(index)} onClick={() => navigate(doc.slug)} className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left ${index === activeIndex ? "bg-violet-50 dark:bg-violet-500/10" : "hover:bg-zinc-50 dark:hover:bg-white/5"}`}>

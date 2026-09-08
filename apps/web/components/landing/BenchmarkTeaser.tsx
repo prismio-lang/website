@@ -1,202 +1,103 @@
-import React from "react";
-import Link from "next/link";
-import { BarChart3, ArrowRight, Zap, CheckCircle2, Clock } from "lucide-react";
+import React from 'react';
+import Link from 'next/link';
+import {ArrowRight, CheckCircle2, CircleSlash2} from 'lucide-react';
 
-interface BenchmarkItem {
-    name: string;
-    category: string;
-    profile: string;
-    prismioNs: number;
-    prismioDisplay: string;
-    cppDisplay: string;
-    rustDisplay: string;
-    advantage: string;
-    prismioPercent: number; // For relative bar width
-    cppPercent: number;
-    rustPercent: number;
-}
-
-const FEATURED: BenchmarkItem[] = [
-    {
-        name: "binary_search",
-        category: "Algorithms",
-        profile: "cpu-memory",
-        prismioNs: 91603375,
-        prismioDisplay: "91.6 ms",
-        cppDisplay: "72.5 ms",
-        rustDisplay: "132.2 ms",
-        advantage: "30% faster than Rust",
-        prismioPercent: 69,
-        cppPercent: 55,
-        rustPercent: 100,
-    },
-    {
-        name: "recursive_tree_rebuild",
-        category: "Memory",
-        profile: "allocation",
-        prismioNs: 346084,
-        prismioDisplay: "346 μs",
-        cppDisplay: "851 μs",
-        rustDisplay: "486 μs",
-        advantage: "2.4x faster than C++",
-        prismioPercent: 41,
-        cppPercent: 100,
-        rustPercent: 57,
-    },
-    {
-        name: "tokenization",
-        category: "I/O",
-        profile: "cpu-allocation",
-        prismioNs: 150083,
-        prismioDisplay: "150 μs",
-        cppDisplay: "276 μs",
-        rustDisplay: "968 μs",
-        advantage: "1.8x faster than C++, 6.4x vs Rust",
-        prismioPercent: 16,
-        cppPercent: 29,
-        rustPercent: 100,
-    },
-    {
-        name: "fibonacci",
-        category: "Compute",
-        profile: "cpu",
-        prismioNs: 11517125,
-        prismioDisplay: "11.51 ms",
-        cppDisplay: "11.50 ms",
-        rustDisplay: "11.47 ms",
-        advantage: "LLVM Machine Parity",
-        prismioPercent: 100,
-        cppPercent: 100,
-        rustPercent: 100,
-    },
+const RESULTS = [
+    {name: 'tokenization', prismio: '148 μs', cpp: '265 μs', rust: '1.02 ms', note: '1.79× vs C++ · 6.87× vs Rust', tone: 'win'},
+    {name: 'recursive_tree_rebuild', prismio: '394 μs', cpp: '874 μs', rust: '495 μs', note: '2.22× vs C++ · 1.26× vs Rust', tone: 'win'},
+    {name: 'binary_search', prismio: '89.8 ms', cpp: '73.1 ms', rust: '132.7 ms', note: '1.48× vs Rust · C++ leads', tone: 'mixed'},
+    {name: 'fibonacci', prismio: '12.7 ms', cpp: '11.6 ms', rust: '11.5 ms', note: 'C++ and Rust lead', tone: 'mixed'},
 ];
 
 export default function BenchmarkTeaser() {
     return (
-        <section className="px-6 py-20 max-w-7xl mx-auto z-20">
-            <div className="rounded-2xl bg-[#0b0c10] border border-white/[0.08] p-6 md:p-10 shadow-2xl">
-                {/* Header */}
-                <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8 pb-6 border-b border-white/[0.06]">
-                    <div>
-                        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[11px] font-mono mb-3">
-                            <BarChart3 size={13} />
-                            <span>Transparent Verification</span>
-                        </div>
-                        <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white">
-                            Raw speed. Verified against Clang and Rustc.
-                        </h2>
-                        <p className="text-sm text-zinc-400 mt-2 max-w-xl leading-relaxed">
-                            Evaluated across 40 standardized workloads against Clang <code className="text-zinc-200 font-mono text-xs">-O3</code> and Rustc <code className="text-zinc-200 font-mono text-xs">opt-level=3</code> with median outlier rejection.
-                        </p>
-                    </div>
-
-                    <div className="shrink-0">
-                        <Link
-                            href="/benchmarks"
-                            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-zinc-100 text-black font-bold text-xs sm:text-[13px] hover:bg-white transition-all duration-300 shadow-[0_0_25px_-5px_rgba(255,255,255,0.15)] hover:shadow-[0_0_35px_-5px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0"
-                        >
-                            <span>Explore Full 40-Workload Suite</span>
-                            <ArrowRight size={13} />
-                        </Link>
-                    </div>
+        <section className="mx-auto max-w-7xl px-6 py-28 md:py-36">
+            <div className="grid items-end gap-8 lg:grid-cols-12">
+                <div className="lg:col-span-8">
+                    <h2 className="text-4xl font-semibold tracking-[-0.035em] text-white md:text-5xl">
+                        Performance claims with receipts.
+                    </h2>
+                    <p className="mt-6 max-w-3xl text-base leading-7 text-zinc-400">
+                        The maintained suite contains 73 canonical workloads across six categories.
+                        Fifty-seven run equivalent Prismio, C++, and Rust implementations with
+                        checksum validation and median timing. The other sixteen are published as
+                        unsupported capabilities rather than hidden behind benchmark-only substitutes.
+                    </p>
                 </div>
-
-                {/* Key Metrics Strip */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
-                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                        <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">Compile Throughput</div>
-                        <div className="text-2xl font-bold font-mono text-indigo-400 mt-1">2.5x Faster</div>
-                        <div className="text-[11px] text-zinc-400 mt-0.5">0.81s (Prismio) vs 2.03s (Clang -O3)</div>
-                    </div>
-                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                        <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">Memory Pauses</div>
-                        <div className="text-2xl font-bold font-mono text-emerald-400 mt-1">0 ms</div>
-                        <div className="text-[11px] text-zinc-400 mt-0.5">Zero GC pauses via compile-time AIF model</div>
-                    </div>
-                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                        <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">Canonical Coverage</div>
-                        <div className="text-2xl font-bold font-mono text-white mt-1">34 / 40 Shipped</div>
-                        <div className="text-[11px] text-zinc-400 mt-0.5">Remaining 6 targeted for v0.2 stdlib</div>
-                    </div>
-                </div>
-
-                {/* Visual Telemetry Bars */}
-                <div className="space-y-4">
-                    {FEATURED.map((item) => (
-                        <div
-                            key={item.name}
-                            className="p-4 rounded-xl bg-[#07080b] border border-white/[0.04] space-y-2.5"
-                        >
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
-                                <div className="flex items-center gap-2 font-mono">
-                                    <span className="font-bold text-white">{item.name}</span>
-                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/[0.04] text-zinc-400 border border-white/5">
-                                        {item.category}
-                                    </span>
-                                </div>
-                                <span className="text-[11px] font-mono font-semibold text-emerald-400">
-                                    {item.advantage}
-                                </span>
-                            </div>
-
-                            {/* Comparison Progress Bars */}
-                            <div className="space-y-1.5 font-mono text-[11px]">
-                                {/* Prismio */}
-                                <div className="flex items-center gap-3">
-                                    <span className="w-16 text-indigo-400 font-semibold text-[10px]">Prismio</span>
-                                    <div className="flex-1 bg-white/[0.03] h-2 rounded-full overflow-hidden">
-                                        <div
-                                            className="bg-indigo-500 h-full rounded-full transition-all"
-                                            style={{ width: `${item.prismioPercent}%` }}
-                                        />
-                                    </div>
-                                    <span className="w-16 text-right text-white font-bold text-[10px]">
-                                        {item.prismioDisplay}
-                                    </span>
-                                </div>
-
-                                {/* C++ */}
-                                <div className="flex items-center gap-3">
-                                    <span className="w-16 text-zinc-500 text-[10px]">C++20</span>
-                                    <div className="flex-1 bg-white/[0.03] h-2 rounded-full overflow-hidden">
-                                        <div
-                                            className="bg-zinc-600 h-full rounded-full transition-all"
-                                            style={{ width: `${item.cppPercent}%` }}
-                                        />
-                                    </div>
-                                    <span className="w-16 text-right text-zinc-400 text-[10px]">
-                                        {item.cppDisplay}
-                                    </span>
-                                </div>
-
-                                {/* Rust */}
-                                <div className="flex items-center gap-3">
-                                    <span className="w-16 text-zinc-500 text-[10px]">Rust</span>
-                                    <div className="flex-1 bg-white/[0.03] h-2 rounded-full overflow-hidden">
-                                        <div
-                                            className="bg-zinc-700 h-full rounded-full transition-all"
-                                            style={{ width: `${item.rustPercent}%` }}
-                                        />
-                                    </div>
-                                    <span className="w-16 text-right text-zinc-400 text-[10px]">
-                                        {item.rustDisplay}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                <div className="mt-6 text-center">
+                <div className="lg:col-span-4 lg:text-right">
                     <Link
                         href="/benchmarks"
-                        className="inline-flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-300 transition-colors hover:text-indigo-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                     >
-                        <span>View the complete 40-benchmark suite with Compute, I/O, and Memory metrics</span>
-                        <ArrowRight size={12} />
+                        Open the complete benchmark report
+                        <ArrowRight size={15}/>
                     </Link>
                 </div>
             </div>
+
+            <div className="mt-12 overflow-hidden rounded-2xl bg-[#0b0c10] ring-1 ring-white/[0.09]">
+                <div className="grid grid-cols-3 border-b border-white/[0.07] text-center text-sm">
+                    <div className="border-r border-white/[0.07] px-3 py-5">
+                        <span className="font-mono text-lg font-semibold text-white">73</span>
+                        <span className="ml-2 text-zinc-500">canonical</span>
+                    </div>
+                    <div className="border-r border-white/[0.07] px-3 py-5">
+                        <span className="font-mono text-lg font-semibold text-emerald-300">57</span>
+                        <span className="ml-2 text-zinc-500">implemented</span>
+                    </div>
+                    <div className="px-3 py-5">
+                        <span className="font-mono text-lg font-semibold text-amber-200">16</span>
+                        <span className="ml-2 text-zinc-500">documented gaps</span>
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full min-w-[720px] border-collapse text-left text-sm">
+                        <thead className="border-b border-white/[0.07] text-xs text-zinc-500">
+                            <tr>
+                                <th className="px-6 py-4 font-medium">Workload</th>
+                                <th className="px-4 py-4 font-medium text-white">Prismio</th>
+                                <th className="px-4 py-4 font-medium">C++20</th>
+                                <th className="px-4 py-4 font-medium">Rust</th>
+                                <th className="px-6 py-4 font-medium">Readout</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {RESULTS.map((result) => (
+                                <tr key={result.name} className="border-b border-white/[0.06] last:border-0">
+                                    <td className="px-6 py-5 font-mono text-xs text-zinc-200">{result.name}</td>
+                                    <td className="px-4 py-5 font-mono text-xs font-semibold text-white">{result.prismio}</td>
+                                    <td className="px-4 py-5 font-mono text-xs text-zinc-400">{result.cpp}</td>
+                                    <td className="px-4 py-5 font-mono text-xs text-zinc-400">{result.rust}</td>
+                                    <td className={`px-6 py-5 text-xs ${result.tone === 'win' ? 'text-emerald-300' : 'text-zinc-500'}`}>
+                                        {result.note}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div className="grid gap-6 border-t border-white/[0.07] p-6 sm:grid-cols-2 sm:p-8">
+                    <div className="flex gap-3">
+                        <CheckCircle2 size={17} className="mt-0.5 shrink-0 text-emerald-300"/>
+                        <p className="text-sm leading-6 text-zinc-400">
+                            All three arms express the same algorithm and must produce the same checksum.
+                            Fixtures are created outside the timed region.
+                        </p>
+                    </div>
+                    <div className="flex gap-3">
+                        <CircleSlash2 size={17} className="mt-0.5 shrink-0 text-amber-200"/>
+                        <p className="text-sm leading-6 text-zinc-400">
+                            Missing standard-library capabilities remain visible in the catalog instead
+                            of being replaced with private benchmark implementations.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <p className="mt-4 text-xs leading-5 text-zinc-600">
+                Featured medians are from the latest checked-in five-run result set. Results vary by machine and toolchain.
+            </p>
         </section>
     );
 }

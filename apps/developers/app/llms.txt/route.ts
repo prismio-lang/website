@@ -20,7 +20,7 @@ export function GET() {
         })
         .join("\n\n");
 
-    const body = `# Prismio Documentation\n\n> Canonical reference for Prismio ${siteConfig.currentVersion}, derived from the self-hosted compiler and regression suite. Pages marked Coming Soon describe unimplemented roadmap features and must not be presented as accepted syntax.\n\n- Current version: ${siteConfig.currentVersion}\n- Full Markdown corpus: ${siteConfig.siteUrl}/llms-full.txt\n- Release baseline: ${siteConfig.siteUrl}/releases/0.1.0\n- Formal specification: ${siteConfig.siteUrl}/specification\n- Error index: ${siteConfig.siteUrl}/errors\n\n${sections}\n`;
+    const body = `# Prismio Developer Reference\n\n> Source-linked implementation documentation for Prismio ${siteConfig.currentVersion}, derived from the self-hosted compiler, runtime, UMS, tests, and benchmark evidence. Experimental pages describe implemented but changeable policy; unsupported capabilities are not accepted compiler behavior.\n\n- Current version: ${siteConfig.currentVersion}\n- Full Markdown corpus: ${siteConfig.siteUrl}/llms-full.txt\n- Contributor entry: ${siteConfig.siteUrl}/start\n- Compiler architecture: ${siteConfig.siteUrl}/compiler/overview\n- AIF internals: ${siteConfig.siteUrl}/compiler/aif-internals\n- LLVM backend: ${siteConfig.siteUrl}/llvm/overview\n- Release baseline: ${siteConfig.siteUrl}/releases/0.1.0\n\n${sections}\n`;
 
     return new Response(body, {
         headers: {

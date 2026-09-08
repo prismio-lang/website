@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Github, Menu, Search, X } from "lucide-react";
+import { ArrowUpRight, Menu, Search, X } from "lucide-react";
 import ThemeToggle from "@/components/ThemeSwitch";
 import DocsNav from "@/app/Nav";
 import emitter from "@/libs/emitter";
@@ -50,7 +50,7 @@ export default function HeaderMain() {
                         className="mx-auto hidden h-9 w-full max-w-md items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 text-left text-sm text-zinc-600 transition-colors hover:border-zinc-300 hover:bg-zinc-100 lg:flex dark:border-zinc-800 dark:bg-zinc-900/70 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-900"
                     >
                         <Search aria-hidden="true" size={15} />
-                        <span>Search concepts, errors, and examples</span>
+                        <span>Search compiler internals</span>
                         <kbd className="ml-auto rounded border border-zinc-200 bg-white px-1.5 py-0.5 font-mono text-[0.65rem] dark:border-zinc-700 dark:bg-zinc-800">{shortcutKey}</kbd>
                     </button>
 
@@ -101,7 +101,7 @@ export default function HeaderMain() {
                         </Link>
                         <div className="flex items-center gap-2">
                             <a href={siteConfig.links.github} target="_blank" rel="noreferrer" aria-label="Prismio on GitHub" className="inline-flex size-9 items-center justify-center rounded-lg border border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-white">
-                                <Github aria-hidden="true" size={17} />
+                                <Image src="/icons/github-mark.svg" aria-hidden="true" alt="" height={17} width={17}/>
                             </a>
                             <ThemeToggle />
                         </div>

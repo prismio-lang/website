@@ -5,10 +5,17 @@ status: implemented
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [compiler, diagnostics, errors, warnings]
-related: [errors, specification/conformance, compiler/cli]
+related: [testing/regression-suite, tooling/ide-protocol, compiler/cli]
 ---
 
-Prismio diagnostics include the source path, line, column, source excerpt, and a primary message. The frontend can recover from selected lexer/parser/semantic failures and report multiple independent errors in one invocation. Notes and warnings provide secondary context where available.
+Prismio diagnostics include a stable `P####` code, source path, line, column, focused length, severity,
+and primary message. The frontend can recover from selected lexer, parser, and semantic failures and
+report multiple independent errors in one invocation. Notes and warnings provide secondary context.
+
+The self-hosted declaration surface is in `src/common/diagnostics.psm`; storage, rendering, and JSON
+serialization are implemented by the native diagnostic registry. `diag_add_file()` assigns the file
+identifier carried by tokens and AST nodes. `diag_set_file_module()` attaches the resolved module
+qualifier so later visibility diagnostics can describe both source and namespace.
 
 ## Diagnostic stages
 
@@ -34,7 +41,23 @@ The compiler exits nonzero when compilation fails and does not emit a runnable a
 
 When selected recovery succeeds, multiple diagnostics can appear. This does not mean later phases run on a program accepted as valid; it is error recovery for developer feedback.
 
-Prismio 0.1 does **not** emit stable numeric error codes. The permanent identifiers used in this documentation—such as `use-after-move`—are URL keys for search and linking, not strings promised in compiler output. Each [error page](/errors) records the message fragment used by the audited tests.
+Prismio 0.1 emits permanent string codes grouped by owner: driver/project `P10xx`, lexer `P2001`,
+declarations `P30xx`, expressions `P3101`, parser core `P3201`, statements `P33xx`, ownership/FFI
+`P41xx`, and AIF `P50xx`. General sema errors currently use `P4001`/`P4002`, so the code identifies
+the subsystem more precisely than every individual semantic rule. Preserve an existing code when
+only improving prose; allocate a new one when tooling must distinguish a new contract.
+
+## Emission lifecycle
+
+Use `diag_error_at_code()` or `diag_warning_at_code()` for a source-located primary. Add supporting
+locations with `diag_note_at()` and prose with `diag_note()`, then call `diag_finish()` to close the
+group. Command failures without a source use `diag_error_code()` or `diag_warning_code()`.
+`diag_error_count()` is checked by driver stages before AIF and LLVM generation; `diag_reset()`
+clears the registry between compiler operations.
+
+`cliCheck()` handles `--diagnostic-format=json` by calling `diag_set_json_mode(1)`. The lexer,
+parser, and sema do not select a renderer; the same diagnostic group becomes either human output or
+one JSON object. This keeps presentation changes from changing compiler control flow.
 
 ## Reading a diagnostic
 
@@ -54,4 +77,5 @@ When reporting a diagnostic bug, include the compiler version, full command, sma
 
 Also include imported reproducer files when name resolution matters, and emitted `.ll` when the failure occurs after semantic analysis. Remove secrets and machine-specific paths where possible while preserving the relevant directory layout.
 
-The [error reference](/errors) is organized by permanent concepts rather than unstable numeric codes, so pages can remain linkable while diagnostic wording improves.
+Regression tests should bind to the stable meaning and relevant source span rather than incidental
+punctuation, so diagnostic wording can improve without erasing compatibility intent.

@@ -1,75 +1,118 @@
-import React from "react";
-import { Terminal, Binary, FileCode2, ShieldCheck } from "lucide-react";
+import React from 'react';
+import {Binary, Braces, Bug, FileJson2, Link2, Workflow} from 'lucide-react';
+
+const MANIFEST = `project {
+    name = "compiler-tools"
+    version = "0.1.0"
+}
+
+targets {
+    executable("inspect") {
+        entry = "src/main.psm"
+    }
+}
+
+commands {
+    command("verify") {
+        build("inspect")
+        run("inspect", args)
+    }
+}`;
+
+const TOOLING = [
+    {
+        icon: FileJson2,
+        title: 'Stable diagnostics',
+        copy: 'prismio check runs the real frontend without generating code. Versioned JSON Lines diagnostics carry stable P#### codes, severity, files, and UTF-8 source spans.',
+    },
+    {
+        icon: Bug,
+        title: 'Native debugging',
+        copy: '-g emits DWARF line tables, functions, scopes, locals, and struct layouts for LLDB and GDB. On macOS, the compiler writes a .dSYM beside the binary.',
+    },
+    {
+        icon: Braces,
+        title: 'Compiler introspection',
+        copy: 'dump-ast exposes parsed source structure. AIF manifests provide a separate, stable account of inferred memory placement for CI and analysis tools.',
+    },
+];
 
 export default function AIReady() {
     return (
-        <section className="px-6 py-24 max-w-7xl mx-auto z-20">
-            {/* Title & Subtitle */}
-            <div className="max-w-3xl mx-auto mb-16 text-center space-y-3">
-                <span className="text-[11px] font-mono text-indigo-400 uppercase tracking-widest font-semibold">
-                    Tooling & Agent Architecture
-                </span>
-                <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white">
-                    Engineered for machine reasoning & tooling
+        <section className="mx-auto max-w-7xl px-6 py-28 md:py-36">
+            <div className="max-w-4xl">
+                <h2 className="text-4xl font-semibold tracking-[-0.035em] text-white md:text-5xl">
+                    One toolchain, from source file to self-hosted project.
                 </h2>
-                <p className="text-sm md:text-base text-zinc-400 leading-relaxed">
-                    Most systems languages were designed before modern autonomous coding agents. Prismio provides unambiguous token streams, lossless semantic graphs, and compile-time verification gates.
+                <p className="mt-6 max-w-3xl text-base leading-7 text-zinc-400">
+                    Prismio’s compiler, project model, native linkage, diagnostics, and memory
+                    analysis form one development loop. The lexer, parser, import resolver,
+                    semantic analyzer, AIF engine, and LLVM IR generator are themselves written in Prismio.
                 </p>
             </div>
 
-            {/* Architecture Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-                {/* Fact 1 */}
-                <div className="group p-6 rounded-2xl bg-[#0b0c10] border border-white/[0.06] hover:border-indigo-500/30 hover:bg-[#0c0d12] transition-all duration-300 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/0 via-transparent to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
-                    <div className="flex items-center justify-between mb-4 relative z-10">
-                        <span className="text-[10px] font-mono text-indigo-400/80 uppercase tracking-[0.15em] font-bold">01 / GRAMMAR</span>
-                        <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] text-zinc-500 group-hover:bg-indigo-500/10 group-hover:text-indigo-400 group-hover:border-indigo-500/20 transition-all duration-300">
-                            <Binary size={15} />
-                        </div>
+            <div className="mt-14 grid overflow-hidden rounded-2xl bg-[#0b0c10] ring-1 ring-white/[0.09] lg:grid-cols-12">
+                <div className="border-b border-white/[0.07] p-6 sm:p-8 lg:col-span-5 lg:border-b-0 lg:border-r">
+                    <div className="flex items-center gap-3 text-zinc-200">
+                        <Workflow size={18} className="text-indigo-300"/>
+                        <h3 className="font-semibold">Unified Manifest System</h3>
                     </div>
-                    <h3 className="text-[15px] font-bold text-zinc-100 mb-2 relative z-10 group-hover:text-white transition-colors">Deterministic Grammar</h3>
-                    <p className="text-xs text-zinc-400 leading-relaxed relative z-10">
-                        Prismio eliminates macro-expansion ambiguities, operator precedence traps, and context-sensitive parsing. Both LLMs and static parsers construct unambiguous syntax trees without multi-pass guessing.
+                    <p className="mt-4 text-sm leading-6 text-zinc-400">
+                        <code className="text-zinc-200">build.ums</code> declares project metadata,
+                        executable and test targets, dependencies, native link inputs, and
+                        project-defined commands. Prismio finds the nearest manifest and writes
+                        profile-specific artifacts under <code className="text-zinc-200">.prismio/build/</code>.
                     </p>
-                    <div className="mt-5 pt-3 border-t border-white/[0.04] text-[11px] font-mono text-zinc-500 relative z-10">
-                        LL(1) / Single-Pass Grammar
-                    </div>
+
+                    <pre className="mt-7 overflow-x-auto rounded-xl bg-[#07080b] p-5 text-[11px] leading-5 text-zinc-400 ring-1 ring-white/[0.06] sm:text-xs">
+                        <code>{MANIFEST}</code>
+                    </pre>
                 </div>
 
-                {/* Fact 2 */}
-                <div className="group p-6 rounded-2xl bg-[#0b0c10] border border-white/[0.06] hover:border-indigo-500/30 hover:bg-[#0c0d12] transition-all duration-300 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/0 via-transparent to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
-                    <div className="flex items-center justify-between mb-4 relative z-10">
-                        <span className="text-[10px] font-mono text-indigo-400/80 uppercase tracking-[0.15em] font-bold">02 / CLI TOOLS</span>
-                        <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] text-zinc-500 group-hover:bg-indigo-500/10 group-hover:text-indigo-400 group-hover:border-indigo-500/20 transition-all duration-300">
-                            <FileCode2 size={15} />
-                        </div>
+                <div className="lg:col-span-7">
+                    <div className="grid border-b border-white/[0.07] sm:grid-cols-2">
+                        <article className="border-b border-white/[0.07] p-6 sm:border-b-0 sm:border-r sm:p-8">
+                            <div className="flex items-center gap-3 text-zinc-200">
+                                <Binary size={18} className="text-emerald-300"/>
+                                <h3 className="font-semibold">Self-hosted by design</h3>
+                            </div>
+                            <p className="mt-4 text-sm leading-6 text-zinc-400">
+                                A committed seed builds the first local generation. Later generations
+                                compile themselves, with failed rebuilds leaving the last working compiler intact.
+                            </p>
+                        </article>
+                        <article className="p-6 sm:p-8">
+                            <div className="flex items-center gap-3 text-zinc-200">
+                                <Link2 size={18} className="text-sky-300"/>
+                                <h3 className="font-semibold">Direct C interoperability</h3>
+                            </div>
+                            <p className="mt-4 text-sm leading-6 text-zinc-400">
+                                Declare C functions with <code className="text-zinc-200">extern fn</code>.
+                                Ownership contracts such as borrow, consume, produce, and alias keep
+                                the foreign boundary visible to memory analysis.
+                            </p>
+                        </article>
                     </div>
-                    <h3 className="text-[15px] font-bold text-zinc-100 mb-2 relative z-10 group-hover:text-white transition-colors">Lossless Structured AST</h3>
-                    <p className="text-xs text-zinc-400 leading-relaxed relative z-10">
-                        CLI-level semantic export (<code className="text-zinc-200 font-mono text-[11px] px-1 py-0.5 rounded bg-white/[0.04] border border-white/5">prismio dump-ast --json</code>) exposes exact symbol tables and source spans. Agents and LSPs perform semantic transforms without lossy string munging.
-                    </p>
-                    <div className="mt-5 pt-3 border-t border-white/[0.04] text-[11px] font-mono text-zinc-500 relative z-10">
-                        First-Class CLI Exporters
-                    </div>
-                </div>
 
-                {/* Fact 3 */}
-                <div className="group p-6 rounded-2xl bg-[#0b0c10] border border-white/[0.06] hover:border-indigo-500/30 hover:bg-[#0c0d12] transition-all duration-300 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/0 via-transparent to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
-                    <div className="flex items-center justify-between mb-4 relative z-10">
-                        <span className="text-[10px] font-mono text-indigo-400/80 uppercase tracking-[0.15em] font-bold">03 / VERIFICATION</span>
-                        <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] text-zinc-500 group-hover:bg-indigo-500/10 group-hover:text-indigo-400 group-hover:border-indigo-500/20 transition-all duration-300">
-                            <ShieldCheck size={15} />
+                    <div className="p-6 sm:p-8">
+                        <h3 className="text-xl font-semibold tracking-[-0.02em] text-white">
+                            Reliable interfaces for editors, CI, and coding agents.
+                        </h3>
+                        <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">
+                            Tools consume structured compiler output instead of scraping terminal prose.
+                        </p>
+
+                        <div className="mt-6 divide-y divide-white/[0.07] border-y border-white/[0.07]">
+                            {TOOLING.map(({icon: Icon, title, copy}) => (
+                                <article key={title} className="grid gap-3 py-5 sm:grid-cols-[2.25rem_1fr]">
+                                    <Icon size={17} className="mt-0.5 text-indigo-300"/>
+                                    <div>
+                                        <h4 className="text-sm font-semibold text-zinc-200">{title}</h4>
+                                        <p className="mt-1.5 text-sm leading-6 text-zinc-500">{copy}</p>
+                                    </div>
+                                </article>
+                            ))}
                         </div>
-                    </div>
-                    <h3 className="text-[15px] font-bold text-zinc-100 mb-2 relative z-10 group-hover:text-white transition-colors">Deterministic Safety Gates</h3>
-                    <p className="text-xs text-zinc-400 leading-relaxed relative z-10">
-                        Automatic Invalidation Flow provides a mathematical compiler verification gate. Agent-generated code is checked for memory leaks and invalid lifetime transfers with zero undefined behavior.
-                    </p>
-                    <div className="mt-5 pt-3 border-t border-white/[0.04] text-[11px] font-mono text-zinc-500 relative z-10">
-                        Compile-Time Leak Invariance
                     </div>
                 </div>
             </div>

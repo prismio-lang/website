@@ -5,7 +5,7 @@ status: implemented
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [glossary, terminology, definitions]
-related: [language, specification, compiler/aif]
+related: [compiler/overview, aif/overview, llvm/overview]
 ---
 
 **AIF** — Allocation Inference Framework, the experimental pass that classifies allocation sites and drives memory-management code generation.

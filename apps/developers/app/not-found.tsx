@@ -46,10 +46,10 @@ export default function NotFound() {
                         <Home aria-hidden="true" size={14} /> Back to docs home
                     </Link>
                     <Link
-                        href="/start/overview"
+                        href="/start"
                         className="inline-flex h-10 items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
                     >
-                        <BookOpen aria-hidden="true" size={14} /> Getting started
+                        <BookOpen aria-hidden="true" size={14} /> Start contributing
                     </Link>
                 </div>
             </div>

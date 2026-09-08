@@ -5,13 +5,14 @@ status: implemented
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [cookbook, c, ffi, ownership]
-related: [guides/ffi, language/ffi, specification/behavior]
+related: [aif/ffi-contracts, runtime/supported-surface, tooling/build-graph-and-linking]
 ---
 
 Put raw declarations in one source file, match C-compatible types, and state pointer ownership.
 
 Suppose a C-compatible library exports a byte-length function that reads but does not retain the passed runtime-compatible string. Declare that contract at the boundary:
 
+<!-- prismio-check: pass -->
 ```prismio
 extern fn c_strlen(text: String borrow) -> Usize
 
@@ -40,7 +41,9 @@ If any representation detail differs, write a C adapter with a narrow stable sig
 
 ## Link and test
 
-The symbol still has to be present at link time. Prismio 0.1 has no manifest field for native libraries, so integrate the library through the runtime/build environment used for your compiler distribution. A mismatched signature or false ownership contract is outside compiler safety guarantees.
+The symbol still has to be present at link time. Declare native libraries, search paths, files, or
+platform frameworks in the target's `link` block in `build.ums`. A mismatched signature or
+false ownership contract remains outside compiler safety guarantees.
 
 Emit `.ll` first if you need to separate front-end acceptance from native link configuration. Then test empty strings, ordinary content, large lengths, repeated calls, and every supported target.
 
@@ -49,6 +52,17 @@ Emit `.ll` first if you need to separate front-end acceptance from native link c
 When a C function returns newly allocated storage, use the supported `produce(free_fn)` return contract and name the matching deallocator. Use `alias` only when the result borrows storage owned elsewhere. Never pair a produced pointer with an unrelated allocator's free function.
 
 The exact declaration must follow the compiler's FFI contract grammar. Keep produced/aliased pointer handling inside the wrapper because raw `Ptr` values do not carry an automatically verified pointee lifetime.
+
+`parseFfiContract()` stores the encoded contract on the extern AST. `semaCheckExternContracts()`
+checks parameter and return positions, including `retain_in(k)` indices and the required deallocator
+for `produce`. During AIF, declared contracts take precedence over builtin fallback tables and add
+the corresponding borrow, retain, container, consume, escape, or production facts. Codegen then
+emits an ordinary external LLVM declaration and call; it does not make the C implementation safe.
+
+Use `out` only for a parameter whose pointee is initialized by C and whose exact ABI is modeled.
+Use `retain` when C keeps a reference independently, and `retain_in(k)` when the value is stored in
+another argument named by zero-based index. `consume` transfers the value to C. These distinctions
+change release placement and cannot be approximated by `borrow` for convenience.
 
 ## What this recipe does not promise
 

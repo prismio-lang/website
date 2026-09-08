@@ -5,7 +5,7 @@ status: implemented
 version: "0.1.0"
 lastUpdated: "2026-08-25"
 tags: [compiler, architecture, self-hosting, llvm]
-related: [compiler/bootstrap, compiler/aif, specification/conformance]
+related: [compiler/pipeline-and-driver, llvm/overview, compiler/bootstrap]
 ---
 
 The Prismio compiler is a self-hosted command-line program: its main lexer, parser, semantic analysis, allocation inference, import resolver, LLVM generation, and driver orchestration are written in Prismio itself.
@@ -35,7 +35,9 @@ No module namespace survives flattening. Semantic analysis sees the combined dec
 
 The lexer converts UTF-8 source into tokens, preserving source positions for diagnostics. The parser constructs the AST for top-level declarations, statements, types, and precedence-climbed expressions.
 
-Parser recovery can continue after selected failures to report independent issues in one run. Reserved tokens such as `trait`, `impl`, and `throw` do not have implemented grammar productions.
+Parser recovery can continue after selected failures to report independent issues in one run. Token
+presence is not feature evidence: `trait` and `impl` are implemented, while `throw` remains
+reserved without an accepted statement production.
 
 ## Semantic analysis
 

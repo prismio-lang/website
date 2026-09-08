@@ -20,7 +20,7 @@ export function GET() {
         ].join("\n"))
         .join("\n\n---\n\n");
 
-    const body = `# Prismio ${siteConfig.currentVersion} full documentation corpus\n\nThis Markdown-first export is generated from the same content records as docs.prismio.org. “coming-soon” means the feature is not accepted by compiler 0.1.0.\n\n${records}\n`;
+    const body = `# Prismio ${siteConfig.currentVersion} developer reference corpus\n\nThis Markdown-first export is generated from the same implementation records as developers.prismio.org. “experimental” means implemented but changeable; “coming-soon” means the capability is not accepted by compiler 0.1.0.\n\n${records}\n`;
 
     return new Response(body, {
         headers: {

@@ -1,77 +1,117 @@
-import React from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { ArrowRight, Terminal, BookOpen, Milestone, BarChart3 } from "lucide-react";
+import React from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import {ArrowRight, BookOpen, Terminal} from 'lucide-react';
+
+const AVAILABLE = [
+    'Self-hosted native compiler',
+    'AIF storage plans and runtime verification',
+    'Generics, traits, closures, enums, and pattern matching',
+    'Lists, maps, slices, data views, files, and processes',
+    'Native tasks and typed blocking channels',
+    'UMS projects, native linking, JSON diagnostics, and DWARF',
+];
+
+const NOT_YET = [
+    'Networking and async/await',
+    'Regex and JSON modules',
+    'User-facing atomics, mutexes, and work-stealing pools',
+    'Reflection, derive generation, and explicit SIMD types',
+    'Memory-mapped files and custom container allocators',
+];
 
 export default function CTA() {
     return (
-        <section className="relative px-6 py-20 max-w-5xl mx-auto text-center z-20">
-            {/* Tag */}
-            <span className="inline-block mb-6 px-3 py-1 rounded-full text-xs font-semibold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                100% Open Source • Apache-2.0
-            </span>
+        <section className="px-6 pb-8 pt-24 md:pt-32">
+            <div className="mx-auto max-w-7xl overflow-hidden rounded-3xl bg-[#0b0c10] ring-1 ring-white/[0.09]">
+                <div className="grid lg:grid-cols-12">
+                    <div className="border-b border-white/[0.07] p-7 sm:p-10 lg:col-span-5 lg:border-b-0 lg:border-r lg:p-12">
+                        <h2 className="text-4xl font-semibold tracking-[-0.035em] text-white md:text-5xl">
+                            A working compiler with a deliberately unfinished ecosystem.
+                        </h2>
+                        <p className="mt-6 text-base leading-7 text-zinc-400">
+                            Prismio v0.1 is in active development. It self-hosts, emits native binaries, runs its project workflow,
+                            and ships the core language, memory analysis, standard containers,
+                            file and process APIs, native tasks, and typed channels.
+                        </p>
+                        <Link
+                            href="/roadmap"
+                            className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-indigo-300 transition-colors hover:text-indigo-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                        >
+                            See the engineering roadmap
+                            <ArrowRight size={15}/>
+                        </Link>
+                    </div>
 
-            {/* Title */}
-            <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-5">
-                Ready to build with Prismio?
-            </h2>
+                    <div className="grid sm:grid-cols-2 lg:col-span-7">
+                        <div className="border-b border-white/[0.07] p-7 sm:border-b-0 sm:border-r sm:p-10">
+                            <h3 className="text-sm font-semibold text-emerald-300">Available today</h3>
+                            <ul className="mt-5 space-y-3">
+                                {AVAILABLE.map((item) => (
+                                    <li key={item} className="flex gap-3 text-sm leading-6 text-zinc-300">
+                                        <span className="mt-[0.68rem] h-1 w-1 shrink-0 rounded-full bg-emerald-300"/>
+                                        {item}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className="p-7 sm:p-10">
+                            <h3 className="text-sm font-semibold text-amber-200">Not yet supported</h3>
+                            <ul className="mt-5 space-y-3">
+                                {NOT_YET.map((item) => (
+                                    <li key={item} className="flex gap-3 text-sm leading-6 text-zinc-400">
+                                        <span className="mt-[0.68rem] h-1 w-1 shrink-0 rounded-full bg-amber-200"/>
+                                        {item}
+                                    </li>
+                                ))}
+                            </ul>
+                            <Link
+                                href="/benchmarks"
+                                className="mt-7 inline-flex items-center gap-2 text-sm text-zinc-300 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                            >
+                                Browse supported workloads
+                                <ArrowRight size={14}/>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
 
-            {/* Subtitle */}
-            <p className="text-sm md:text-base text-gray-400 max-w-2xl mx-auto leading-relaxed mb-10">
-                The Prismio compiler and standard library are developed in the open. Explore our roadmap, run the 40-workload benchmark suite, and start building native systems.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap justify-center items-center gap-4 mb-16">
-                <Link
-                    href="/install"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-zinc-100 text-black font-bold text-xs sm:text-[13px] hover:bg-white transition-all duration-300 shadow-[0_0_25px_-5px_rgba(255,255,255,0.2)] hover:shadow-[0_0_35px_-5px_rgba(255,255,255,0.4)] hover:-translate-y-0.5 active:translate-y-0"
-                >
-                    <Terminal size={15} />
-                    Install Toolchain
-                </Link>
-
-                <a
-                    href="https://github.com/prismio-lang/prismio"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] text-white border border-white/[0.08] hover:border-white/[0.15] text-xs sm:text-[13px] font-semibold transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
-                >
-                    <Image src="/icons/github-mark-white.svg" alt="GitHub" width={16} height={16} className="opacity-90" />
-                    Star on GitHub
-                </a>
-
-                <Link
-                    href="/roadmap"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-transparent hover:bg-white/[0.03] text-zinc-400 hover:text-white border border-transparent hover:border-white/[0.05] text-xs sm:text-[13px] font-semibold transition-all duration-300"
-                >
-                    <Milestone size={15} />
-                    View Roadmap
-                </Link>
-
-                <Link
-                    href="/benchmarks"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-transparent hover:bg-white/[0.03] text-zinc-400 hover:text-white border border-transparent hover:border-white/[0.05] text-xs sm:text-[13px] font-semibold transition-all duration-300"
-                >
-                    <BarChart3 size={15} />
-                    Benchmarks
-                </Link>
-            </div>
-
-            {/* Metadata Badges */}
-            <div className="flex flex-wrap justify-center items-center gap-3 pt-6 border-t border-white/5 text-xs text-gray-500 font-mono">
-                <span className="px-3 py-1 rounded-md bg-white/[0.02] border border-white/[0.05]">
-                    Target: <span className="text-gray-300">x86_64 / arm64</span>
-                </span>
-                <span className="px-3 py-1 rounded-md bg-white/[0.02] border border-white/[0.05]">
-                    Backend: <span className="text-gray-300">LLVM 18+ AOT</span>
-                </span>
-                <span className="px-3 py-1 rounded-md bg-white/[0.02] border border-white/[0.05]">
-                    Memory: <span className="text-gray-300">AIF Deterministic</span>
-                </span>
-                <span className="px-3 py-1 rounded-md bg-white/[0.02] border border-white/[0.05]">
-                    License: <span className="text-gray-300">Apache-2.0</span>
-                </span>
+                <div className="border-t border-white/[0.07] px-7 py-16 text-center sm:px-10 sm:py-20">
+                    <h2 className="mx-auto max-w-3xl text-4xl font-semibold tracking-[-0.035em] text-white md:text-5xl">
+                        Build a program. Inspect what the compiler decided.
+                    </h2>
+                    <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-zinc-400">
+                        Install Prismio, run an example, and ask AIF where each value lives and why.
+                        The compiler, standard library, benchmark suite, and design evidence are open for inspection.
+                    </p>
+                    <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+                        <Link
+                            href="/install"
+                            className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                        >
+                            <Terminal size={16}/>
+                            Install Prismio
+                        </Link>
+                        <a
+                            href="https://docs.prismio.org"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-5 text-sm font-medium text-zinc-200 transition-colors hover:border-white/20 hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                        >
+                            <BookOpen size={16}/>
+                            Read the docs
+                        </a>
+                        <a
+                            href="https://github.com/prismio-lang/prismio"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex h-11 items-center gap-2 px-3 text-sm font-medium text-zinc-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                        >
+                            <Image src="/icons/github-mark-white.svg" alt="" width={16} height={16}/>
+                            View on GitHub
+                        </a>
+                    </div>
+                </div>
             </div>
         </section>
     );

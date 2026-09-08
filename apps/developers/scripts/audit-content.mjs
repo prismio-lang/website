@@ -1,3 +1,5 @@
+/* global process */
+
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 

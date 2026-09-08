@@ -1,0 +1,75 @@
+---
+title: Run, extend, and read the benchmark suite
+description: Execute the Prismio benchmark harness, inspect its JSON, add equivalent language arms, and record unsupported capabilities honestly.
+status: implemented
+version: "0.1.0"
+lastUpdated: "2026-09-08"
+tags: [benchmarks, harness, results]
+related: [performance/benchmark-contract, performance/investigation-method, roadmap]
+---
+
+The suite lives under `benchmarks/`. `benchmarks.json` is the catalog; `run.py` builds the three
+dispatchers, validates results, samples workloads, and writes JSON plus an HTML rendering.
+
+## Command surface
+
+```bash
+PRISMIO=$PWD/build/gen2 python3 benchmarks/run.py --runs 9
+PRISMIO=$PWD/build/gen2 python3 benchmarks/run.py --only binary_trees --runs 15
+python3 benchmarks/run.py --list
+```
+
+`--compiler` overrides `PRISMIO`. `--llvm-bin` chooses the LLVM/Clang directory. `--only` is
+repeatable and `select_benchmarks()` rejects unknown names. `--skip-build` requires all three suite
+executables already under `benchmarks/build`; use it only when source and compiler inputs have not
+changed. `--output` changes the JSON path and the sibling HTML destination. `--open` opens the
+finished report but does not alter its contents.
+
+`build_all()` invokes the Prismio, C++, and Rust builds. `run_command()` always uses the repository
+root as its working directory and captures output. Build failures include the expanded command,
+stdout, and stderr. During measurement, `execute()` invokes a dispatcher, parses its two required
+fields, and adds a harness-side `wall_ns`.
+
+The loop order is run-first, language-second. This is limited interleaving: it reduces long-term
+drift compared with timing every sample of one language first, but does not randomize order. For a
+close result, repeat with reversed or randomized external sequencing and run A/A before assigning a
+cause.
+
+## Reading JSON
+
+The result file records `schema_version`, `generated_at`, `runs`, `build_commands`, `compile_ns`,
+`benchmarks`, and `artifacts`. Implemented benchmark records add one `languages` object per arm:
+
+```json
+{
+  "elapsed_ns_median": 1234,
+  "wall_ns_median": 5678,
+  "elapsed_ns_samples": [1200, 1234, 1300]
+}
+```
+
+`elapsed_ns_median` is the algorithm interval reported by the dispatcher. `wall_ns_median` includes
+process launch and harness overhead, although raw wall samples are not currently retained. Compile
+times are nanoseconds for the suite build, not per-workload compilation. Unsupported records contain
+their reason and no fabricated `languages` object.
+
+## Adding a workload
+
+Add the catalog record, implement the same algorithm in the Prismio, C++, and Rust category modules,
+wire each suite dispatcher, choose a deterministic integer checksum, and document the timed boundary.
+The Prismio category files live under `benchmarks/prismio`, the C++ implementation is split across
+the files in `CPP_SOURCES`, and Rust lives under `benchmarks/rust`. The string name in all three
+dispatchers must exactly match the manifest `name`.
+
+Before a long run, use `--only <name> --runs 1`. Deliberately perturb one arm's checksum and confirm
+the harness rejects it; then restore it. Check that the output file fixture is used equivalently
+when the workload writes data. Finally run several samples and inspect both the raw JSON and the
+generated `report.html`.
+
+If Prismio cannot express the intended standard operation, add a complete unsupported record to
+`UNSUPPORTED.md`. State the missing language or library feature and why a local substitute would
+invalidate comparison.
+
+Review the generated result diff before committing. A changed checksum, build command, workload
+count, unsupported reason, or sample shape is a semantic change to the evidence, not report noise.
+Do not hand-edit medians: `main()` derives them with `statistics.median` from the recorded samples.
