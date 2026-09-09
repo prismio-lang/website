@@ -3,7 +3,7 @@ title: Compiler architecture
 description: The self-hosted Prismio 0.1 pipeline from source and imports through semantics, AIF, LLVM IR, and native linking.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-08-25"
+lastUpdated: "2026-09-09"
 tags: [compiler, architecture, self-hosting, llvm]
 related: [compiler/bootstrap, compiler/aif, specification/conformance]
 ---
@@ -17,7 +17,7 @@ A source file moves through these stages:
   → lexer and parser
   → import resolution and AST flattening
   → semantic/type/ownership analysis
-  → Allocation Inference Framework (AIF)
+  → Adaptive Inference Framework (AIF)
   → LLVM IR generation through the LLVM C API
   → Clang object generation and runtime link
   → native executable
@@ -55,13 +55,15 @@ LLVM module verification checks IR structural validity; it is not a substitute f
 
 ## Object generation and linking
 
-For a native executable, the driver invokes the configured LLVM/Clang toolchain, compiles generated IR, and links the installed Prismio runtime. Before optimized object generation, it merges a curated set of hot runtime container operations as `available_externally` LLVM bodies so the optimizer can inline across the program/runtime boundary without emitting duplicate definitions. If that optional merge cannot be produced, compilation safely falls back to the separate runtime; `PRISMIO_INLINE_RUNTIME=0` explicitly selects that fallback for diagnosis or measurement.
+For a native executable, the driver invokes the configured LLVM/Clang toolchain and links the installed Prismio runtime. That runtime is **LLVM bitcode, not an archive**: the toolchain ships one `.bc` module per runtime translation unit under `lib/runtime/`, and each standard-library module ships as a `.plib` carrying its own bitcode. Before optimization, the driver merges your program's IR, the bitcode of every `std.*` module you imported, and the runtime modules into a single LLVM module — one transaction, one context — so the optimizer sees runtime and library bodies while inlining, global optimization and dead-code elimination run.
 
-Producing that curated module requires compiling the runtime translation unit to optimized LLVM bitcode. The driver keeps that bitcode for the rest of the build and lowers the runtime object from it with the target backend alone, instead of compiling the same C source a second time. The two-step lowering produces a byte-identical object to a direct optimized compile, and it is what keeps a cold build from paying for the runtime twice; a toolchain that will not accept the backend-only invocation falls back to compiling from source.
+There is no source fallback and no opt-out. A missing module is an installation error naming the exact file, not a silent switch to a slower path — the obsolete `PRISMIO_INLINE_RUNTIME` variable is ignored. That also means **a compiler is a layout, not a file**: a bare binary with no `lib/runtime/` beside it can compile nothing. See [Toolchain layout](/compiler/toolchain-layout).
 
-The bootstrap command additionally rebuilds compiler backend/runtime C sources from the repository because compiler generations need more than the application runtime. The compiler suite verifies that the curated merge genuinely completes on its normal path, and that the runtime object really is lowered from the retained bitcode, rather than accepting either silent fallback as portability evidence.
+Because whole-program bitcode would otherwise make every executable export the entire runtime surface, imported definitions with no remaining IR users are pruned after the merge, repeatedly — deleting one wrapper can make its callees dead.
 
-Setting `PRISMIO_BUILD_TRACE=1` prints one wall-clock line per build stage — curated module, program optimization, each runtime object, and the link — which is the supported way to attribute a compile-time question to a stage.
+The bootstrap command is the exception: it rebuilds compiler backend and runtime C sources from the repository, because a compiler generation needs more than the application runtime and must pick up C changes made after its host was built.
+
+Setting `PRISMIO_BUILD_TRACE=1` prints one wall-clock line per build stage — the library bitcode merge, program optimization, and the link — which is the supported way to attribute a compile-time question to a stage.
 
 The compiler sources are organized by stage under `src/`: `lexer`, `parse`, `ast`, `sema`, `aif`, and `ir`. `src/main.psm` owns the CLI, import resolver, and build orchestration. The LLVM bridge is declared to Prismio through `extern fn` and implemented in the linked C runtime/backend.
 

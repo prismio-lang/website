@@ -3,7 +3,7 @@ title: Call C with ownership contracts
 description: Declare C ABI functions and document pointer ownership at the Prismio 0.1 FFI boundary.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-08-09"
+lastUpdated: "2026-09-09"
 tags: [guide, ffi, c-abi, ownership]
 related: [language/ffi, cookbook/c-ffi, specification/memory-model]
 ---
@@ -43,7 +43,7 @@ Mark the raw `extern fn` declarations `private` so only the wrapper file may cal
 
 Use `internal` instead where the wrapper spans several files of one package. Visibility applies to `fn` and `extern fn`; a struct used in the ABI cannot be hidden this way.
 
-FFI ownership contracts are part of semantic analysis. Parameter contracts are `borrow`, `retain`, `retain_in(k)`, `consume`, and `out`; return contracts are `alias` and `produce(free_fn)`.
+FFI ownership contracts are part of semantic analysis. Parameter contracts are `borrow`, `bytes`, `retain`, `retain_in(k)`, `consume`, and `out`; return contracts are `alias` and `produce(free_fn)`. `bytes` is `borrow` plus a promise that the callee reads no terminator, for C functions that take a pointer and a length; see [foreign function declarations](/language/ffi).
 
 Only use a contract that matches the C implementation. The compiler can enforce transfers at the Prismio boundary, but it cannot prove that foreign code obeys its declaration. Prefer a small wrapper module that centralizes raw declarations and exposes typed Prismio functions.
 

@@ -1,5 +1,5 @@
 ---
-title: Allocation Inference Framework
+title: Adaptive Inference Framework
 description: Architecture and CLI of Prismio 0.1 AIF allocation tiers, constraints, reports, and runtime verification.
 status: experimental
 version: "0.1.0"
@@ -8,7 +8,7 @@ tags: [compiler, aif, memory, allocation]
 related: [guides/memory-and-aif, language/annotations, specification/memory-model]
 ---
 
-The Allocation Inference Framework runs after semantic/type/ownership analysis and before code generation. It assigns an allocation strategy using escape, alias, field, container, region, and ownership evidence.
+The Adaptive Inference Framework runs after semantic/type/ownership analysis and before code generation. It assigns an allocation strategy using escape, alias, field, container, region, and ownership evidence.
 
 AIF is not the source ownership checker. The semantic pass first decides whether moves and borrows are legal; AIF then selects or constrains a memory-management implementation consistent with that program.
 

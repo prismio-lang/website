@@ -3,7 +3,7 @@ title: Testing the compiler
 description: The Prismio validation layers from focused language regressions through AIF differentials, fixed points, packaging, and platforms.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-08"
+lastUpdated: "2026-09-09"
 tags: [testing, compiler, contributing]
 related: [testing/regression-suite, testing/fixed-point-verification, testing/aif-differential]
 ---
@@ -48,7 +48,7 @@ expectations and `run_negative_test` to require compilation failure plus matchin
 
 The same runner then executes subsystem gates including CLI, corpus, UMS, check mode, punned-slot
 invariants, AIF reports/concurrency/regions/layout, object cache, bootstrap, target/debug metadata,
-JIT, runtime-library separation, verification, optimization guards, and curated runtime IR.
+JIT, runtime/backend separation, module artifacts, verification, and optimization guards.
 
 ## Choosing the right proof
 

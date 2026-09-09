@@ -3,7 +3,7 @@ title: Compiler pipeline and driver
 description: How the Prismio driver carries source through imports, semantics, AIF, LLVM generation, object emission, and linking.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-08"
+lastUpdated: "2026-09-09"
 tags: [compiler, pipeline, driver]
 related: [compiler/overview, llvm/overview, runtime/overview]
 ---
@@ -37,13 +37,14 @@ object generation and linking.
 
 ## Native compilation
 
-The driver coordinates the generated program module, curated runtime IR when available, runtime
-objects, and user-declared native link inputs. Curated-runtime construction is optional for
-correctness: a failure falls back to separately compiled runtime code. Tests distinguish the normal
-optimized path from that safe fallback.
+The driver merges the generated program module with the bitcode of every imported standard-library
+module and every runtime module, compiles the result, and links it with user-declared native
+inputs. The merge is not optional and has no fallback: a missing or unreadable module fails the
+build naming the file, rather than quietly producing a slower program.
 
-`PRISMIO_BUILD_TRACE=1` prints timings for major native build stages. Use it to identify whether
-a regression belongs to frontend work, program optimization, runtime compilation, or linking.
+`PRISMIO_BUILD_TRACE=1` prints timings for major native build stages, including
+`library bitcode merge`. Use it to identify whether a regression belongs to frontend work, the
+merge, program optimization, or linking.
 
 ## Change discipline
 

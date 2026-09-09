@@ -159,7 +159,7 @@ A value produced by a call and consumed directly as an argument -- `simulate(ban
 
 The release is withheld where it cannot be proven safe -- when the callee may hand the argument back through its own return value, when the call crosses a foreign boundary whose contract governs the result, and for a `spawn`ed call, whose task may still be running. In those cases the value is kept rather than freed.
 
-The experimental Allocation Inference Framework may choose stack, region, reference-counted, or traced strategies based on analysis and annotations. These strategies are implementation mechanisms; they do not remove source-level ownership rules.
+The experimental Adaptive Inference Framework may choose stack, region, reference-counted, or traced strategies based on analysis and annotations. These strategies are implementation mechanisms; they do not remove source-level ownership rules.
 
 Prismio 0.1 should not yet be described as having a complete formally proven borrow checker or universal leak-freedom guarantee. Foreign code, raw pointers, experimental allocation tiers, and incomplete semantics remain boundaries where contracts matter.
 

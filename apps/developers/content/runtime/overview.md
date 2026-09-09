@@ -3,7 +3,7 @@ title: Runtime architecture
 description: The native support Prismio programs link, the boundary with compiler builtins and standard modules, and the runtime's ownership obligations.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-08"
+lastUpdated: "2026-09-09"
 tags: [runtime, architecture, native]
 related: [runtime/supported-surface, runtime/allocation-arenas-rc-and-cycles, llvm/runtime-ir-and-optimization]
 ---
@@ -30,8 +30,8 @@ not exist.
 ## Runtime compatibility
 
 The runtime and compiler are shipped as a matched toolchain. Internal layouts and symbols are not a
-stable cross-version ABI. Packaged applications link the runtime archive discovered relative to
-the compiler executable, plus native inputs declared by their UMS target.
+stable cross-version ABI. Packaged applications merge the runtime bitcode modules discovered
+relative to the compiler executable, plus native inputs declared by their UMS target.
 
 Runtime changes require compiler tests, native link tests, verifier coverage where relevant, and
 platform validation. A successful C compilation alone does not prove ownership or ABI agreement.
@@ -48,8 +48,8 @@ platform validation. A successful C compilation alone does not prove ownership o
 | `ir_symbols.c` | names, declarations, scoped bindings, drop lists | Native tables needed during self-hosted lowering |
 
 The public declarations are collected in `prismio_runtime.h`, `prismio_platform.h`, and
-`prismio_llvm.h`. `embedded_sources.h` is generated for bootstrap/toolchain packaging; it is
-not edited as a source of runtime truth.
+`prismio_llvm.h`. `prismio_runtime.h` also carries `PRISMIO_HOST_ABI`, the version of the pairing
+between what a compiler generation emits and what the runtime it links defines.
 
 ## Allocation entry points
 

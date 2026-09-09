@@ -3,7 +3,7 @@ title: Compiler command-line reference
 description: Complete Prismio 0.1 build, run, bootstrap, AST, AIF, target, optimization, and verification command reference.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-03"
+lastUpdated: "2026-09-09"
 tags: [compiler, cli, flags, commands]
 related: [start/local-compiler-loop, aif/overview, tooling/debugging-targets-and-build-tracing]
 ---
@@ -115,7 +115,16 @@ Unknown commands and malformed flags exit nonzero. The default AIF report is an 
 ## Dispatch implementation
 
 `main()` gives project-shaped invocations to `dispatchToUmsHost()` and the UMS command layer; a
-source argument selects the single-file driver. `cliAif()` parses analysis flags and calls
+source argument selects the single-file driver.
+
+`--internal-host-abi <token>` is answered **before** dispatch and is deliberately absent from
+`--help`. It is a protocol between two compilers: the command prints this executable's own
+`PRISMIO_HOST_ABI` and exits 0 only when the argument matches. The launcher runs it against
+`toolchain.host` before forwarding anything, and a compiler predating the command rejects the
+argument as unknown and exits 1 — which is the same answer. Answering it before dispatch is what
+keeps the reply about the binary asked rather than about the host it would otherwise forward to,
+and what stops the launcher's own probe from recursing. See
+[Compiler host and promotion](/tooling/compiler-host-and-promotion). `cliAif()` parses analysis flags and calls
 `aifCommand()`. `cliBootstrap()` fixes compiler-build mode and accepts only source, `-o`, and `-g`.
 The build/run parser validates incompatible pairs such as `--jit` with `--target` before calling
 `compileSource()`.

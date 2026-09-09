@@ -3,7 +3,7 @@ title: Loop guards and container access
 description: How Prismio proves a container's representation and index range once per loop, versions the loop on that proof, and emits unchecked access inside it.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-05"
+lastUpdated: "2026-09-09"
 tags: [compiler, loops, containers, codegen, performance, vectorization]
 related: [compiler/aif-internals, compiler/string-representation, llvm/control-flow, runtime/collection-representations]
 ---
@@ -142,14 +142,15 @@ difference is most of the language.
 The guard proves the element representation and the index range. **A read cannot
 change either. Nor can a write** — `list_set` and its inline siblings store into
 a slot that already exists. Only moving the element block can: growth reallocates
-it, `list_set_elem_inline` frees and re-widths it, and release frees it.
+it, and release frees it. The element width itself cannot change at all — a list
+receives it in its constructor and keeps it for life.
 
 So the compiler classifies every function in the module by whether it can reach
 one of those primitives:
 
 ```
 irPrimitiveMovesBlock   list_push and family, list_inline_grow,
-                        list_set_elem_inline, list_release,
+                        list_release,
                         rc_release, cyc_release
 irPrimitiveIsSettled    list_get, list_set, list_len, rc_retain, ...
 ```

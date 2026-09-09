@@ -3,7 +3,7 @@ title: Console I/O
 description: Source-defined print and println overloads available to Prismio programs.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-08-12"
+lastUpdated: "2026-09-09"
 tags: [standard-library, io, print, console]
 related: [start/hello-world, stdlib, language/ffi]
 ---
@@ -18,7 +18,7 @@ println(true)
 println('A')
 ```
 
-The functions write to the runtime's console output stream. Newline variants append a line ending; non-newline variants leave subsequent output on the current line.
+The functions write to the descriptor directly — stdout for `print`/`println`, stderr for `eprint`/`eprintln` — with no buffering in between. Newline variants append a line ending; non-newline variants leave subsequent output on the current line.
 
 ## String output
 
@@ -31,7 +31,7 @@ println("done")
 
 ## Standard error
 
-`eprint` and `eprintln` write a `String` to stderr instead of stdout.
+`eprint` and `eprintln` write to stderr instead of stdout.
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -52,8 +52,24 @@ output. The compiler's own host-routing banner is on stderr for exactly this
 reason: while it printed to stdout it prefixed `aif --manifest` and broke that
 format's one guarantee, that its first line is `aif-manifest 1`.
 
-Only `String` is overloaded. Every other `print` overload exists to render a
-number, and status text is composed before it is written.
+`eprint` also accepts an `Int`, because a status line counts things — the
+compiler uses it to report how many standard-library modules it rebuilt beside a
+project-local toolchain:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+fn main() -> Int {
+    eprint("rebuilt ")
+    eprint(14)
+    eprintln(" modules")
+    return 0
+}
+```
+
+The remaining width-specific overloads (`I8` through `U64`, `Float`, `Bool`,
+`Char`) stay on stdout until a caller needs one on stderr.
 
 ## Exact overloads
 
@@ -96,12 +112,26 @@ println(list_len(items))
 
 For application-specific rich formatting, write typed helper functions or use a carefully declared foreign formatting wrapper. Avoid C variadic APIs unless a stable adapter fixes the signature because source-level FFI variadics are not documented.
 
-The old chunked names such as `println_int`, `print_float`, and `println_bool` are not public Prismio functions. Use the overload set directly.
+The old chunked names such as `println_int`, `print_bool` and `print_char` are not public Prismio functions, and as of 0.1 they no longer exist as runtime symbols either — a program that declared one by hand will fail to link naming it. Use the overload set directly.
+
+## What "printed" guarantees
+
+`print` writes the whole string, or stops because the descriptor refused it.
+
+That is worth stating because the underlying `write` does not promise it. It returns how many bytes it took, and fewer than asked for is an ordinary outcome rather than an error — most visibly on a descriptor someone set `O_NONBLOCK` on, which is a property of the open file description and so is inherited across `fork`/`exec` and shared by every duplicate of it. `std/io.psm` resumes from where a short write stopped, and reissues when a write was interrupted by a signal before it moved any bytes.
+
+A descriptor that refuses outright ends the attempt rather than spinning on it. These are `write_all` semantics, not polling: a non-blocking descriptor that has no room right now is *not* waited on, because blocking inside `print` on a descriptor its owner deliberately made non-blocking is not the caller's intent.
+
+**A broken pipe is a signal, not a return value.** Nothing in the runtime ignores `SIGPIPE`, so a program whose reader has gone away dies of the signal, exactly as `cat` does in the same position. This is what a filter should do, and no error handling in `print` would run instead.
 
 ## Errors and buffering
 
-The 0.1 print functions do not expose a structured recoverable I/O result, writer handle, flush API, or buffering selection. Console/pipe failures follow the runtime/platform implementation rather than a language exception model.
+There is no buffering to select or flush: output reaches the descriptor on each call. One consequence is worth relying on — `stdout` and `stderr` cannot reorder relative to each other, so a status line on stderr always lands where it was written relative to the surrounding stdout.
 
-`std/io.psm` is currently a minimal output module. Formatted output, input streams, files, buffering controls, error objects, and pluggable writers are not part of the 0.1 standard library.
+The 0.1 print functions do not expose a structured recoverable I/O result or a writer handle. A caller that must know whether every byte arrived cannot learn it from `print`.
+
+`Float` is the one value type still formatted in C, because `%g` has no source-level formatter yet; every other overload formats in Prismio.
+
+`std/io.psm` is currently a minimal output module. Formatted output, input streams, files, error objects, and pluggable writers are not part of the 0.1 standard library.
 
 For input or file access, define a local C-compatible wrapper and state its ownership/error contracts. The planned [filesystem](/stdlib/filesystem) and broader I/O modules remain Coming Soon.

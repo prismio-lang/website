@@ -69,6 +69,7 @@ export const DocsNavList: DocsSection[] = [
             {label: "Allocation, arenas, RC, and cycles", href: "/runtime/allocation-arenas-rc-and-cycles"},
             {label: "Tasks and channels", href: "/runtime/tasks-and-channels"},
             {label: "Builtins, stdlib, and foreign code", href: "/runtime/supported-surface"},
+            {label: "Library artifacts (.bc and .plib)", href: "/runtime/library-artifacts"},
             {label: "Platforms and packaging", href: "/runtime/platform-and-packaging"},
         ],
     },

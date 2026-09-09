@@ -3,7 +3,7 @@ title: Collection representations
 description: The current List, Map, Slice, and DataView runtime forms, ownership modes, growth behavior, and compiler specialization points.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-08"
+lastUpdated: "2026-09-09"
 tags: [runtime, collections, memory]
 related: [aif/layout-selection, compiler/generics-and-monomorphization, runtime/allocation-arenas-rc-and-cycles]
 ---
@@ -48,8 +48,21 @@ block. `list_new` starts empty with an unknown/boxed element strategy.
 
 `list_set_elem_owner` records whether elements are borrowed, owned, counted, or otherwise
 managed. `list_set_elem_releaser` installs a typed release callback.
-`list_set_elem_inline` fixes the inline element size after representation selection.
 `list_inline_enabled` validates whether inline storage is still legal.
+
+**Element width is immutable.** A typed list receives its inline stride in its
+constructor — `list_new_inline` — and an untyped one stays boxed for life. There
+is no post-construction setter, so codegen's static answer and the runtime's
+representation cannot drift apart, and a loop guard that proved `elem_size ==
+stride` in a preheader cannot be invalidated by a width change inside the loop.
+
+The previous generation stamped the stride after construction, through
+`list_set_elem_inline`. That symbol is **absent from packaged runtime bitcode**.
+It survives only under `PRISMIO_BOOTSTRAP_COMPAT`, in compilers built from
+repository sources, so that a compiler generation still emitting the call can
+link the generation that replaces it — see
+[Compiler host and promotion](/tooling/compiler-host-and-promotion) for the
+handshake that makes that migration self-repairing.
 
 ## Growth and mutation
 

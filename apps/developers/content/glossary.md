@@ -8,7 +8,7 @@ tags: [glossary, terminology, definitions]
 related: [compiler/overview, aif/overview, llvm/overview]
 ---
 
-**AIF** — Allocation Inference Framework, the experimental pass that classifies allocation sites and drives memory-management code generation.
+**AIF** — Adaptive Inference Framework, the experimental pass that classifies allocation sites and drives memory-management code generation.
 
 **allocation site** — A compiler-identified source/semantic operation that creates managed storage and receives AIF evidence/tier classification.
 

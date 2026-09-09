@@ -3,7 +3,7 @@ title: Compiler command-line reference
 description: Complete Prismio 0.1 build, run, bootstrap, AST, AIF, target, optimization, and verification command reference.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-03"
+lastUpdated: "2026-09-09"
 tags: [compiler, cli, flags, commands]
 related: [start/build-and-run, compiler/aif, compiler/targets]
 ---
@@ -32,7 +32,20 @@ prismio <declared-command> [args...]
 
 Built-in commands take precedence, so a manifest cannot redefine one. See [the package manager](/package-manager) for the manifest and for declaring commands.
 
-`--help` prints the command summary. `--version` reports the Prismio compiler and linked/pinned LLVM version information used to identify documentation compatibility.
+`--help` prints the command summary. `--version` reports the Prismio compiler and linked/pinned LLVM version information used to identify documentation compatibility, plus the compiler and standard-library directories it resolved — the quickest way to confirm which toolchain is in use.
+
+### Which toolchain ran the command
+
+When a project declares `toolchain.host`, the installed compiler is a launcher: it hands the whole command to that project-local compiler. It says which one it used, on stderr:
+
+```text
+Using local toolchain: /repo/.prismio/build/debug/prismio
+Using global toolchain: /opt/homebrew/opt/prismio/bin/prismio
+```
+
+You see `global` when the declared host is missing, will not start, or is from an older toolchain generation than the compiler you invoked — in that last case the launcher rebuilds the host first and says so (`P1064`). A project with no `toolchain` block has made no such choice and prints neither line.
+
+The banner is suppressed whenever the command's stdout is a format, so `--diagnostic-format=json` and `aif --manifest` stay parseable.
 
 ## `build`
 

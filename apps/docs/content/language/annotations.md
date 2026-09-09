@@ -8,7 +8,7 @@ tags: [annotations, unique, pin, region, aif]
 related: [guides/memory-and-aif, compiler/aif, specification/memory-model]
 ---
 
-Prismio exposes a small experimental source vocabulary for constraining Allocation Inference Framework (AIF) decisions. These annotations are accepted by the compiler, but their placement rules, tier meanings, thresholds, and diagnostics may change before 1.0.
+Prismio exposes a small experimental source vocabulary for constraining Adaptive Inference Framework (AIF) decisions. These annotations are accepted by the compiler, but their placement rules, tier meanings, thresholds, and diagnostics may change before 1.0.
 
 Annotations refine analysis; they do not disable ownership or authorize unsafe behavior. A request that contradicts proven constraints is rejected.
 

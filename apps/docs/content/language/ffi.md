@@ -3,7 +3,7 @@ title: Foreign function declarations
 description: Prismio 0.1 extern fn syntax, C ABI types, and ownership contracts.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-08-09"
+lastUpdated: "2026-09-09"
 tags: [ffi, extern, c-abi, ownership-contracts]
 related: [guides/ffi, cookbook/c-ffi, specification/behavior]
 ---
@@ -35,6 +35,7 @@ Raw `Ptr` is available for opaque foreign addresses. Because Prismio 0.1 has no 
 Foreign parameter contracts follow the parameter type:
 
 - `borrow` — foreign code does not retain or consume the value.
+- `bytes` — `borrow`, and the callee reads no terminator. `String` parameters only.
 - `retain` — foreign code keeps a reference.
 - `retain_in(k)` — ownership is retained through parameter position `k`.
 - `consume` — foreign code takes ownership.
@@ -51,6 +52,25 @@ extern fn remember(data: String retain) -> Int
 ```
 
 Do not add a foreign contract by guesswork. Read the C header and implementation documentation, then test creation, success, error, and cleanup paths.
+
+### `bytes`, for a C function that takes a pointer and a length
+
+`bytes` is the one contract that describes **marshalling rather than ownership**. Its ownership meaning is `borrow` exactly; what it changes is the value the callee receives.
+
+A `String` produced by slicing is a *view*: a pointer and a length into a buffer that continues past it, with no terminator of its own. Under every other contract the boundary therefore hands foreign code a NUL-terminated **copy** of a view, and releases that copy when the call returns. That copy is what makes `strlen`-style C functions safe to call with a slice.
+
+`bytes` says the callee was given the count separately and never looks for a terminator, so the String's own pointer crosses and no copy is made:
+
+```prismio
+extern fn write(fd: Int, buffer: String bytes, count: I64) -> I64
+extern fn hash_bytes(data: String bytes, len: I64) -> U64
+```
+
+Declare it only when the C signature takes an explicit length. If foreign code reads to a NUL and you declare `bytes`, it will read past the end of a view — the copy that prevented that is exactly what you turned off.
+
+It applies to `String` parameters and nothing else; there is no copy to suppress for any other type, and the compiler rejects it elsewhere.
+
+The saving is not incidental. A loop that advances through a buffer — retrying a short `write`, hashing in chunks — takes a view of what remains on every pass, and under `borrow` each pass copies the whole remainder. `std/io.psm` declares `write` this way for exactly that reason.
 
 ## Return ownership contracts
 

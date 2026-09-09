@@ -68,6 +68,72 @@ for (const record of records) {
     }
 }
 
+// ---------------------------------------------------------------------------
+// Readability gates. See ../../../DOC_STYLE.md for the reasoning.
+//
+// **Expansions are a hard rule; the other two are ratchets.** A wrong acronym
+// expansion has no backlog and never should: both glossaries once said
+// "Allocation Inference Framework" while the spec, aif/README.md and
+// src/aif/model.psm all said "Adaptive", and the surrounding prose was assured
+// enough that nobody checked. That is the failure this catches.
+//
+// The other two have a real backlog, so a page is measured against
+// `readability-baseline.json`: a page not listed must pass, and a listed page
+// that now passes must be removed. The list only shrinks, and it is the
+// worklist.
+// ---------------------------------------------------------------------------
+const ACRONYMS = {
+    AIF: { canonical: "Adaptive Inference Framework", wrong: ["Allocation Inference Framework"] },
+    UMS: { canonical: "Unified Manifest System", wrong: [] },
+};
+
+let baseline = { opensWithIdentifier: [], noRunnableBlock: [] };
+try {
+    baseline = JSON.parse(readFileSync(new URL("./readability-baseline.json", import.meta.url), "utf8"));
+} catch { /* no baseline yet: every page is held to the rule */ }
+
+function firstProseParagraph(prose) {
+    for (const chunk of prose.split(/\n\s*\n/)) {
+        const text = chunk.trim();
+        if (!text || text.startsWith("#") || text.startsWith("<") || text.startsWith("|")) continue;
+        return text;
+    }
+    return "";
+}
+
+for (const record of records) {
+    for (const [acronym, { canonical, wrong }] of Object.entries(ACRONYMS)) {
+        for (const variant of wrong) {
+            if (record.body.includes(variant)) {
+                failures.push(`${record.slug}: ${acronym} expanded as "${variant}"; it is "${canonical}"`);
+            }
+        }
+    }
+
+    // Rule 1: an opening that leads with a filename answers a question the
+    // reader has not been given yet.
+    const opening = firstProseParagraph(record.prose);
+    const opensWithIdentifier = /^`[A-Za-z_][\w./-]*`/.test(opening);
+    const listedOpening = baseline.opensWithIdentifier.includes(record.slug);
+    if (opensWithIdentifier && !listedOpening) {
+        failures.push(`${record.slug}: opens with a code identifier; lead with the problem it solves`);
+    }
+    if (!opensWithIdentifier && listedOpening) {
+        failures.push(`${record.slug}: fixed — remove it from readability-baseline.json opensWithIdentifier`);
+    }
+
+    // Rule 2: a page with nothing to run gives the reader nothing to try.
+    const hasBlock = /```(bash|prismio|text)/.test(record.body);
+    const declined = Boolean(field(record.frontmatter, "no-command"));
+    const listedBlock = baseline.noRunnableBlock.includes(record.slug);
+    if (!hasBlock && !declined && !listedBlock) {
+        failures.push(`${record.slug}: no runnable or output block; add one, or declare no-command: <reason>`);
+    }
+    if ((hasBlock || declined) && listedBlock) {
+        failures.push(`${record.slug}: fixed — remove it from readability-baseline.json noRunnableBlock`);
+    }
+}
+
 if (slugs.size !== records.length) failures.push("duplicate generated slugs detected");
 
 if (failures.length) {

@@ -3,7 +3,7 @@ title: AIF foreign-function contracts
 description: How extern declarations describe borrowed, consumed, produced, aliased, escaping, and released foreign storage.
 status: experimental
 version: "0.1.0"
-lastUpdated: "2026-09-08"
+lastUpdated: "2026-09-09"
 tags: [aif, ffi, ownership]
 related: [cookbook/c-ffi, runtime/supported-surface, aif/tiers-and-analysis-domains]
 ---
@@ -77,6 +77,26 @@ mutation, callbacks, or concurrency inside the callee.
 `declareExternFunction` uses `ffiType`, not ordinary `storageType`. A Prismio fat string
 becomes the NUL-terminated pointer half for C. `ir_call_arg_cstr` extracts that pointer and
 records whether a temporary conversion must be released after the call.
+
+### `bytes`, the contract that changes marshalling rather than ownership
+
+`bytes` is `borrow` to the solver — `aifDeclaredContract` maps it to `AIF_FFI_BORROW` and the
+lattice gains no fourth state. What it changes is codegen: the argument takes
+`ir_call_arg_borrow("ptr", …)` instead of `ir_call_arg_cstr`, so a **view** crosses as its own
+pointer rather than as a NUL-terminated copy that must be released afterwards. Sema restricts it
+to `String` parameters, where a copy is the only thing there is to suppress.
+
+Declare it for any C signature that carries an explicit length. A loop that advances through a
+buffer takes a view of the remainder on every pass, and under `borrow` each pass materialises the
+whole remainder — the reason `std/io.psm` could not express a `write` retry loop before this
+contract existed.
+
+**A view bound to a local escapes; one written into the call does not.** `aifFfiAliasOf` reports
+`__builtin_string_view` as argument 0's storage on purpose, so the base cannot be released while a
+view of it is live. The consequence is that `let rest = __builtin_string_view(text, …)` raises
+`text`'s escape to Caller, and every caller's drop of the value it passed in is declined with it.
+Building the view directly into the call argument keeps it Local. The symptom is a `--verify`
+ledger imbalance rather than a diagnostic, and `aif --why` names the binding as an `E-BIND`.
 
 Contract correctness is outside LLVM type checking. A declaration can verify and link while lying
 about retention or deallocation. Test native behavior under ASan/TSan where applicable, pair

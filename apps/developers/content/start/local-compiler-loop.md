@@ -3,7 +3,7 @@ title: Local compiler development loop
 description: Build and test Prismio through the UMS project host without losing a working compiler generation.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-08"
+lastUpdated: "2026-09-09"
 tags: [workflow, self-hosting, ums]
 related: [tooling/compiler-host-and-promotion, testing/fixed-point-verification, compiler/bootstrap]
 ---
@@ -53,10 +53,13 @@ compares their IR. Record the exact compiler path in bug reports and benchmark r
 
 ## Trace or bypass caches
 
-`PRISMIO_BUILD_TRACE=1` prints build phases. `PRISMIO_OBJ_CACHE_TRACE=1` exposes cache hits and
-misses; `PRISMIO_OBJ_CACHE=0` bypasses the object cache. `PRISMIO_INLINE_RUNTIME=0` disables curated
-runtime-IR merging for isolation. These are diagnostic switches, not alternative supported build
-semantics. Reproduce once with defaults before attributing a bug to the bypassed component.
+`PRISMIO_BUILD_TRACE=1` prints build phases, including `library bitcode merge`.
+`PRISMIO_OBJ_CACHE_TRACE=1` exposes cache hits and misses; `PRISMIO_OBJ_CACHE=0` bypasses the
+object cache, which serves the bootstrap and toolchain-source paths — an ordinary program build
+compiles no C and produces no cache entries. There is no switch that disables the library bitcode
+merge; `PRISMIO_INLINE_RUNTIME` is retired and ignored. These are diagnostic switches, not
+alternative supported build semantics. Reproduce once with defaults before attributing a bug to the
+bypassed component.
 
 ## Before committing
 

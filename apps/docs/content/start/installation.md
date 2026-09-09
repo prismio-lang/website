@@ -3,7 +3,7 @@ title: Install the Prismio compiler
 description: Configure LLVM 22 and bootstrap a Prismio 0.1 compiler on Windows, macOS, or Linux.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-08-09"
+lastUpdated: "2026-09-09"
 tags: [installation, bootstrap, llvm]
 related: [start/hello-world, compiler/bootstrap, compiler/targets]
 ---
@@ -52,6 +52,16 @@ tools/bootstrap.sh --seed --out build/prismio
 
 The output path may be absolute or repository-relative. Keep generation binaries under `build/` while developing so they remain separate from source.
 
+**That binary is not yet an installation.** It can compile the compiler — bootstrap builds the runtime from repository sources — but it cannot compile an ordinary program, because a program links the runtime as installed bitcode that has to sit beside the executable. Building one with a bare generation reports:
+
+```text
+ERROR: Prismio installation is incomplete or corrupted.
+       Missing runtime module: lib/runtime/lang_runtime.bc
+       Reinstall Prismio and try again.
+```
+
+Assemble the toolchain to fix that.
+
 ## Windows
 
 ```powershell
@@ -64,15 +74,41 @@ Run the commands from PowerShell. The repository provides a PowerShell bootstrap
 
 An installed binary should report Prismio `0.1.0` and LLVM `22.1.8`.
 
+## Assemble the toolchain
+
+Packaging turns the bootstrapped binary into a complete toolchain: the compiler, the runtime compiled to LLVM bitcode, and the standard library compiled to PLIB artifacts.
+
+```bash
+python3 tools/package.py --compiler build/prismio --out dist/Prismio
+```
+
+That writes a self-contained prefix:
+
+```text
+dist/Prismio/
+  bin/prismio                     the compiler
+  lib/runtime/*.bc                merged into every program you build
+  lib/backend.a                   linked only when building a compiler
+  lib/runtime.hash                which sources those modules came from
+  stdlib/*.plib                   what `import std.*` resolves to
+  third_party/llvm-paths.json     which LLVM produced them
+```
+
+The prefix moves as a unit — the compiler locates everything relative to its own executable, with no hardcoded installation path — so you can copy or rename `dist/Prismio` freely. What you cannot do is copy `bin/prismio` on its own; see [Toolchain layout](/compiler/toolchain-layout).
+
 ## Put the compiler on your path
 
-You can invoke the binary directly from `build/`, or copy/link it into a user-owned tools directory already present on `PATH`. Path management is platform-specific and does not change Prismio's import behavior.
+Link `dist/Prismio/bin/prismio` into a user-owned tools directory already present on `PATH`, or add that `bin` directory to `PATH`. A symlink is fine — the compiler resolves its own real location before looking for `lib/` and `stdlib/`.
+
+Do **not** copy `bin/prismio` out of the prefix on its own. It resolves its runtime and standard library relative to itself, so a lone copy is a compiler that cannot build anything.
 
 Confirm which executable your shell finds:
 
 ```bash
 prismio --version
 ```
+
+`--version` reports the compiler and standard-library locations it resolved, which is the quickest way to see that a prefix is intact.
 
 During compiler development, prefer an explicit path such as `./build/prismio`. That prevents an older globally discoverable binary from accidentally building a new generation.
 
@@ -84,13 +120,13 @@ Build a second generation with the compiler you just created. A successful self-
 tools/bootstrap.sh --compiler build/prismio --out build/prismio-next
 ```
 
-Then compile a minimal program:
+Then compile a minimal program with the **packaged** compiler. Write the program from [Hello, Prismio](/start/hello-world) to a local `.psm` file first:
 
 ```bash
-./build/prismio run examples/hello.psm
+dist/Prismio/bin/prismio run hello.psm
 ```
 
-If your checkout does not contain that example path, create the program from [Hello, Prismio](/start/hello-world) and pass its local `.psm` path.
+Running it from outside the repository is the stronger check: inside a checkout, `import std.*` resolves against the `std/` sources it finds by walking up from your entry file, so a program built there can succeed without reading a single packaged artifact.
 
 ## Upgrade or switch versions
 

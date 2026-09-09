@@ -3,12 +3,16 @@ title: Standard library status
 description: Prismio's shipped source standard library and the modules still planned.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-08-29"
+lastUpdated: "2026-09-09"
 tags: [standard-library, runtime, status]
 related: [stdlib/io, stdlib/strings, stdlib/lists, stdlib/map, stdlib/option, roadmap]
 ---
 
-Prismio ships ten source standard-library modules: `std/io.psm`, `std/string.psm`, `std/fs.psm`, `std/process.psm`, `std/list.psm`, `std/map.psm`, `std/option.psm`, `std/key.psm`, `std/ord.psm` and `std/copy.psm`. Packaged toolchains install them as `stdlib/*.psm` — the directory is **flattened**, so never derive a module's logical name from its path on disk.
+Prismio ships fourteen standard-library modules: `std.io`, `std.string`, `std.fs`, `std.process`, `std.list`, `std.map`, `std.option`, `std.key`, `std.ord`, `std.copy`, `std.eq`, `std.iter`, `std.math` and `std.display`.
+
+A packaged toolchain installs them as **compiled `stdlib/*.plib` artifacts**, not as `.psm` source. A PLIB carries the module's interface — which the frontend still parses, because generic bodies have to be instantiated against your concrete types — together with its compiled LLVM bitcode, which the driver merges into your program before optimization. The directory is **flattened**, so never derive a module's logical name from its path on disk: `std.map` is `stdlib/map.plib`.
+
+Inside a Prismio checkout the `std/*.psm` sources win instead, because imports resolve upward from your entry file before the installed toolchain is consulted. That is what lets compiler development test a standard-library edit immediately.
 
 **There is no prelude.** `std.io` is an ordinary import: a program that prints nothing carries no I/O, which is what lets a target with no stdout link at all. Calling `println` without `import std.io` is `error: unknown function \`println\``.
 

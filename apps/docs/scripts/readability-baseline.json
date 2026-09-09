@@ -1,0 +1,37 @@
+{
+  "_comment": "Readability backlog for DOC_STYLE.md rules 1 and 2. This list may only shrink: fix a page, remove its entry. The audit fails if a listed page has been fixed.",
+  "opensWithIdentifier": [
+    "errors/invalid-drop",
+    "language/pattern-matching",
+    "language/variables",
+    "stdlib/option",
+    "stdlib/strings"
+  ],
+  "noRunnableBlock": [
+    "compiler/diagnostics",
+    "compiler/targets",
+    "cookbook",
+    "errors",
+    "faq",
+    "glossary",
+    "guides",
+    "language/lifetimes",
+    "language/macros",
+    "migration",
+    "releases",
+    "releases/0.1.0",
+    "roadmap",
+    "specification",
+    "specification/behavior",
+    "specification/conformance",
+    "specification/evaluation",
+    "specification/memory-model",
+    "specification/name-resolution",
+    "specification/type-system",
+    "stdlib",
+    "stdlib/concurrency",
+    "stdlib/networking",
+    "stdlib/time",
+    "tutorials"
+  ]
+}

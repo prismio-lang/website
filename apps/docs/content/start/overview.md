@@ -27,7 +27,7 @@ The compiler pipeline is self-hosted. A trusted seed builds the Prismio source i
 - Nullable reference-shaped types with `T?`, `none`, and checked `expect`
 - Relative dotted imports and direct wildcard package imports
 - C ABI declarations with explicit ownership contracts
-- Allocation Inference Framework (AIF) analysis and verification
+- Adaptive Inference Framework (AIF) analysis and verification
 
 Native targets are exercised on Windows, macOS, and Linux. The compiler also contains an experimental WebAssembly target path; treat it as experimental rather than equivalent to the native support matrix.
 
@@ -62,7 +62,7 @@ fn main() -> Int {
 
 Integers, floats, booleans, byte characters, raw pointer values, fieldless enums, and arrays use copy behavior. Strings, runtime lists, and structs are move-only. Moving one of those values into a new owned location invalidates the source binding.
 
-The Allocation Inference Framework can select an implementation tier and exposes experimental `unique`, `pin(Tn)`, and named-region annotations. Source-level ownership rules remain in force regardless of the inferred allocation mechanism.
+The Adaptive Inference Framework can select an implementation tier and exposes experimental `unique`, `pin(Tn)`, and named-region annotations. Source-level ownership rules remain in force regardless of the inferred allocation mechanism.
 
 ## Not implemented
 

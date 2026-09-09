@@ -1,47 +1,87 @@
 ---
 title: AIF oracle and differential testing
-description: How the independent AIF oracle, AST dump, manifests, corpus, and runtime verifier constrain allocation-inference changes.
+description: Why the allocation analysis is written twice, how to run the comparison, and how to read it when the two disagree.
 status: experimental
 version: "0.1.0"
-lastUpdated: "2026-09-08"
+lastUpdated: "2026-09-09"
 tags: [testing, aif, oracle]
-related: [aif/reuse-reports-and-verification, compiler/frontend, performance/investigation-method]
+related: [aif/overview, aif/reuse-reports-and-verification, compiler/frontend, performance/investigation-method]
 ---
 
-AIF has two implementations that deliberately share no analysis code. The production pass lives in
-`src/aif`; `aif/prototype/aif.py` is the independent Python oracle. The comparison is driven by
-`tools/aif_differential.py`. Its purpose is narrower and stronger than checking that both commands
-finish: it detects a silently different transfer function by comparing every maintained result and
-exclusion counter over the same post-sema program.
+## What this test is for
 
-## What the harness executes
+Prismio decides at compile time where every value your program allocates should live: a stack slot, an arena reclaimed in bulk, the heap with a reference count, or the heap without one. Making that decision is the job of **AIF**, the Adaptive Inference Framework, and getting it wrong is expensive in both directions. Too cheap, and the program frees memory it is still using. Too expensive, and it is merely slower than it needed to be.
 
-`main()` resolves `--compiler` against the repository root, expands an explicit source list or the
-maintained corpus, and runs every source twice. The first arm uses the current owned-collection
-model. The second adds `--copyable-collections` to exercise the pre-Level-4 policy that the oracle
-still models as a compatibility arm.
+Nothing inside the compiler can check that decision against itself, because a wrong rule does not crash. It produces a plausible-looking number, the test suite stays green, and the bug surfaces much later as a use-after-free with nothing pointing at the cause.
 
-For each `(source, ownership-mode)` pair, `compare()` performs this sequence:
+So the analysis is written **twice**, deliberately:
 
-1. Run `prismio aif <source> --summary --theta-fields` plus the ownership flag.
-2. Run `prismio dump-ast <source>` once and cache the JSON path in `dumps`.
-3. Run `aif/prototype/aif.py <dump>` with the same ownership mode.
-4. Parse both reports into normalized dictionaries.
-5. Compare every key in `TIERS + COUNTERS + BRACKET` and report all mismatches together.
+- `src/aif/` is the real one. It is written in Prismio, and it is what your builds use.
+- `aif/prototype/aif.py` is a second, independent implementation in Python, called **the oracle**. It shares no code with the first.
 
-`--theta-fields` is intentional. The compiler normally has target byte layout; the JSON AST does
-not. Field-count mode removes that deliberate information difference so this test measures the
-inference rules rather than a threshold only one side can calculate.
+`tools/aif_differential.py` runs both over the same programs and compares what each concluded. Two implementations of the same rules make *different* mistakes, and this is what turns "different mistakes" into a failing test.
 
-## Parsers and compared facts
+## Run it
 
-`parse_compiler()` and `parse_oracle()` use separate regular expressions because the human columns
-differ, but both return the same keys. `parse_threads()` reads `Isolated`, `Transferred`, and
-`CrossThread`. `parse_bracketing()` reads the bracketing total, sole-regime count, and each failed
-obligation. Missing fields become `-1`; a producer cannot silently stop reporting a field and still
-pass.
+```bash
+python3 tools/aif_differential.py --compiler .prismio/build/debug/prismio
+```
 
-The compared sets are:
+`--compiler` needs a working toolchain layout, not just a compiler binary — the project host that `prismio build` promotes works, and so does a packaged `dist/Prismio/bin/prismio`. A bare generation under `build/` does not; it has no `lib/` or `stdlib/` beside it.
+
+When the two agree you get one line and an exit status of 0:
+
+```text
+In-compiler engine and oracle agree on all 19 source(s).
+```
+
+While chasing a specific failure, pass paths to check just those programs:
+
+```bash
+python3 tools/aif_differential.py --compiler .prismio/build/debug/prismio tests/test_45_aif_affine_collections.psm
+```
+
+## Reading a failure
+
+A disagreement names the program, the ownership mode, and every counter that differs:
+
+```text
+  DIFFER  src/main.psm [as-is]
+
+2 disagreement(s):
+
+  src/main.psm (owned=False): T2: compiler=64 oracle=58, T3: compiler=346 oracle=352, rounds: compiler=17 oracle=16
+```
+
+Read `T2: compiler=64 oracle=58` as: *the compiler placed 64 allocation sites at tier T2, the oracle placed 58 there.* Nothing in the output says which one is right. That is the point — the test tells you the two have drifted, and working out which one drifted is the job.
+
+Every program is checked twice, once per ownership model. `[owned]` is what `prismio build` actually analyses with; `[as-is]` adds `--copyable-collections` to exercise the pre-Level-4 policy the oracle still models. A failure in only one arm is a real clue: the disagreement is specific to how collections are owned.
+
+## A worked example
+
+In September 2026 the differential failed on *every* program in the corpus. It took four wrong guesses to find why, and the shape of that hunt is the reason this section exists.
+
+The cause was one line. The compiler keys a container's element set on the **full** type, so `List<Actor>` is tracked separately from `List<Order>`. The oracle still keyed on the base type, so *every `List` in the program shared a single element set*. The compiler had changed on 2026-08-28; the oracle was never updated to follow.
+
+The consequence was not subtle once it was visible. The points-to set for `Token.value` — a `String` field — held **113 sites of eight unrelated types**. An element read came back holding all of them, and the sharing rule then propagated "shared" from an unrelated pointer into 23 structs that had never been near one. Those 23 read T3 in the oracle and T2 in the compiler.
+
+**A `String` field whose points-to set contains struct sites is the tell.** Nothing in the report says so directly; you have to go and look.
+
+## How to debug a disagreement
+
+In this order. Each step out of order costs a round trip.
+
+1. **Reduce first.** Run the differential on the single failing source. If a program with no imports disagrees, the bug is in something every program touches.
+2. **If `sites` differs**, one side is creating an allocation site the other is not. Copy the oracle to a scratch directory and put a `traceback.print_stack()` in `new_site` to see where.
+3. **If a tier count differs**, instrument **every** write to the lattice involved — for the alias lattice that means every assignment to `self.A`, not only the ones that literally say `= SHARED`. Two of them inherit a value (`A[s] = A[o]` and `A[s] = A[h]`), and those are usually where it actually happens.
+4. **Print the constraint's key *and* its resolved set** — the size and the member types, not just the key. A set far larger than it should be, or one mixing unrelated types, is the answer.
+5. **Before writing any analysis at all**, diff the two name tables. Extract the names from the compiler's `aifCompilerBuiltinContract`, `aifRuntimeContract` and `aifFfiProduces`, and from the oracle's `FFI_CONTRACTS` and `FFI_RETURNS_PRODUCE`, then compare the sets. A missing name is the most common cause, and this finds it in one command.
+
+**Never make the two agree without establishing which one was wrong.** A differential that agrees on a wrong answer is worse than one that fails, and this codebase has done exactly that: `list_set`'s stored-value index was off by one in *both* implementations, identically, and the agreement hid it.
+
+## What is compared
+
+Both reports are parsed into dictionaries with the same keys, by separate regular expressions, because the two print different human-facing columns. A field that goes missing parses as `-1`, so neither side can quietly stop reporting something and still pass.
 
 | Set | Values | What a mismatch usually means |
 | --- | --- | --- |
@@ -49,42 +89,22 @@ The compared sets are:
 | `COUNTERS` | sites, exclusions, rounds, thread distribution | Collection or solver coverage changed |
 | `BRACKET` | bracketability and failed obligations | Region call-bracketing logic changed |
 
-The harness does not compare `region-calls`: arena placement is a code-generation decision the
-oracle does not model. That exclusion is explicit so a contributor does not mistake incomplete
-coverage for agreement.
+`region-calls` is deliberately **not** compared: arena placement is a code-generation decision the oracle does not model at all. The exclusion is written down so nobody mistakes missing coverage for agreement.
 
-## Why the default corpus is curated
+## Why it is built this way
 
-The glob over `aif/corpus/*.psm` is supplemented by focused regression programs. Region numbering,
-owned collections, container edges, view provenance, joined and shared concurrency, runtime
-builtin contracts, bracketing obligations, and channel transfer each have a fixture because a
-domain can otherwise appear correct simply by never being reached. When adding a fact domain, add
-a source that would fail if the oracle implementation were removed or deliberately inverted.
+**It reads `--summary`, not the human report or the manifest.** Human reports optimise for being understood, and their wording changes. Manifests optimise for diffing one revision against the next. The differential needs a compact, stable vector of numbers, which is what `--summary` is. Do not teach it to parse a decorative column when a counter can carry the same rule.
 
-## Why manifests matter
+**`--theta-fields` is passed on purpose.** The compiler knows the target's byte layout; the JSON AST the oracle reads does not. Field-count mode removes an information difference only one side could ever resolve, so the test measures the inference rules rather than a threshold the oracle cannot compute.
 
-The differential consumes `--summary`, not prose reports or manifests. Human reports optimize for
-understanding and may change wording; manifests optimize for revision-to-revision artifact diffs.
-The oracle check instead fixes a compact semantic vector. Keep these roles separate: do not parse a
-decorative report column when a normalized counter can represent the rule.
+**The corpus is curated, not just a glob.** `aif/corpus/*.psm` is supplemented with focused programs covering region numbering, owned collections, container edges, view provenance, joined and shared concurrency, runtime builtin contracts, bracketing obligations, and channel transfer. A fact domain no program reaches will agree perfectly while being completely broken.
 
 ## Adding a rule
 
-Update the specification or rationale, implement both sides when the oracle owns the same rule,
-add its key to the appropriate comparison tuple, teach both parsers to require it, and add the
-smallest discriminating corpus case. Prove the fixture is discriminating by temporarily breaking
-one implementation and observing the expected mismatch. Record whether the change is a correctness
-fix, a precision improvement, or a policy decision.
+Update the specification or rationale first. Implement both sides when the oracle owns the same rule, add the key to the right comparison tuple, teach both parsers to require it, and add the smallest program that discriminates.
 
-Runtime verification complements the differential. Two analyzers can agree and still drive an
-incorrect release path, while the runtime can balance allocations without proving a returned view
-remained valid. Keep value, manifest, and ledger assertions together.
+Then **prove the fixture discriminates**, by temporarily breaking one implementation and checking that the mismatch you expect actually appears. Coverage here is not "the tests pass" — it is "a program exists that this rule can break". Record in the commit whether the change is a correctness fix, a precision improvement, or a policy decision.
 
-Run the focused harness with:
+Runtime verification (`--verify`) complements this and does not replace it. Two analysers can agree and still drive an incorrect release path, and the runtime ledger can balance while a returned view has already dangled. Keep value, manifest and ledger assertions together.
 
-```bash
-python3 tools/aif_differential.py --compiler build/gen2
-```
-
-Pass source paths after the compiler option while iterating. Before merging, run the default corpus
-and `tools/release_gate.py`, which invokes the differential through `check_differential()`.
+Before merging, run the default corpus rather than the single source you were iterating on. `tools/release_gate.py` invokes the differential through `check_differential()`.

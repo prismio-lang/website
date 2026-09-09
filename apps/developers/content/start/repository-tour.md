@@ -3,7 +3,7 @@ title: Repository tour
 description: A source-oriented map of the Prismio compiler, runtime, standard library, UMS build system, tests, and evidence.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-08"
+lastUpdated: "2026-09-09"
 tags: [repository, architecture, contributing]
 related: [compiler/overview, runtime/overview, tooling/ums-overview]
 ---
@@ -50,8 +50,8 @@ The C boundary is split by trust and lifecycle. `runtime/llvm-api-backend.c` wra
 `runtime/lang_runtime.c` supplies managed values, collections, tasks, channels, and verifier hooks;
 `runtime/program_support.c` implements arguments, files, processes, diagnostics, and platform-facing
 services; `runtime/build_driver.c` turns verified IR into objects and native artifacts. Adding a
-function to one file does not expose it automatically: declarations, AIF contracts, curated runtime
-IR, embedded sources, and packaging may all need updates.
+function to one file does not expose it automatically: declarations, AIF contracts, the shipped
+bitcode module set, and packaging may all need updates.
 
 ## Tests and executable evidence
 

@@ -60,12 +60,39 @@ The guarded list operations in `llvm-api-backend.c` are designed to expose fast 
 the frontend has emitted the necessary representation, capacity, and range guards. The fallback
 calls the ordinary runtime helper.
 
-## Runtime-module curation
+## Library module merging
 
-Runtime support may arrive as LLVM IR. The curation path parses the module, finds declaration-only
-list functions, and attaches attributes the generic runtime build cannot express portably. It uses
-`LLVMGetFirstFunction` and `LLVMGetNextFunction` to inspect symbols, then verifies and writes
-the curated module.
+Runtime and standard-library support arrives as LLVM bitcode, and `ir_link_library_modules` merges
+every selected module into the program in **one context, one transaction**. Linking them one at a
+time reparsed and reprinted the growing program per input, which made a module-wise package
+accidentally quadratic in serialization work — a large program crossed the text-IR boundary sixteen
+times before optimization began.
+
+Each source module is prepared before it is linked. `preserve_program_declaration_contracts` keeps
+the program's own declaration attributes from being overwritten by the library's;
+`clear_packaging_target_attributes` strips `target-cpu`, `target-features` and `tune-cpu`, which are
+packaging-time tuning rather than a portable bitcode contract;
+`mark_runtime_structural_invariants` reattaches the facts a portable runtime build cannot express,
+such as the immutability of a list's inline stride.
+
+`mark_library_interface_functions` then applies one policy to both PLIB and runtime boundaries.
+Functions cheap enough by a cost model that scores a call far above arithmetic receive
+`inlinehint` — an eligibility filter, not a decision, since LLVM's target-aware model still
+chooses. Functions that read the environment or take a thread-local address receive `noinline`
+instead: their calls stay dynamic after inlining while the expanded control flow perturbs the
+greedy inliner's later ordering. Both tests are properties of the IR, deliberately not a list of
+blessed function names.
+
+After the merge, `prune_unused_imported_definitions` deletes imported definitions with no remaining
+IR users, repeating until fixpoint because removing one wrapper can make its callees dead.
+Reachable definitions keep external linkage, so this feeds no stronger visibility promise to the
+inliner.
+
+The older curated-extraction path — which compiled one runtime translation unit, cut a named subset
+out of it with `ir_curate_module`, and merged only that — has been superseded by merging the shipped
+bitcode whole. `PRISMIO_CURATED_OPS` in `build_driver.c` survives as a maintained list that the
+`curated_emits` and `curated_closure` fixtures check against codegen, and its merge path is no
+longer reached by an ordinary build.
 
 `ir_link_modules(dest_ir, src_ir, out_path)`:
 
@@ -84,8 +111,9 @@ parse error leaks compiler-process memory.
 
 Target selection creates `LLVMTargetMachineRef` from the chosen triple. The object path sets the
 module triple/layout, runs verification and optimization, and emits a target object with
-`LLVMTargetMachineEmitToFile`. The build driver then invokes the platform linker with the
-runtime archive and UMS native link inputs.
+`LLVMTargetMachineEmitToFile`. Runtime and standard-library bitcode has already been merged into
+that module, so the platform linker is invoked with the single program object plus UMS native link
+inputs.
 
 An `.ll` output intentionally stops before native object/link stages. It is the best debugging
 boundary for checking type shapes, call attributes, ownership helpers, vtables, blocks, and

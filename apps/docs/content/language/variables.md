@@ -24,7 +24,7 @@ The declaration shape is:
 let [mut] [unique] [pin(Tn)] name [: Type] [= expression]
 ```
 
-`unique` and `pin(Tn)` belong to the experimental Allocation Inference Framework. See [memory annotations and regions](/language/annotations) before using them in production code.
+`unique` and `pin(Tn)` belong to the experimental Adaptive Inference Framework. See [memory annotations and regions](/language/annotations) before using them in production code.
 
 ## Type inference and annotations
 

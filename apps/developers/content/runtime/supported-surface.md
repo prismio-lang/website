@@ -3,7 +3,7 @@ title: Builtins, standard modules, and foreign code
 description: How contributors decide whether an operation belongs in compiler lowering, an importable Prismio module, or the C-compatible runtime surface.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-08"
+lastUpdated: "2026-09-09"
 tags: [runtime, stdlib, ffi]
 related: [runtime/overview, aif/ffi-contracts, cookbook/add-a-runtime-or-stdlib-api]
 ---
@@ -49,10 +49,19 @@ modules:
 | Tasks | `prismio_task_spawn`, typed join functions, `prismio_task_release` |
 | Channels | `chan_new`, `chan_send`, `chan_recv`, `chan_close`, `chan_share`, `chan_len`, `chan_free` |
 
-`lang_runtime.c` supplies printing (`print*`, `println*`, stderr variants), string operations
-(`str_equals`, `str_concat`, `str_substring`, `str_slice`, `str_find_byte`,
-`str_clone*`, `str_own`, `int_to_str`), optional failure
+`lang_runtime.c` supplies string operations (`str_equals`, `str_concat`, `str_substring`,
+`str_slice`, `str_find_byte`, `str_clone*`, `str_own`, `int_to_str`), optional failure
 (`prismio_expect`), overflow traps, collections, memory mechanisms, and profiling.
+
+**Printing is no longer among them.** `std/io.psm` formats every value in Prismio and writes to
+the descriptor with libc's `write`, so `print`, `println`, `print_int`, `println_int`,
+`print_bool`, `println_bool`, `print_char`, `println_char` and the `prismio_rt_*` text wrappers
+were removed rather than left linked. A module that declared one by hand now fails to link naming
+it. What remains is `prismio_rt_print_float` and `prismio_rt_println_float`, because `%g` has no
+source-level formatter yet.
+
+This is the shape the boundary is meant to have: a capability the language cannot express stays in
+C, and everything above it moves into a standard module.
 
 ## Standard-module boundary
 

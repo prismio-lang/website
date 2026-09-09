@@ -3,7 +3,7 @@ title: String representation and performance
 description: How Prismio stores inline, owned, and view strings in 16 bytes, proves view lifetimes, and measures the resulting performance.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-05"
+lastUpdated: "2026-09-09"
 tags: [compiler, strings, memory, ownership, performance]
 related: [runtime/supported-surface, aif/overview, aif/regions-views-and-provenance, runtime/collection-representations]
 ---
@@ -327,6 +327,33 @@ behind a branch and releases it after the call. Inline and owned strings do not
 pay for the view-specific branch body. See [AIF foreign-function contracts](/aif/ffi-contracts)
 for the source-level contract rules.
 
+**The copy is a stack slot wherever it fits.** Measured on the compiler compiling
+itself, 73,735 views cross into C per build and 1.3 MB is copied, averaging 17.6
+bytes: 52.7% are 16 bytes or shorter and 99.4% are 32 or shorter. Nearly all are
+AST names on their way into the symbol table, which are views into the source
+buffer by construction. A 64-byte entry-block scratch takes all but the tail,
+leaving 170 heap copies and 13.5 KB. It is not a wall-clock win — the front end
+measures 0.998× against the heap-only form, because 73.5k allocations is about
+0.09% of a four-second compile — but it removes that allocator traffic entirely.
+
+The scratch is sound because no callee may retain the pointer: the heap path
+freed its copy the moment the call returned, so anything that held one was
+already broken. `alias` externs never reach this path.
+
+**The `bytes` contract removes the copy rather than shrinking it.** A parameter
+declared `bytes` promises the callee was given the count separately and reads no
+terminator, so the view's own pointer crosses. This is what makes a retry loop
+over `write` expressible in Prismio: the loop advances by taking a view of the
+remainder, and under `borrow` each pass copied the whole remainder.
+
+**One rule that costs a leak if missed: a view bound to a local escapes.**
+Because the view aliases its base's storage — the property the previous section
+exists to establish — `let rest = __builtin_string_view(text, …)` raises `text`'s
+escape to Caller, and every caller's drop of the value it passed in is declined
+with it. Writing the view directly into the call argument keeps it Local. The
+symptom is a `--verify` ledger imbalance rather than a diagnostic; `aif --why`
+reports it as an `E-BIND` at the binding.
+
 Byte access and owned-string release required no further representation change:
 a view supplies a usable data pointer in field 0, while its tag already tells
 the release path that the allocation belongs to its base.
@@ -468,9 +495,10 @@ The allocation-length histogram was produced by temporary instrumentation in
 `str_with_capacity` and is not part of the maintained harness. It cannot be
 reproduced from the two commands above without restoring that instrumentation.
 
-After editing `runtime/*.c`, rebuild the compiler before measuring generated
-programs. The compiler embeds a snapshot of the runtime sources in
-`embedded_sources.h`; otherwise the object cache can reuse stale runtime input.
+After editing `runtime/*.c`, rebuild the toolchain before measuring generated
+programs. A program links the runtime as installed bitcode, so an edit to the C
+does not reach it until that bitcode is rebuilt — `prismio build` refreshes a
+project-local toolchain, `prismio dist` a packaged one.
 
 ## Open work
 

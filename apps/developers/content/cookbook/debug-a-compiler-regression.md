@@ -3,7 +3,7 @@ title: Debug a compiler or AIF regression
 description: Isolate Prismio frontend failures, semantic changes, miscompiles, ownership bugs, allocation decisions, and native build regressions.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-08"
+lastUpdated: "2026-09-09"
 tags: [cookbook, debugging, aif]
 related: [tooling/debugging-targets-and-build-tracing, performance/investigation-method, testing/regression-suite]
 ---
@@ -25,9 +25,10 @@ behavior.
 - If storage differs, run `prismio aif`, `--why`, and `--manifest`.
 - If native linking fails, inspect target, runtime discovery, UMS inputs, and the generated command.
 
-Disable curated runtime merging to distinguish program lowering from cross-module optimization.
-Use build tracing for cold-build regressions. Run the verifier, but pair its ledger with value
-assertions and sanitizers.
+To distinguish program lowering from cross-module optimization, compare the program's own IR
+(`-o out.ll`, emitted before any library bitcode is merged) against the built executable — the
+merge itself cannot be switched off. Use build tracing for cold-build regressions. Run the
+verifier, but pair its ledger with value assertions and sanitizers.
 
 ## Stage probes
 
@@ -40,7 +41,6 @@ Use these probes in order:
 | `prismio aif <file> --manifest` | Shows stable site decisions and exclusions |
 | `prismio aif <file> --why=<site>` | Shows the witness forcing one decision |
 | `prismio build <file> -o out.ll` | Exposes generated LLVM IR |
-| `PRISMIO_INLINE_RUNTIME=0 ...` | Separates program IR from curated runtime merging |
 | `prismio run <file> --jit` | Compares ORC execution with native object/link path |
 
 `PRISMIO_OBJ_CACHE_TRACE=1` reports cache behavior; `PRISMIO_OBJ_CACHE=0` bypasses it.

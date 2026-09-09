@@ -3,7 +3,7 @@ title: Roadmap and feature status
 description: Implementation status for current and planned Prismio language, tooling, platform, and library capabilities.
 status: draft
 version: "0.1.0"
-lastUpdated: "2026-08-29"
+lastUpdated: "2026-09-09"
 tags: [roadmap, status, coming-soon]
 related: [start/overview, releases/0.1.0, faq]
 ---
@@ -58,8 +58,8 @@ element representation at runtime.
 
 **WebAssembly is blocked, not in progress.** Prismio emits wasm32 IR, but there is no C library for
 `wasm32-unknown-unknown`, so the runtime cannot be built for it from this repository — what `print`
-resolves to on the web is an embedder's decision. A cross build with no shipped runtime archive
-says so and names the file it looked for. Cross-compilation to other targets works and has been
+resolves to on the web is an embedder's decision. A cross build with no runtime bitcode for the
+requested triple says so and names the file it looked for. Cross-compilation to other targets works and has been
 built and run against `x86_64-apple-macos`.
 
 `impl` is parsed and implemented: concrete specializations and generic inherent blocks such as

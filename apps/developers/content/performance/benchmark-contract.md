@@ -3,12 +3,12 @@ title: Cross-language benchmark contract
 description: The equivalence, checksum, compiler, sampling, and unsupported-workload rules for Prismio's maintained benchmark suite.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-08"
+lastUpdated: "2026-09-09"
 tags: [benchmarks, performance, methodology]
 related: [performance/running-adding-and-reading-results, performance/investigation-method, testing/overview]
 ---
 
-`benchmarks/benchmarks.json` is the maintained catalog: 73 workloads, of which 57 have Prismio,
+`benchmarks/benchmarks.json` is the maintained catalog: 78 workloads, of which 62 have Prismio,
 C++, and Rust arms and 16 are explicitly unsupported by Prismio. `benchmarks/run.py` is the only
 timing harness used for checked-in results. Together they define the benchmark contract; an
 individual language dispatcher is not allowed to redefine it.

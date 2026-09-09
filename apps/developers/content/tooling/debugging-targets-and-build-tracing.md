@@ -3,7 +3,7 @@ title: Debugging, targets, and build tracing
 description: Separate frontend, AIF, LLVM, native-link, target, and runtime failures using Prismio's supported inspection commands.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-08"
+lastUpdated: "2026-09-09"
 tags: [debugging, targets, tracing]
 related: [llvm/debug-information, compiler/cli, runtime/platform-and-packaging]
 ---
@@ -22,15 +22,18 @@ Choose the inspection boundary that can still reproduce the failure.
 
 ## Targets
 
-`--target` and `--sysroot` control cross-target compilation when the LLVM target, SDK,
-linker inputs, and matching Prismio runtime archive exist. A successful IR emission does not prove
-that the repository ships everything needed to link or run that target.
+`--target` and `--sysroot` control cross-target compilation when the LLVM target, SDK, linker
+inputs, and runtime bitcode for that triple exist under `lib/runtime/<triple>/`. A successful IR
+emission does not prove that the toolchain ships everything needed to link or run that target; a
+missing module is reported by name rather than as a generic link failure.
 
 ## Failure isolation
 
-Emit textual IR to separate frontend/codegen success from object and link configuration. Disable
-the curated runtime merge with `PRISMIO_INLINE_RUNTIME=0` when diagnosing that optimization
-boundary. Use the exact compiler path and target triple in reports.
+Emit textual IR to separate frontend/codegen success from object and link configuration. The
+library bitcode merge has no bypass — there is no supported build that skips it, and the obsolete
+`PRISMIO_INLINE_RUNTIME` is ignored — so isolate that boundary by reading the merged module
+(`-o out.ll` before the merge, `PRISMIO_BUILD_TRACE=1` for the stage timing) rather than by turning
+it off. Use the exact compiler path and target triple in reports.
 
 For memory bugs, combine value assertions, the verifier ledger, AIF explanation, and a native
 sanitizer. Each observes a different class of failure.
@@ -46,7 +49,7 @@ generated module.
 `compiler_set_sysroot` records an explicit SDK root. `target_clang_flags` converts target and
 sysroot into native compiler arguments. `find_llvm_paths` resolves the LLVM installation used to
 build/link backend and runtime support. Diagnose these layers separately: frontend acceptance,
-IR triple/layout, object generation, runtime archive availability, and final link.
+IR triple/layout, object generation, runtime bitcode availability for the triple, and final link.
 
 ## Build tracing
 
