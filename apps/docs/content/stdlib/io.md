@@ -3,12 +3,12 @@ title: Console I/O
 description: Source-defined print and println overloads available to Prismio programs.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-09"
+lastUpdated: "2026-09-10"
 tags: [standard-library, io, print, console]
 related: [start/hello-world, stdlib, language/ffi]
 ---
 
-Console output has two public functions: `print` and `println`. They are ordinary exact-type overloads implemented in the shipped `std/io.psm` source module. **There is no prelude — `import std.io` is required**, like any other module. That is deliberate: a program that names no I/O carries none, which is what lets a target with no stdout link at all.
+Console output has two public functions: `print` and `println`. They are ordinary exact-type overloads implemented in the shipped `std/io.psm` source module, and one call may carry several values. **There is no prelude — `import std.io` is required**, like any other module. That is deliberate: a program that names no I/O carries none, which is what lets a target with no stdout link at all.
 
 ```prismio
 print("value: ")
@@ -28,6 +28,81 @@ println("done")
 ```
 
 `print` and `println` accept `String`. Their parameters borrow, so printing does not consume the caller's owned string.
+
+## Several values in one call
+
+`print` and `println` accept more than one value. A space goes between them, as in Python:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+fn main() -> Int {
+    print("Total: ", 5)
+    println()
+    println("x", 1, true, 'c', 2.5)
+    return 0
+}
+```
+
+```
+Total:  5
+x 1 true c 2.5
+```
+
+`println()` with no arguments writes the line break on its own, which is how the
+first line above ends. `eprintln()` does the same on stderr.
+
+### Choosing the separator
+
+`separator(...)` as the **last** argument replaces the space:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+fn main() -> Int {
+    println(1, 2, 3, separator(", "))
+    println("a", "b", separator(""))
+
+    let bar = " | "
+    println("x", "y", "z", separator(bar))
+    return 0
+}
+```
+
+```
+1, 2, 3
+ab
+x | y | z
+```
+
+It takes a String literal or a name. The separator is written once per gap, so a
+call in that position -- `separator(strFromInt(n))` -- is refused rather than run
+repeatedly; bind it to a `let` first and pass the name.
+
+### What this is, and is not
+
+There is no variadic function here and no new overload. `print(a, b, c)` is
+rewritten by the compiler into the calls you would have written yourself:
+
+```prismio
+print(a)
+print(" ")
+print(b)
+print(" ")
+print(c)
+```
+
+Each value goes through the exact-type overload it always had, so a type with no
+`print` overload has none here either, and the diagnostic points at that value.
+The trailing `println` keeps its name rather than becoming `print` plus a
+newline, so a line still costs one write.
+
+Two consequences worth knowing:
+
+- **Your own declaration wins.** A program that declares `fn print(a: String, b: String)` is calling that, not being rewritten around it. The same is true of `separator`: declare a function with that name and the marker turns itself off.
+- **The pieces are separate writes.** `println("a", "b")` reaches the descriptor as three writes rather than one, so another thread printing at the same time can land between them.
 
 ## Standard error
 
@@ -52,8 +127,9 @@ output. The compiler's own host-routing banner is on stderr for exactly this
 reason: while it printed to stdout it prefixed `aif --manifest` and broke that
 format's one guarantee, that its first line is `aif-manifest 1`.
 
-`eprint` also accepts an `Int`, because a status line counts things — the
-compiler uses it to report how many standard-library modules it rebuilt beside a
+`eprint` and `eprintln` accept every type their stdout twins do, and take several
+values in one call in the same way. A status line counts things — the compiler
+uses one to report how many standard-library modules it rebuilt beside a
 project-local toolchain:
 
 <!-- prismio-check: pass -->
@@ -68,8 +144,10 @@ fn main() -> Int {
 }
 ```
 
-The remaining width-specific overloads (`I8` through `U64`, `Float`, `Bool`,
-`Char`) stay on stdout until a caller needs one on stderr.
+The width-specific overloads (`I8` through `U64`, `Float`, `Bool`, `Char`) are on
+stderr too. They have to be: `eprintln("count: ", n)` splits into an `eprint` of
+the text and an `eprintln` of the value, so a type missing from this set would
+turn a working stdout line into a diagnostic the moment it moved to stderr.
 
 ## Exact overloads
 
@@ -103,11 +181,10 @@ These are separate exact overloads, not implicit integer promotion. Arithmetic a
 
 ## Formatting values
 
-There is no string interpolation or generic `format` surface. Compose simple output through multiple calls:
+There is no string interpolation or generic `format` surface. Pass the parts to one call, or make several:
 
 ```prismio
-print("items: ")
-println(list_len(items))
+println("items: ", list_len(items), separator(""))
 ```
 
 For application-specific rich formatting, write typed helper functions or use a carefully declared foreign formatting wrapper. Avoid C variadic APIs unless a stable adapter fixes the signature because source-level FFI variadics are not documented.

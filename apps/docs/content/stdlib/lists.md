@@ -3,7 +3,7 @@ title: List runtime
 description: Built-in List<T> operations, indexing, mutation, and element ownership in Prismio 0.1.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-08-30"
+lastUpdated: "2026-09-11"
 tags: [standard-library, list, collections, ownership]
 related: [language/arrays-and-lists, language/ownership-and-borrowing, errors/container-ownership, stdlib/map]
 ---
@@ -141,14 +141,16 @@ fn main() -> Int {
 | `isSorted(items)` | Whether the list is already in order. |
 | `binarySearch(items, needle)` | The index of `needle` in a sorted list, or `-1`. |
 
-`sort` is a three-way quicksort — median-of-three, insertion sort under a cutoff of 12, and
-recursion on the smaller partition with iteration on the larger, which bounds stack depth at
-O(log n) whatever the input does.
+`sort` is pattern-defeating quicksort (pdqsort). Ranges under 24 elements go to insertion sort.
+The pivot is a median of three, or of nine above 128 elements. The partition counts misplaced
+elements instead of branching on each comparison, which is what random input punishes. A range
+that keeps splitting badly is finished by heapsort, so the worst case is O(n log n) and recursion
+stays O(log n) deep whatever the input does.
 
-**Three-way rather than two-way is a correctness property, not a tuning.** A two-way partition on a
-list of equal elements advances its store index never and recurses on n-1, so sorting 10 000 equal
-values is 50 million comparisons. The Dutch-flag partition puts every equal element in the middle
-band and both recursive ranges come back empty — the same input is one linear pass.
+**Ordered and repetitive input are fast, not just correct.** After a partition that moved nothing,
+`sort` tries to finish both sides with a few insertion-sort steps, so a list already in order costs
+about one pass. A pivot equal to the element before its range sends every equal element to one
+side at once, so 10 000 equal values sort in linear time, not quadratic.
 
 `Ord` comes from `std.ord`, which implements it for every integer type, `Char`, `Float` and
 `String`. A user type sorts once it has an `impl Ord`:

@@ -123,6 +123,7 @@ export const DocsNavList: DocsSection[] = [
             { label: "Lists", href: "/stdlib/lists" },
             { label: "Map", href: "/stdlib/map" },
             { label: "Option and Result", href: "/stdlib/option" },
+            { label: "Platform", href: "/stdlib/platform" },
             {
                 label: "Planned modules",
                 items: [

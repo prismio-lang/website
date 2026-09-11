@@ -3,7 +3,7 @@ title: String representation and performance
 description: How Prismio stores inline, owned, and view strings in 16 bytes, proves view lifetimes, and measures the resulting performance.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-09"
+lastUpdated: "2026-09-11"
 tags: [compiler, strings, memory, ownership, performance]
 related: [runtime/supported-surface, aif/overview, aif/regions-views-and-provenance, runtime/collection-representations]
 ---
@@ -313,12 +313,60 @@ a buffer that continues, so three boundaries require special handling.
 slow equality path calls `str_equals_n` after the fast path has established that
 both strings have the same length.
 
-### Containers take an owned copy
+### A `List<String>` stores the pair itself
 
-A container slot stores one word and releases the value it contains. A view
-entering a list is copied through `str_own`. An inline string uses the same path
-because its bytes live inside the caller's pair rather than behind a stable data
-pointer. Neither form can use `str_clone`, which searches for a NUL terminator.
+Until 2026-09-11 a container slot was one word. A short string had no stable
+address to put there, so every push copied it to the heap through `str_own`, and
+every read rebuilt the pair by measuring the buffer with `strlen`. Interposing
+the C library on the maintained suite showed what that cost:
+
+| Benchmark | `strlen` calls | `malloc` calls |
+| --- | ---: | ---: |
+| `sort_strings`, one-word slots | 5,748,630 | 80,029 |
+| `sort_strings`, pair slots | 190 | 29 |
+| `string_join`, one-word slots | 2,612,792 | 240,030 |
+| `string_join`, pair slots | 190 | 30 |
+
+A list whose static type is `List<String>` is now constructed with a 16-byte
+element, the same `%prismio.str` pair a local holds, which is what libc++'s
+`vector<string>` gets from its small-string buffer. A push stores an inline or
+owned pair as it is and copies a view out, because the view borrows storage the
+list does not own. A read is two curated runtime calls that answer the pair's two
+halves, not a 16-byte struct, because that aggregate is returned in registers on
+arm64 and SysV x86-64 but through a hidden pointer on Windows x64. Teardown frees
+an owned long form's block and skips an inline one, under an element mode
+(`AIF_ELEM_STRING`) that code generation stamps in place of the analysis's
+OBJECT answer.
+
+Every entry point still serves a list built with pointer slots. `list_new()` with
+no element type is born that way, yet the handle can reach code typed
+`List<String>`, most often through a struct field initialised with it. That
+fallback keeps the old `str_own` and `strlen` path.
+
+Phase timings from one run of each workload, minimum of nine alternating runs:
+
+| Phase | One-word slots | Pair slots | C++ |
+| --- | ---: | ---: | ---: |
+| `sort_strings` build | 1.83 ms | 1.06 ms | 1.69 ms |
+| `string_join` build | 3.86 ms | 1.69 ms | 2.62 ms |
+| `string_join` join | 2.86 ms | 0.60 ms | 1.10 ms |
+
+The join phase also depended on a library fix: `strJoin` read its parts with
+`list_get` once per byte rather than once per part.
+
+Two related corrections landed with the change. A string literal stored into a
+container used to be stored as it was, an untagged pair pointing at read-only
+data, so teardown handed `.rodata` to the deallocator. It is now copied into an
+owned or inline value first. And `strSplit`, `strSplitOn`,
+`strSplitWhitespace` and `strLines` keep a part of twelve bytes or fewer in the
+pair rather than allocating it, and so does `strClone`. That last one matters
+beyond the allocation: a `Map<String, V>` stores its keys through it, and a heap
+copy of a short key never matched an inline lookup key bit for bit, so every
+successful probe fell through to `memcmp` -- 47,992 of them in `word_frequency`,
+and none now.
+
+Neither a view nor an inline string can be copied with `str_clone`, which
+searches for a NUL terminator. Both copies go by length.
 
 ### C receives a temporary NUL-terminated copy
 
