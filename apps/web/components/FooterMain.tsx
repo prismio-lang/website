@@ -33,6 +33,8 @@ export default function FooterMain() {
                 {/* Column — Project */}
                 <div className="space-y-3 md:pl-8">
                     <h5 className="font-medium text-gray-200 tracking-tight">Project</h5>
+                    <FooterLink href="/about">About</FooterLink>
+                    <FooterLink href="/team">Team</FooterLink>
                     <FooterLink href="/benchmarks">Benchmarks</FooterLink>
                     <FooterLink href="/roadmap">Roadmap</FooterLink>
                     <FooterLink href="https://github.com/prismio-lang/prismio" external>GitHub Repository</FooterLink>

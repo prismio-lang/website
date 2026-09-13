@@ -198,7 +198,7 @@ export default function Hero() {
                     <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-[-0.03em] text-zinc-950 leading-[1.05] mb-5">
                         Native libraries.
                         <br />
-                        <span className="text-zinc-400 font-medium">Verified for the compiler.</span>
+                        <span className="text-zinc-500 font-medium ">Verified for the compiler.</span>
                     </h1>
 
                     <p className="text-base sm:text-lg text-zinc-600 leading-relaxed max-w-2xl mx-auto mb-10">

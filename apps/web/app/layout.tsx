@@ -3,6 +3,8 @@ import localFont from "next/font/local";
 import "./globals.css";
 import React from "react";
 import {siteConfig} from "@/config/site";
+import {JsonLd} from "@/components/json-ld";
+import {prismioStructuredData} from "@/config/structured-data";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -14,6 +16,43 @@ const geistMono = localFont({
     src: "./fonts/GeistMonoVF.woff",
     variable: "--font-geist-mono",
     weight: "100 900",
+});
+
+const kalam = localFont({
+    src: [
+        { path: "./fonts/Kalam-Light.ttf", weight: "300", style: "normal" },
+        { path: "./fonts/Kalam-Regular.ttf", weight: "400", style: "normal" },
+        { path: "./fonts/Kalam-Bold.ttf", weight: "700", style: "normal" },
+    ],
+    variable: "--font-kalam",
+    display: "swap",
+});
+
+const instrumentSerif = localFont({
+    src: [
+        { path: "./fonts/InstrumentSerif-Regular.ttf", weight: "400", style: "normal" },
+        { path: "./fonts/InstrumentSerif-Italic.ttf", weight: "400", style: "italic" },
+    ],
+    variable: "--font-serif",
+    display: "swap",
+});
+
+const fraunces = localFont({
+    src: "./fonts/Fraunces-Variable.ttf",
+    variable: "--font-fraunces",
+    display: "swap",
+});
+
+const syne = localFont({
+    src: "./fonts/Syne-Bold.ttf",
+    variable: "--font-syne",
+    display: "swap",
+});
+
+const bricolage = localFont({
+    src: "./fonts/BricolageGrotesque-Bold.ttf",
+    variable: "--font-bricolage",
+    display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -53,7 +92,8 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
-        <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-[#070709] text-zinc-100 scrollbar-none`}>
+        <body className={`${geistSans.variable} ${geistMono.variable} ${kalam.variable} ${instrumentSerif.variable} ${fraunces.variable} ${syne.variable} ${bricolage.variable} font-sans antialiased bg-[#070709] text-zinc-100 scrollbar-none`}>
+        <JsonLd data={prismioStructuredData} />
                 {children}
         </body>
         </html>

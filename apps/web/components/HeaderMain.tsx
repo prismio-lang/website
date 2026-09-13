@@ -28,6 +28,7 @@ const HeaderMain: React.FC = () => {
     }, []);
 
     const navLinks: NavItem[] = [
+        {label: "About", href: "/about"},
         {label: "Packages", href: "https://packages.prismio.org", isExternal: true},
         {label: "Playground", href: "https://playground.prismio.org", isExternal: true},
         {label: "Benchmarks", href: "/benchmarks"},
@@ -57,7 +58,7 @@ const HeaderMain: React.FC = () => {
                     </div>
 
 
-                    <nav className="hidden md:flex flex-1 items-center justify-center gap-10">
+                    <nav className="hidden md:flex flex-1 items-center justify-center gap-6 lg:gap-8 xl:gap-10">
                         {navLinks.map(({label, href, isExternal}) => {
 
                             if (isExternal) {
@@ -95,7 +96,7 @@ const HeaderMain: React.FC = () => {
                             className="p-2 rounded-lg text-white/90 hover:text-white hover:bg-white/[0.05] transition-all"
                             aria-label="GitHub Repository">
 
-                            <Image src={"icons/github-mark-white.svg"} alt={"Github Repository"} height={24} width={24}/>
+                            <Image src={"/icons/github-mark-white.svg"} alt={"Github Repository"} height={24} width={24}/>
                         </Link>
 
                         <Link
