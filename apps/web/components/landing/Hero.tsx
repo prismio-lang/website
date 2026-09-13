@@ -234,20 +234,19 @@ export default function Hero() {
                                     {SOURCE_LINES.map((line) => (
                                         <div
                                             key={line.num}
-                                            className={`flex items-center rounded-sm transition-colors ${
+                                            className={`flex items-center rounded-sm ml-1 transition-colors ${
                                                 line.highlighted
-                                                    ? 'bg-indigo-500/[0.12] -mx-1 px-1 border-l-2 border-indigo-400 text-zinc-100'
-                                                    : 'border-l-2 border-transparent'
+                                                    && 'bg-indigo-500/[0.12]'
                                             }`}
                                         >
                                             <span
                                                 className={`mr-3 w-4 select-none text-right font-mono text-[11px] ${
                                                     line.highlighted ? 'text-indigo-400 font-semibold' : 'text-zinc-600'
-                                                }`}
-                                            >
+                                                }`}>
                                                 {line.num}
                                             </span>
-                                            <code className="whitespace-pre font-mono text-zinc-300">
+
+                                            <code className="whitespace-pre ml-1 font-mono text-zinc-300">
                                                 {line.tokens.map((tok, i) => (
                                                     <span key={i} className={tok.cls || ''}>
                                                         {tok.text}

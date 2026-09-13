@@ -3,12 +3,12 @@ title: Standard library status
 description: Prismio's shipped source standard library and the modules still planned.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-09"
+lastUpdated: "2026-09-12"
 tags: [standard-library, runtime, status]
 related: [stdlib/io, stdlib/strings, stdlib/lists, stdlib/map, stdlib/option, roadmap]
 ---
 
-Prismio ships fourteen standard-library modules: `std.io`, `std.string`, `std.fs`, `std.process`, `std.list`, `std.map`, `std.option`, `std.key`, `std.ord`, `std.copy`, `std.eq`, `std.iter`, `std.math` and `std.display`.
+Prismio ships fifteen standard-library modules: `std.io`, `std.string`, `std.fs`, `std.process`, `std.platform`, `std.list`, `std.map`, `std.option`, `std.key`, `std.ord`, `std.copy`, `std.eq`, `std.iter`, `std.math` and `std.display`.
 
 A packaged toolchain installs them as **compiled `stdlib/*.plib` artifacts**, not as `.psm` source. A PLIB carries the module's interface — which the frontend still parses, because generic bodies have to be instantiated against your concrete types — together with its compiled LLVM bitcode, which the driver merges into your program before optimization. The directory is **flattened**, so never derive a module's logical name from its path on disk: `std.map` is `stdlib/map.plib`.
 

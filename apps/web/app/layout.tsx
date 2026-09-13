@@ -30,7 +30,11 @@ export const metadata: Metadata = {
         "Development",
         "Native",
         "Performance",
-        "System"
+        "System",
+        "LLVM",
+        "PLIB",
+        "AIF",
+        "Adaptive Inference Framework",
     ],
     authors: [
         {

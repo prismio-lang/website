@@ -4,18 +4,18 @@ import Image from "next/image";
 
 export default function FooterMain() {
     return (
-        <footer className="relative border-t border-white/10 mt-32 z-[100]">
-            <div className="max-w-7xl mx-auto px-8 py-16 grid grid-cols-2 md:grid-cols-4 gap-12 text-sm">
+        <footer className="relative border-t border-zinc-200 bg-[#fafafa] mt-24 text-sm">
+            <div className="max-w-7xl mx-auto px-8 py-16 grid grid-cols-2 md:grid-cols-4 gap-12">
                 {/* Column — About */}
                 <div className="space-y-4 col-span-2 md:col-span-1">
                     <Link href="/" className="flex items-center gap-2.5">
                         <div className="w-8 h-8 flex items-center justify-center">
                             <Image src="/icons/prismio.png" alt="Logo" width={32} height={32}/>
                         </div>
-                        <span className="font-semibold text-xl text-white">Prismio</span>
+                        <span className="font-semibold text-xl text-zinc-900">Prismio</span>
                     </Link>
 
-                    <p className="text-gray-400 leading-relaxed max-w-xs">
+                    <p className="text-zinc-500 leading-relaxed max-w-xs text-xs">
                         A self-hosted systems language with explainable memory inference,
                         LLVM-native code generation, and direct C interoperability.
                     </p>
@@ -23,35 +23,34 @@ export default function FooterMain() {
 
                 {/* Column — Ecosystem */}
                 <div className="space-y-3 md:pl-4">
-                    <h5 className="font-medium text-gray-200 tracking-tight">Ecosystem</h5>
+                    <h5 className="font-semibold text-zinc-900 text-xs tracking-tight uppercase">Ecosystem</h5>
                     <FooterLink href="https://docs.prismio.org" external>Documentation</FooterLink>
                     <FooterLink href="https://developers.prismio.org" external>Developer Portal</FooterLink>
-                    <FooterLink href="https://packages.prismio.org" external>Package Registry</FooterLink>
+                    <FooterLink href="/">Package Registry</FooterLink>
                     <FooterLink href="https://playground.prismio.org" external>Interactive Playground</FooterLink>
                 </div>
 
                 {/* Column — Project */}
                 <div className="space-y-3 md:pl-8">
-                    <h5 className="font-medium text-gray-200 tracking-tight">Project</h5>
-                    <FooterLink href="/benchmarks">Benchmarks</FooterLink>
-                    <FooterLink href="/roadmap">Roadmap</FooterLink>
+                    <h5 className="font-semibold text-zinc-900 text-xs tracking-tight uppercase">Project</h5>
+                    <FooterLink href="https://prismio.org/benchmarks" external>Benchmarks</FooterLink>
+                    <FooterLink href="https://prismio.org/roadmap" external>Roadmap</FooterLink>
                     <FooterLink href="https://github.com/prismio-lang/prismio" external>GitHub Repository</FooterLink>
                     <FooterLink href="https://github.com/prismio-lang/prismio/issues" external>Issue Tracker</FooterLink>
                 </div>
 
                 {/* Column — Community */}
                 <div className="space-y-3 md:pl-12">
-                    <h5 className="font-medium text-gray-200 tracking-tight">Community</h5>
-                    <FooterLink href="/community">Community Overview</FooterLink>
-                    <FooterLink href="/sponsors">Sponsors</FooterLink>
+                    <h5 className="font-semibold text-zinc-900 text-xs tracking-tight uppercase">Community</h5>
+                    <FooterLink href="https://prismio.org/community" external>Community Overview</FooterLink>
+                    <FooterLink href="https://prismio.org/sponsors" external>Sponsors</FooterLink>
                     <FooterLink href="https://discord.gg/RUXJjnJF" external>Discord Community</FooterLink>
                     <FooterLink href="https://github.com/prismio-lang/prismio/discussions" external>Discussions</FooterLink>
-                    <FooterLink href="https://x.com/prismio_lang" external>Twitter / X</FooterLink>
                 </div>
             </div>
 
-            <div className="border-t border-white/10 px-8 py-6 text-center text-xs text-gray-500">
-                © {new Date().getFullYear()} Prismio Language Contributors.
+            <div className="border-t border-zinc-200 px-8 py-6 text-center text-xs text-zinc-400">
+                © {new Date().getFullYear()} Prismio Language Contributors. Permissively licensed under Apache-2.0 / MIT.
             </div>
         </footer>
     );
@@ -64,7 +63,7 @@ function FooterLink({ href, children, external }: { href: string; children: Reac
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block text-gray-400 hover:text-white transition-colors"
+                className="block text-zinc-500 hover:text-zinc-900 transition-colors text-xs"
             >
                 {children}
             </a>
@@ -73,10 +72,9 @@ function FooterLink({ href, children, external }: { href: string; children: Reac
     return (
         <Link
             href={href}
-            className="block text-gray-400 hover:text-white transition-colors"
+            className="block text-zinc-500 hover:text-zinc-900 transition-colors text-xs"
         >
             {children}
         </Link>
     );
 }
-

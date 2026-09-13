@@ -12,15 +12,12 @@ related: [stdlib, stdlib/platform, stdlib/filesystem, cookbook/cli-arguments, la
 
 ## Arguments
 
-| Function | Returns |
-|---|---|
-| `argCount()` | how many arguments, including the program name at index 0 |
-| `arg(index)` | the argument as a string the caller owns |
-| `argAt(index)` | `Option<String>` — `None` when the index is out of range |
-| `argBorrowed(index)` | the argument without copying |
-| `args()` | `List<String>` of everything after the program name |
+`process` is a global. Its `args` is the command line as the process was given it.
 
-`argAt` exists because the raw runtime call returns `""` both for a missing argument and for an argument that is the empty string. `argAt` can tell them apart; `arg` cannot.
+| Spelling | Answers |
+|---|---|
+| `process.args.count` | how many arguments, including the program name at index 0 |
+| `process.args[index]` | the argument as a string the caller owns, and `""` outside `[0, count)` |
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -28,24 +25,28 @@ import std.io
 import std.process
 
 fn main() -> Int {
-    let name = arg(0)
-    println(name)
+    println(process.args[0])
 
-    match (argAt(1)) {
-        Option<String>.Some(first) => { println(first) }
-        Option<String>.None => { println("no arguments given") }
+    let mut i = 1
+    while (i < process.args.count) {
+        println(process.args[i])
+        i = i + 1
     }
     return 0
 }
 ```
 
-## Why `arg` copies
+Out of range and "the argument is the empty string" answer alike, which is the C contract. `count` is one property away, so a caller that needs to tell them apart asks it.
+
+`process.args[i]` is `at(i)`: `x[i]` on a struct is `at(x, i)`, the same rewrite `s[i]` has always had for String. Nothing builds a list to answer a question about one argument.
+
+This replaced five functions — `argCount`, `arg`, `argBorrowed`, `argAt` and `args`. The two that carried real information are here; `argBorrowed`'s uncopied form and `argAt`'s `Option` are gone.
+
+## Why indexing copies
 
 The underlying `cli_arg` returns a pointer **into** `argv`, or the static empty string. It allocates nothing. Its FFI contract is `alias`, meaning the return is an existing value rather than a fresh allocation.
 
-Declaring it `produce(free)` would not leak — it would hand `argv` to the deallocator, which is a different and much worse category of wrong. That is the mistake the six `produce(free)` declarations in [`std.fs`](/stdlib/filesystem) invite by habit, and it is why `arg` returns a copy: the obvious call is the safe one, and one small allocation on a path that runs once per program is not worth the hazard.
-
-`argBorrowed` is the uncopied form. It is safe to read for as long as the process runs, and unsafe to `drop` or store in an owning container. Reach for it only if the copy is measurably in the way.
+Declaring it `produce(free)` would not leak — it would hand `argv` to the deallocator, which is a different and much worse category of wrong. That is the mistake the six `produce(free)` declarations in [`std.fs`](/stdlib/filesystem) invite by habit, and it is why `process.args[i]` returns a copy: the obvious call is the safe one, and one small allocation on a path that runs once per program is not worth the hazard.
 
 ## Subprocesses
 
