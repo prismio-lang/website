@@ -28,7 +28,7 @@ not depend on receiving an aggressive tier.
 
 ## Does Prismio use LLVM?
 
-Yes. LLVM 22 is the supported backend line. Self-hosted Prismio code constructs the module through
+Yes. LLVM 23 is the supported backend line. Self-hosted Prismio code constructs the module through
 a narrow C wrapper around the LLVM C API. LLVM IR is verified before emission.
 
 ## Which language mechanisms are implemented?

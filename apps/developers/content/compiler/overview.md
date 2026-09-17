@@ -164,7 +164,7 @@ The bootstrap command is the exception. It rebuilds compiler backend and runtime
 
 ## Toolchain line
 
-LLVM **22.1.8** is the supported backend line. Generated modules are verified before artifact emission.
+LLVM **23.1.1** is the supported backend line. Generated modules are verified before artifact emission.
 
 Using a materially different LLVM line can fail even when a system `clang` exists, because textual and bitcode expectations and C API availability evolve. The setup scripts select the pinned toolchain.
 

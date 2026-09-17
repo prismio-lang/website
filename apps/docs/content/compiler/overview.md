@@ -69,7 +69,7 @@ The compiler sources are organized by stage under `src/`: `lexer`, `parse`, `ast
 
 This stage-oriented layout is a maintenance contract: language changes should enter through the earliest appropriate layer and be reflected in later layers, tests, diagnostics, specification, and documentation.
 
-LLVM **22.1.8** is the supported backend line. Generated modules are verified before artifact emission. The build driver embeds the runtime/toolchain sources needed to link ordinary programs.
+LLVM **23.1.1** is the supported backend line. Generated modules are verified before artifact emission. The build driver embeds the runtime/toolchain sources needed to link ordinary programs.
 
 Using a materially different LLVM line can fail even when a system `clang` exists, because textual/bitcode expectations and C API availability evolve. The setup scripts select the pinned toolchain.
 

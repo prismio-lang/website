@@ -85,7 +85,7 @@ cmp /tmp/a.ll /tmp/b.ll
 
 If generations diverge:
 
-1. reproduce with one host and pinned LLVM 22.1.8;
+1. reproduce with one host and pinned LLVM 23.1.1;
 2. emit `.ll` for the compiler build;
 3. locate the first changed function or global;
 4. reduce the change to a small Prismio program;

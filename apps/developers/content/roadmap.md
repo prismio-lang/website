@@ -13,7 +13,7 @@ does not assign release dates.
 
 ## Established baseline
 
-- Self-hosted frontend, semantic analysis, AIF, and LLVM 22 backend.
+- Self-hosted frontend, semantic analysis, AIF, and LLVM 23 backend.
 - Native artifacts, direct C ABI integration, debug information, JSON diagnostics, and UMS projects.
 - Generics, traits, associated items, trait objects, `impl Trait`, closures, payload enums, slices,
   DataView, native tasks, and blocking typed channels.

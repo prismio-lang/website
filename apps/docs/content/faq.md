@@ -30,7 +30,7 @@ Source ownership rules remain the same regardless of the selected allocation tie
 
 The compiler is exercised in CI on Windows, macOS, and Linux. WebAssembly targeting exists experimentally at the IR/runtime layer. Android and iOS toolchains are Coming Soon.
 
-Native support does not yet imply a stable binary distribution, cross-compilation SDK, or ABI. LLVM 22.1.8 is the pinned backend line.
+Native support does not yet imply a stable binary distribution, cross-compilation SDK, or ABI. LLVM 23.1.1 is the pinned backend line.
 
 ## Where is the standard library?
 

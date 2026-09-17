@@ -1,9 +1,9 @@
 ---
 title: Install the Prismio compiler
-description: Configure LLVM 22 and bootstrap a Prismio 0.1 compiler on Windows, macOS, or Linux.
+description: Configure LLVM 23 and bootstrap a Prismio 0.1 compiler on Windows, macOS, or Linux.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-09"
+lastUpdated: "2026-09-17"
 tags: [installation, bootstrap, llvm]
 related: [start/hello-world, compiler/bootstrap, compiler/targets]
 ---
@@ -15,10 +15,10 @@ This guide installs a local compiler without changing the language source. Keep 
 ## Requirements
 
 - Python 3.8 or newer
-- A C/LLVM toolchain compatible with LLVM 22 IR
+- A C/LLVM toolchain compatible with LLVM 23 IR
 - Git and a shell; PowerShell scripts are supplied for Windows
 
-The repository pins the supported LLVM line to **22.1.8**. Apple Clang is not interchangeable with that LLVM IR version; on macOS, use the LLVM toolchain configured by the setup script.
+The repository pins the supported LLVM line to **23.1.1**. Apple Clang is not interchangeable with that LLVM IR version; on macOS, use the LLVM toolchain configured by the setup script.
 
 Before bootstrapping, check the prerequisites available on your path:
 
@@ -72,7 +72,7 @@ python tools/setup_llvm.py
 
 Run the commands from PowerShell. The repository provides a PowerShell bootstrap path so you do not need to translate the shell script manually.
 
-An installed binary should report Prismio `0.1.0` and LLVM `22.1.8`.
+An installed binary should report Prismio `0.1.0` and LLVM `23.1.1`.
 
 ## Assemble the toolchain
 

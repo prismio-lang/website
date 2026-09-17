@@ -35,7 +35,7 @@ The host LLVM/Clang toolchain performs native object generation and linking. Pla
 
 ## LLVM requirement
 
-LLVM 22.1.8 is the pinned backend line. A platform's default Clang may use another LLVM IR dialect/version and is not automatically interchangeable. The repository setup scripts identify the correct toolchain.
+LLVM 23.1.1 is the pinned backend line. A platform's default Clang may use another LLVM IR dialect/version and is not automatically interchangeable. The repository setup scripts identify the correct toolchain.
 
 ## WebAssembly
 

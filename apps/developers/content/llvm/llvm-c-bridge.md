@@ -1,6 +1,6 @@
 ---
 title: LLVM C API bridge
-description: A categorized reference to the LLVM 22 C API used by Prismio's native backend and the ir_* operations exposed to self-hosted code.
+description: A categorized reference to the LLVM 23 C API used by Prismio's native backend and the ir_* operations exposed to self-hosted code.
 status: implemented
 version: "0.1.0"
 lastUpdated: "2026-09-08"
@@ -9,7 +9,7 @@ related: [llvm/overview, llvm/types-and-abi, llvm/functions-and-calls]
 ---
 
 `src/ir/bridge.psm` is the ABI visible to the self-hosted compiler.
-`runtime/llvm-api-backend.c` implements it with LLVM 22's C API. The Prismio side passes type keys,
+`runtime/llvm-api-backend.c` implements it with LLVM 23's C API. The Prismio side passes type keys,
 symbol names, source positions, and integer handles; the C side owns every LLVM reference and
 reports failures through the compiler diagnostic channel.
 

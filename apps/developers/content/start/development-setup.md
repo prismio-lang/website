@@ -1,6 +1,6 @@
 ---
 title: Development environment
-description: Prepare a Prismio compiler checkout with LLVM 22, platform tools, Python, and a known compiler generation.
+description: Prepare a Prismio compiler checkout with LLVM 23, platform tools, Python, and a known compiler generation.
 status: implemented
 version: "0.1.0"
 lastUpdated: "2026-09-08"
@@ -8,14 +8,14 @@ tags: [setup, llvm, toolchain]
 related: [compiler/bootstrap, start/local-compiler-loop, tooling/debugging-targets-and-build-tracing]
 ---
 
-Compiler development requires LLVM 22, a C toolchain, Python for the test harness, and either an
+Compiler development requires LLVM 23, a C toolchain, Python for the test harness, and either an
 installed Prismio compiler or the committed bootstrap seed. Run setup commands from the compiler
 repository root: the bootstrap scripts resolve `src`, `runtime`, `bootstrap`, and
 `third_party/llvm-paths.json` relative to that checkout.
 
 ## Required tools
 
-- LLVM and Clang 22.x, including `llc` and the LLVM C development libraries.
+- LLVM and Clang 23.x, including `llc` and the LLVM C development libraries.
 - A platform linker and SDK appropriate for the host.
 - Python 3.8 or newer for tests, packaging, and support scripts.
 - Git and ordinary shell tooling.
