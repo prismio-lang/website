@@ -77,7 +77,7 @@ The `thread affinity` block reports the counts.
 ## Channels
 
 `Channel<T>` is a language type, not an importable module: its seven operations are compiler
-builtins in the same category as `list_get` and `list_push`, so they need no import.
+builtins in the same category as a Vec's `push` and indexing, so they need no import.
 
 | | | |
 | --- | --- | --- |
@@ -147,7 +147,7 @@ fn main() -> Int {
 
 **A send moves.** The receiver takes the message out and owns it from then on, so naming the value
 again in the sender names memory another thread may already have freed. The move checker refuses it,
-the same way it refuses a second use after `list_push`.
+the same way it refuses a second use after `v.push(x)`.
 
 **`chan_share` is the duplication, and it is deliberate that you have to write it.** Every handle
 the language can name is affine, so `spawn worker(c)` *moves* the endpoint away. Sharing it is the

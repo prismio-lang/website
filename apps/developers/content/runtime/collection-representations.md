@@ -3,18 +3,25 @@ title: Collection representations
 description: The current List, Map, Slice, and DataView runtime forms, ownership modes, growth behavior, and compiler specialization points.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-09"
+lastUpdated: "2026-09-17"
 tags: [runtime, collections, memory]
 related: [aif/layout-selection, compiler/generics-and-monomorphization, runtime/allocation-arenas-rc-and-cycles]
 ---
 
-`List<T>` and `Map<K, V>` are compiler-recognized generic containers backed by runtime
+`Vec<T>` and `Map<K, V>` are compiler-recognized generic containers backed by runtime
 operations. Their representations carry information ordinary user-defined generics cannot yet
 express uniformly.
 
-## Lists
+**Inside the compiler the vector is still called a list.** `Vec` is the spelling a program writes;
+the type kind is `TypeKind.LIST`, its key is `List<...>`, the header is `RtList`, and the entry
+points are `list_*`. The rename was surface-only so that mangled symbols, AIF type keys and the
+Python oracle did not move — see `COLLECTIONS.md` in the compiler repository. The method surface a
+program uses (`v.push(x)`, `v.insert(i, x)`, `v.length`) is lowered onto the functions below in
+`src/sema/vec.psm`.
 
-A list has a header containing length, capacity, data storage, element ownership behavior, region
+## Vec
+
+A Vec has a header containing length, capacity, data storage, element ownership behavior, region
 information, and inline element width where applicable. Capacity grows geometrically. Flat scalar
 or eligible aggregate elements can be stored inline; ownership-sensitive or layout-incompatible
 elements remain pointer-shaped.
@@ -32,7 +39,7 @@ substitute.
 
 ## Views
 
-`Slice<T>` preserves identity and range information over a list. `DataView` can materialize
+`Slice<T>` preserves identity and range information over a Vec. `DataView` can materialize
 selected fields into a structure-of-arrays form and round changes back. Views are ownership
 relationships, not unrestricted raw pointers.
 
@@ -82,10 +89,39 @@ handshake that makes that migration self-repairing.
 `list_copy_elem` and `scalar_store` centralize copying so the same width/alignment rule is used
 by append and replacement.
 
+## Capacity, insertion and removal
+
+| Function | Method | Behaviour |
+| --- | --- | --- |
+| `list_capacity` | `v.capacity` | the header's `cap` |
+| `list_reserve(l, n)` | `v.reserve(n)` | reallocates to exactly `n` slots when `n > cap`; growth past it still doubles |
+| `list_insert`, `list_insert_inline`, `list_insert_inline_scalar`, `list_insert_str` | `v.insert(i, x)` | the matching push, then the new last element is moved down to `i`; the index is checked before the push, so a bad one exits without taking the value |
+| `list_truncate(l, n, now)` | `v.truncate(n)`, `v.clear()`, `v.pop()` | discards slots `[n, len)` from the top; `n < 0` empties |
+| `list_remove_at(l, i, now)` | `v.removeAt(i)` | discards slot `i` and shifts the tail down; out of range is a `runtime error:` and exit 1, not a no-op |
+
+**A removed element that owns memory is parked, not released.** `list_discard_slot` moves the
+owned pointer — a boxed element, or the heap block of a non-inline, non-view `String` pair — onto
+the header's `grave` array, and `list_release` releases the grave after the live elements. So a
+removal releases exactly what the Vec would have released had the element stayed, and cannot free
+something a view taken earlier (`let first = v[0]`) still reads. An arena-backed list, and a list
+whose elements own nothing, discard without parking.
+
+The `now` argument is the other half of that rule: `1` releases at once. Codegen passes `0`
+everywhere today (`vecRemovalReleasesNow` in `src/ir/expr.psm`); passing `1` where no element view
+can be live is `COLLECTIONS.md` step 1e. `pop` and `removeAt` are `std.vec` functions over `T: Copy`
+that `copyOf` the element before removing it, so the value handed back is a copy.
+
+The grave fields are appended to `RtList`, after the prefix codegen reads
+(`rt_list_header_type` in `llvm-api-backend.c`), and the array is plain `malloc` because only
+`list_release` frees it.
+
+## Reads and release
+
 Reads mirror writes: `list_get` returns a boxed pointer; `list_get_inline` returns an address
 inside inline storage; `list_get_inline_scalar` returns scalar bits. `list_len` exposes the
 logical count. `list_release` walks only the representation's actual live elements, invokes the
-element release policy, frees the block, and frees the header.
+element release policy, releases anything parked in the grave, frees the block, and frees the
+header.
 
 ## Slice operations
 

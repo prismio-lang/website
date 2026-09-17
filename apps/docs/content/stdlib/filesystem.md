@@ -37,7 +37,7 @@ Unlike [`std.string`](/stdlib/strings), none of this could be written in Prismio
 | `tryReadFile(path)` | `Option<String>` |
 | `writeFile(path, content)` | `Bool` — true when the write succeeded |
 | `deleteFile(path)` | `Bool` — true when the file is gone afterwards |
-| `listModules(directory)` | `List<String>` — the `.psm` files, sorted, without the suffix |
+| `listModules(directory)` | `Vec<String>` — the `.psm` files, sorted, without the suffix |
 
 `readFile` cannot distinguish an unreadable file from an empty one: both come back as the empty string. `tryReadFile` can, and it does it by asking `fileExists` first rather than by inspecting the result, because the result cannot answer.
 
@@ -54,7 +54,7 @@ A directory that already exists counts as success, which is what makes `makeDire
 
 `directoryExists` is not the same question as `fileExists`, and the difference matters. `fileExists` *opens* the path, and opening a directory succeeds on some hosts and fails on others, so it cannot answer this. Nor should you reach for `makeDirectory` to find out whether a directory is there: it answers by creating it, so a mistyped path would report success.
 
-`listModules` returns a `List<String>`. The underlying runtime call hands back one newline-separated string, because a `List` is a Prismio type the C cannot build; splitting it is the half of that operation that always belonged in Prismio.
+`listModules` returns a `Vec<String>`. The underlying runtime call hands back one newline-separated string, because a `Vec` is a Prismio type the C cannot build; splitting it is the half of that operation that always belonged in Prismio.
 
 <!-- prismio-check: pass -->
 ```prismio

@@ -184,7 +184,7 @@ These are separate exact overloads, not implicit integer promotion. Arithmetic a
 There is no string interpolation or generic `format` surface. Pass the parts to one call, or make several:
 
 ```prismio
-println("items: ", list_len(items), separator(""))
+println("items: ", items.length, separator(""))
 ```
 
 For application-specific rich formatting, write typed helper functions or use a carefully declared foreign formatting wrapper. Avoid C variadic APIs unless a stable adapter fixes the signature because source-level FFI variadics are not documented.

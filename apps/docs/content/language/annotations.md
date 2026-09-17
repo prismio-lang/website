@@ -24,7 +24,7 @@ Place `unique` after an optional `mut` and before the binding name:
 
 ```prismio
 let unique item = make_item()
-let mut unique queue: List<Item> = list_new()
+let mut unique queue: Vec<Item> = []
 ```
 
 `unique` expresses single-owner intent. The compiler rejects uses that introduce aliases inconsistent with it.
@@ -57,7 +57,7 @@ Tier pins belong beside a binding declaration:
 
 ```prismio
 let pin(T1) message = make_message()
-let mut pin(T2) worklist: List<Work> = list_new()
+let mut pin(T2) worklist: Vec<Work> = []
 ```
 
 The public meaning of every tier and its cost model is not frozen. Do not describe `T1`, `T2`, or later tiers as permanent synonyms for one allocation mechanism unless the current [AIF compiler documentation](/compiler/aif) explicitly guarantees it.

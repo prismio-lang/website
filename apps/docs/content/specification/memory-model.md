@@ -1,6 +1,6 @@
 ---
 title: Memory and ownership model
-description: Formal draft rules for Prismio 0.1 moves, borrows, drops, list slices, collections, arrays, and AIF allocation tiers.
+description: Formal draft rules for Prismio 0.1 moves, borrows, drops, Vec slices, collections, arrays, and AIF allocation tiers.
 status: experimental
 version: "0.1.0"
 lastUpdated: "2026-08-25"
@@ -12,17 +12,17 @@ This page specifies the compiler-enforced ownership model and the experimental a
 
 ## Value categories
 
-Strings, lists, and nominal struct values are move-only. Each owned value must have one active owner at a program point. Optional wrappers around these owned reference-shaped values preserve the ownership category. Scalars, raw pointer values, fieldless enums, arrays, and Slice descriptors use copy semantics in 0.1.
+Strings, vectors, and nominal struct values are move-only. Each owned value must have one active owner at a program point. Optional wrappers around these owned reference-shaped values preserve the ownership category. Scalars, raw pointer values, fieldless enums, arrays, and Slice descriptors use copy semantics in 0.1.
 
 Copying a copy value leaves both source and destination usable. Moving a move-only value transfers responsibility to the destination and changes the source binding to the moved state.
 
 ## Ownership transfer and borrowing
 
-An ordinary function parameter borrows a move-only argument for the call. `inout` creates a mutable borrow for the call. `sink` transfers ownership to the callee. Assignment into an owned aggregate or `list_push` may also transfer ownership. A moved binding may not be read, moved, or dropped again.
+An ordinary function parameter borrows a move-only argument for the call. `inout` creates a mutable borrow for the call. `sink` transfers ownership to the callee. Assignment into an owned aggregate or a Vec's `push`, `insert` or `set` may also transfer ownership. A moved binding may not be read, moved, or dropped again.
 
 An ordinary borrow is read-only with respect to ownership: the callee cannot destroy or retain the owner as if it had been transferred. `inout` permits caller-visible mutation during an exclusive call-scoped borrow. Prismio source has no `&` or first-class reference value.
 
-Moving into a struct field or owning list makes that aggregate responsible for the value. Reading an owned list element through `list_get` follows the current borrow behavior; a general move-out iterator is not specified.
+Moving into a struct field or an owning Vec makes that aggregate responsible for the value. Reading an owned Vec element through `v[i]` follows the current borrow behavior; a general move-out iterator is not specified.
 
 ## Destruction and scope exit
 
@@ -48,18 +48,22 @@ Comparison with `none` does not refine the static type along a branch. The progr
 
 Arrays are fixed stack values whose source type is `[T]`. Their assignment behavior is copy-based in 0.1. A local array cannot be returned because its storage would escape the function frame. Bounds behavior is not yet standardized as a guaranteed checked-access abstraction.
 
-## List views and Slice lifetime
+## Vec views and Slice lifetime
 
-A `Slice<T>` is represented by the identity of a `List<T>`, an offset, and a length. It never
-stores an interior pointer into the list's growable element block. Reallocation therefore cannot
-strand a Slice; each access resolves the current block through the list identity.
+A `Slice<T>` is represented by the identity of a `Vec<T>`, an offset, and a length. It never
+stores an interior pointer into the Vec's growable element block. Reallocation therefore cannot
+strand a Slice; each access resolves the current block through the Vec identity.
+
+An element that a Vec removes — through `pop`, `removeAt`, `truncate` or `clear` — and that owns
+memory is released when the Vec is released, not at the removal. A view of that element taken
+before the removal therefore stays readable for as long as the Vec lives.
 
 Slice construction, nesting, reads, and explicit `slice_set` writes are range checked. Overlapping
 mutable slices are allowed within one task. This model promises memory safety, not a Rust-style
 no-aliasing guarantee.
 
-The analysis applies the view escape rule: if a Slice escapes a scope, the underlying list's escape
-is raised to at least the same extent. Returning a Slice can therefore change the list's allocation
+The analysis applies the view escape rule: if a Slice escapes a scope, the underlying Vec's escape
+is raised to at least the same extent. Returning a Slice can therefore change the Vec's allocation
 tier instead of producing a lifetime error. A pin may still turn that tier change into a diagnostic.
 
 ## Foreign boundaries

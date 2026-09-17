@@ -24,7 +24,7 @@ observable from the source language except speed.
 - Container access has the same meaning whether or not a loop is guarded.
   `list_get` past the end still returns the element type's zero, and `list_set`
   past the end is still a no-op.
-- You do not opt in. A `while` loop over a `List<Int>` is guarded when the
+- You do not opt in. A `while` loop over a `Vec<Int>` is guarded when the
   compiler can prove it, and takes the ordinary path when it cannot.
 - Two source patterns decide whether the loop can also **vectorize**: write the
   update as an unconditional store, and prefer `std.math`'s `max`/`min` over a
@@ -227,7 +227,7 @@ and so does every other production compiler.
 
 ## Measurements
 
-`knapsack`, a 1-D DP over `List<Int>` with 576,000 inner iterations, against C++
+`knapsack`, a 1-D DP over `Vec<Int>` with 576,000 inner iterations, against C++
 `-O3` and Rust `opt-level=3` on the same machine, 31 alternating samples,
 checksums equal:
 

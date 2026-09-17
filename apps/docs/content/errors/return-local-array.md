@@ -42,8 +42,8 @@ fn main() -> Int { return first() }
 
 ## Common fixes
 
-Consume the array inside the function, return a copyable element/result, or use an owned list when data must escape.
+Consume the array inside the function, return a copyable element/result, or use a `Vec<T>` when data must escape.
 
-When the caller already owns a `List<T>`, a function may instead return a `Slice<T>` that views a
-bounded range of that list. A Slice cannot view a local stack array, and it is not an FFI
+When the caller already owns a `Vec<T>`, a function may instead return a `Slice<T>` that views a
+bounded range of that Vec. A Slice cannot view a local stack array, and it is not an FFI
 output-buffer ABI. Do not use `Ptr` casts to bypass the lifetime check.

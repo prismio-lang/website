@@ -12,7 +12,7 @@ Every value a Prismio program creates has to be freed exactly once — not zero 
 
 Keeping these separate is what lets AIF change a value's storage mechanism between compiler versions without changing what source code is allowed to do with it.
 
-Strings, lists, and structs are move-only. An ordinary parameter borrows its argument for the call; `sink` consumes it; `inout` gives the caller-visible mutable access. Scalars, raw pointer values, fieldless enums, and arrays follow their own documented copy behavior instead.
+Strings, vectors, and structs are move-only. An ordinary parameter borrows its argument for the call; `sink` consumes it; `inout` gives the caller-visible mutable access. Scalars, raw pointer values, fieldless enums, and arrays follow their own documented copy behavior instead.
 
 ## See a release happen
 
@@ -22,10 +22,10 @@ import std.io
 import std.string
 
 fn main() -> Int {
-    let names: List<String> = list_new()
-    list_push(names, "alpha".concat("-one"))
-    list_push(names, "beta".concat("-two"))
-    println(list_get(names, 1))
+    let names: Vec<String> = []
+    names.push("alpha".concat("-one"))
+    names.push("beta".concat("-two"))
+    println(names[1])
     return 0
 }
 ```
@@ -40,7 +40,7 @@ prismio run owned.psm --verify
 Built owned
 beta-two
 aif-verify: 2 allocated, 2 released, 0 leaked, 0 violation(s)
-aif-memory: 104 allocated bytes, 104 released bytes, 0 live bytes, 104 peak live bytes
+aif-memory: 120 allocated bytes, 120 released bytes, 0 live bytes, 120 peak live bytes
 aif-memory-sizes: <=16:0 <=32:0 <=64:2 <=128:0 <=256:0 <=512:0 <=1024:0 <=4096:0 >4096:0
 aif-arena: 1 object(s), 16 byte(s), 1 region(s) on reporting thread
 ```
@@ -56,7 +56,7 @@ label_3:                                          ; preds = %entry
   br label %label_4
 ```
 
-`names` owns a `List<String>`, so its release kind is "list", and the IR generator emitted a call to `list_release` rather than a plain free — the list's own element policy (releasing the two `String`s it holds) happens inside that call, not at this call site.
+`names` owns a `Vec<String>`, so its release kind is "list" — the compiler's internal name for the vector type — and the IR generator emitted a call to `list_release` rather than a plain free. The Vec's own element policy (releasing the two `String`s it holds) happens inside that call, not at this call site.
 
 ## What a legality violation looks like
 

@@ -169,7 +169,7 @@ A chain of `+` is **one** call, not a nest of them: `a + b + c` becomes
 `a.concat(b, c)`. That is a correctness measure rather than an optimisation —
 the intermediate of a nested concatenation is a value nothing names, so the
 pairwise lowering would leak once per `+`. Up to six parts are supported; past
-that, build a `List<String>` and call `strJoin`.
+that, build a `Vec<String>` and call `join` on it.
 
 Both sides of `+` must be Strings. Nothing is promoted implicitly, so write
 `"n = " + count.toString()`.

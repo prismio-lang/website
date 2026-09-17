@@ -43,7 +43,7 @@ The consequences are worth stating, because they are what make closures cheap he
 - **There is no function pointer, no vtable and no indirect call.** Each closure has its own type,
   each generic that takes one is specialized for it, and the call is direct.
 - **A closure has no spellable type.** `Closure$12$0` is compiler-generated, so a closure is always
-  received through a type parameter — `fn each<T, F>(items: List<T>, f: F)`.
+  received through a type parameter — `fn each<T, F>(items: Vec<T>, f: F)`.
 - **A closure cannot be stored.** A generic parameter is a borrow, and moving a borrowed value into
   a container is already rejected, so a closure lives for the call it is passed to.
 
@@ -82,16 +82,13 @@ afterwards:
 ```prismio
 import std.io
 import std.string
-import std.list
+import std.vec
 
 fn main() -> Int {
-    let mut names: List<String> = list_new()
-    list_push(names, "apple")
-    list_push(names, "apricot")
-    list_push(names, "fig")
+    let names: Vec<String> = ["apple", "apricot", "fig"]
 
     let needle = "ap".concat("")
-    println(countWhere(names, |s: String| strStartsWith(s, needle)))
+    println(names.countWhere(|s: String| s.startsWith(needle)))
     return 0
 }
 ```

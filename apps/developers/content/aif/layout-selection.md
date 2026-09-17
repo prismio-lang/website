@@ -73,7 +73,7 @@ container yourself rather than waiting for the compiler to infer a split:
 struct Cell { x: Int, y: Float }
 
 fn main() -> Int {
-    let mut rows: List<Cell> = list_new()
+    let mut rows: Vec<Cell> = list_new()
     list_push(rows, Cell { x: 1, y: 2.0 })
     let view: DataView<Cell> = soa(rows)
     if (data_len(view) != 1) { return 1 }
@@ -88,7 +88,7 @@ prismio run test_81_data_view_drop.psm --verify
 ```text
 Built test_81_data_view_drop
 aif-verify: 6 allocated, 6 released, 0 leaked, 0 violation(s)
-aif-memory: 188 allocated bytes, 188 released bytes, 0 live bytes, 188 peak live bytes
+aif-memory: 204 allocated bytes, 204 released bytes, 0 live bytes, 204 peak live bytes
 aif-memory-sizes: <=16:2 <=32:1 <=64:3 <=128:0 <=256:0 <=512:0 <=1024:0 <=4096:0 >4096:0
 aif-arena: 0 object(s), 0 byte(s), 0 region(s) on reporting thread
 ```
@@ -99,7 +99,7 @@ one-element view of a two-field struct.
 
 ## What failure looks like
 
-`soa()` only accepts a `List` of a flat struct with no owned fields — it cannot make a
+`soa()` only accepts a `Vec` of a flat struct with no owned fields — it cannot make a
 structure-of-arrays view when a field itself needs its own release:
 
 <!-- prismio-check: fail -->
@@ -107,7 +107,7 @@ structure-of-arrays view when a field itself needs its own release:
 struct OwnedRow { name: String }
 
 fn main() -> Int {
-    let mut rows: List<OwnedRow> = list_new()
+    let mut rows: Vec<OwnedRow> = list_new()
     list_push(rows, OwnedRow { name: "owned" })
     let view = soa(rows)
     return 0
@@ -130,8 +130,8 @@ error: aborting due to 1 previous error
 `String` is owned storage, so a column of `OwnedRow` would need its own release path per column
 rather than one release for the struct — exactly the case the automatic layout optimizer also
 excludes (see Object and container context, below). The fix is not to force it: restructure so the
-owned field lives in its own `List` alongside a flat `DataView` of the rest, or keep the rows as an
-ordinary `List<OwnedRow>`.
+owned field lives in its own `Vec` alongside a flat `DataView` of the rest, or keep the rows as an
+ordinary `Vec<OwnedRow>`.
 
 ### Forcing a candidate for testing
 

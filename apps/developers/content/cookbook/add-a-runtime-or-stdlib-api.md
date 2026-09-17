@@ -24,10 +24,10 @@ import std.io
 import std.string
 
 fn main() -> Int {
-    let names: List<String> = list_new()
-    list_push(names, "alpha".concat("-one"))
-    list_push(names, "beta".concat("-two"))
-    println(list_get(names, 1))
+    let names: Vec<String> = []
+    names.push("alpha".concat("-one"))
+    names.push("beta".concat("-two"))
+    println(names[1])
     return 0
 }
 ```
@@ -40,7 +40,7 @@ prismio run ledger.psm --verify
 Built ledger
 beta-two
 aif-verify: 2 allocated, 2 released, 0 leaked, 0 violation(s)
-aif-memory: 104 allocated bytes, 104 released bytes, 0 live bytes, 104 peak live bytes
+aif-memory: 120 allocated bytes, 120 released bytes, 0 live bytes, 120 peak live bytes
 aif-memory-sizes: <=16:0 <=32:0 <=64:2 <=128:0 <=256:0 <=512:0 <=1024:0 <=4096:0 >4096:0
 aif-arena: 1 object(s), 16 byte(s), 1 region(s) on reporting thread
 ```

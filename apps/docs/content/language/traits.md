@@ -107,7 +107,7 @@ fn main() -> Int {
 }
 ```
 
-Trait arguments may themselves be applied types, as in `Convert<List<Int>>`.
+Trait arguments may themselves be applied types, as in `Convert<Vec<Int>>`.
 Every application must supply exactly the parameters declared by the trait.
 
 ## Implementing a trait
@@ -273,7 +273,7 @@ reports only the ones that are genuinely missing.
 Write one bound after a colon or combine several with `+`:
 
 ```text
-fn sort<T: Ord>(items: List<T>)
+fn sort<T: Ord>(items: Vec<T>)
 fn keep<T: Ord + Copy>(value: T) -> T
 fn pair<K: Key + Copy, V>(key: K, value: V)
 ```
@@ -954,10 +954,10 @@ impl<T> Boxed for Box<T> where T: Show { ... }
 Naming a parameter the declaration does not have is an error rather than a
 clause that is quietly ignored.
 
-## Sorting a list
+## Sorting a Vec
 
 Together with [method call syntax](/language/methods), a bounded generic free function
-is what `list.sort()` is made of. There is no `impl List<T>`; the receiver reaches the
+is what `v.sort()` is made of. There is no `impl Vec<T>`; the receiver reaches the
 function through the rewrite, not through the type.
 
 <!-- prismio-check: pass -->
@@ -976,16 +976,12 @@ impl Ord for Int {
     }
 }
 
-fn sortInPlace<T: Ord>(items: List<T>) {
-    let n = list_len(items)
+fn sortInPlace<T: Ord>(items: Vec<T>) {
     let mut i = 1
-    while (i < n) {
+    while (i < items.length) {
         let mut j = i
-        while (j > 0 and cmp(list_get(items, j - 1), list_get(items, j)) > 0) {
-            let left = list_get(items, j - 1)
-            let right = list_get(items, j)
-            list_set(items, j - 1, right)
-            list_set(items, j, left)
+        while (j > 0 and cmp(items[j - 1], items[j]) > 0) {
+            items.swap(j - 1, j)
             j = j - 1
         }
         i = i + 1
@@ -993,12 +989,12 @@ fn sortInPlace<T: Ord>(items: List<T>) {
 }
 
 fn main() -> Int {
-    let mut xs: List<Int> = list_new()
-    list_push(xs, 5)
-    list_push(xs, 1)
-    list_push(xs, 4)
+    let xs: Vec<Int> = []
+    xs.push(5)
+    xs.push(1)
+    xs.push(4)
     xs.sortInPlace()
-    println(list_get(xs, 0))
+    println(xs.first)
     return 0
 }
 ```

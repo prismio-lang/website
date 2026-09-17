@@ -24,10 +24,10 @@ import std.io
 import std.string
 
 fn main() -> Int {
-    let names: List<String> = list_new()
-    list_push(names, "alpha".concat("-one"))
-    list_push(names, "beta".concat("-two"))
-    println(list_get(names, 1))
+    let names: Vec<String> = []
+    names.push("alpha".concat("-one"))
+    names.push("beta".concat("-two"))
+    println(names[1])
     return 0
 }
 ```
@@ -42,7 +42,7 @@ prismio run owned.psm --verify
 Built owned
 beta-two
 aif-verify: 2 allocated, 2 released, 0 leaked, 0 violation(s)
-aif-memory: 104 allocated bytes, 104 released bytes, 0 live bytes, 104 peak live bytes
+aif-memory: 120 allocated bytes, 120 released bytes, 0 live bytes, 120 peak live bytes
 aif-memory-sizes: <=16:0 <=32:0 <=64:2 <=128:0 <=256:0 <=512:0 <=1024:0 <=4096:0 >4096:0
 aif-arena: 1 object(s), 16 byte(s), 1 region(s) on reporting thread
 ```
@@ -74,24 +74,24 @@ prismio build owned.psm -o owned && nm owned | grep ' T '
 0000000100000c88 T _concat__String_String
 0000000100001a60 T _cyc_release
 00000001000019f0 T _cyc_retain
-00000001000021ec T _list_push
-00000001000022ac T _list_push_grow
-0000000100002964 T _list_push_str
-000000010000253c T _list_release
+00000001000021f0 T _list_push
+00000001000022b0 T _list_push_grow
+0000000100002a24 T _list_push_str
+0000000100002680 T _list_release
 0000000100000670 T _main
 00000001000009f8 T _println__String
 ```
 
-`list_push` and `arena_push` came from `lang_runtime.c`; `concat` and `println` are standard-library Prismio that arrived the same way.
+`list_push` and `arena_push` came from `lang_runtime.c` — `names.push(...)` compiles to the first; `concat` and `println` are standard-library Prismio that arrived the same way.
 
 ## What a runtime failure looks like
 
-Where the runtime detects misuse it cannot recover from, it prints a `runtime error:` line and exits with status 1. A slice past the end of its list, from `tests/fixture_slice_bounds.psm`:
+Where the runtime detects misuse it cannot recover from, it prints a `runtime error:` line and exits with status 1. A slice past the end of its Vec, from `tests/fixture_slice_bounds.psm`:
 
 <!-- prismio-check: pass -->
 ```prismio
 fn main() -> Int {
-    let mut values: List<Int> = list_new()
+    let mut values: Vec<Int> = list_new()
     list_push(values, 1)
     let invalid = values[0..2]
     return slice_len(invalid)
@@ -106,7 +106,7 @@ error[P1012]: slice_bounds exited with a failure status
 
 The first line is the runtime (`prismio_slice_check`); the second is `prismio run` reporting the exit status.
 
-**Not every out-of-range access fails.** `list_get` with an index outside the list returns a zero value — `0` for a `List<Int>`, an empty string for a `List<String>` — rather than stopping the program. That is a deliberate single-compare fast path on the hottest read in the language, documented at its definition in `lang_runtime.c`. Slices are checked; plain element reads are not.
+**Not every out-of-range access fails.** `list_get` with an index outside the list returns a zero value — `0` for a `Vec<Int>`, an empty string for a `Vec<String>` — rather than stopping the program. That is a deliberate single-compare fast path on the hottest read in the language, documented at its definition in `lang_runtime.c`. Slices are checked; plain element reads are not.
 
 For ownership mistakes, the `--verify` ledger is the failure output: a non-zero `leaked` or `violation(s)` count names the problem even when the program's own output is correct.
 

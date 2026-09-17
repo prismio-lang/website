@@ -13,7 +13,7 @@ scheduling APIs are Coming Soon, alongside the memory-ordering rules they requir
 
 **Tasks and channels are not missing — they are language features rather than libraries.** `spawn`
 and `join` are keywords and `Task<R>` is a language type; `Channel<T>` and its seven operations are
-compiler builtins in the same category as `list_get` and `list_push`. None of them need an import.
+compiler builtins in the same category as a Vec's `push` and indexing. None of them need an import.
 See [Concurrency](/language/concurrency) for the task model, the channel rules, and how AIF
 classifies thread affinity.
 

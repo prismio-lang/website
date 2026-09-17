@@ -25,8 +25,9 @@ This page distinguishes shipped compiler behavior from intent. It does not assig
 | Method call syntax and `impl` blocks | Implemented |
 | Traits and bounded generics | Implemented |
 | Generics, monomorphization, and per-specialization container layout | Implemented |
-| Inline storage for eligible `List<T>` structs | Implemented |
-| `Slice<T>` list views and nested slicing | Implemented |
+| Inline storage for eligible `Vec<T>` structs | Implemented |
+| `Slice<T>` views of a `Vec<T>` and nested slicing | Implemented |
+| Sized arrays (`[T; N]`), chunked `Vec<T, N>`, slices of arrays | Coming Soon |
 | Programmer-directed AoS↔SoA data views | Experimental (conversion, checked reads, mutation and round trip implemented) |
 | Payload enums, `Option` and `Result` | Implemented |
 | Closures | Implemented |
@@ -41,18 +42,18 @@ This page distinguishes shipped compiler behavior from intent. It does not assig
 | Formatter, linter, and language server | Coming Soon |
 | Android and iOS toolchains | Coming Soon |
 
-`std.io`, `std.string`, `std.fs`, `std.process`, `std.list`, `std.map`, `std.option`, `std.key`,
+`std.io`, `std.string`, `std.fs`, `std.process`, `std.vec`, `std.map`, `std.option`, `std.key`,
 `std.ord` and `std.copy` are ordinary importable modules; `std.io` is an import rather than a
 prelude, so a program that names no I/O carries none.
 
 Channels are the exception to "a library is a module you import": `Channel<T>` and its seven
-operations are compiler builtins, in the same category as `list_get` and `list_push`, so they need
+operations are compiler builtins, in the same category as a Vec's `push` and indexing, so they need
 no import. There is no executor and no `await` — a send blocks while the channel is full and a
 receive blocks until a message arrives or the channel closes. See
 [concurrency](/language/concurrency).
 
 Generic functions are specialized before type checking and code generation reaches their bodies.
-Consequently, an eligible concrete `List<Flat>` instantiation may use inline storage while another
+Consequently, an eligible concrete `Vec<Flat>` instantiation may use inline storage while another
 instantiation of the same template remains boxed; there is no erased generic body that guesses the
 element representation at runtime.
 

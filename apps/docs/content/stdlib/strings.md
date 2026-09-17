@@ -43,8 +43,8 @@ value nothing names, and nothing names it is nothing frees it.
 |---|---|
 | `println(text.trim())` | compiles, **leaks** |
 | `let trimmed = text.trim()` then `println(trimmed)` | correct |
-| `list_len(text.split(','))` | leaks the temporary list |
-| `let parts = text.split(',')` then `list_len(parts)` | correct |
+| `println(text.split(',').length)` | leaks the temporary Vec |
+| `let parts = text.split(',')` then `println(parts.length)` | correct |
 
 Every table below marks which entries allocate. Build with `--verify` and run the
 binary to check: the ledger line reads `N allocated, N released, N leaked,
@@ -98,8 +98,8 @@ way to spell the address one.
 `a + b + c` becomes one `a.concat(b, c)`, not two nested calls. This is a
 correctness measure rather than an optimisation: the intermediate of a nested
 concatenation is a value nothing names, so the pairwise form would leak once per
-`+`. Chains of up to six parts are supported; past that, build a `List<String>`
-and call `strJoin`.
+`+`. Chains of up to six parts are supported; past that, build a `Vec<String>`
+and call `join` on it.
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -191,8 +191,8 @@ is wanted.
 | `s.byteAt(i)` | `Int` — no upper-bound check, use inside an established bound | no |
 | `s.get(i)` | `Option<Char>` — `None` out of range | no |
 | `s.clone()` | `String` | **yes** |
-| `s.chars()` | `List<Char>` | **yes** |
-| `s.bytes()` | `List<Int>` | **yes** |
+| `s.chars()` | `Vec<Char>` | **yes** |
+| `s.bytes()` | `Vec<Int>` | **yes** |
 
 `s[i]` and `s.charAt(i)` answer NUL rather than trapping, which is unambiguous
 because a Prismio String cannot contain a NUL. `s.get(i)` is the form that makes
@@ -279,11 +279,11 @@ terminates.
 
 | Method | Returns |
 |---|---|
-| `s.split(sep: Char)` | `List<String>` |
-| `s.split(sep: String)` | `List<String>` |
-| `s.splitWhitespace()` | `List<String>` — splits on runs, discards empty parts |
-| `s.lines()` | `List<String>` |
-| `parts.join(sep)` | `String` — the inverse, on a `List<String>` receiver |
+| `s.split(sep: Char)` | `Vec<String>` |
+| `s.split(sep: String)` | `Vec<String>` |
+| `s.splitWhitespace()` | `Vec<String>` — splits on runs, discards empty parts |
+| `s.lines()` | `Vec<String>` |
+| `parts.join(sep)` | `String` — the inverse, on a `Vec<String>` receiver |
 
 `s.lines()` is not `s.split('\n')`, and the two differences are the ones that bite
 when reading a file: a trailing newline **ends** the last line rather than starting
@@ -463,7 +463,7 @@ the second reading:
 | `s.isAscii()` | `Bool` |
 | `s.isValidUtf8()` | `Bool` — well-formed, so overlong forms and surrogates are refused |
 | `s.scalarCount()` | `Int` — characters, as opposed to `length`'s bytes |
-| `s.scalars()` | `List<Int>` — code points; an ill-formed byte becomes U+FFFD |
+| `s.scalars()` | `Vec<Int>` — code points; an ill-formed byte becomes U+FFFD |
 | `s.scalarAt(byteIndex)` | `Int` — the code point there, or `-1` |
 | `s.scalarWidthAt(byteIndex)` | `Int` — 1 to 4, or 0 |
 | `s.isCharBoundary(byteIndex)` | `Bool` — ask before `substring` |

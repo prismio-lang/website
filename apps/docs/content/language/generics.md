@@ -89,18 +89,19 @@ fn main() -> Int {
 
 ## Type argument inference
 
-At a call, type arguments are normally inferred from the types of the arguments passed. Inference is structural, so a parameter written `List<T>` binds `T` to the argument's element type:
+At a call, type arguments are normally inferred from the types of the arguments passed. Inference is structural, so a parameter written `Vec<T>` binds `T` to the argument's element type:
 
 <!-- prismio-check: pass -->
 ```prismio
-fn firstOr<T>(items: List<T>, fallback: T) -> T {
-    if (list_len(items) == 0) { return fallback }
-    return list_get(items, 0)
+import std.vec
+
+fn firstOr<T>(items: Vec<T>, fallback: T) -> T {
+    if (items.isEmpty) { return fallback }
+    return items[0]
 }
 
 fn main() -> Int {
-    let values: List<Int> = list_new()
-    list_push(values, 10)
+    let values: Vec<Int> = [10]
     return firstOr(values, 0) - 10
 }
 ```
@@ -109,13 +110,14 @@ The same structural inference applies to `Slice<T>` parameters and return types:
 
 <!-- prismio-check: pass -->
 ```prismio
+import std.vec
+
 fn first<T>(items: Slice<T>) -> T {
     return items[0]
 }
 
 fn main() -> Int {
-    let values: List<Int> = list_new()
-    list_push(values, 42)
+    let values: Vec<Int> = [42]
     return first(values[0..1]) - 42
 }
 ```

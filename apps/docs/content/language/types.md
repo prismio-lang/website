@@ -23,8 +23,8 @@ Local types are inferred from initializers when no annotation is present. Infere
 | `String` | Owned runtime string |
 | `Ptr` | Raw pointer |
 | `[T]` | Fixed-length stack array value |
-| `List<T>` | Owned runtime list |
-| `Slice<T>` | Copyable, bounds-checked view into a runtime list |
+| `Vec<T>` | Owned, growable vector |
+| `Slice<T>` | Copyable, bounds-checked view into a `Vec<T>` |
 | `T?` | Nullable reference-shaped value |
 
 `Int` is the spelling for signed 32-bit values; there is no separate `I32` type. Integer arithmetic requires matching widths. Use an explicit cast for conversions:
@@ -122,27 +122,27 @@ enum State { Starting, Ready, Stopped }
 
 See [structs](/language/structs) and [enums](/language/enums) for construction and matching rules.
 
-## Arrays, lists, and slices
+## Arrays, vectors, and slices
 
 `[T]` is a fixed-length stack array value. The length comes from the initializer and current compiler metadata rather than appearing in the source type spelling. Arrays are copied as values in 0.1.
 
-`List<T>` is a compiler-known, owned runtime list. It is move-only and managed through list operations such as `list_new`, `list_push`, `list_len`, `list_get`, `list_set`, and `list_set_exclusive`. It is built into the compiler and predates [generics](/language/generics) rather than being an instance of them — it has its own type kind, runtime, and handling in the memory model.
+`Vec<T>` is the owned, growable vector. It is move-only, and it is used through its methods — `v.push(x)`, `v.length`, `v[i]`, `v.insert(i, x)`, `v.pop()` and the rest listed on the [Vec page](/stdlib/vec). It is built into the compiler and predates [generics](/language/generics) rather than being an instance of them — it has its own type kind, runtime, and handling in the memory model. Before 0.1's collections work it was spelled `List<T>`; that spelling is now an error naming `Vec<T>`.
 
-`list_set_exclusive(list, index, value)` is the reclaiming replacement operation for boxed struct
-elements. The compiler accepts it only for a locally created List that has not exposed an element,
-been sliced, or crossed another borrowing call. It releases the displaced object immediately.
-Use ordinary `list_set` for inline flat elements or when the List has already been observed; that
-operation preserves existing borrow safety conservatively and does not promise immediate
-reclamation of a displaced boxed object.
+`list_set_exclusive(v, index, value)` is the reclaiming replacement operation for boxed struct
+elements, and has no method spelling. The compiler accepts it only for a locally created Vec that
+has not exposed an element, been sliced, or crossed another borrowing call. It releases the
+displaced object immediately. Use ordinary `v.set(index, value)` for inline flat elements or when
+the Vec has already been observed; that operation preserves existing borrow safety conservatively
+and does not promise immediate reclamation of a displaced boxed object.
 
-`Slice<T>` is a compiler-known view type created with `list[start..end]` or
-`slice[start..end]`. It copies as a three-part descriptor—list identity, offset, and length—and
-does not own or copy the elements. The memory analysis extends the underlying list's lifetime when
-a Slice escapes. See [arrays, lists, and slices](/language/arrays-and-lists).
+`Slice<T>` is a compiler-known view type created with `v[start..end]` or
+`slice[start..end]`. It copies as a three-part descriptor—Vec identity, offset, and length—and
+does not own or copy the elements. The memory analysis extends the underlying Vec's lifetime when
+a Slice escapes. See [arrays, vectors, and slices](/language/arrays-and-lists).
 
 ## Optional types
 
-`T?` adds `none` to a reference-shaped type: structs, strings, lists, and raw pointers. It is not accepted for scalar numbers, `Bool`, `Char`, enums, or arrays.
+`T?` adds `none` to a reference-shaped type: structs, strings, vectors, and raw pointers. It is not accepted for scalar numbers, `Bool`, `Char`, enums, or arrays.
 
 ```prismio
 struct Entry { value: Int }
@@ -162,7 +162,7 @@ Integer-to-float and float-to-integer conversions can lose precision. A cast sta
 
 ## Copy and move categories
 
-Strings, lists, and structs are move-only. Scalars, enums, arrays, and Slice descriptors use
+Strings, vectors, and structs are move-only. Scalars, enums, arrays, and Slice descriptors use
 value-copy semantics in 0.1.
 
 | Category | Types | Assignment behavior |
@@ -170,7 +170,7 @@ value-copy semantics in 0.1.
 | Scalar copy | integers, `Float`, `Bool`, `Char`, `Ptr` | copies the value |
 | Nominal copy | fieldless enums | copies the variant value |
 | Aggregate copy | arrays, `Slice<T>` descriptors | copies the value or view descriptor |
-| Move-only | `String`, `List<T>`, structs, optional wrappers around owned references | transfers ownership in owning contexts |
+| Move-only | `String`, `Vec<T>`, structs, optional wrappers around owned references | transfers ownership in owning contexts |
 
 Function calls add parameter modes: an ordinary parameter borrows move-only data, `sink` consumes it, and `inout` forms a mutable borrow. The complete rules are in [ownership and borrowing](/language/ownership-and-borrowing).
 

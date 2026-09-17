@@ -29,7 +29,7 @@ analysis stores a resolved type on each annotation and expression; `mapTypeNode`
 | `Slice<T>` | `struct:prismio.slice` | value aggregate | Carries base, offset/length data required by the runtime contract |
 | `DataView<T>` element | `struct:prismio.data_element` | value aggregate | Describes view storage rather than a heap object |
 | user `struct S` | `struct:S` | named `%S` body | Locals normally hold a pointer; fields embed non-optional structs |
-| `List<T>`, array, `T?` | `ptr` or `ptrptr` | opaque pointer | Representation details are carried by semantic/AIF side tables |
+| `Vec<T>` (internally `List<T>`), array, `T?` | `ptr` or `ptrptr` | opaque pointer | Representation details are carried by semantic/AIF side tables |
 
 `mapType` handles primitive names. `mapTypeNode` handles resolved annotations, list/array
 markers, optionals, and nominal types. `getExprType` reads the semantic type first and has

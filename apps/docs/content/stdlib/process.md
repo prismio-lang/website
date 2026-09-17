@@ -58,7 +58,7 @@ A program often needs to hand work to another one — ask `git` for the current 
 ```prismio
 import std.io
 import std.string
-import std.list
+import std.vec
 import std.process
 
 fn main() -> Int {
@@ -87,15 +87,15 @@ uname said Darwin, exit status 0
 
 **No shell is involved.** `program` is looked up on `PATH` and each element of `arguments` reaches the child as exactly one argument, so a path containing a space, a quote or a newline needs no quoting. The earlier `runCommand` and `quoteArg`, which handed a string to the shell, are gone.
 
-**A list literal needs `import std.list`**, even though the program only means to use `std.process`. Without it:
+**A Vec literal needs `import std.vec`**, even though the program only means to use `std.process`. Without it:
 
 ```text
-error[P4001]: `listOf$String` is declared in `std.list`, which this file does not import
- --> nolist.psm:7:20
+error[P4001]: `vecOf$String` is declared in `std.vec`, which this file does not import
+ --> novec.psm:7:20
   |
 7 |     p.arguments = ["-s"]
   |                    ^^^^
-  note: add `import std.list`; an import is not transitive, so importing a module that imports it is not enough
+  note: add `import std.vec`; an import is not transitive, so importing a module that imports it is not enough
 ```
 
 ## When the program fails, or cannot start
@@ -108,7 +108,7 @@ A program that **cannot be started** — not on `PATH`, not executable — gives
 ```prismio
 import std.io
 import std.string
-import std.list
+import std.vec
 import std.process
 
 fn main() -> Int {
@@ -143,7 +143,7 @@ Set `stdin` to `Pipe`, write, and **close** it. A child that reads until the end
 ```prismio
 import std.io
 import std.string
-import std.list
+import std.vec
 import std.process
 
 fn main() -> Int {
@@ -174,7 +174,7 @@ QUIET WORDS
 | Field | Type | Default |
 |---|---|---|
 | `program` | `String` | `""` — found on `PATH` unless it contains a separator |
-| `arguments` | `List<String>` | empty; the program name is not repeated here |
+| `arguments` | `Vec<String>` | empty; the program name is not repeated here |
 | `stdin`, `stdout`, `stderr` | `StreamMode` | `StreamMode.Inherit` |
 
 | Method | Does | Returns |

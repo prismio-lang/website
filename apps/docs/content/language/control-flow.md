@@ -106,10 +106,10 @@ The range is ascending and half-open: `0..3` produces `0`, `1`, and `2`. A start
 
 The iteration name is scoped to the loop body.
 
-### Iterating a String or a List
+### Iterating a String or a Vec
 
 Leaving out the `..` iterates a collection instead of a range. A `String` yields
-each byte as a `Char`; a `List<T>` yields each element.
+each byte as a `Char`; a `Vec<T>` yields each element.
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -154,7 +154,7 @@ fn main() -> Int {
 }
 ```
 
-Only `String` and `List<T>` may follow `in` without a range. Anything else —
+Only `String` and `Vec<T>` may follow `in` without a range. Anything else —
 arrays, `Slice<T>`, `Map<K, V>` — is iterated by index with `for i in 0..n`.
 
 This is a desugaring, not an iterator protocol: `for c in s` becomes the range loop
@@ -203,4 +203,4 @@ This conservative restriction prevents a path that succeeds once and becomes a u
 
 ## Not implemented
 
-Prismio 0.1 has no labeled loops, value-carrying `break`, `do while`, `defer`, exception control flow, conditional binding syntax, or expression-form `if` and `match`. Collection iteration covers `String` and `List<T>` only, as a desugaring rather than an extensible iterator protocol.
+Prismio 0.1 has no labeled loops, value-carrying `break`, `do while`, `defer`, exception control flow, conditional binding syntax, or expression-form `if` and `match`. Collection iteration covers `String` and `Vec<T>` only, as a desugaring rather than an extensible iterator protocol.

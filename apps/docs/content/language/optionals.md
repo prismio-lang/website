@@ -8,11 +8,11 @@ tags: [optional, nullable, none, expect]
 related: [language/types, language/structs, errors/optional-needs-unwrap]
 ---
 
-Append `?` to a reference-shaped type to represent either a value or `none`. In 0.1, optional types are allowed for structs, strings, lists, and raw pointers—not scalar numbers, booleans, characters, enums, or arrays.
+Append `?` to a reference-shaped type to represent either a value or `none`. In 0.1, optional types are allowed for structs, strings, vectors, and raw pointers—not scalar numbers, booleans, characters, enums, or arrays.
 
 ```prismio
 let message: String? = none
-let values: List<Int>? = none
+let values: Vec<Int>? = none
 let address: Ptr? = none
 ```
 

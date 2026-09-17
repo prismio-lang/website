@@ -21,9 +21,9 @@ The compiler pipeline is self-hosted. A trusted seed builds the Prismio source i
 ## What works today
 
 - Native compilation on Windows, macOS, and Linux
-- Primitive numeric types, strings, characters, arrays, lists, structs, and fieldless enums
+- Primitive numeric types, strings, characters, arrays, vectors, structs, and fieldless enums
 - Functions, exact-type overloads, lexical scopes, loops, and statement-oriented pattern matching
-- Move checking for strings, lists, and structs; borrowed parameters; `sink` and `inout` parameters
+- Move checking for strings, vectors, and structs; borrowed parameters; `sink` and `inout` parameters
 - Nullable reference-shaped types with `T?`, `none`, and checked `expect`
 - Relative dotted imports and direct wildcard package imports
 - C ABI declarations with explicit ownership contracts
@@ -60,7 +60,7 @@ fn main() -> Int {
 
 ## Memory model in 0.1
 
-Integers, floats, booleans, byte characters, raw pointer values, fieldless enums, and arrays use copy behavior. Strings, runtime lists, and structs are move-only. Moving one of those values into a new owned location invalidates the source binding.
+Integers, floats, booleans, byte characters, raw pointer values, fieldless enums, and arrays use copy behavior. Strings, vectors, and structs are move-only. Moving one of those values into a new owned location invalidates the source binding.
 
 The Adaptive Inference Framework can select an implementation tier and exposes experimental `unique`, `pin(Tn)`, and named-region annotations. Source-level ownership rules remain in force regardless of the inferred allocation mechanism.
 
@@ -68,9 +68,9 @@ The Adaptive Inference Framework can select an implementation tier and exposes e
 
 User-written lifetime syntax, exceptions, macros, `async`/`await`, and a package *registry* are not implemented. Generics, payload-carrying enum variants, `Option`/`Result`, method-call syntax, `impl` blocks, generic traits with structural arguments and multiple bounds per type parameter, closures, slices, module namespacing and visibility, tasks, blocking typed channels, and the UMS package manifest all are. The pages for what remains missing are retained as roadmap contracts and are visibly marked **Coming Soon**.
 
-`std.io`, `std.string`, `std.fs`, `std.process`, `std.list`, `std.map`, `std.option`, `std.key`, `std.ord` and `std.copy` are ordinary importable modules — `std.io` is an import rather than a prelude, so a program that names no I/O carries none. See [Standard library status](/stdlib) before assuming a module exists.
+`std.io`, `std.string`, `std.fs`, `std.process`, `std.vec`, `std.map`, `std.option`, `std.key`, `std.ord` and `std.copy` are ordinary importable modules — `std.io` is an import rather than a prelude, so a program that names no I/O carries none. See [Standard library status](/stdlib) before assuming a module exists.
 
-The current language does not provide tuple types, list literals, an iterator protocol, general non-owning references, implicit numeric promotion, or string interpolation. These limits are stated on the relevant reference pages instead of being hidden in a single roadmap.
+The current language does not provide tuple types, an iterator protocol, general non-owning references, implicit numeric promotion, or string interpolation. These limits are stated on the relevant reference pages instead of being hidden in a single roadmap.
 
 ## Documentation statuses
 

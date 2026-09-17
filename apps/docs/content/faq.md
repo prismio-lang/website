@@ -34,7 +34,7 @@ Native support does not yet imply a stable binary distribution, cross-compilatio
 
 ## Where is the standard library?
 
-There are ten importable modules: `std.io`, `std.string`, `std.fs`, `std.process`, `std.list`, `std.map`, `std.option`, `std.key`, `std.ord` and `std.copy`. `std.io` is an ordinary import rather than a prelude, so a program that names no I/O carries none. `std.*` resolves against the compiler's own library, so a local `std/` directory cannot shadow it.
+There are ten importable modules: `std.io`, `std.string`, `std.fs`, `std.process`, `std.vec`, `std.map`, `std.option`, `std.key`, `std.ord` and `std.copy`. `std.io` is an ordinary import rather than a prelude, so a program that names no I/O carries none. `std.*` resolves against the compiler's own library, so a local `std/` directory cannot shadow it.
 
 Concurrency is not one of them, and that is not an omission: `spawn`/`join`/`Task<R>` and `Channel<T>` are language features rather than libraries. Networking and time still require local FFI integration; their pages are marked Coming Soon.
 
@@ -52,7 +52,7 @@ Lexer or editor vocabulary can precede parser and semantic support. Only feature
 
 ## Are ordinary function parameters moved?
 
-Not for move-only values. An ordinary string, list, or struct parameter borrows by default. Use `sink` to consume ownership and `inout` for caller-visible mutable borrowing. Scalars and fieldless enums copy.
+Not for move-only values. An ordinary string, Vec, or struct parameter borrows by default. Use `sink` to consume ownership and `inout` for caller-visible mutable borrowing. Scalars and fieldless enums copy.
 
 ## Does Prismio have references and lifetime syntax?
 
@@ -64,17 +64,17 @@ No general source-level `&` reference or user-written lifetime parameter exists 
 
 ## Can I return an array?
 
-A locally created `[T]` stack array cannot escape its function through return. Return a computed scalar/result, keep work local, or use an owned runtime `List<T>` when a growable value must escape.
+A locally created `[T]` stack array cannot escape its function through return. Return a computed scalar/result, keep work local, or use a `Vec<T>` when a growable value must escape.
 
 ## Are optionals available for every type?
 
-No. `T?` is limited to reference-shaped structs, strings, lists, and raw pointers. Scalar numbers, booleans, characters, enums, and arrays cannot be optional in 0.1. Compare with `none` and call `expect`; comparison does not flow-narrow.
+No. `T?` is limited to reference-shaped structs, strings, vectors, and raw pointers. Scalar numbers, booleans, characters, enums, and arrays cannot be optional in 0.1. Compare with `none` and call `expect`; comparison does not flow-narrow.
 
 ## Can I use methods, traits, generics, or closures?
 
 [Generics](/language/generics) yes — functions, structs, and enums take type parameters, and each instantiation is compiled separately. Methods, traits, and closures no; use named top-level functions.
 
-`List<T>` is separate from that: it is built into the compiler and predates generics rather than being an instance of them.
+`Vec<T>` is separate from that: it is built into the compiler and predates generics rather than being an instance of them.
 
 ## How are errors represented in programs?
 

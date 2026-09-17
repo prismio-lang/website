@@ -14,11 +14,11 @@ Type inference is local and does not make a binding polymorphic or dynamic. Once
 
 ## Type universe
 
-Primitive types are `Int`, `I8`, `I16`, `I64`, `Isize`, `U8`, `U16`, `U32`, `U64`, `Usize`, `Float`, `Bool`, `Char`, `String`, and `Ptr`. Struct names introduce nominal types. Enum names introduce declared enum types with the `Int` compatibility rule below. `[T]` forms an array type; `List<T>` forms the built-in list type.
+Primitive types are `Int`, `I8`, `I16`, `I64`, `Isize`, `U8`, `U16`, `U32`, `U64`, `Usize`, `Float`, `Bool`, `Char`, `String`, and `Ptr`. Struct names introduce nominal types. Enum names introduce declared enum types with the `Int` compatibility rule below. `[T]` forms an array type; `Vec<T>` forms the built-in growable vector type. `List<T>`, its former spelling, is rejected with a diagnostic naming `Vec<T>`.
 
 `Int` is signed 32-bit. `Float` is the sole 64-bit floating-point type. `Isize` and `Usize` use target pointer width. `Char` is byte-sized in 0.1.
 
-Struct identity is nominal: distinct declarations do not become compatible because their fields coincide. Enum declarations retain names for annotations and variant lookup, but a variant expression types as plain `Int`, and `semaTypesMatch` treats an enum and the default 32-bit `Int` as compatible in either direction. Consequently distinct enum declarations can interoperate through that representation in 0.1. `List<T>` is a built-in type constructor, separate from [generics](/language/generics): it predates them and is not an instance of them. An enum with payload variants is not an `Int` — it compiles to a tagged struct and is nominal and move-only like any other struct.
+Struct identity is nominal: distinct declarations do not become compatible because their fields coincide. Enum declarations retain names for annotations and variant lookup, but a variant expression types as plain `Int`, and `semaTypesMatch` treats an enum and the default 32-bit `Int` as compatible in either direction. Consequently distinct enum declarations can interoperate through that representation in 0.1. `Vec<T>` is a built-in type constructor, separate from [generics](/language/generics): it predates them and is not an instance of them. An enum with payload variants is not an `Int` — it compiles to a tagged struct and is nominal and move-only like any other struct.
 
 ## Literal typing
 
@@ -30,7 +30,7 @@ Decimal integer literals are checked against a contextual integer type when one 
 
 Arithmetic and bitwise operations require exact compatible operand types. The compiler does not implicitly widen numeric values. `as` performs explicit conversions among supported numeric, Boolean, and character representations.
 
-Assignment, argument passing, return, field initialization, and list/array element operations require the type expected by their context. Ownership mode changes whether a move-only value is borrowed or transferred; it does not make incompatible types assignable.
+Assignment, argument passing, return, field initialization, and Vec/array element operations require the type expected by their context. Ownership mode changes whether a move-only value is borrowed or transferred; it does not make incompatible types assignable.
 
 For explicit casts:
 
@@ -44,7 +44,7 @@ An explicit cast does not perform application-level range validation.
 
 ## Optional formation and elimination
 
-`T?` is well-formed only when `T` is reference-shaped: a struct, string, list, or raw pointer. `none` inhabits a compatible optional context. An optional value is not usable as `T`; `expect` performs a checked unwrap. Equality and inequality with `none` are allowed but do not refine later expression types.
+`T?` is well-formed only when `T` is reference-shaped: a struct, string, Vec, or raw pointer. `none` inhabits a compatible optional context. An optional value is not usable as `T`; `expect` performs a checked unwrap. Equality and inequality with `none` are allowed but do not refine later expression types.
 
 Optionality preserves the ownership category of an underlying owned value. Constructing an optional from a move-only struct transfers it into the optional owner. `expect` checks presence but does not introduce general first-class references.
 
@@ -62,7 +62,7 @@ An array literal's elements must agree on an element type. Source type `[T]` doe
 
 A struct literal must name a declared struct and initialize its fields with compatible values. Member selection uses the receiver's nominal declaration. Enum variants are selected and validated with `Enum.Variant`, then type as `Int` in compiler 0.1.
 
-`list_new` receives `T` through contextual `List<T>` typing. Other list operations must agree on that element type.
+An array literal written where a `Vec<T>` is expected becomes a Vec: its elements are typed against `T`, and `[]` takes `T` from the context alone. Vec methods that store an element must agree on that element type.
 
 ## Control-flow typing
 

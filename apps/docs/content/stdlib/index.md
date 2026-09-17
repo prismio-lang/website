@@ -3,12 +3,12 @@ title: Standard library status
 description: Prismio's shipped source standard library and the modules still planned.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-12"
+lastUpdated: "2026-09-17"
 tags: [standard-library, runtime, status]
 related: [stdlib/io, stdlib/strings, stdlib/vec, stdlib/map, stdlib/option, roadmap]
 ---
 
-Prismio ships fifteen standard-library modules: `std.io`, `std.string`, `std.fs`, `std.process`, `std.platform`, `std.list`, `std.map`, `std.option`, `std.key`, `std.ord`, `std.copy`, `std.eq`, `std.iter`, `std.math` and `std.display`.
+Prismio ships fifteen standard-library modules: `std.io`, `std.string`, `std.fs`, `std.process`, `std.platform`, `std.vec`, `std.map`, `std.option`, `std.key`, `std.ord`, `std.copy`, `std.eq`, `std.iter`, `std.math` and `std.display`.
 
 A packaged toolchain installs them as **compiled `stdlib/*.plib` artifacts**, not as `.psm` source. A PLIB carries the module's interface — which the frontend still parses, because generic bodies have to be instantiated against your concrete types — together with its compiled LLVM bitcode, which the driver merges into your program before optimization. The directory is **flattened**, so never derive a module's logical name from its path on disk: `std.map` is `stdlib/map.plib`.
 
@@ -25,7 +25,8 @@ Inside a Prismio checkout the `std/*.psm` sources win instead, because imports r
 The compiler provides a small built-in surface that needs no import at all:
 
 - Explicit `drop` and checked `expect`
-- `list_new`, `list_new_with_capacity`, `list_len`, `list_get`, `list_push`, `list_set`, and `list_set_exclusive`
+- `Vec<T>`'s core: the empty literal `[]`, indexing, `for x in v`, the methods `push`, `set`, `swap`, `insert`, `reserve`, `truncate` and `clear`, and the properties `length`, `capacity`, `first`, `last`, `isEmpty` and `isNotEmpty`
+- the `list_*` runtime layer those compile to, including `list_set_exclusive`, which has no method spelling
 
 That is the whole of it. `print` and `println` are **not** in this list — they are ordinary source-defined overloads in `std/io.psm` and need `import std.io` like anything else.
 
@@ -41,14 +42,14 @@ The output overloads participate in normal declaration lookup, overload resoluti
 
 Still absent: interpolation syntax, Unicode scalar iteration, a string builder, and a formatting trait. `Char` is a byte, not a Unicode scalar.
 
-## Lists
+## Vectors
 
-`List<T>` is a built-in growable owned sequence with compiler-known construction, length, read, append, and replace operations. It is built into the compiler rather than defined in the library, and it is the language's growable vector — there is no separate `Vec<T>`.
+`Vec<T>` is the built-in growable owned sequence. It is built into the compiler rather than defined in the library: the methods that store an element or read its size are compiled straight to runtime calls, which is why the core surface above needs no import. A non-empty literal, `Vec<T>.withCapacity(n)` and the other methods — `get`, `contains`, `indexOf`, `pop`, `removeAt`, `extend`, `sort` and the rest — come from `std.vec`. It was spelled `List<T>` before 0.1's collections work; that spelling is now an error naming `Vec<T>`.
 
 For boxed struct elements, `list_set_exclusive(items, index, value)` replaces and reclaims the old
-element when the compiler can prove `items` is still an unobserved local List. A prior element read,
-Slice construction, or arbitrary borrowing call closes that capability. `list_set` remains the
-general conservative replacement operation.
+element when the compiler can prove `items` is still an unobserved local Vec. A prior element read,
+Slice construction, or arbitrary borrowing call closes that capability. `items.set(index, value)`
+remains the general conservative replacement operation.
 
 [`Map<K, V>`](/stdlib/map) is defined in Prismio, in `std/map.psm`, as an open-addressed table over `Vec`. Its key type carries `Key + Copy` bounds: [`std.key`](/stdlib) supplies `hash` and `eq`, while `std.copy` supplies `copyOf` so the table can retain a key — therefore **`String` keys work**, and every integer width does. `Float` deliberately has no `impl Key`: NaN is not equal to itself, so a NaN key could be inserted and never found again.
 
@@ -64,7 +65,7 @@ Programs can declare C-compatible symbols with `extern fn`. It is the escape hat
 
 An `extern fn` with no contract has unknown provenance: the analysis widens it to Shared, the result gets no owner, and it leaks. Worse, `produce(free)` on a function that returns a borrowed pointer hands that pointer to the deallocator. See the contract table in the compiler repository's `RUNTIME.md`.
 
-These pages separate existing runtime surface from planned modules. I/O, strings, and lists describe implemented capabilities. Filesystem, networking, time, and concurrency pages are marked Coming Soon.
+These pages separate existing runtime surface from planned modules. I/O, strings, and vectors describe implemented capabilities. Filesystem, networking, time, and concurrency pages are marked Coming Soon.
 
 Coming Soon pages intentionally do not invent final module names or signatures. They define what is missing and the semantic questions that must be resolved before the status changes.
 

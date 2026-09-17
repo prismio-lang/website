@@ -10,9 +10,9 @@ related: [compiler/traits-impls-and-dispatch, compiler/semantic-analysis-and-typ
 
 A generic function written once still has to become real machine code for
 every concrete type it's called with, and those concrete versions can need
-*different* code — a `List<Int>` can store its elements inline, while a
-`List<String>` cannot, because a `String` owns a separate heap allocation a
-plain element slot has nowhere to put. Prismio's answer is
+*different* code — a `Vec<Int>` stores its elements inline in its block, while
+a `Vec<Named>`, where `Named` is a struct holding a `String`, stores one pointer
+per element. Prismio's answer is
 **monomorphization**: every generic function, struct, enum, trait, and
 implementation is specialized into an ordinary, concrete declaration for each
 combination of type arguments it's actually used with. There is no single
@@ -34,8 +34,8 @@ shapes:
 struct Flat { x: Int, weight: Float }
 struct Named { label: String, value: Int }
 
-fn singleton<T>(sink value: T) -> List<T> {
-    let mut items: List<T> = list_new()
+fn singleton<T>(sink value: T) -> Vec<T> {
+    let mut items: Vec<T> = list_new()
     list_push(items, value)
     return items
 }
@@ -59,7 +59,7 @@ nm layout_native | grep ' T ' | grep -i singleton
 0000000100000d5c T _singleton$Struct_Named__Struct_Named
 ```
 
-And the two bodies genuinely differ. `Flat` is eligible for inline `List`
+And the two bodies genuinely differ. `Flat` is eligible for inline `Vec`
 storage and calls the inline entry points; `Named` cannot be inlined because
 it owns a `String`, and falls back to the boxed ones:
 
@@ -147,7 +147,7 @@ type actually fails the bound.
 
 Method and operator rewrites must resolve against the *specialized* receiver
 and its applicable implementations, which is only possible once the concrete
-type argument is known — this is why an eligible `List<Flat>` specialization
+type argument is known — this is why an eligible `Vec<Flat>` specialization
 can use inline element storage while another instantiation of the same
 generic remains boxed, as shown above.
 

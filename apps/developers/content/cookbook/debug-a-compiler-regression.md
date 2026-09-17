@@ -88,16 +88,16 @@ If `check` and `dump-ast` disagree — one accepts a program the other's seriali
 ```prismio
 import std.io
 
-fn build() -> List<Int> {
-    let xs: List<Int> = list_new()
-    list_push(xs, 1)
-    list_push(xs, 2)
+fn build() -> Vec<Int> {
+    let xs: Vec<Int> = []
+    xs.push(1)
+    xs.push(2)
     return xs
 }
 
 fn main() -> Int {
-    let xs: List<Int> = build()
-    println(list_get(xs, 0))
+    let xs: Vec<Int> = build()
+    println(xs[0])
     return 0
 }
 ```
@@ -114,7 +114,7 @@ AIF analysis
 
 Your code
 ID   location                 type            storage                           reason
-1    listy.psm:4:25           List<Int>       arena:auto                        caller region selected
+1    listy.psm:4:25           Vec<Int>        arena:auto                        caller region selected
 ...
 Use `--why=<ID>` for one decision or `--manifest` for compiler/CI details.
 ```
@@ -128,7 +128,7 @@ $P aif listy.psm --why=1
 ```text
 Allocation 1
   Location   listy.psm:4:25
-  Type       List<Int>
+  Type       Vec<Int>
   Storage    arena:auto
   Reason     caller region selected
 
@@ -169,11 +169,11 @@ usage: aif_manifest_diff.py [-h] [--allow-regressions] [--compiler COMPILER]
                        reported
 ```
 
-Wrapping both of `build`'s results in a second list — so each escapes into a container instead of returning straight to `main` — is a real, if small, storage change. Capture a manifest before and after, and diff them:
+Wrapping both of `build`'s results in a second Vec — so each escapes into a container instead of returning straight to `main` — is a real, if small, storage change. Capture a manifest before and after, and diff them:
 
 ```bash
 $P aif listy.psm --manifest > old.manifest
-$P aif listy3.psm --manifest > new.manifest   # listy.psm, but both build() results pushed into a List<List<Int>>
+$P aif listy3.psm --manifest > new.manifest   # listy.psm, but both build() results pushed into a Vec<Vec<Int>>
 python3 tools/aif_manifest_diff.py old.manifest new.manifest --compiler $P --source listy3.psm
 ```
 

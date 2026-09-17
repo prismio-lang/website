@@ -130,7 +130,7 @@ let text = "payload"
 let envelope = Envelope { body: text }
 ```
 
-After construction, `envelope` owns the string and `text` is moved. Similarly, `list_push(items, value)` transfers a move-only element into the list. `list_get` follows borrowing behavior for owned elements in the current compiler; there is no general move-out iterator.
+After construction, `envelope` owns the string and `text` is moved. Similarly, `items.push(value)` moves a move-only element into the Vec. `items[i]` is a view that follows borrowing behavior for owned elements in the current compiler; there is no general move-out iterator.
 
 Be explicit about ownership at API boundaries. A read-only helper should accept an ordinary parameter. A state-changing helper should use `inout`. An operation that takes responsibility for storage or destruction should use `sink`.
 

@@ -41,7 +41,7 @@ blocking channels. Their exact stability and limitations remain documented per a
 ## What standard modules exist?
 
 The compiler tree includes `std.io`, `std.string`, `std.fs`, `std.process`,
-`std.list`, `std.map`, `std.option`, `std.key`, `std.ord`, `std.copy`,
+`std.vec`, `std.map`, `std.option`, `std.key`, `std.ord`, `std.copy`,
 `std.eq`, `std.display`, and `std.iter`. There is no prelude. Standard-library search can
 select checkout-local or packaged modules; inspect `prismio --version` when debugging resolution.
 

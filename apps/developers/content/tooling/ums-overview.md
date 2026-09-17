@@ -66,7 +66,7 @@ and fills package, workspace, target, dependency, command, toolchain, profile, a
 discover a project-local compiler host and forwards the original CLI when the active executable is
 not already that host.
 
-UMS errors are accumulated in `List<UmsDiagnostic>`. `umsDiagnosticAdd` records a stable code,
+UMS errors are accumulated in a `Vec<UmsDiagnostic>`. `umsDiagnosticAdd` records a stable code,
 manifest path, line, column, length, message, and recovery hint; `umsDiagnosticsPrint` is the only
 human rendering boundary.
 

@@ -75,7 +75,7 @@ characters are one column wide. These count columns, for the ones that are not.
 | Function | Returns |
 | --- | --- |
 | `strGraphemeCount(s)` | `Int` |
-| `strGraphemes(s)` | `List<String>` |
+| `strGraphemes(s)` | `Vec<String>` |
 | `strGraphemeWidthAt(s, byteIndex)` | `Int` — bytes in the cluster there |
 
 A flag is two scalars and one grapheme. A ZWJ family emoji can be seven scalars
