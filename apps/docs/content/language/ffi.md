@@ -1,10 +1,10 @@
 ---
 title: Foreign function declarations
-description: Prismio 0.1 extern fn syntax, C ABI types, and ownership contracts.
+description: Prismio 0.1 extern fn and extern let syntax, C ABI types, ownership contracts, and globals defined in C.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-09"
-tags: [ffi, extern, c-abi, ownership-contracts]
+lastUpdated: "2026-09-17"
+tags: [ffi, extern, c-abi, ownership-contracts, globals]
 related: [guides/ffi, cookbook/c-ffi, specification/behavior]
 ---
 
@@ -79,6 +79,82 @@ Return contracts are `alias` for a borrowed/aliased result and `produce(free_fn)
 An `alias` result refers to storage owned elsewhere. The application must not treat it as independently owned or outlive the documented source owner. `produce(free_fn)` says the call creates owned storage and names the function required to release it.
 
 These contracts connect foreign behavior to compiler allocation/ownership analysis. They do not cause Prismio to verify that `free_fn` is correct, thread-safe, or compatible with the allocator that created the storage.
+
+## Foreign globals
+
+`extern let` names a global variable that C code defines: a counter a library exposes, a flag it reads, a setting it expects you to change. It is `extern fn` for storage instead of code.
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+extern let optind: Int
+extern let mut opterr: Int
+
+fn main() -> Int {
+    opterr = 0
+    println(optind)
+    return 0
+}
+```
+
+Every read loads the value from the foreign storage, so a change the C side makes is visible at the next read. An assignment stores into that storage, and is allowed only when the declaration says `extern let mut` — the same rule as an ordinary `let`.
+
+The declaration needs a type and cannot have an initializer, because the foreign object file defines the global and gives it its value:
+
+<!-- prismio-check: fail -->
+```prismio
+extern let optind: Int = 1
+
+fn main() -> Int {
+    return optind
+}
+```
+
+```text
+error[P3004]: extern global `optind` cannot have an initializer
+  note: foreign code defines it and gives it its value; drop `extern` to define it in Prismio instead
+```
+
+### Which types a foreign global may have
+
+An extern global holds a value that nobody owns: an integer type, `Float`, `Char` or `Ptr`. Match the width to the C declaration. A C `int` is `Int`, a `long` on a 64-bit Unix target is `I64`, a `size_t` is `Usize`, and any pointer is `Ptr`.
+
+- **`String`, structs, lists and optionals are rejected.** A C `char*` global is not a Prismio `String`, and a struct would be released at the end of a scope by a program that never allocated it. Reach that data through an `extern fn` whose return contract says who owns it.
+- **`Bool` is rejected.** A C `bool` is a byte, and Prismio's `Bool` is one bit wide. Declare the global `U8` and compare it with `0`.
+
+<!-- prismio-check: fail -->
+```prismio
+extern let program_name: String
+
+fn main() -> Int {
+    return 0
+}
+```
+
+```text
+error[P4111]: extern global `program_name` cannot have type String
+```
+
+### Visibility
+
+`extern let` takes the same markers as `extern fn`, with the same default: an unmarked declaration is private to the file that declares it. Mark it `public` to make it part of the module's surface, or `internal` to share it within a package.
+
+```prismio
+// getopt/vars.psm
+public extern let mut opterr: Int
+extern let optind: Int
+```
+
+A file that imports `getopt.vars` can read and assign `opterr`. Reading `optind` there reports that it is [private to the file that declares it](/errors/visibility-violation).
+
+Keeping a foreign global private and exposing a function instead is usually the better shape. `std.process` works this way: the runtime's argument vector is two private `extern let` declarations, and `process.args` is the only way to reach them.
+
+### Linking a foreign global
+
+A declaration does not create the storage. An object file or library in the link has to define a global with exactly that symbol name and a matching type, or the link fails. `prismio run --jit` resolves the symbol from the running process instead.
+
+A `workload` runs at build time in a sandbox, so it sees each foreign global as a private zero, just as a foreign function there is a stub that returns zero. The shipped program still refers to the real symbol.
 
 ## A minimal integration workflow
 

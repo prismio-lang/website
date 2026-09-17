@@ -65,7 +65,7 @@ fn main() -> Int {
 ```
 
 ```text
-error: `private` is only accepted on a function in v0.1
+error: `private` is only accepted on a function or an `extern` declaration in v0.1
 ```
 
 ## How to fix it
@@ -78,7 +78,9 @@ Pick the level that describes the intent rather than the one that silences the e
 | a helper the rest of the package shares | `internal` |
 | part of the module's interface | no modifier (public) |
 
-A modifier is accepted only on a function — `fn`, `extern fn`, or a method inside an `impl` block. On a type, an enum, or a global it is rejected rather than accepted and ignored, because the check runs during overload resolution and accepting it elsewhere would promise a guarantee the compiler does not enforce.
+A modifier is accepted only on a function or a foreign declaration — `fn`, `extern fn`, `extern let`, or a method inside an `impl` block. On a type, an enum, or a global defined in Prismio it is rejected rather than accepted and ignored, because nothing checks it there yet and accepting it would promise a guarantee the compiler does not enforce.
+
+The same two errors apply to reading an `extern let` from another file: a private one is private to its file, and an internal one to its package.
 
 ## Related module errors
 

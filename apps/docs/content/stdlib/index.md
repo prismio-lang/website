@@ -5,7 +5,7 @@ status: implemented
 version: "0.1.0"
 lastUpdated: "2026-09-12"
 tags: [standard-library, runtime, status]
-related: [stdlib/io, stdlib/strings, stdlib/lists, stdlib/map, stdlib/option, roadmap]
+related: [stdlib/io, stdlib/strings, stdlib/vec, stdlib/map, stdlib/option, roadmap]
 ---
 
 Prismio ships fifteen standard-library modules: `std.io`, `std.string`, `std.fs`, `std.process`, `std.platform`, `std.list`, `std.map`, `std.option`, `std.key`, `std.ord`, `std.copy`, `std.eq`, `std.iter`, `std.math` and `std.display`.
@@ -50,9 +50,9 @@ element when the compiler can prove `items` is still an unobserved local List. A
 Slice construction, or arbitrary borrowing call closes that capability. `list_set` remains the
 general conservative replacement operation.
 
-[`Map<K, V>`](/stdlib/map) is defined in Prismio, in `std/map.psm`, as an open-addressed table over `List`. Its key type carries `Key + Copy` bounds: [`std.key`](/stdlib) supplies `hash` and `eq`, while `std.copy` supplies `copyOf` so the table can retain a key — therefore **`String` keys work**, and every integer width does. `Float` deliberately has no `impl Key`: NaN is not equal to itself, so a NaN key could be inserted and never found again.
+[`Map<K, V>`](/stdlib/map) is defined in Prismio, in `std/map.psm`, as an open-addressed table over `Vec`. Its key type carries `Key + Copy` bounds: [`std.key`](/stdlib) supplies `hash` and `eq`, while `std.copy` supplies `copyOf` so the table can retain a key — therefore **`String` keys work**, and every integer width does. `Float` deliberately has no `impl Key`: NaN is not equal to itself, so a NaN key could be inserted and never found again.
 
-[`std.list`](/stdlib/lists) adds `sort` for a `T: Ord`, `sortBy` with a closure comparator, `binarySearch`, `filter`, `mapInto`, `countWhere`, `anyOf` and `allOf`. There is still no iterator protocol.
+[`std.vec`](/stdlib/vec) gives `Vec<T>` its literals and methods — `push`, `insert`, `pop`, `removeAt`, `contains`, `indexOf`, `reverse`, `clone` and the rest — plus `sort` for a `T: Ord`, `sortBy` with a closure comparator, `binarySearch`, `filter`, `mapInto`, `countWhere`, `anyOf` and `allOf`. There is still no iterator protocol.
 
 ## Memory primitives
 

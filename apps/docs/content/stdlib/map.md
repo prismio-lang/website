@@ -5,7 +5,7 @@ status: implemented
 version: "0.1.0"
 lastUpdated: "2026-08-29"
 tags: [standard-library, map, collections, generics, traits, hash]
-related: [stdlib/lists, language/generics, language/traits]
+related: [stdlib/vec, language/generics, language/traits]
 ---
 
 `Map<K, V>` is an associative container written in Prismio and shipped as `std/map.psm`. It is the first container in the language that is not built into the compiler, and it exists because [generics](/language/generics) do.
@@ -124,6 +124,6 @@ factor.
 **There is no `mapRemove`.** Linear probing without deletion needs no tombstones and the probe can
 stop at the first empty slot; adding deletion means revisiting every loop in the file.
 
-## There is no separate Vec
+## Vec
 
-`List<T>` is already the growable vector: its backing block doubles on push, eligible flat struct elements are stored inline, and `list_new_with_capacity` is its reserve. A distinct `Vec<T>` would be a second name for it. See [the list runtime](/stdlib/lists).
+A map's keys, values and slots are each a [`Vec`](/stdlib/vec) — the growable vector, whose backing block doubles on push and stores flat elements inline.

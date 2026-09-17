@@ -52,7 +52,7 @@ Member resolution on `T?` does not automatically unwrap it. `expect` must first 
 
 Source organization and declared naming must still be coordinated. Two imported files cannot each hide a same-kind *type* behind their paths, because a qualifier applies to calls only; two same-named structs still conflict.
 
-Functions are the exception in both directions. A qualifier disambiguates a call between two modules declaring the same function name, and `private` or `internal` keeps a function out of the resolution set for files outside its file or its package. A declaration carrying no modifier is public and participates in the whole program's analysis, which is the default.
+Functions are the exception in both directions. A qualifier disambiguates a call between two modules declaring the same function name, and `private` or `internal` keeps a function out of the resolution set for files outside its file or its package. A declaration carrying no modifier is **private** to the file that declares it, which is the default; `public` is what puts one into the whole program's resolution set.
 
 Identifiers occupy compiler-defined declaration namespaces. Where a type and value spelling can coexist, use-site grammar and semantic expectation select the relevant kind; this specification does not promise arbitrary same-spelling declarations across all kinds.
 

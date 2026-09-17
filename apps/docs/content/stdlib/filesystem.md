@@ -3,7 +3,7 @@ title: Filesystem API
 description: The std.fs module — files, paths, and directory listing, with the ownership contracts the raw runtime calls do not carry.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-08-23"
+lastUpdated: "2026-09-16"
 tags: [standard-library, filesystem, paths]
 related: [stdlib, stdlib/process, stdlib/strings, language/ffi]
 ---
@@ -16,7 +16,7 @@ Unlike [`std.string`](/stdlib/strings), none of this could be written in Prismio
 
 **The ownership contract.** `read_file`, `get_directory`, `join_path`, `current_directory`, `executable_directory`, and `list_modules` all return memory the caller must release. Only the first three are in the compiler's fallback contract table, so an application that declared one of the other three itself, without `produce(free)`, got an opaque return — no owner, and a leak on every call.
 
-**The `Int` conventions disagree with each other.** `file_exists` returns 1 for yes. `delete_file` and `execute_command` return **0** for success. Two adjacent functions in one runtime file where 0 means opposite things is a trap; every predicate below is a `Bool`.
+**The `Int` conventions disagree with each other.** `file_exists` returns 1 for yes. `delete_file` returns **0** for success. Two adjacent functions in one runtime file where 0 means opposite things is a trap; every predicate below is a `Bool`.
 
 ## Paths
 

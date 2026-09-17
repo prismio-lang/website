@@ -1,42 +1,138 @@
 ---
 title: Ownership and drop lowering
-description: How Prismio tracks moves, default borrows, consuming parameters, mutable borrows, reassignment, and destruction.
+description: How Prismio tracks moves, default borrows, consuming parameters, mutable borrows, reassignment, and destruction — and how that legality gets turned into an actual release call.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-08"
+lastUpdated: "2026-09-17"
 tags: [ownership, borrowing, drops]
-related: [aif/overview, aif/regions-views-and-provenance, llvm/control-flow]
+related: [aif/overview, aif/regions-views-and-provenance, llvm/control-flow, runtime/overview]
 ---
 
-Ownership is a source-semantic contract; AIF decides how to implement storage for values that
-already obey that contract.
+Every value a Prismio program creates has to be freed exactly once — not zero times, which leaks, and not twice, which corrupts the heap. Deciding *whether* a piece of code is even allowed to free a given value is a source-level question: who owns it, has it already been moved away, is it only borrowed here. Deciding *how* that free actually happens — a stack frame unwinding, a pointer handed to `free`, a reference count ticking down — is a storage question, answered later by **AIF**, the Adaptive Inference Framework (see [AIF overview](/aif/overview)). This page is about the handoff between the two: ownership analysis decides legality, and drop lowering turns a legal program into the release calls its chosen storage needs.
 
-Strings, lists, and structs are move-only. Ordinary parameters borrow them for the call.
-`sink` consumes an argument, and `inout` creates caller-visible mutable access. Scalars, raw
-pointer values, fieldless enums, and arrays follow their documented copy behavior.
+Keeping these separate is what lets AIF change a value's storage mechanism between compiler versions without changing what source code is allowed to do with it.
+
+Strings, lists, and structs are move-only. An ordinary parameter borrows its argument for the call; `sink` consumes it; `inout` gives the caller-visible mutable access. Scalars, raw pointer values, fieldless enums, and arrays follow their own documented copy behavior instead.
+
+## See a release happen
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+import std.string
+
+fn main() -> Int {
+    let names: List<String> = list_new()
+    list_push(names, "alpha".concat("-one"))
+    list_push(names, "beta".concat("-two"))
+    println(list_get(names, 1))
+    return 0
+}
+```
+
+Run it against the instrumented runtime, which keeps a ledger of every allocation and release:
+
+```bash
+prismio run owned.psm --verify
+```
+
+```text
+Built owned
+beta-two
+aif-verify: 2 allocated, 2 released, 0 leaked, 0 violation(s)
+aif-memory: 104 allocated bytes, 104 released bytes, 0 live bytes, 104 peak live bytes
+aif-memory-sizes: <=16:0 <=32:0 <=64:2 <=128:0 <=256:0 <=512:0 <=1024:0 <=4096:0 >4096:0
+aif-arena: 1 object(s), 16 byte(s), 1 region(s) on reporting thread
+```
+
+Nothing leaked. Stopping at **IR** (intermediate representation) generation (`build -o owned.ll`) shows the actual release, at the point `names` goes out of scope at the end of `main`:
+
+```text
+  %16 = load ptr, ptr %names.0, align 8
+  br label %label_3
+
+label_3:                                          ; preds = %entry
+  call void @list_release(ptr %16)
+  br label %label_4
+```
+
+`names` owns a `List<String>`, so its release kind is "list", and the IR generator emitted a call to `list_release` rather than a plain free — the list's own element policy (releasing the two `String`s it holds) happens inside that call, not at this call site.
+
+## What a legality violation looks like
+
+A ledger balancing is not the same claim as a program being correct — it says releases and allocations matched counts, not that a value was read before it was freed. Ownership analysis exists to reject the mistakes that would produce a use-after-free before any of that runs. Given a struct dropped and then read again:
+
+<!-- prismio-check: fail -->
+```prismio
+struct Point {
+    x: Int,
+    y: Int
+}
+
+fn main() -> Int {
+    let p = Point { x: 1, y: 2 }
+    drop(p)
+    let bad = p.x
+    return 0
+}
+```
+
+```bash
+prismio check use_after_drop.psm
+```
+
+```text
+error[P4001]: use of moved value `p`
+ --> use_after_drop.psm:9:15
+  |
+9 |     let bad = p.x
+  |               ^
+error: aborting due to 1 previous error
+```
+
+`drop` consumes ownership the same way an ordinary move does, so the checker treats the value as gone from that point on — there is nothing special about `drop` that a general use-after-move check does not already cover.
+
+## A worked example: the move that ran three times
+
+`src/sema/ownership.psm` tracks move state per binding name, over the AST in source order. That is precise for straight-line code and was, for a while, wrong inside a loop:
+
+<!-- prismio-check: fail -->
+```prismio
+struct Box {
+    v: Int
+}
+
+fn main() -> Int {
+    let b = Box { v: 1 }
+    let mut i = 0
+    while (i < 3) {
+        drop(b)
+        i = i + 1
+    }
+    return 0
+}
+```
+
+```bash
+prismio check move_in_loop.psm
+```
+
+```text
+error[P4001]: `b` is moved inside a loop, so the move would repeat on the next iteration
+ --> move_in_loop.psm:9:14
+  |
+9 |         drop(b)
+  |              ^
+error: aborting due to 1 previous error
+```
+
+Textually, `drop(b)` appears once, so a checker that only asks "is this binding's single textual move legal" says yes. Dynamically, that line runs three times against a binding declared once outside the loop — a double free the source-order analysis could not see, because nothing about the *text* repeats. The fix generalizes the rule: a move of a binding that predates the loop, made from inside the loop body, is rejected regardless of how many times the source mentions it, because the loop's back-edge is a second (and third, and fourth) use the linear reading never accounted for. Branch joins have the same shape of problem in miniature — ownership state after an `if`/`else` has to be the conservative combination of both arms, not whichever arm was checked second.
 
 ## Analysis
 
-`src/sema/ownership.psm` records initialization, moves, borrows, last use, reassignment, explicit
-`drop`, container transfer, and scope exit. It rejects use after move, dropping borrowed storage,
-moving the same value through incompatible paths, and ownership operations that would escape a
-local stack-only aggregate.
+`src/sema/ownership.psm` records initialization, moves, borrows, last use, reassignment, explicit `drop`, container transfer, and scope exit. Beyond the loop case above, it rejects use after move, dropping borrowed storage, moving the same value through incompatible paths, and ownership operations that would let a local stack-only aggregate escape its frame. A reinitialized binding starts a fresh ownership interval, distinct from the one that ended at its last move.
 
-Loops require special care because a syntactic last use is not necessarily the last dynamic use.
-Branch joins must combine ownership state conservatively, and a reinitialized binding starts a new
-ownership interval.
-
-## Lowering
-
-The IR generator emits destruction on relevant exit edges and queries AIF for the management action
-appropriate to the selected tier. Unique heap storage, region storage, and shared storage do not
-use the same release operation.
-
-Value correctness must accompany ledger checks. A ledger can balance even if storage was released
-too early and later read through a stale view. Tests for returned fields, payloads, and container
-elements should assert the observed value as well as leak and violation counts.
-
-## Semantic ownership functions
+The semantic checker records legality only. It does not decide whether the eventual storage is stack, arena, reference-counted, or cycle-managed — AIF makes that choice afterward, without weakening any move or borrow the checker already enforced.
 
 | Function | Meaning |
 | --- | --- |
@@ -44,60 +140,37 @@ elements should assert the observed value as well as leak and violation counts.
 | `semaMoveOperand` | Marks the source of an ownership transfer and rejects reuse through the source binding |
 | `semaConsumeOperand` | Applies consuming-call or assignment semantics to an expression |
 | `semaCheckValue` | Checks an expression against the expected type and ownership context in one operation |
-| `semaCheckExternContracts` | Validates `borrow`, `consume`, `alias`, `produce`, and related FFI annotations against the signature |
+| `semaCheckExternContracts` | Validates `borrow`, `consume`, `alias`, `produce`, and related foreign-function-interface (FFI) annotations against the signature |
 | `semaCheckUniqueArgs` | Rejects passing the same unique value into multiple consuming/unique positions in one call |
 
-The semantic checker records legality. It does not decide whether the eventual storage is stack,
-arena, RC, or cycle-managed. AIF makes that choice later without weakening moves or borrows.
+## If you are changing lowering
 
-## Backend ownership state
+### Backend ownership state
 
-`runtime/ir_symbols.c` maintains scoped binding records used while IR is emitted.
-`ir_mark_moved`, `ir_unmark_moved`, and `ir_is_moved` mirror the checked move state needed to
-avoid generating a second use or release. `ir_mark_borrowed` prevents a non-owner binding from
-entering the drop list. `ir_mark_droppable(name, kind)` records the release kind for an owning
-slot; `ir_mark_owns_slot` distinguishes the binding that owns a slot from a temporary view of it.
+`runtime/ir_symbols.c` maintains scoped binding records used while IR is emitted. `ir_mark_moved`, `ir_unmark_moved`, and `ir_is_moved` mirror the checked move state, so the backend never generates a second use or release for something sema already tracked as moved. `ir_mark_borrowed` keeps a non-owning binding out of the drop list entirely. `ir_mark_droppable(name, kind)` records the release kind for an owning slot; `ir_mark_owns_slot` distinguishes the binding that owns a slot from a temporary view of it.
 
-`ir_scope_push` stores the current binding/drop floor. `ir_scope_drop_floor` and
-`ir_drop_count` expose the entries created in that scope; `ir_drop_slot`, `ir_drop_type`, and
-`ir_drop_kind` let `generateScopeDrops` emit releases in reverse ownership order.
-`ir_drop_barrier_push` and `ir_loop_drop_floor` provide the correct boundary for return,
-break, and continue.
+`ir_scope_push` stores the current binding/drop floor. `ir_scope_drop_floor` and `ir_drop_count` expose the entries created in that scope; `ir_drop_slot`, `ir_drop_type`, and `ir_drop_kind` let `generateScopeDrops` emit releases in reverse ownership order — the same order the `list_release` call above was emitted in, just for one binding instead of many. `ir_drop_barrier_push` and `ir_loop_drop_floor` give `return`, `break`, and `continue` the correct boundary to drop back to.
 
-## Selecting the release operation
+### Selecting the release operation
 
-`dropKindOf` in `types.psm` and AIF queries choose the mechanism:
+`dropKindOf` in `types.psm`, together with AIF's own queries, choose the mechanism:
 
 - plain owned storage calls `ir_free_object`;
-- a list calls `ir_free_list`, which also handles its element policy;
-- a DataView calls `ir_free_data_view`;
+- a list calls `ir_free_list`, which also handles its element policy (this is what compiled to `list_release` above);
+- a `DataView` calls `ir_free_data_view`;
 - an owning struct calls `ir_free_typed(value, releaseFnName(type))`;
 - shared/counted storage calls `ir_free_rc` or `ir_free_rc_atomic`;
 - cycle-managed storage follows its generated typed release/cycle path; and
-- stack, static, borrowed, transferred, or arena-owned values emit no individual free.
+- stack, static, borrowed, transferred, or arena-owned values emit no individual free at all.
 
-`generateReleaseFn` creates one helper per struct whose fields require teardown.
-`generatedFieldRelease` asks AIF whether each field is owned, counted, cyclic, or inert and emits
-the matching action. `generateCyclicChildrenFn` creates the visitor used by the cycle collector.
+`generateReleaseFn` creates one helper per struct whose fields require teardown. `generatedFieldRelease` asks AIF whether each field is owned, counted, cyclic, or inert and emits the matching action. `generateCyclicChildrenFn` creates the visitor the cycle collector uses.
 
-Assignment needs a separate path. `generateDisplacedRelease` releases the old value only after
-the replacement has been evaluated safely. `aif_releases_on_overwrite_node` determines when the
-write displaces an owned value. `ir_set_reinit_target` marks a self-reinitializing accumulator so
-string/list operations can reuse storage without releasing the buffer they are about to mutate.
+Assignment needs a separate path, because the old value can only be released once its replacement has been evaluated safely: `generateDisplacedRelease` does that ordering. `aif_releases_on_overwrite_node` determines when a write displaces an owned value in the first place. `ir_set_reinit_target` marks a self-reinitializing accumulator so string/list operations can reuse existing storage without releasing the buffer they are about to mutate.
 
-## Calls, temporaries, and returns
+### Calls, temporaries, and returns
 
-`irArgumentIsOwnedTemporary` identifies a call argument whose storage has no binding owner.
-`generateOwnedTemporaryRelease` schedules its release after `ir_call_end`, except where a
-consuming parameter takes ownership. Borrowed C-string conversion also records a call-frame
-temporary and releases it in `release_call_temps`.
+`irArgumentIsOwnedTemporary` identifies a call argument whose storage has no binding owner. `generateOwnedTemporaryRelease` schedules its release after the call completes (`ir_call_end`), except where a consuming parameter has taken ownership instead. Borrowed C-string conversion records its own call-frame temporary and releases it in `release_call_temps`.
 
-`nodeProducesOwnedValue`, `irCallReturnsAlias`, and `aif_owns_call_result_at_node` distinguish
-owned results from aliases and views. Return lowering transfers an owned result out of the local
-drop set; returning an alias extends the underlying owner's required lifetime through AIF
-provenance rather than pretending the alias owns storage.
+`nodeProducesOwnedValue`, `irCallReturnsAlias`, and `aif_owns_call_result_at_node` distinguish an owned result from an alias or a view. Return lowering transfers an owned result out of the local drop set entirely; returning an alias instead extends the underlying owner's required lifetime through AIF provenance, rather than pretending the alias itself owns storage.
 
-Ownership regressions need at least: a legal move, use-after-move rejection, borrow followed by use,
-consuming call, overwrite, every early exit, nested scope, loop break/continue, returned owned
-value, returned view, container element replacement, task transfer, FFI contract, and verifier plus
-observable-value assertions.
+Ownership regressions need coverage for at least: a legal move, use-after-move rejection, borrow followed by use, consuming call, overwrite, every early exit, nested scope, loop break/continue, returned owned value, returned view, container element replacement, task transfer, an FFI contract, and both verifier and observable-value assertions — a balanced ledger and a correct answer are different claims, and a regression test that only checks the ledger can pass while returning a stale value.

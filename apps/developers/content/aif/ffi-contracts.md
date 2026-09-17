@@ -1,40 +1,213 @@
 ---
 title: AIF foreign-function contracts
-description: How extern declarations describe borrowed, consumed, produced, aliased, escaping, and released foreign storage.
+description: How extern declarations describe borrowed, consumed, produced, aliased, escaping, and released foreign storage — and why a contract that "fixes" the tier can still be the wrong one.
 status: experimental
 version: "0.1.0"
-lastUpdated: "2026-09-09"
 tags: [aif, ffi, ownership]
 related: [cookbook/c-ffi, runtime/supported-surface, aif/tiers-and-analysis-domains]
+lastUpdated: "2026-09-17"
 ---
 
-Foreign code is opaque to the Prismio analyzer. An extern contract supplies the ownership and
-escape facts that an ordinary Prismio body would have revealed.
+Every allocation [AIF](/aif/overview) places — the Adaptive Inference Framework, the pass that
+decides whether a value lives on the stack, in an arena, or on the heap — is a claim it can prove
+by reading the function body. An `extern fn` has no body. Once a call crosses into C, the compiler
+cannot see whether the callee kept the pointer, freed it, or handed back one of its own. It has to
+be told, and the declaration is the only place to say it.
 
-Contracts distinguish parameters that are borrowed, consumed, retained, or allowed to alias, and
-results that are borrowed aliases versus newly produced ownership. A produced result names the
-matching release operation. The exact grammar is defined by the compiler and AIF specification;
-do not infer a contract from C type spelling alone.
+Get the contract wrong and nothing catches it at compile time. A wrong ordinary Prismio program
+mis-tiers a value and only gets slower; a wrong FFI (foreign function interface) contract can free
+memory that is still live, which is corruption, not a leak. That asymmetry is the reason this page
+exists.
 
-## Why defaults are conservative
+## See it work
 
-A pointer-shaped return does not reveal whether the callee allocated, returned static storage, or
-returned an interior pointer into an argument. Guessing “owned” can free foreign memory; guessing
-“borrowed” can leak. Incomplete contracts therefore restrict optimization and may raise allocation
-tiers.
+`cli_arg`, the C function that used to sit behind command-line arguments, is declared with no
+contract at all in this fixture:
 
-`src/aif/contracts.psm` contains known runtime/backend contracts. Application-facing system APIs
-should normally be wrapped in `std.*`, where the contract is declared once. Raw `extern fn`
-remains appropriate for foreign code supplied by an application or compiler component.
+```prismio
+extern fn cli_arg(index: Int) -> String
+
+fn tier_three() -> Int {
+    let arg = cli_arg(1)
+    return __builtin_string_len(arg)
+}
+```
+
+```bash
+prismio aif aif_tiers.psm --why=8
+```
+
+```text
+Allocation 8
+  Location   aif_tiers.psm:102:15
+  Type       String
+  Storage    heap (RC unavailable)
+  Reason     multiple owners in one thread
+
+Compiler evidence
+  Symbol     tier_three__Void#0
+  Tier       T3
+  Thread     Isolated
+
+  minimal cause
+    A rose to Shared
+      <- E-OPAQUE  aif_tiers.psm                        102:23
+
+  placement
+    heap  -- no arena serves this site
+      because  the tier is not T1 -- see the cause above
+      ...
+
+  repairs, cheapest first
+    1. declare the extern's return contract (FFI 5.2)           restores T2, no runtime cost
+    2. pin(T2) on the binding                     rejected -- inference converged, so this is proven false
+```
+
+With no contract, AIF cannot rule out that `cli_arg` returns a value some other owner might also
+hold, so it joins the alias fact to `Shared` and pays for reference counting — RC (reference
+counting) here means the tag-and-count machinery `--verify` reports on, not a design choice the
+program made. `--why` even proposes the fix: declare a return contract.
+
+## The repair that would corrupt memory
+
+Taking that suggestion literally is the trap. `cli_arg`'s C implementation, which
+`runtime/program_support.c` carried until `std.process` began reading `argv` itself through
+`extern let`, returned `prismio_argv[index]` directly — a pointer into the block the operating
+system handed the process at startup. It allocated nothing. Declaring the tempting
+`produce(free)` contract:
+
+```prismio
+extern fn cli_arg(index: Int) -> String produce(free)
+```
+
+```bash
+prismio aif aif_tiers_fixed.psm --why=8
+```
+
+```text
+Allocation 8
+  Location   aif_tiers_fixed.psm:102:15
+  Type       String
+  Storage    arena:auto
+  Reason     lifetime fits the region
+  ...
+  Tier       T1
+```
+
+does exactly what it was asked: the tier drops all the way to T1, an arena. It also compiles,
+links, and produces no diagnostic — because nothing in AIF's model can see that `cli_arg` never
+allocated in the first place. Ship this and the generated `free` call hands `argv` over to the
+allocator, which is a corrupted-argument-vector bug, not a slower program. **`produce(free)` versus
+`alias` is not a guess** — it has to match what the C side actually does, and the compiler cannot
+check that for you.
+
+The correct declaration is `alias`, which is what `std/process.psm` used while it still called the
+function:
+
+```prismio
+extern fn cli_arg(index: Int) -> String alias
+```
+
+```bash
+prismio aif aif_tiers_alias.psm
+```
+
+Declared this way, line 102 disappears from the site table entirely — with no argument for the
+alias to point at, AIF resolves the return to "static, not allocated" and stops tracking it as a
+site at all. That is cheaper than the T1 the wrong repair produced, and it is cheap because it is
+true, not because a tier number went down.
+
+| Declared as | Tier / result | Actually true of `cli_arg`? |
+| --- | --- | --- |
+| *(none)* | T3, heap, RC-managed | Safe (over-conservative), and slow |
+| `produce(free)` | T1, arena — looks fixed | **No.** Frees a pointer into `argv` |
+| `alias` | No site at all | Yes — matches what the C function did |
+
+## A contract bug that used to reach production
+
+`extern`-declared `alias` has its own failure mode, on the other side: claiming a value aliases an
+argument when the compiler's escape analysis doesn't independently see that. `tests/extern_alias_escape.psm`
+is the regression test for a real one, fixed 2026-08-30 (`aif/evidence/RESULTS-extern-alias-escape.md`):
+
+```prismio
+extern fn prismio_expect(p: String borrow) -> String alias
+
+fn passthru() -> String {
+    let t = make()
+    let x = prismio_expect(t)
+    return x
+}
+```
+
+Before the fix, `t` was dropped at `passthru`'s own scope exit — the same allocation `x` now
+aliased — because the escape check that decides whether a binding is safe to drop asked "might this
+function's *own* body return one of its parameters?", which is a question about ordinary Prismio
+functions and answers "no" for every extern, deliberately (widening it for *unknown* externs was
+tried and leaked a `String` per integer printed through `std/io.psm`). The declared `alias` was
+real information the check simply never consulted. The historical failure, from the committed
+evidence file:
+
+```text
+aif-verify: release of a pointer that is not live (0x102b61e00)
+aif-verify: 1 allocated, 1 released, 0 leaked, 1 violation(s)
+```
+
+`println` printed an empty line, because the string was already gone. The fix reads the declared
+contract as well as the general escape check, and the regression test now passes with today's
+compiler:
+
+```bash
+prismio run extern_alias_escape.psm --verify
+```
+
+```text
+Built extern_alias_escape
+hello world
+aif-verify: 1 allocated, 1 released, 0 leaked, 0 violation(s)
+aif-memory: 12 allocated bytes, 12 released bytes, 0 live bytes, 12 peak live bytes
+aif-memory-sizes: <=16:1 <=32:0 <=64:0 <=128:0 <=256:0 <=512:0 <=1024:0 <=4096:0 >4096:0
+aif-arena: 1 object(s), 16 byte(s), 1 region(s) on reporting thread
+```
+
+The lesson generalizes past this one bug: a declared contract is a fact the compiler will use, not
+one it double-checks. Wrong in the unsafe direction (claiming ownership you don't relinquish, or
+aliasing something that isn't) and the failure is silent until `--verify`, ASan, or production finds
+it.
+
+## Writing a contract
+
+A parameter is `borrow` (the default — the callee may read and write during the call but does not
+retain the pointer), `consume` (the callee takes ownership and will free it; Prismio emits no free
+and treats the value as moved), `retain` (the callee stores the pointer somewhere that outlives the
+call, so the argument's escape and alias facts both rise permanently), or `bytes` (marshalling
+only, not a fourth ownership state — see below). A return is `alias` (default — borrows existing or
+static storage; the caller must not free it) or `produce(free_fn)` (fresh, caller-owned storage,
+released by the named function). Do not infer a contract from the C type signature alone; read what
+the implementation does.
+
+```prismio
+extern fn strlen(s: String borrow) -> Int
+extern fn fopen(path: String borrow, mode: String borrow) -> File produce(fclose)
+extern fn sqlite3_exec(db: Db borrow, sql: String borrow, cb: Callback, ctx: Ptr retain) -> Int
+```
+
+`src/aif/contracts.psm` holds the contracts already reviewed for shipped runtime functions.
+Application-facing system APIs should normally be wrapped in `std.*`, where the contract is written
+once rather than repeated at every call site. Raw `extern fn` remains appropriate for foreign code
+an application or compiler component brings itself.
 
 ## Tests
 
-Cover success and misuse: produced results with the correct deallocator, aliases that outlive an
-argument, consuming calls, two arguments that may alias, and escaping callbacks or task transfers.
-Use `--verify` where the runtime can observe the boundary, but retain value assertions and native
-sanitizer coverage for behavior outside the ledger.
+Cover success and misuse: produced results released by the correct deallocator, aliases that must
+not outlive their argument, consuming calls, arguments that may alias each other, and escaping
+callbacks or task transfers. Use `--verify` where the runtime can observe the boundary (as above),
+and keep value assertions and native sanitizer coverage for behavior the ledger cannot see —
+`extern_alias_escape.psm`'s bug was a *use*-after-free of a still-linked page, which a leak-only
+check would have missed.
 
-## Contract resolution order
+## If you are changing this
+
+### Contract resolution order
 
 `aifFfiContract(name, index)` selects one parameter contract using this precedence:
 
@@ -63,7 +236,7 @@ argument indices, deallocator names, and incompatible combinations. `aif_extern_
 stores the checked encoding for the native solver; `aif_extern_contract` retrieves it by function
 and parameter.
 
-## Constraint and ABI effects
+### Constraint and ABI (application binary interface) effects
 
 A borrowed parameter applies `aif_con_borrow` and does not transfer ownership. A consuming
 parameter applies the call's transfer/escape behavior and prevents later source use. An aliasing
@@ -99,5 +272,6 @@ Building the view directly into the call argument keeps it Local. The symptom is
 ledger imbalance rather than a diagnostic, and `aif --why` names the binding as an `E-BIND`.
 
 Contract correctness is outside LLVM type checking. A declaration can verify and link while lying
-about retention or deallocation. Test native behavior under ASan/TSan where applicable, pair
-produced storage with its exact allocator family, and keep wrappers narrow enough to audit.
+about retention or deallocation. Test native behavior under ASan/TSan (AddressSanitizer/
+ThreadSanitizer) where applicable, pair produced storage with its exact allocator family, and keep
+wrappers narrow enough to audit.

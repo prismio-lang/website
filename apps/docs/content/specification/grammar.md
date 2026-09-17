@@ -16,10 +16,12 @@ The notation uses `*` for repetition, `?` for optional syntax, `|` for alternati
 program        = declaration* EOF ;
 declaration    = importDecl | letDecl | functionDecl | externDecl
                | structDecl | enumDecl ;
-importDecl     = "import" qualifiedName ("." "*")? ;
+importDecl     = "import" qualifiedName ("." "*")? ("as" identifier)? ;
 functionDecl   = "fn" identifier typeParams? "(" parameters? ")" returnType? block ;
 typeParams     = "<" identifier ("," identifier)* ">" ;
-externDecl     = "extern" "fn" identifier "(" externParameters? ")" returnType? ;
+externDecl     = externFnDecl | externLetDecl ;
+externFnDecl   = "extern" "fn" identifier "(" externParameters? ")" returnType? ;
+externLetDecl  = "extern" "let" "mut"? identifier ":" type ;
 returnType     = "->" type ;
 structDecl     = "struct" identifier typeParams? "{" fields? "}" ;
 enumDecl       = "enum" identifier typeParams? "{" variants? "}" ;
@@ -64,7 +66,7 @@ traitDecl      = "trait" identifier "{" fnSignature* "}" ;
 closureExpr    = "|" parameters? "|" (expression | block) ;
 ```
 
-A visibility modifier is accepted only on a function -- `fn`, `extern fn`, or a method inside an `impl` block. On a type, an enum, or a global it is a parse-time rejection rather than a marker that is accepted and ignored.
+A visibility modifier is accepted only on a function or a foreign declaration -- `fn`, `extern fn`, `extern let`, or a method inside an `impl` block. On a type, an enum, or a Prismio global it is a parse-time rejection rather than a marker that is accepted and ignored.
 
 An `impl` member without a `self` parameter is an associated function; a generic `impl` (`impl Box<Int>`) is rejected.
 
@@ -81,6 +83,8 @@ parameterMode  = "sink" | "inout" ;
 `unique` is experimental contextual syntax. An ordinary move-only parameter with no explicit mode borrows for the call. Parameter types are required.
 
 Foreign parameters reuse typed parameter structure and may add an FFI ownership contract after the parameter type. Return types on an extern declaration may also carry their supported contract. Contract validity is checked separately from parsing.
+
+An `extern let` takes no contract, requires its type, and has no initializer; a written `= expression` is a parse error rather than an ignored value. Which types it may name is a semantic rule -- see [foreign globals](/language/ffi#foreign-globals).
 
 ## Expressions
 

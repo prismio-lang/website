@@ -93,11 +93,63 @@ let message: String = "line one\nline two"
 let initial: Char = 'P'
 ```
 
-String and character escapes include `\n`, `\t`, `\r`, `\\`, `\"`, and `\'`. Character literals additionally support `\0`; a NUL escape is rejected in a string. Hexadecimal, binary, raw, and interpolated literals are not implemented.
+String and character escapes include `\n`, `\t`, `\r`, `\\`, `\"`, and `\'`. Character literals additionally support `\0`; a NUL escape is rejected in a string. Hexadecimal and binary literals are not implemented.
+
+**A `"..."` literal is one line.** A newline inside one is an error rather than part of the text, which is what makes a missing closing quote a mistake reported on the line that made it instead of a string that swallows the rest of the file:
+
+```text
+error[P2001]: unterminated string literal; multiline strings require triple quotes """..."""
+```
+
+### Triple-quoted strings
+
+`"""..."""` spans lines, and holds its text as written — the same pair of spellings as Kotlin.
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+fn main() -> Int {
+    let usage = """Usage: tool [options] <file>
+  -v   verbose
+  -h   this text"""
+    println(usage)
+    return 0
+}
+```
+
+Inside `"""`, a `\n` is a backslash followed by an `n` and a `"` is a quote — there are no escapes to write and none to read, so a Windows path or a regular expression goes in unchanged. Quotes are literal as long as three in a row do not appear, since three is what ends the literal.
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+import std.string
+
+fn main() -> Int {
+    let pattern = """C:\logs\"today".txt"""
+    println(strLength(pattern))
+    return 0
+}
+```
+
+Interpolation works in both forms, and lowers to `show(...)` — so a file that interpolates imports `std.display`:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+import std.display
+
+fn main() -> Int {
+    let name = "world"
+    println("""Hello ${name},
+welcome.""")
+    return 0
+}
+```
 
 `Char` is a byte-sized character in 0.1, not a Unicode scalar-value type. A string is runtime-managed, move-only data. Source files are UTF-8, but the current character representation should not be described as full Unicode text semantics.
 
-Multiline, raw, byte-prefixed, and interpolated string syntaxes are not implemented. Build dynamic text through the currently available runtime functions or foreign functions rather than relying on syntax from another language.
+Byte-prefixed string syntax is not implemented.
 
 ## The `none` literal
 
@@ -143,7 +195,7 @@ This program is invalid because the 0.1 lexer does not allow the NUL escape insi
 
 - Only `//` comments are recognized.
 - Numeric bases and numeric separators are unavailable.
-- String interpolation and raw strings are unavailable.
+- A byte-string prefix is unavailable; for raw text use a triple-quoted string, which takes its content as written.
 - `Char` is byte-sized rather than a complete Unicode character abstraction.
 - Reserved future words cannot be repurposed as identifiers even though their features are not parsed.
 

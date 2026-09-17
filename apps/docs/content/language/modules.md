@@ -90,22 +90,25 @@ Qualifiers apply to calls only. A type, a global, or an enum variant cannot be q
 
 ## Visibility
 
-A function declaration may carry one of three modifiers. Without one, a declaration is public.
+A function declaration may carry one of three modifiers. **Without one it is private**, visible only inside the file that declares it.
 
 | Modifier | Visible in |
 | --- | --- |
-| `public` | everywhere; the default, so writing it is optional |
-| `private` | the file that declares it |
+| `public` | everywhere |
+| `private` | the file that declares it — the default, so writing it is optional |
 | `internal` | the package that declares it — its import path minus the last segment |
 
 <!-- prismio-check: pass -->
 ```prismio
 import std.io
 
+// Part of this module's surface: callable from a file that imports it.
 public fn doubled(x: Int) -> Int { return x * 2 }
 
+// Explicitly private. Identical in effect to writing no modifier at all.
 private fn scale(x: Int) -> Int { return x * 3 }
 
+// No modifier, so private too -- a helper this file keeps to itself.
 fn tripled(x: Int) -> Int { return scale(x) }
 
 fn main() -> Int {
@@ -117,7 +120,12 @@ fn main() -> Int {
 
 `private` is enforced against the declaring **file**, so a sibling file in the same directory cannot call it. `internal` is enforced against the declaring **package**: `store.index` and `store.cache` may call each other's `internal` functions, and a module outside `store` may not.
 
-Visibility is opt-in rather than private-by-default. That is the opposite of most languages, and it is deliberate: every declaration written before these modifiers existed is public, so a private default would have changed the meaning of existing code rather than adding to it.
+A module's surface is the part of it someone wrote `public` on. Adding a helper cannot widen that surface by accident, because a helper you say nothing about is not part of it — which is the whole reason the default is this way round and not the other.
+
+Two declarations do not take the default:
+
+- **`main`** is the program's entry point and is found by the driver rather than by a call, so a modifier on it changes nothing.
+- **A method in an `impl Trait for Type` block** is public unless it says otherwise. Implementing a trait is a promise made to everyone who can see the trait, and a private `eq` would satisfy the conformance check and then be unreachable from the generic code that conformance exists to serve. A method in a plain `impl Type` block takes the private default like any other `fn`.
 
 Modifiers apply to `fn`, `extern fn`, and a method inside an [`impl` block](/language/methods#visibility-on-methods) -- a method *is* a free function whose first parameter is the receiver, so the marker means the same thing there. A modifier on a type, an enum, or a global is rejected rather than accepted and ignored, because the check runs during overload resolution and would otherwise promise a guarantee the compiler does not enforce.
 
@@ -187,6 +195,79 @@ Memoization prevents duplicate loading; it does not create partially initialized
 
 See [name resolution](/specification/name-resolution) for the compiler-derived lookup rules.
 
+## Import aliases
+
+`import <path> as <name>` gives a module a second, shorter name to qualify with.
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io as io
+import std.string as str
+
+fn main() -> Int {
+    io.println(str.strLength("abcd"))
+    return 0
+}
+```
+
+The alias is a **second** name, not a replacement. `import std.io` already brings the module's public names in unqualified, and `as` does not switch that off; what it adds is a short qualifier. The real import path keeps working too, so `std.io.println(x)`, `io.println(x)` and a bare `println(x)` all reach the same function.
+
+That matters exactly when the bare name is taken. A file that declares its own `print` shadows the imported one for unqualified calls — and the alias is how the imported one stays reachable:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io as io
+import std.string
+
+// This file's own `print`. Unqualified `print(...)` here means this one.
+fn print(value: String) -> Int {
+    return strLength(value)
+}
+
+fn main() -> Int {
+    let n = print("abcd")     // the local one: 4
+    io.println(n)             // std.io's, reached through the alias
+    return 0
+}
+```
+
+An alias is scoped to the file that writes it: aliasing `std.io` as `io` in one file says nothing about any other. Four spellings are rejected rather than accepted and ignored:
+
+| Written | Rejected because |
+| --- | --- |
+| two `as` names alike in one file | the second would resolve by merge order, which is not readable from the source |
+| `import pkg.* as name` | a wildcard brings in every module in the package and an alias can only name one |
+| `import std.string.strLength as len` | `as` names a module, and that path names a declaration inside one |
+| an alias a module in the project already answers to | `name.f(x)` would have two meanings, and the alias would silently win |
+
+## Imports are not transitive
+
+An import brings in the module it names and nothing else. If `a` imports `b`, a file that imports `a` does **not** get `b`'s names:
+
+<!-- prismio-check: fail -->
+```prismio
+import std.io
+
+fn main() -> Int {
+    // `std.io` imports `std.string`, but this file must say so itself.
+    println(strTrim("  x  "))
+    return 0
+}
+```
+
+The diagnostic names the module to add:
+
+```text
+error[P4001]: `strTrim` is declared in `std.string`, which this file does not import
+  note: add `import std.string`; an import is not transitive, so importing a
+        module that imports it is not enough
+```
+
+What a file can call is what that file's own imports say it can, which is readable from the top of the file rather than from its dependencies' dependencies. Two things are deliberately outside the rule, because no import could ever have made them legal:
+
+- **Methods.** A method comes with its receiver's type, so `"a".concat(b)` needs no import of `std.string` — the same way an inherent method in Rust or a member function in Kotlin comes with the type.
+- **Sibling modules in one package.** `store.index` and `store.cache` reach each other without ceremony, which is the same scope `internal` already means.
+
 ## Project layout guidance
 
 Place an executable entry file near the root of the source tree, group related files in subdirectories, and use dotted explicit imports for stable dependencies.
@@ -213,7 +294,7 @@ import protocol.encode
 
 ## Not implemented
 
-Prismio 0.1 has no module aliases and no re-exports. A plain `import m` brings in every public declaration of the module it names; to bring in one name and leave the rest, see [selective imports](#selective-imports).
+Prismio 0.1 has no re-exports. A module that imports another does not pass those names on to *its* importers — see [imports are not transitive](#imports-are-not-transitive) — so a composition root that only re-imports its parts gives its own importers nothing. Name the modules you use.
 
 Visibility does not extend to types, enums, or globals — a modifier on one is rejected. Qualifiers do not extend to them either.
 

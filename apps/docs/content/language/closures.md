@@ -5,7 +5,7 @@ status: implemented
 version: "0.1.0"
 lastUpdated: "2026-08-29"
 tags: [closures, lambdas, higher-order, generics, captures]
-related: [language/traits, language/methods, stdlib/lists]
+related: [language/traits, language/methods, stdlib/vec]
 ---
 
 A closure is written `|parameters| expression`.
@@ -125,4 +125,4 @@ f.call(x)
 - Recursive closures.
 
 A closure taken as a `F` type parameter and called within the call covers `map`, `filter`, `sortBy`
-and the rest of [the list algorithms](/stdlib/lists), which is what 0.1 set out to reach.
+and the rest of [the list algorithms](/stdlib/vec), which is what 0.1 set out to reach.

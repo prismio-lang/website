@@ -5,7 +5,7 @@ status: implemented
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [error, list, container, ownership, sink]
-related: [stdlib/lists, language/ownership-and-borrowing, errors/use-after-move]
+related: [stdlib/vec, language/ownership-and-borrowing, errors/use-after-move]
 ---
 
 ## Meaning

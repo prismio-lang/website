@@ -1,159 +1,62 @@
-# Turborepo starter
+# Prismio website
 
-This Turborepo starter is maintained by the Turborepo core team.
+The public sites for the [Prismio](https://github.com/prismio-lang/prismio)
+programming language, as one pnpm + Turborepo workspace.
 
-## Using this example
+| App | Site | Port | What it is |
+| --- | --- | --- | --- |
+| `apps/web` | the landing site | 3000 | install, benchmarks, community |
+| `apps/docs` | <https://docs.prismio.org> | 3001 | the language guide, standard library, and specification — for people writing Prismio |
+| `apps/developers` | <https://developers.prismio.org> | 3002 | the contributor reference — for people changing the compiler, runtime, and tooling |
 
-Run the following command:
+`packages/` holds the shared UI library and the ESLint and TypeScript configs.
 
-```sh
-npx create-turbo@latest
+## Writing documentation
+
+**Read [DOC_STYLE.md](DOC_STYLE.md) before writing or rewriting a page** under
+`apps/docs/content` or `apps/developers/content`. It explains why an accurate
+page can still be unusable, the page shape every page follows (problem → see
+it work → read a failure → worked example → internals), and the rules the
+content audit enforces. `apps/developers/content/testing/aif-differential.md`
+and `apps/developers/content/aif/overview.md` are its worked examples.
+
+Every command output on a page is pasted from a real run. A `prismio` snippet
+that compiles on its own is marked `<!-- prismio-check: pass -->` (or `fail`,
+for one that must be rejected), and the example gate builds it.
+
+## Checks
+
+Both content sites carry the same two gates. The example gate needs a Prismio
+compiler; the compiler repository is a sibling checkout at `../prismio`, and its
+project host is the usual choice:
+
+```bash
+cd apps/developers
+PRISMIO=../../../prismio/.prismio/build/debug/prismio node scripts/verify-doc-examples.mjs
+node scripts/audit-content.mjs
 ```
 
-## What's inside?
-
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@prismio/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@prismio/eslint-config`: `eslint` configurations (includes `@next/eslint-plugin-next` and `eslint-config-prettier`)
-- `@prismio/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+```bash
+cd apps/docs
+PRISMIO=../../../prismio/.prismio/build/debug/prismio node scripts/verify-doc-examples.mjs
+node scripts/audit-content.mjs
 ```
 
-Without global `turbo`, use your package manager:
+The audit checks frontmatter, internal links, acronym expansions, and two
+readability rules from `DOC_STYLE.md`. Pages that do not yet meet those two are
+listed in each app's `scripts/readability-baseline.json`. That list may only
+shrink: fix a page and remove its entry — the audit fails if a listed page
+already passes — and never add one.
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm exec turbo build
-pnpm exec turbo build
+`pnpm --filter <app> check` runs Velite, both gates, and ESLint together.
+
+## Development
+
+```bash
+pnpm install
+pnpm dev                       # every app
+pnpm --filter developers dev   # one app
+pnpm build
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+Node 24 or newer is required.

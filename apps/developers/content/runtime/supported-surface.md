@@ -3,7 +3,7 @@ title: Builtins, standard modules, and foreign code
 description: How contributors decide whether an operation belongs in compiler lowering, an importable Prismio module, or the C-compatible runtime surface.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-09"
+lastUpdated: "2026-09-16"
 tags: [runtime, stdlib, ffi]
 related: [runtime/overview, aif/ffi-contracts, cookbook/add-a-runtime-or-stdlib-api]
 ---
@@ -44,10 +44,14 @@ modules:
 | --- | --- |
 | Files | `file_exists`, `directory_exists`, `make_directory`, `read_file`, `write_file`, `delete_file` |
 | Paths | `get_directory`, `join_path`, `current_directory`, `list_modules`, `executable_directory`, `prismio_executable_directory` |
-| Processes | `command_quote_arg`, `execute_command`, `host_is_windows` |
-| Arguments | `cli_arg_count`, `cli_arg` |
+| Processes | `proc_spawn_begin`, `proc_spawn_arg`, `proc_spawn_run`, `proc_wait`, `proc_kill`, `proc_exec`, `proc_read_all`, `proc_write`, `proc_close` behind `std.process`; `command_quote_arg` and `execute_command` for the compiler's own `ums` shell steps; `host_is_windows` |
 | Tasks | `prismio_task_spawn`, typed join functions, `prismio_task_release` |
 | Channels | `chan_new`, `chan_send`, `chan_recv`, `chan_close`, `chan_share`, `chan_len`, `chan_free` |
+
+**Command-line arguments are not a runtime function.** Generated code defines `prismio_argc` and
+`prismio_argv` and fills them in `main`'s prologue; `std.process` names both with `extern let` and
+reads one `argv` slot with `__builtin_cstring_at`, so no C sits between a program and its
+arguments.
 
 `lang_runtime.c` supplies string operations (`str_equals`, `str_concat`, `str_substring`,
 `str_slice`, `str_find_byte`, `str_clone*`, `str_own`, `int_to_str`), optional failure

@@ -1,96 +1,249 @@
 ---
 title: Generics and monomorphization
-description: How Prismio discovers generic instantiations, substitutes concrete types, validates bounds, and emits specialized code.
+description: How Prismio discovers generic instantiations, substitutes concrete types, validates bounds, and emits one specialized copy per combination of type arguments.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-08"
+lastUpdated: "2026-09-17"
 tags: [generics, monomorphization, compiler]
 related: [compiler/traits-impls-and-dispatch, compiler/semantic-analysis-and-types, aif/layout-selection]
 ---
 
-Prismio specializes generic functions, structs, enums, traits, and implementations for concrete
-type arguments. There is no single erased generic body that discovers element layout at runtime.
+A generic function written once still has to become real machine code for
+every concrete type it's called with, and those concrete versions can need
+*different* code — a `List<Int>` can store its elements inline, while a
+`List<String>` cannot, because a `String` owns a separate heap allocation a
+plain element slot has nowhere to put. Prismio's answer is
+**monomorphization**: every generic function, struct, enum, trait, and
+implementation is specialized into an ordinary, concrete declaration for each
+combination of type arguments it's actually used with. There is no single
+erased generic body that discovers element layout at runtime.
+`src/sema/generics.psm` validates arity, substitutes types, tracks requested
+instantiations, and prevents an unbounded specialization chain; each
+specialized body then passes through ordinary semantic analysis, ownership
+checking, AIF (Adaptive Inference Framework), and code generation exactly as
+if it had been hand-written.
 
-`src/sema/generics.psm` validates arity, substitutes types, tracks requested instantiations, and
-prevents an unbounded specialization chain. Specialized bodies then pass through ordinary semantic
-analysis, ownership checking, AIF, and code generation.
+## See it work: two instantiations, two layouts
+
+`tests/test_82_generic_layout.psm` in the compiler repository exists
+specifically to keep this distinction observable. It declares one generic
+function and instantiates it for two structs with different ownership
+shapes:
+
+```prismio
+struct Flat { x: Int, weight: Float }
+struct Named { label: String, value: Int }
+
+fn singleton<T>(sink value: T) -> List<T> {
+    let mut items: List<T> = list_new()
+    list_push(items, value)
+    return items
+}
+
+fn main() -> Int {
+    let flatItems = singleton(Flat { x: 7, weight: 2.5 })
+    let namedItems = singleton(Named { label: "first", value: 3 })
+    // ...
+}
+```
+
+Building the real fixture produces two distinct `singleton` symbols, not one:
+
+```bash
+prismio build test_82_generic_layout.psm -o layout_native
+nm layout_native | grep ' T ' | grep -i singleton
+```
+
+```text
+0000000100000d18 T _singleton$Struct_Flat__Struct_Flat
+0000000100000d5c T _singleton$Struct_Named__Struct_Named
+```
+
+And the two bodies genuinely differ. `Flat` is eligible for inline `List`
+storage and calls the inline entry points; `Named` cannot be inlined because
+it owns a `String`, and falls back to the boxed ones:
+
+```text
+define ptr @"singleton$Struct_Flat__Struct_Flat"(ptr %0) {
+entry:
+  %value.33 = alloca ptr, align 8
+  store ptr %0, ptr %value.33, align 8
+  %1 = call ptr @list_new_inline(i32 16)
+  call void @list_set_elem_owner(ptr %1, i32 1)
+  ...
+  call void @list_push_inline(ptr %2, ptr %3, i32 16)
+  ...
+}
+
+define ptr @"singleton$Struct_Named__Struct_Named"(ptr %0) {
+entry:
+  %value.38 = alloca ptr, align 8
+  store ptr %0, ptr %value.38, align 8
+  %1 = call ptr @list_new()
+  call void @list_set_elem_owner(ptr %1, i32 1)
+  ...
+  call void @list_push(ptr %2, ptr %3)
+  ...
+}
+```
+
+Nothing shares this decision at runtime — there's no branch checking "is this
+element flat," because by the time either function exists, the type argument
+is already concrete and AIF has already chosen its layout for that exact
+specialization.
+
+Ordinary overloads mangle the same way, just without a struct prefix —
+`pick(a: Int, b: Int)` and `pick(a: String, b: String)` become
+`pick__Int_Int` and `pick__String_String`, and `optionOr<T>(o: Option<T>,
+fallback: T)` instantiated at `T = Int` becomes
+`optionOr$Int__Struct_Option$Int_Int`.
+
+## What failure looks like
+
+A bound in a `where` clause is checked at the instantiation site, exactly like
+one written in the parameter list — and the message names both the missing
+trait and where to add it:
+
+<!-- prismio-check: fail -->
+```prismio
+import std.string
+
+trait Show { fn show(self) -> Int }
+
+impl Show for Int {
+    fn show(self) -> Int { return 1 }
+}
+
+fn render<T>(value: T) -> Int where T: Show {
+    return show(value)
+}
+
+fn main() -> Int {
+    return render(true)
+}
+```
+
+```bash
+prismio check bound_fail.psm
+```
+
+```text
+error[P4001]: Bool does not implement `Show`
+  --> bound_fail.psm:14:12
+   |
+14 |     return render(true)
+   |            ^^^^^^
+  note: `render` requires it: the type parameter is declared T: Show
+  note: write `impl Show for Bool { ... }`
+error: aborting due to 1 previous error
+```
+
+Bounds are checked where the concrete arguments are known, not where the
+generic is declared — `render<T>` itself compiles fine with no `impl Show`
+for anything in scope; the error only appears at a call site whose argument
+type actually fails the bound.
 
 ## Why ordering matters
 
-Bounds are checked where the concrete arguments are known. Method and operator rewrites must resolve
-against the specialized receiver and applicable implementations. An eligible `List<Flat>`
-specialization can therefore use inline element storage while another instantiation remains boxed.
+Method and operator rewrites must resolve against the *specialized* receiver
+and its applicable implementations, which is only possible once the concrete
+type argument is known — this is why an eligible `List<Flat>` specialization
+can use inline element storage while another instantiation of the same
+generic remains boxed, as shown above.
 
-Instantiation identity must include every type argument that affects semantics or representation.
-Deduplication prevents duplicate emission; recursion detection distinguishes a valid recursive call
-to an existing specialization from generation of an ever-growing type sequence.
+Instantiation identity must include every type argument that affects
+semantics or representation. Deduplication then prevents duplicate emission
+of the same specialization, and recursion detection distinguishes a valid
+recursive call to an *existing* specialization from generation of an
+ever-growing type sequence that would never terminate.
 
-## Tests
+## If you are changing this
 
-The suite covers generic functions and aggregates, inherent generic implementations, generic trait
-implementations, trait arguments, where clauses, blanket implementations, coherence, associated
-items, and nonterminating instantiation rejection. A change to substitution or identity should add
-both a success case and a case that would collide under an incomplete specialization key.
+### Template collection and identity
 
-## Template collection and identity
+`monoCollectTemplates` walks the merged module and separates generic
+functions, structs, enums, traits, and implementation blocks from
+declarations that are already concrete and ready for analysis.
+`monoIsTemplate` classifies a declaration; `monoFindTemplate` and
+`monoFindTypeTemplate` retrieve one. `monoAppendDeclaration` adds a generated
+specialization to the same module so later sema, AIF, and IR passes see it as
+an ordinary concrete declaration — nothing downstream needs to know it was
+generated.
 
-`monoCollectTemplates` walks the merged module and separates generic functions, structs, enums,
-traits, and implementation blocks from declarations ready for analysis. `monoIsTemplate`
-classifies declarations; `monoFindTemplate` and `monoFindTypeTemplate` retrieve them.
-`monoAppendDeclaration` adds a generated specialization to the same module so later sema, AIF,
-and IR passes see an ordinary concrete declaration.
+Names use `monoSeparator()` — `$`, confirmed above in
+`optionOr$Int__Struct_Option$Int_Int` and `singleton$Struct_Flat__...` — plus
+a complete encoding of the applied arguments. `monoMangledName` produces that
+identity; `semaMangleType` produces the linkage fragments for resolved types
+that go into it. `monoSeparatorCount` and `monoArgsTooDeep` guard against
+runaway recursive expansion; `monoElide` shortens diagnostic presentation
+without shortening the actual identity used for deduplication.
 
-Names use `monoSeparator()`, currently `$`, plus a complete encoding of applied arguments.
-`monoMangledName` produces that identity, while `semaMangleType` produces linkage fragments for
-resolved types. `monoSeparatorCount` and `monoArgsTooDeep` guard runaway recursive expansion;
-`monoElide` shortens diagnostic presentation without shortening the actual identity.
+### Substitution
 
-## Substitution
+`monoCopyOne` and `monoCopyChain` deep-copy the AST (abstract syntax tree)
+portions a specialization will mutate — the template itself must stay
+unchanged so a second specialization starts from the original syntax, not
+from a previous specialization's leftovers. `monoParamCount`, `monoParamAt`,
+`monoParamName`, and `monoParamIndex` interpret the encoded parameter list.
+`monoSubstituteChain` walks annotations and expressions, and
+`monoSubstituteInto` replaces each matching type parameter with a copied
+concrete annotation.
 
-`monoCopyOne` and `monoCopyChain` deep-copy the AST portions a specialization will mutate.
-`monoParamCount`, `monoParamAt`, `monoParamName`, and `monoParamIndex` interpret the encoded
-parameter list. `monoSubstituteChain` walks annotations and expressions, and
-`monoSubstituteInto` replaces each matching type parameter with a copied concrete annotation.
-The template AST must remain unchanged so a second specialization starts from original syntax.
+`monoAnnotationFromType` converts an already-resolved semantic type back into
+an annotation node for a generated declaration — necessary when *inference*,
+rather than explicit syntax, is what discovered a type argument.
 
-`monoAnnotationFromType` converts an already resolved semantic type back into an annotation used
-by a generated declaration. This is necessary when inference, rather than explicit syntax,
-discovers a type argument.
+### Instantiation functions
 
-## Instantiation functions
+`monoInstantiateStruct` validates arity, builds the specialization key,
+returns an existing declaration when one is already cached, or
+copies/substitutes/appends a new concrete struct. `monoResolveGenericCall`
+considers function templates at a call site. `monoTemplateAcceptsCall` and
+`monoSolveTypeParam` infer arguments by matching formal annotations against
+actual argument `TypeInfo` values, and `monoMatchParam` recurses into nested
+applied types rather than comparing only top-level names.
 
-`monoInstantiateStruct` validates arity, builds the specialization key, returns an existing
-declaration when cached, or copies/substitutes/appends a new concrete struct.
-`monoResolveGenericCall` considers function templates at a call site.
-`monoTemplateAcceptsCall` and `monoSolveTypeParam` infer arguments by matching formal
-annotations against actual argument `TypeInfo` values. `monoMatchParam` recursively matches
-nested applied types rather than only top-level names.
+After solving, `monoCheckBounds` evaluates every required trait reference —
+this is what produced the `Show`/`Bool` diagnostic above. `monoCheckOneBound`
+reports one stable diagnostic per failed parameter/bound combination.
+`monoImplApplies`, `monoImplBoundsHold`, and `monoImplements` determine
+whether a concrete or generic implementation satisfies the applied trait,
+including the trait's own type arguments.
 
-After solving, `monoCheckBounds` evaluates every required trait reference.
-`monoCheckOneBound` reports one stable diagnostic per failed parameter/bound combination.
-`monoImplApplies`, `monoImplBoundsHold`, and `monoImplements` determine whether a concrete or
-generic implementation satisfies the applied trait, including trait type arguments.
+### Traits, defaults, and associated types
 
-## Traits, defaults, and associated types
+`monoExpandDefaultMethods` copies a trait default into implementation blocks
+that don't provide the member. `monoExpandOneImpl`, `monoImplDeclaresMethod`,
+and `monoAddDefaultMethod` preserve the target's generic context and create
+the same method record shape a hand-written implementation would have.
 
-`monoExpandDefaultMethods` copies a trait default into implementation blocks that do not provide
-the member. `monoExpandOneImpl`, `monoImplDeclaresMethod`, and `monoAddDefaultMethod` preserve
-the target's generic context and create the same method record shape as a written implementation.
+`monoResolveProjections` resolves associated-type expressions after
+implementation applicability is known — this can't happen during parsing,
+because which implementation applies depends on substituted type arguments
+and bounds that aren't resolved yet. `monoFindAssocType`,
+`monoImplAssocTypeAnnotation`, and `monoConstraintsHold` select the concrete
+associated annotation.
 
-`monoResolveProjections` resolves associated type expressions after implementation applicability
-is known. `monoFindAssocType`, `monoImplAssocTypeAnnotation`, and `monoConstraintsHold`
-select the concrete associated annotation. Resolution cannot happen during parsing because the
-applicable implementation depends on substituted type arguments and bounds.
+### What reaches later passes
 
-## What reaches later passes
+There is no erased generic body anywhere in this pipeline. A concrete
+specialization has concrete field types, parameter types, a mangled symbol
+name, method records, and ownership behavior. Sema checks it as an ordinary
+declaration, AIF selects layout per specialization (not per generic
+declaration), and LLVM emits a distinct function or named struct for each one
+— exactly the `singleton$Struct_Flat...` / `singleton$Struct_Named...` split
+above.
 
-There is no erased generic body. A concrete specialization has concrete field types, parameter
-types, symbol name, method records, and ownership behavior. Sema checks it as an ordinary
-declaration; AIF can select layout per specialization; LLVM emits a distinct function or named
-struct. An eligible `List<Flat>` may therefore use inline storage while `List<Owned>` uses an
-owning representation.
+### What to test
 
-Tests must cover explicit and inferred arguments, nested types, repeated cache hits, overloads,
-recursive templates, generic impl applicability, blanket/concrete overlap, multiple bounds,
-trait arguments, default methods, associated projections, distinct symbols, and a specialization
-whose layout differs from another instantiation.
+The suite covers generic functions and aggregates, inherent generic
+implementations, generic trait implementations, trait arguments, `where`
+clauses, blanket implementations, coherence, associated items, and
+nonterminating-instantiation rejection. A change to substitution or identity
+should add both a success case and a case that would collide under an
+incomplete specialization key — explicit and inferred arguments, nested
+types, repeated cache hits, overloads, recursive templates, generic impl
+applicability, blanket/concrete overlap, multiple bounds, trait arguments,
+default methods, associated projections, distinct symbols, and a
+specialization whose layout genuinely differs from another instantiation of
+the same generic.
