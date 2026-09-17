@@ -3,7 +3,7 @@ title: Type mismatch
 description: Fix Prismio diagnostics where an initializer, argument, assignment, or return has the wrong type.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-08-09"
+lastUpdated: "2026-09-17"
 tags: [error, type-mismatch, type-system]
 related: [language/types, specification/type-system, errors/integer-width-mismatch]
 ---
@@ -43,6 +43,45 @@ fn main() -> Int {
 Change the annotation, change the expression, or add a supported explicit `as` conversion. Do not assume implicit numeric or Boolean coercions.
 
 Use `expect` rather than a cast for an optional reference. Construct a new struct explicitly rather than casting between nominal types. For numbers, check the source range before narrowing—the `as` operator states intent but does not validate external data.
+
+## An empty literal with no type
+
+`[]` has no element to infer a type from, so it takes its type from where it is written: an annotation, a struct field, or a function's return type. Anywhere else there is nothing to take it from:
+
+```text
+error[P4001]: cannot infer the element type of an empty literal
+ --> empty.psm:2:14
+  |
+2 |     let v = []
+  |              ^
+  note: write the type: `let v: Vec<Int> = []` or `let v: [Int] = []`
+```
+
+<!-- prismio-check: fail -->
+```prismio
+fn main() -> Int {
+    let v = []
+    return 0
+}
+```
+
+A call argument counts as "anywhere else": overloads are chosen from the argument types, so an argument cannot borrow its type from a parameter. Bind the empty value with a type first, then pass the name:
+
+<!-- prismio-check: pass -->
+```prismio
+fn total(values: Vec<Int>) -> Int {
+    let mut sum = 0
+    for v in values {
+        sum = sum + v
+    }
+    return sum
+}
+
+fn main() -> Int {
+    let empty: Vec<Int> = []
+    return total(empty)
+}
+```
 
 ## Compiler behavior
 
