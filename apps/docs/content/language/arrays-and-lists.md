@@ -3,7 +3,7 @@ title: Arrays, vectors, and slices
 description: Fixed stack arrays, the growable Vec<T>, and bounds-checked slices in Prismio 0.1 — which to choose, how each is owned, and how to view part of one.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-09-18"
 tags: [arrays, vec, slices, collections, indexing]
 related: [language/types, language/ownership-and-borrowing, stdlib/vec]
 ---
@@ -33,6 +33,30 @@ fn main() -> Int {
 ```
 
 The index expression must be `Int`. Prismio does not silently convert `Usize` or another integer width for indexing.
+
+An element is replaced by assigning through its index, when the element owns nothing: a number, `Bool`, `Char`, `Ptr` or an enum without payloads. The store writes into the array's own storage.
+
+<!-- prismio-check: pass -->
+```prismio
+fn main() -> Int {
+    let grid: [[Int]] = [[1, 2], [3, 4]]
+    grid[1][0] = 30
+    let wide: [I64] = [0, 0]
+    wide[0] = 4294967296
+    return grid[1][0] - 30
+}
+```
+
+An array whose elements own memory refuses the store, because nothing would release the value it replaces. Use a `Vec` for those.
+
+<!-- prismio-check: fail -->
+```prismio
+fn main() -> Int {
+    let names: [String] = ["a", "b"]
+    names[0] = "c"
+    return 0
+}
+```
 
 Arrays are copied as values. Copying an array creates a separate value rather than moving its binding, even though some element types may have more restrictive ownership elsewhere. Treat complex combinations conservatively until the memory specification is expanded.
 
@@ -97,6 +121,8 @@ fn main() -> Int {
 
 `items[0]` is a view of the element, not a copy. Methods that hand an element out — `pop`, `removeAt`, `get` — return a copy instead, so they need `T: Copy`.
 
+`items[i] = x` replaces an element. Storing a view — `items[i] = items[j]`, or `others.push(items[0])` — puts one element in two slots. That is allowed, and it changes how the element's type is stored: the compiler counts references to it from then on, so each slot's release is safe. Store `copyOf(items[j])` instead when two independent values are what you want.
+
 Removing an element that another name still views is safe: a removed element that owns memory is released with the Vec, not at the removal. See [removing an element another name still reads](/stdlib/vec#removing-an-element-another-name-still-reads).
 
 ## Slices
@@ -117,7 +143,7 @@ fn main() -> Int {
 }
 ```
 
-`slice_len(view)` returns the view's length, `view[index]` reads through it, and `slice_set(view, index, value)` writes to the underlying Vec. Overlapping slices are permitted in one task; a write through either is visible through the other.
+`slice_len(view)` returns the view's length, `view[index]` reads through it, and `view[index] = value` — or `slice_set(view, index, value)` — writes to the underlying Vec. Overlapping slices are permitted in one task; a write through either is visible through the other.
 
 A Slice stores the Vec's identity, an offset and a length — not a pointer into the element block. Growing the Vec may move that block, and an existing Slice stays valid because each access finds the block again. Construction and every access are bounds checked: an invalid range or an out-of-range access stops the program with a bounds error instead of reading freed memory.
 
