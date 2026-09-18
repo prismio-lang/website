@@ -256,6 +256,7 @@ These are not in Prismio 0.1. Each is planned, and this page will say so when on
 | **Slices of arrays** — `Slice<T>` views a `Vec<T>` only | index the array directly, or build a `Vec<T>` |
 | **Bounds checks on array indexing** | keep indices in range; a `Slice` checks every access |
 | **Chunked vectors** — `Vec<T, N>` and `Vec<T, Chunk>`, whose elements never move as they grow | `Vec<T>` |
+| **A moving `pop`/`removeAt`** — handing the element out rather than a copy, so a `T` without `Copy` can be popped | read the last element with `v[v.length - 1]`, then `truncate` |
 | **`VecDeque<T>`**, a double-ended queue | a `Vec<T>` used as a stack, or with a moving head index |
 | **Sets** — `Set<T>` / a hash set | `Map<T, Bool>` from [std.map](/stdlib/map) |
 | **A sorted map** (B-tree) | `Map<K, V>`, sorting its keys when order matters |

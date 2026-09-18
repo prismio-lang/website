@@ -30,7 +30,7 @@ fn main() -> Int {
 
 The type was called `List<T>` before 0.1's collections work. That spelling is now an error that names `Vec<T>`; nothing else about the type changed.
 
-**Not available yet:** a chunked `Vec<T, N>` whose elements never move as it grows, a `VecDeque<T>` with `pushFront` and `popFront`, and an iterator protocol. They are planned; [what to use until then](/language/arrays-and-lists#not-available-yet).
+**Not available yet:** a chunked `Vec<T, N>` whose elements never move as it grows, a `VecDeque<T>` with `pushFront` and `popFront`, an iterator protocol, and a `pop`/`removeAt` that moves the element out instead of copying it (so works without `T: Copy`). They are planned; [what to use until then](/language/arrays-and-lists#not-available-yet).
 
 ## Build one
 
@@ -152,9 +152,32 @@ fn main() -> Int {
 }
 ```
 
-This is safe. **A removed element that owns memory is released with the Vec, not at the removal**, which releases exactly what the Vec would have released had the element stayed. So a removal can never free something a view still reads. Scalars and structs with no owned fields own nothing, so removing them holds nothing back.
+This is safe. **Where a view may still be in use, a removed element that owns memory is released with the Vec, not at the removal** — exactly what the Vec would have released had the element stayed, so a removal can never free something a view still reads. Scalars and structs with no owned fields own nothing, so removing them holds nothing back.
 
-The cost is that a long-lived Vec which keeps removing `String`s keeps their memory until the Vec itself is released. Releasing at the removal when the compiler can prove no view exists is planned; see `COLLECTIONS.md` in the compiler repository.
+**Where no view can be in use, the removal releases at once.** `clear`, `truncate` and `removeAt` do that when the Vec was created in the same function (`let buf: Vec<String>`, `= []`), no element of it has been read, sliced or lent to another function before the removal, and — inside a loop — no view of an element is assigned to anything that outlives the iteration. The common case qualifies:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+import std.vec
+import std.string
+
+fn main() -> Int {
+    let buf: Vec<String>
+    let mut total = 0
+    let mut i = 0
+    while (i < 1000) {
+        buf.clear()                   // frees the last iteration's strings
+        buf.push("line ".concat(strFromInt(i), " of the input, long enough to allocate"))
+        for line in buf { total = total + line.length }
+        i = i + 1
+    }
+    println(total)
+    return 0
+}
+```
+
+Anything the compiler cannot prove falls back to releasing with the Vec. So a long-lived Vec that is also read elsewhere, or passed to a function, still keeps removed `String`s until it is released itself. `pop` and `removeAt` are library functions, so a Vec they are called on counts as lent.
 
 ## Ownership
 

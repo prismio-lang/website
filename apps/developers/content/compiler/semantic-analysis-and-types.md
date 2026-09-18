@@ -170,6 +170,18 @@ uninitialised pointer. `Vec<T>?` is left alone: its absent value is `none`. Beca
 sema rule rather than syntax, `src/` and `std/` must not rely on it until the seed has been
 refreshed — the seed would still compile the short form to that uninitialised pointer.
 
+**A Vec removal releases at once when no view can be live** (COLLECTIONS 1e). The runtime's
+`list_truncate` and `list_remove_at` take a `now` flag; without it a removed element that owns
+memory is parked and released with the Vec, because a `let s = v[2]` view may still read it.
+`semaRemovalVerdict` leaves its proof on the call as `CALL_EXPR.i2`: `1` when the Vec is a fresh
+local (the per-binding exclusive mark, set only by a `list_new` initializer) that nothing has read,
+sliced or lent before this point and no loop it predates encloses the call; `2` when such a loop
+does; `0` otherwise. For `2`, codegen's `irViewMayOutliveIteration` grows the set of names that may
+hold a view (non-scalar `let`s whose initializer mentions one, which covers the desugared `for`)
+and answers yes if any assignment of a non-scalar value mentions one — the only way a view crosses
+a back edge. `test_161` holds the result to a peak-live-bytes ceiling in `run_aif_verify_test`,
+because a parked removal balances the ledger too.
+
 `x[i] = v` is decided in `semaIndexAssignment` before the ordinary assignment path. A `Vec` or a
 `Slice` is rewritten by `semaVecLowerIndexStore` into `list_set` / `slice_set` — the call
 `v.set(i, x)` lowers to — and checked as that call. An array of elements that own nothing keeps the
