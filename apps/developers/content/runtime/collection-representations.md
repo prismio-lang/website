@@ -3,7 +3,7 @@ title: Collection representations
 description: The current List, Map, Slice, and DataView runtime forms, ownership modes, growth behavior, and compiler specialization points.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-09-18"
 tags: [runtime, collections, memory]
 related: [aif/layout-selection, compiler/generics-and-monomorphization, runtime/allocation-arenas-rc-and-cycles]
 ---
@@ -24,7 +24,9 @@ program uses (`v.push(x)`, `v.insert(i, x)`, `v.length`) is lowered onto the fun
 A Vec has a header containing length, capacity, data storage, element ownership behavior, region
 information, and inline element width where applicable. Capacity grows geometrically. Flat scalar
 or eligible aggregate elements can be stored inline; ownership-sensitive or layout-incompatible
-elements remain pointer-shaped.
+elements remain pointer-shaped. An eligible aggregate is a struct `ir_struct_is_flat` accepts:
+every field a scalar, a nested flat struct, or an `Array<T, N>` of scalars — `type_key_is_flat`
+reads the field's `arr:N:K` key through to its element.
 
 Destination-oriented push paths can reserve an element slot and construct a flat aggregate
 directly there. Growth inside a region can retain previous buffers until the region ends, which is

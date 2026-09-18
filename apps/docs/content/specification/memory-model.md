@@ -50,7 +50,11 @@ An array is `Array<T, N>`: `N` elements in the defining function's frame, placed
 
 An array whose length is known and whose elements own nothing is a value: binding it (`let b = a`) allocates storage for `b` and copies the elements, and assigning it (`d = c`) copies into `d`'s storage, requiring equal lengths. A `[T]` parameter takes an array of any length as a view of the caller's storage; a store through it, or through a name bound from it, writes the caller's array. An array of arrays, or of elements that own memory, is shared by a second binding in 0.1 rather than copied.
 
-A local array cannot be returned because its storage would escape the function frame. Bounds behavior is not yet standardized as a guaranteed checked-access abstraction.
+A function declared `-> Array<T, N>` returns its array by value: the elements are copied out of the returning frame into storage the caller provides, so the result is again an array in the caller's frame. A function declared `-> [T]` returns a view, and a local array cannot leave through it because its storage would escape the function frame.
+
+A struct field declared `Array<T, N>` is `N` elements inside the struct's own storage, with no allocation of its own. A struct literal zero-fills an array field it does not name and copies the elements of one it does; `let d = s.data` and `s.data = other` copy. Passing `s.data` to a `[T]` parameter passes a view of the struct's storage. Because the elements own nothing, an array field adds nothing to the struct's release, and a struct whose fields are all plain values — array fields included — is stored inline in a `Vec`.
+
+Bounds behavior is not yet standardized as a guaranteed checked-access abstraction.
 
 ## Vec views and Slice lifetime
 

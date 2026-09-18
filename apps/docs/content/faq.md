@@ -3,7 +3,7 @@ title: Frequently asked questions
 description: Concise answers about Prismio 0.1 stability, self-hosting, memory, platforms, packages, and documentation status.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-08-09"
+lastUpdated: "2026-09-18"
 tags: [faq, support, status]
 related: [start/overview, roadmap, compiler/targets]
 ---
@@ -48,7 +48,7 @@ Prismio 0.1 has a `build.ums` manifest and a lockfile, and dependencies may name
 
 Lexer or editor vocabulary can precede parser and semantic support. Only features marked Implemented or Experimental on this site should be expected to compile.
 
-`trait`, `impl`, and `throw` are concrete examples: the lexer reserves them, but 0.1 does not parse their features.
+`throw` is a concrete example: the lexer reserves it, but 0.1 does not parse a feature for it.
 
 ## Are ordinary function parameters moved?
 
@@ -64,7 +64,7 @@ No general source-level `&` reference or user-written lifetime parameter exists 
 
 ## Can I return an array?
 
-A locally created `[T]` stack array cannot escape its function through return. Return a computed scalar/result, keep work local, or use a `Vec<T>` when a growable value must escape.
+Yes, by value: declare the function `-> Array<T, N>` and the caller gets a copy of its own, from a local array, a literal or a zero-filled one. The elements must own nothing. A function declared `-> [T]` returns a view, so a local array cannot leave through it. A struct can hold an array too, as an `Array<T, N>` field. Use a `Vec<T>` when the length is not fixed or the elements own memory. See [returning and storing arrays](/language/arrays-and-lists#returning-and-storing-arrays).
 
 ## Are optionals available for every type?
 
@@ -72,13 +72,13 @@ No. `T?` is limited to reference-shaped structs, strings, vectors, and raw point
 
 ## Can I use methods, traits, generics, or closures?
 
-[Generics](/language/generics) yes — functions, structs, and enums take type parameters, and each instantiation is compiled separately. Methods, traits, and closures no; use named top-level functions.
+Yes. [Generics](/language/generics) — functions, structs, and enums take type parameters, and each instantiation is compiled separately. [Methods](/language/methods) are written in `impl` blocks, [traits](/language/traits) bound generics and can supply default methods, and [closures](/language/closures) are passed as a generic `F`.
 
 `Vec<T>` is separate from that: it is built into the compiler and predates generics rather than being an instance of them.
 
 ## How are errors represented in programs?
 
-There are no exceptions, `try`, `catch`, propagation operator, or built-in generic result type. Use integers, booleans, fieldless enums, optional reference-shaped values, or explicit output parameters according to the API.
+As values. There are no exceptions, `try`, `catch` or propagation operator: a function that can fail returns `Result<T, E>`, and one whose answer may be absent returns `Option<T>` — ordinary generic enums from `std.option`, matched like any other. See [error handling](/language/error-handling).
 
 ## Are documentation error IDs compiler codes?
 

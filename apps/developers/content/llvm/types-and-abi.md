@@ -66,6 +66,10 @@ table above lists arrays as `ptr`. Four backend entry points build and fill that
 | `ir_array_alloca_zeroed` | `let m: Array<T, N>` with no initializer | the slot, and one store of `[N x T]`'s null constant |
 | `ir_array_copy` | `let b = a` where `typeArrayCopies` holds | a new slot and one `memcpy` of the whole array |
 | `ir_array_copy_into` | `d = c` where `typeArrayCopies` holds | one `memcpy` into `d`'s existing storage |
+| `ir_array_load` | `return a` in a `-> Array<T, N>` function | one load of the whole `[N x T]` out of the local's storage |
+| `ir_array_from_value` | a call to a `-> Array<T, N>` function | an entry-block slot of the caller's, and one store of the returned aggregate |
+| `ir_array_zero_key` | a struct literal, for every array field | one store of `[N x T]`'s null constant into the field |
+| `ir_array_copy_key` | a named array field in a literal, and `s.data = x` | one `memcpy` into the field |
 
 **Every array slot is created in the entry block** (`array_slot`), wherever codegen is when it asks,
 exactly as `ir_alloca` does for scalars. Two reasons, both measured before the change:
@@ -87,6 +91,23 @@ read from the module's data layout as `ir_copy_struct` does.
 An index store, `a[i] = v`, is `ir_elem_ptr` at the element's own IR type followed by
 `ir_store_ptr` — the address `generateIndex` reads through — with no release, which is why sema
 admits it only for elements that own nothing.
+
+**An array travels by value under one key, `arr:N:K`** — `N` elements of backend key `K`, which
+`type_from_key` builds as `[N x K]` and `irArrayValueKey` spells. Two places use it:
+
+- **A `-> Array<T, N>` return.** `irArrayReturnKey` reads the declaration, and the signature, every
+  `return` and every call agree through it: `generateFunction` returns the aggregate,
+  `generateReturn` loads it out of the local's storage with `ir_array_load`, and the caller stores
+  it into a slot of its own with `ir_array_from_value`, so the call's value is an address like any
+  array's. LLVM demotes a large aggregate return to a hidden out-pointer itself. Debug info keeps
+  describing the result as a pointer.
+- **An `Array<T, N>` struct field.** `fieldTypeFor` gives the field the key, so it is `N` elements
+  of the struct's own body. `generateMemberAccess` returns the field's address rather than loading
+  it, so `s.data[i]` indexes the struct's bytes and `s.data` passed to a `[T]` parameter is a view
+  of them. A struct literal zeroes every array field first and then copies the named ones over;
+  LLVM drops the zeroing of any it overwrites. `type_key_is_flat` treats the key as flat when its
+  element is, so a `Vec` stores such a struct inline, and `di_type_for` describes it as a
+  `DW_TAG_array_type` member with a subrange of `N`.
 
 ## Named structs and layout
 

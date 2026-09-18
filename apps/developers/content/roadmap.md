@@ -57,7 +57,10 @@ failure mode.
 
 Chunked vectors (`Vec<T, N>`, `Vec<T, Chunk>`) are designed in the compiler repository's
 `COLLECTIONS.md` (step 4) and deliberately not started for 0.1; the parser refuses `Vec<T, N>` with
-`P3006` until they exist. The benchmark catalog records missing deques and ordered containers, priority queues, map deletion,
+`P3006` until they exist. Of `Array<T, N>` (step 3), returns and struct fields are built; still
+open are `[T]` parameters compiled once per length, array fields in generic structs and enum
+payloads (refused in `semaCheckArrayLengthPositions`), and copies of nested or owning arrays.
+`Slice<T>` layouts and slices of arrays are step 5. The benchmark catalog records missing deques and ordered containers, priority queues, map deletion,
 regex, JSON, generic serialization, user-facing atomics and locks, work stealing, async I/O,
 sockets, memory-mapped files, explicit SIMD types, and custom collection allocators.
 

@@ -22,7 +22,7 @@ Local types are inferred from initializers when no annotation is present. Infere
 | `Char` | Byte character |
 | `String` | Owned runtime string |
 | `Ptr` | Raw pointer |
-| `Array<T, N>` | Fixed-length array stored in the function's frame; `[T]` when the length comes from an initializer |
+| `Array<T, N>` | Fixed-length array stored in place — in the function's frame, or in a struct as a field; `[T]` when the length comes from an initializer |
 | `Vec<T>` | Owned, growable vector |
 | `Slice<T>` | Copyable, bounds-checked view into a `Vec<T>` |
 | `T?` | Nullable reference-shaped value |
@@ -124,7 +124,7 @@ See [structs](/language/structs) and [enums](/language/enums) for construction a
 
 ## Arrays, vectors, and slices
 
-`Array<T, N>` is a fixed-length array stored in the function's frame. Without an initializer it holds `N` zeroed slots; `[T]` and `Array<T>` take the length from an initializer instead. An array whose length is known is copied by `let b = a` and by assignment, while a `[T]` parameter is a view of the caller's array. See [arrays, vectors, and slices](/language/arrays-and-lists#arrays).
+`Array<T, N>` is a fixed-length array stored in place: in the function's frame, or inside a struct as a field. Without an initializer it holds `N` zeroed slots; `[T]` and `Array<T>` take the length from an initializer instead. An array whose length is known is copied by `let b = a` and by assignment, while a `[T]` parameter is a view of the caller's array. A function declared `-> Array<T, N>` returns one by value. See [arrays, vectors, and slices](/language/arrays-and-lists#arrays) and [returning and storing arrays](/language/arrays-and-lists#returning-and-storing-arrays).
 
 `Vec<T>` is the owned, growable vector. It is move-only, and it is used through its methods — `v.push(x)`, `v.length`, `v[i]`, `v.insert(i, x)`, `v.pop()` and the rest listed on the [Vec page](/stdlib/vec). It is built into the compiler and predates [generics](/language/generics) rather than being an instance of them — it has its own type kind, runtime, and handling in the memory model. Before 0.1's collections work it was spelled `List<T>`; that spelling is now an error naming `Vec<T>`.
 
@@ -179,5 +179,6 @@ Function calls add parameter modes: an ordinary parameter borrows move-only data
 
 Prismio 0.1 has no tuples, user-defined type aliases, union types, function types (a
 [closure](/language/closures) is passed as a generic `F`), arbitrary reference types, or
-user-written lifetime types. An array's length is part of its type only for a local array; arrays
-cannot yet be returned, stored in a struct field, or taken as a parameter of one fixed length. Do not infer support from examples written for proposals or older documentation.
+user-written lifetime types. An array's length is written on a local `let`, a return type or a
+struct field; a parameter of one fixed length (`xs: Array<Int, 4>`) is not available yet — a `[T]`
+parameter takes any length. Do not infer support from examples written for proposals or older documentation.

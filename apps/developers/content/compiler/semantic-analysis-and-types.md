@@ -142,12 +142,36 @@ set in three places and read everywhere else:
 
 - `semaArrayLiteralExpr` and the literal branch of `semaCheckValue` give a literal its element count.
   A nested literal whose rows differ in length gets an element type of unknown length.
-- `semaSizedArrayAnnotation` types `Array<T, N>` in a `let`, the one place a written length is
-  read. `semaAnnotationInner` refuses a length anywhere else (a parameter, a return, a field, a type
-  argument) and detaches it once reported, because a signature is typed more than once.
+- `semaSizedArrayType` types `Array<T, N>` wherever `semaAnnotationInner` meets a length, because
+  where one may be written was settled first, by `semaCheckArrayLengthPositions` — the first thing
+  `analyzeModule` does. That pass is syntactic, and it has to run before anything types an
+  annotation: typing one can instantiate a generic struct, and an instantiation copies whatever
+  lengths its template still carries. It walks both chains, the declarations and the templates
+  `monoCollectTemplates` parked on `module.child2`. A length is allowed at the top of a local
+  `let`'s annotation, a return type and a struct field; anywhere else — a parameter, a type
+  argument, a nested array, a cast, a closure parameter, an extern, a global — it is reported once
+  and detached. A trait signature is walked as a function, so a default method's `let`s are
+  ordinary locals. Three field cases are refused with their own message: a field of a generic
+  struct (instantiated after this pass, so nothing would check what `T` became), any array in a
+  payload enum's struct (a `match` binds a payload by loading it), and a `[T]` field with no length
+  (it would point into the frame of whichever function built the struct).
 - `semaCheckArrayDecl` runs after the initializer and returns the binding's type: `[T]` and
   `Array<T>` take a known initializer length, `Array<T, N>` must match one, and a declaration with
   no initializer needs `N` and an element type with a zero.
+
+An array field is checked in two more places. `semaCheckArrayFields` runs once the named types are
+registered, since an element may name a struct, and refuses an element that owns something
+(`typeOwnsNothing`). `semaStructLiteralExpr` passes each initializer through `semaCheckArrayCopy`,
+the assignment check, because a literal fills the field by copying. `semaFillOmittedFields`
+synthesises no initializer for an array field — there is no zero to write as an expression, and
+codegen zeroes every array field before the literal's own initializers run. `typeAnnIsPodIn`
+answers POD for `Array<T, N>` with a POD element, so a struct holding one is inline where it is
+nested and flat in a `Vec`; `soa` refuses such a struct (`semaStructHoldsArray`), since a column
+holds one scalar per row.
+
+A call to a function declared `-> Array<T, N>` gets `CALL_EXPR.i2 = 1`. Codegen decides how an
+array return travels from the declaration, never from the call's type: a generic `-> T` bound to an
+array types as one and still returns the pointer it was given.
 
 The length survives a binding because `typeSemKey` writes it — `array#16:U32`, against the
 unchanged `array:U32` for an unknown length — and `typeFromSemKey` reads it back. The key feeds

@@ -3,7 +3,7 @@ title: Debug information
 description: How Prismio emits DWARF compile units, files, functions, lexical scopes, variables, globals, structs, enums, strings, and source locations, and how to inspect what it emitted.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-09-18"
 tags: [llvm, debug, dwarf]
 related: [llvm/types-and-abi, llvm/functions-and-calls, tooling/debugging-targets-and-build-tracing]
 ---
@@ -224,7 +224,10 @@ optimization level.
   `LLVMDIBuilderCreateBasicType` with the matching bit width and DWARF encoding;
 - opaque pointers use `LLVMDIBuilderCreatePointerType`;
 - the fat string and slice built-ins receive explicit struct members;
-- nominal structs use a replaceable composite node while recursive members are resolved; and
+- nominal structs use a replaceable composite node while recursive members are resolved;
+- an `Array<T, N>` field (`arr:N:K`) becomes `LLVMDIBuilderCreateArrayType` over its element, with
+  one subrange of `N` — its element is named by the storage key alone, so a `U8` array shows as
+  `Char`s and lldb prints a zeroed one as `""`; and
 - enums use `LLVMDIBuilderCreateEnumerator` and
   `LLVMDIBuilderCreateEnumerationType` for fieldless forms or struct metadata for payload forms —
   load-bearing because every Prismio enum lowers to `i32` in the actual data representation, so the

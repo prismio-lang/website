@@ -58,7 +58,7 @@ For a move-only argument, an ordinary parameter borrows, `inout` mutably borrows
 
 ## Aggregate typing
 
-An array literal's elements must agree on an element type, and its type records its element count. A declared `Array<T, N>` must agree with a literal initializer's count, and an assignment between two arrays of known length requires equal lengths. A length written anywhere but a local declaration — a parameter, a return type, a field, a type argument — is rejected in 0.1, and `Array` is the only type constructor that takes an integer argument. An index has type `Int`.
+An array literal's elements must agree on an element type, and its type records its element count. A declared `Array<T, N>` must agree with a literal initializer's count, and an assignment between two arrays of known length requires equal lengths. A length may be written on a local declaration, a function's return type and a struct field, and is rejected elsewhere — a parameter, a type argument, an enum payload, an optional, an `extern` signature, a module-level `let` — and on a field of a generic struct. A struct field of array type must carry one. `Array` is the only type constructor that takes an integer argument. An array returned by value or stored in a field must have elements that own nothing; a struct literal initialises an array field by copying, so its length must equal the field's. An index has type `Int`.
 
 A struct literal must name a declared struct and initialize its fields with compatible values. Member selection uses the receiver's nominal declaration. Enum variants are selected and validated with `Enum.Variant`, then type as `Int` in compiler 0.1.
 

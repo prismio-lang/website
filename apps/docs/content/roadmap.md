@@ -28,7 +28,8 @@ This page distinguishes shipped compiler behavior from intent. It does not assig
 | Inline storage for eligible `Vec<T>` structs | Implemented |
 | `Slice<T>` views of a `Vec<T>` and nested slicing | Implemented |
 | Local arrays with a written length (`Array<T, N>`, zero-filled; `[T]` when initialised), copied by value | Implemented |
-| Arrays by value across functions: returned, stored in fields, fixed-length parameters | Coming Soon |
+| Arrays returned by value (`-> Array<T, N>`) and stored in struct fields | Implemented |
+| Fixed-length array parameters, compiled once per length; array fields in generic structs and enum payloads | Coming Soon |
 | Chunked `Vec<T, N>` and `Vec<T, Chunk>`, slices of arrays | Coming Soon |
 | More collections: `VecDeque<T>`, sets, a sorted map, a priority queue, a linked list | Coming Soon |
 | Programmer-directed AoS↔SoA data views | Experimental (conversion, checked reads, mutation and round trip implemented) |

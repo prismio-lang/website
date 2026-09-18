@@ -5,7 +5,7 @@ status: experimental
 version: "0.1.0"
 tags: [aif, regions, views]
 related: [aif/tiers-and-analysis-domains, compiler/ownership-and-drop-lowering, aif/reuse-reports-and-verification]
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-09-18"
 ---
 
 Some values are cheaper to point at than to copy: the middle third of a list, the string inside a
@@ -203,7 +203,10 @@ scope. `aif_var_note_scope` and `aif_var_note_use` record where bindings are dec
 
 `aif_place_arenas` runs after tier solving. It rejects sites with blockers reported by
 `aif_arena_blockers`, groups eligible lifetimes, computes statement ranges, and chooses the
-scope/arena serving each site. `aif_arena_range_first` and `aif_arena_range_last` allow codegen
+scope/arena serving each site. `arena_would_serve` counts only a site codegen would actually route
+into an arena: not a list, a container-owned value, a foreign pointer — and not an array literal,
+which `generateArrayLiteral` always builds in an entry-block `alloca`. Counting one put a push and a
+pop around every iteration of a loop that declared an array and allocated nothing. `aif_arena_range_first` and `aif_arena_range_last` allow codegen
 to open and close a non-lexical arena around only the required statements.
 
 ### Views are provenance edges
@@ -212,6 +215,14 @@ to open and close a non-lexical arena around only the required statements.
 element reference uses storage owned by another value. It does not create a new allocation site.
 When a view escapes, the solver raises the owner to the required lifetime — this is the edge that
 was missing for a field read and a match-arm binder in the worked example above.
+
+**An element read of a scalar is a copy, not a view.** `aifSitesOf` gives `List[i]` and
+`Slice[i]` of a scalar element no edge, and an array index the same: it walks the base for its own
+effects and answers the empty set. Falling through to the generic child walk handed the read the
+array's own value set — and an `Array<T, N>` field's value set is a view of its struct, so
+`sum = sum + t.cells[3]` in a loop lifted `t` into the function's arena, all 100,000 of them. The
+oracle (`aif/prototype/aif.py`) mirrors the rule. `test_164_array_fields` holds the arena to it in
+`run_aif_verify_test`.
 
 Container stores are different: `aif_con_store(key, values, owners)` records both the field/element
 points-to edge and the set of owning containers. `aif_con_retain_in` records another holder.

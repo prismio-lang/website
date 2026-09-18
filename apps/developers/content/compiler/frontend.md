@@ -293,7 +293,7 @@ type arguments (the name in `s1`, the arguments a `next` chain under `child1`),
 and `i3` a trailing `?`. `child1` of an array is its element annotation.
 `Array<T, N>` and `Array<T>` are normalised by `parseArrayTypeArgs` into exactly
 the node `[T]` parses to, so no later pass learns a new shape; a written length
-rides on `child2` as a `LITERAL_EXPR`, which only a local `let` reads. A number
+rides on `child2` as a `LITERAL_EXPR`; the parser accepts one anywhere, and sema decides where one may be written (`semaCheckArrayLengthPositions`). A number
 in a type-argument list is accepted for `Array` alone — `parseTypeArgList`
 refuses it for any other constructor with `P3006` and drops it, so no pass after
 the parser meets a number where a type belongs. `src/` does not use

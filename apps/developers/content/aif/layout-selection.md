@@ -5,7 +5,7 @@ status: experimental
 version: "0.1.0"
 tags: [aif, layout, soa]
 related: [compiler/string-representation, runtime/collection-representations, performance/investigation-method]
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-09-18"
 ---
 
 A struct's field order is free to change, because nothing in ordinary Prismio source names an
@@ -209,7 +209,10 @@ are not classified from a shallow field check.
 
 `aifFieldIsInlineExact` distinguishes embedded value storage from pointer/reference fields.
 An optional struct is a reference edge; a non-optional struct field is embedded. Getting this
-wrong changes both size and lifetime traversal.
+wrong changes both size and lifetime traversal. An `Array<T, N>` field is embedded too:
+`aifTypeBytes` sizes it at `N` elements and `aifTypeAlign` aligns it to its element, as LLVM lays
+out `[N x T]`. `aifLayoutVetoInline` keeps a struct holding one unsplit — the split's cost model
+has never sized an array, and a cold block would be a second place its bytes could live.
 
 ### Field-order selection
 

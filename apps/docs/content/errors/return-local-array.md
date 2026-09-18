@@ -12,11 +12,11 @@ related: [language/arrays-and-lists, language/lifetimes, specification/memory-mo
 
 Array literals are stack allocated. Returning a local array would expose storage after its function frame ends.
 
-Although a local array is copied by `let` and by assignment, 0.1 has no way to hand one back by value: the caller would need storage of the array's length, and a length in a return type is not accepted yet.
+A function declared `-> [T]` returns a view — the address of elements someone else stores — so a local array cannot leave through it. To hand one back, declare the length: `-> Array<T, N>` returns the array by value, and the caller gets storage of its own.
 
 ## Why it happens
 
-`[T]` resembles an ordinary value type, but its storage belongs to the frame that declared it. Returning arrays by value, as `Array<T, N>`, is planned. Until then the escape check prevents a dangling frame reference.
+`[T]` resembles an ordinary value type, but its storage belongs to the frame that declared it. Without a length in the return type there is nothing to copy it into, and the escape check prevents a dangling frame reference.
 
 ## Invalid code
 
@@ -33,16 +33,19 @@ fn main() -> Int { return 0 }
 
 <!-- prismio-check: pass -->
 ```prismio
-fn first() -> Int {
+fn make() -> Array<Int, 3> {
     let values = [1, 2, 3]
-    return values[0]
+    return values
 }
-fn main() -> Int { return first() }
+fn main() -> Int {
+    let values = make()
+    return values[2] - 3
+}
 ```
 
 ## Common fixes
 
-Consume the array inside the function, return a copyable element/result, or use a `Vec<T>` when data must escape.
+Declare the length in the return type, `-> Array<T, N>`, when the elements own nothing: the array is returned by value. Otherwise consume the array inside the function, return a copyable element or result, or use a `Vec<T>` when the data must escape.
 
 To produce an array's contents in another function, let the caller own the storage and fill it through a `[T]` parameter, which writes the caller's array:
 

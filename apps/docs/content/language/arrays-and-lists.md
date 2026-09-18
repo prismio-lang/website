@@ -12,7 +12,7 @@ Arrays and vectors both store repeated values, with different storage, size and 
 
 ## Arrays
 
-An array is a fixed number of elements stored in the function's own frame. Its full type is `Array<T, N>`: the element type and the length.
+An array is a fixed number of elements stored in place — in the function's own frame, or inside a struct as a [field](#returning-and-storing-arrays). Its full type is `Array<T, N>`: the element type and the length.
 
 ```prismio
 let buffer: Array<U8, 64>             // 64 slots, every one 0
@@ -109,7 +109,26 @@ Two kinds of array are **shared** by a second binding rather than copied, until 
 
 ### Returning and storing arrays
 
-A function may not return an array created in its own frame, and a written length is accepted only where a local array is declared — not on a parameter, a return type or a struct field. Both need arrays to be passed and stored by value, which is planned.
+**A function declared `-> Array<T, N>` returns the array by value.** The caller gets storage of its own, so a local array, a literal or a zero-filled `Array<T, N>` can all be returned. The result can be bound (a copy), indexed directly, or passed straight to a `[T]` parameter.
+
+<!-- prismio-check: pass -->
+```prismio
+fn squares() -> Array<Int, 4> {
+    let out: Array<Int, 4>
+    for i in 0..4 {
+        out[i] = i * i
+    }
+    return out
+}
+
+fn main() -> Int {
+    let s = squares()
+    s[0] = 100
+    return s[3] + squares()[2] + squares()[0] - 13
+}
+```
+
+The returned array must have exactly `N` elements, and they must own nothing, as they must for any copied array. A `[T]` parameter's length is not known, so it cannot be returned as `Array<T, N>`. A function declared `-> [T]` still returns a view, so only an array it was given can leave through it — returning a local array that way is refused, with an error that points at `Array<T, N>`:
 
 <!-- prismio-check: fail -->
 ```prismio
@@ -121,7 +140,55 @@ fn build() -> [Int] {
 fn main() -> Int { return 0 }
 ```
 
-Pass a caller-owned array to a `[T]` parameter and fill it there, or use a `Vec` when the data must outlive the function.
+**A struct field declared `Array<T, N>` stores the array inside the struct** — `N` elements in place, with no allocation of their own. A literal that leaves the field out zero-fills it; one that names it copies the elements in, and the lengths must match. `s.data[i]` reads and writes the struct's own elements. `let d = s.data` and `s.data = other` copy. Passed to a `[T]` parameter, `s.data` is a view, so the callee writes the struct's elements.
+
+<!-- prismio-check: pass -->
+```prismio
+struct Packet {
+    id: Int,
+    payload: Array<U8, 8>
+}
+
+fn stamp(bytes: [U8]) {
+    bytes[0] = 200
+}
+
+fn checksum(bytes: [U8], n: Int) -> Int {
+    let mut sum = 0
+    for i in 0..n {
+        sum = sum + (bytes[i] as Int)
+    }
+    return sum
+}
+
+fn main() -> Int {
+    let p = Packet { id: 1 }
+    stamp(p.payload)
+    p.payload[7] = 55
+    let copy = p.payload
+    copy[0] = 0
+    return checksum(p.payload, 8) - 255
+}
+```
+
+A struct whose fields are all plain values — array fields included — is stored inline in a `Vec`, one contiguous block with no allocation per element. Reading one element of an array field copies it, so a struct read that way in a loop stays in the function's frame.
+
+An array field is refused when:
+
+- **its elements own memory**, such as `String`, or are structs, which are allocations of their own. Use a `Vec` field.
+- **the struct is generic.** `struct Box<T> { items: Array<T, 4> }` is not supported yet.
+- **it has no length.** A field written `[T]` would point into the frame of whichever function built the struct; write `Array<T, N>`.
+
+<!-- prismio-check: fail -->
+```prismio
+struct Names {
+    all: Array<String, 2>
+}
+
+fn main() -> Int { return 0 }
+```
+
+A length is written in three places only: a local `let`, a return type and a struct field. A parameter takes `[T]` and gets its length from each call; a type argument (`Vec<Array<Int, 4>>`), an optional, an `extern` signature and a module-level `let` cannot carry one.
 
 The language does not yet promise a portable bounds-check trap for every array index. Keep indices in range and do not rely on backend behavior for memory safety.
 
@@ -150,7 +217,7 @@ A `Vec` binding with no initializer starts empty: `let items: Vec<Item>` is `let
 
 The full method list — `push`, `insert`, `pop`, `removeAt`, `contains`, `sort` and the rest — is on the [Vec page](/stdlib/vec).
 
-**Storage follows the element type.** Scalars, `String`s and structs with no pointer-bearing fields live directly in the Vec's block; everything else is stored as one pointer per element. The choice is made per concrete type when the program is compiled, including inside generic code, and it changes nothing about how the Vec is used. Neither layout is a stable C ABI.
+**Storage follows the element type.** Scalars, `String`s and structs with no pointer-bearing fields — `Array<T, N>` fields included — live directly in the Vec's block; everything else is stored as one pointer per element. The choice is made per concrete type when the program is compiled, including inside generic code, and it changes nothing about how the Vec is used. Neither layout is a stable C ABI.
 
 ## Vec ownership
 
@@ -232,18 +299,19 @@ fn main() -> Int {
 
 | | `Array<T, N>` / `[T]` | `Vec<T>` |
 | --- | --- | --- |
-| Storage | the function's frame | heap block |
+| Storage | the function's frame, or the struct holding it | heap block |
 | Size | fixed: written as `N`, or taken from the initializer | grows with `push` and `insert` |
 | Literal | `[1, 2, 3]` | `[1, 2, 3]` where a `Vec` is expected |
 | Without values | `Array<T, N>`, zero-filled | `[]` |
 | Assignment | copy (a `[T]` parameter is a view) | move |
-| Returned from a function | rejected | yes |
-| `for x in …` | no | yes |
+| Returned from a function | by value, declared `-> Array<T, N>` | yes |
+| In a struct field | in place, declared `Array<T, N>` | yes, as a pointer to the Vec |
+| `for x in …` and `.length` | no | yes |
 | Index type | `Int` | `Int` |
 
 ## DataView
 
-Programmer-directed SoA data views are experimental. For an eligible flat struct `T`, `soa(rows)` consumes a `Vec<T>` into a move-only `DataView<T>`, `data_len(view)` borrows its length, and `view[index].field` reads or mutates the corresponding column through a checked handle-and-index descriptor. Nested flat fields can be mutated as well. `aos(view)` consumes the view and rebuilds a `Vec<T>` containing those changes. An `extern fn` taking or returning a DataView is rejected until explicit marshalling exists.
+Programmer-directed SoA data views are experimental. For an eligible flat struct `T`, `soa(rows)` consumes a `Vec<T>` into a move-only `DataView<T>`, `data_len(view)` borrows its length, and `view[index].field` reads or mutates the corresponding column through a checked handle-and-index descriptor. Nested flat fields can be mutated as well. A struct holding an `Array<T, N>` field is not eligible: a column holds one scalar per row. `aos(view)` consumes the view and rebuilds a `Vec<T>` containing those changes. An `extern fn` taking or returning a DataView is rejected until explicit marshalling exists.
 
 ## Not available yet
 
@@ -251,8 +319,10 @@ These are not in Prismio 0.1. Each is planned, and this page will say so when on
 
 | Missing | Use today |
 | --- | --- |
-| **Arrays by value across functions** — returning an array, an array field in a struct, a parameter of one fixed length (`xs: Array<Int, 4>`) | fill a caller's array through a `[T]` parameter, or use a `Vec<T>` |
-| **Copying an array of arrays** (today a second binding shares its rows) | copy row by row into an `Array<T, N>` |
+| **A parameter of one fixed length** (`xs: Array<Int, 4>`), compiled once per length | a `[T]` parameter, with the length passed beside it |
+| **`for x in` and `.length` on an array** | `for i in 0..N`, with the `N` you wrote |
+| **An array field in a generic struct**, or one whose elements own memory | a struct without type parameters, or a `Vec<T>` field |
+| **Copying an array of arrays**, or of elements that own memory (today a second binding shares them) | copy row by row into an `Array<T, N>` |
 | **Slices of arrays** — `Slice<T>` views a `Vec<T>` only | index the array directly, or build a `Vec<T>` |
 | **Bounds checks on array indexing** | keep indices in range; a `Slice` checks every access |
 | **Chunked vectors** — `Vec<T, N>` and `Vec<T, Chunk>`, whose elements never move as they grow | `Vec<T>` |
