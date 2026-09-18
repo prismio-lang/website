@@ -3,14 +3,14 @@ title: Ownership and borrowing
 description: Move-only values, default borrows, sink transfers, inout mutation, drop, and loop restrictions in Prismio 0.1.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-08-09"
+lastUpdated: "2026-09-18"
 tags: [ownership, borrowing, move, sink, inout]
 related: [language/functions, language/annotations, specification/memory-model, errors/use-after-move]
 ---
 
 Ownership determines which binding is responsible for move-only data and when an operation may read, mutate, transfer, or destroy it. Prismio 0.1 applies these checks without source-level reference syntax.
 
-Strings, lists, and structs are move-only. Optional wrappers around owned reference-shaped values preserve that ownership. Scalars, raw pointer values, fieldless enums, and arrays are copied as values in the current model.
+Strings, lists, and structs are move-only. Optional wrappers around owned reference-shaped values preserve that ownership. Scalars, raw pointer values, fieldless enums, and arrays of a known length are copied as values in the current model. A `[T]` parameter is the exception among arrays: it is a view of the caller's array, so a store through it writes the caller's elements — see [copies and views](/language/arrays-and-lists#copies-and-views).
 
 | Operation | Copy value | Move-only value |
 | --- | --- | --- |
@@ -194,7 +194,7 @@ Branch-sensitive move checking exists where supported by semantic analysis, but 
 
 ## Rules summary
 
-- Strings, lists, and structs are move-only; scalars, enums, raw pointer values, and arrays copy.
+- Strings, lists, and structs are move-only; scalars, enums, raw pointer values, and arrays of a known length copy. A `[T]` parameter views the caller's array.
 - Ordinary parameters borrow move-only values.
 - `sink` transfers ownership to the callee.
 - `inout` grants temporary mutable access while the caller retains ownership.

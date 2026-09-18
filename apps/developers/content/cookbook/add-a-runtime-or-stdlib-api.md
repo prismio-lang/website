@@ -3,7 +3,7 @@ title: Add a runtime or standard-library API
 description: Choose the correct Prismio implementation layer, specify ownership, connect native symbols, and prove behavior across targets.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-09-18"
 tags: [cookbook, runtime, stdlib]
 related: [runtime/supported-surface, aif/ffi-contracts, llvm/llvm-c-bridge, runtime/overview, runtime/library-artifacts, tooling/compiler-host-and-promotion]
 ---
@@ -24,7 +24,7 @@ import std.io
 import std.string
 
 fn main() -> Int {
-    let names: Vec<String> = []
+    let names: Vec<String>
     names.push("alpha".concat("-one"))
     names.push("beta".concat("-two"))
     println(names[1])

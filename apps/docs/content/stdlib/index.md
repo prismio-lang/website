@@ -3,7 +3,7 @@ title: Standard library status
 description: Prismio's shipped source standard library and the modules still planned.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-09-18"
 tags: [standard-library, runtime, status]
 related: [stdlib/io, stdlib/strings, stdlib/vec, stdlib/map, stdlib/option, roadmap]
 ---
@@ -55,6 +55,8 @@ remains the general conservative replacement operation.
 
 [`std.vec`](/stdlib/vec) gives `Vec<T>` its literals and methods — `push`, `insert`, `pop`, `removeAt`, `contains`, `indexOf`, `reverse`, `clone` and the rest — plus `sort` for a `T: Ord`, `sortBy` with a closure comparator, `binarySearch`, `filter`, `mapInto`, `countWhere`, `anyOf` and `allOf`. There is still no iterator protocol.
 
+**`Vec<T>` and `Map<K, V>` are the only collections in 0.1.** Not available yet, and planned: `VecDeque<T>`, sets, a sorted map, a priority queue, a linked list and the chunked `Vec<T, N>`. The fixed-length `Array<T, N>` is a language type rather than a library one. [What each missing collection is, and what to use until it ships](/language/arrays-and-lists#not-available-yet).
+
 ## Memory primitives
 
 `drop(value)` explicitly consumes owned move-only data. `expect(optional)` performs a checked presence assertion for reference-shaped optionals. These are language/runtime primitives, not exception or destructor frameworks.
@@ -65,7 +67,7 @@ Programs can declare C-compatible symbols with `extern fn`. It is the escape hat
 
 An `extern fn` with no contract has unknown provenance: the analysis widens it to Shared, the result gets no owner, and it leaks. Worse, `produce(free)` on a function that returns a borrowed pointer hands that pointer to the deallocator. See the contract table in the compiler repository's `RUNTIME.md`.
 
-These pages separate existing runtime surface from planned modules. I/O, strings, and vectors describe implemented capabilities. Filesystem, networking, time, and concurrency pages are marked Coming Soon.
+These pages separate existing runtime surface from planned modules. Networking and time are marked Coming Soon, and so is the concurrency page, for the synchronization types and `async` that are not built yet; every other page describes a module that ships.
 
 Coming Soon pages intentionally do not invent final module names or signatures. They define what is missing and the semantic questions that must be resolved before the status changes.
 

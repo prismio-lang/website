@@ -3,7 +3,7 @@ title: Type-system rules
 description: Prismio 0.1 type categories, inference, compatibility, optional types, overloads, and explicit conversions.
 status: draft
 version: "0.1.0"
-lastUpdated: "2026-08-09"
+lastUpdated: "2026-09-18"
 tags: [specification, type-system, inference, conversion]
 related: [language/types, language/functions, specification/memory-model]
 ---
@@ -14,7 +14,7 @@ Type inference is local and does not make a binding polymorphic or dynamic. Once
 
 ## Type universe
 
-Primitive types are `Int`, `I8`, `I16`, `I64`, `Isize`, `U8`, `U16`, `U32`, `U64`, `Usize`, `Float`, `Bool`, `Char`, `String`, and `Ptr`. Struct names introduce nominal types. Enum names introduce declared enum types with the `Int` compatibility rule below. `[T]` forms an array type; `Vec<T>` forms the built-in growable vector type. `List<T>`, its former spelling, is rejected with a diagnostic naming `Vec<T>`.
+Primitive types are `Int` (also spelled `I32`), `I8`, `I16`, `I64`, `Isize`, `U8`, `U16`, `U32`, `U64`, `Usize`, `Float`, `Bool`, `Char`, `String`, and `Ptr`. Struct names introduce nominal types. Enum names introduce declared enum types with the `Int` compatibility rule below. `Array<T, N>` forms an array type of element `T` and length `N`, an integer literal; `[T]` and `Array<T>` spell it with the length taken from an initializer. `Vec<T>` forms the built-in growable vector type. `List<T>`, its former spelling, is rejected with a diagnostic naming `Vec<T>`.
 
 `Int` is signed 32-bit. `Float` is the sole 64-bit floating-point type. `Isize` and `Usize` use target pointer width. `Char` is byte-sized in 0.1.
 
@@ -58,7 +58,7 @@ For a move-only argument, an ordinary parameter borrows, `inout` mutably borrows
 
 ## Aggregate typing
 
-An array literal's elements must agree on an element type. Source type `[T]` does not spell the length even though the compiler tracks concrete storage from the initializer. An index has type `Int`.
+An array literal's elements must agree on an element type, and its type records its element count. A declared `Array<T, N>` must agree with a literal initializer's count, and an assignment between two arrays of known length requires equal lengths. A length written anywhere but a local declaration — a parameter, a return type, a field, a type argument — is rejected in 0.1, and `Array` is the only type constructor that takes an integer argument. An index has type `Int`.
 
 A struct literal must name a declared struct and initialize its fields with compatible values. Member selection uses the receiver's nominal declaration. Enum variants are selected and validated with `Enum.Variant`, then type as `Int` in compiler 0.1.
 

@@ -3,7 +3,7 @@ title: Container ownership transfer
 description: Fix a Prismio Vec insertion that reuses a moved element or moves from a borrowed parameter.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-09-18"
 tags: [error, vec, container, ownership, sink]
 related: [stdlib/vec, language/ownership-and-borrowing, errors/use-after-move]
 ---
@@ -24,7 +24,7 @@ The container needs an owner for every move-only element it stores. A borrowed v
 ```prismio
 struct Item { value: Int }
 fn main() -> Int {
-    let items: Vec<Item> = []
+    let items: Vec<Item>
     let item = Item { value: 1 }
     items.push(item)
     items.push(item)
@@ -39,7 +39,7 @@ fn main() -> Int {
 struct Item { value: Int }
 fn hold(items: Vec<Item>, sink item: Item) { items.push(item) }
 fn main() -> Int {
-    let items: Vec<Item> = []
+    let items: Vec<Item>
     hold(items, Item { value: 1 })
     return items.length - 1
 }

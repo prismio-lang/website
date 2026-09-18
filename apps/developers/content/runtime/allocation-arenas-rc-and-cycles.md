@@ -3,7 +3,7 @@ title: Allocation, arenas, reference counts, and cycles
 description: Native memory mechanisms supporting AIF stack, region, unique, shared, and cycle-aware storage decisions.
 status: experimental
 version: "0.1.0"
-lastUpdated: "2026-09-08"
+lastUpdated: "2026-09-18"
 tags: [runtime, allocator, aif]
 related: [aif/tiers-and-analysis-domains, aif/reuse-reports-and-verification, performance/investigation-method]
 ---
@@ -88,6 +88,14 @@ The collector follows the trial-deletion phases:
 - `cyc_scan_black` restores live subgraphs;
 - `cyc_collect_white` reclaims the unreachable cycle; and
 - `cyc_free_object` runs the typed release path.
+
+**A buffered root that reaches zero is freed by the collector, not by `cyc_release`.** This is
+Bacon and Rajan's *Release*: when a count drops to zero on an object sitting in the roots buffer,
+`cyc_release` colours it black and returns, and the first pass of the next `cyc_collect` frees every
+root whose count is zero before trial deletion starts — nothing refers to such a root, so no walk
+can reach it. Freeing it in `cyc_release` left a dangling entry in the buffer that
+`cyc_collect_white` freed again; it became reachable once a local value could be T4b (two lists
+sharing a recursive enum, the first teardown buffering the node and the second reaching zero).
 
 `cyc_collect` processes buffered roots, `cyc_collect_now` provides an explicit test boundary,
 and `cyc_final` performs final cleanup. `cyc_objects`, `cyc_reclaimed`, and

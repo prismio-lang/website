@@ -3,7 +3,7 @@ title: Vec
 description: Vec<T>, Prismio's growable vector — building one, its methods, what removing an element does to views of it, and the sorting and higher-order algorithms in std.vec.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-09-18"
 tags: [standard-library, vec, collections, ownership]
 related: [language/arrays-and-lists, language/ownership-and-borrowing, errors/container-ownership, stdlib/map]
 ---
@@ -30,11 +30,13 @@ fn main() -> Int {
 
 The type was called `List<T>` before 0.1's collections work. That spelling is now an error that names `Vec<T>`; nothing else about the type changed.
 
+**Not available yet:** a chunked `Vec<T, N>` whose elements never move as it grows, a `VecDeque<T>` with `pushFront` and `popFront`, and an iterator protocol. They are planned; [what to use until then](/language/arrays-and-lists#not-available-yet).
+
 ## Build one
 
 | Form | Gives |
 |---|---|
-| `let v: Vec<Int> = []` | an empty Vec |
+| `let v: Vec<Int>` | an empty Vec — the same as `let v: Vec<Int> = []` |
 | `let v: Vec<Int> = [1, 2, 3]` | a Vec holding those elements, up to twelve of them |
 | `Vec<Int>.withCapacity(n)` | an empty Vec with room for `n` elements before it reallocates |
 
@@ -165,7 +167,7 @@ import std.vec
 struct Item { id: Int }
 
 fn main() -> Int {
-    let items: Vec<Item> = []
+    let items: Vec<Item>
     let item = Item { id: 7 }
     items.push(item)
     return item.id
@@ -193,6 +195,8 @@ fn main() -> Int {
 ```
 
 **Storage follows the element type.** Scalars, `String`s and structs with no pointer-bearing fields live directly in the Vec's block; everything else is stored as one pointer per element. That choice is made when the program is compiled and changes nothing about how the Vec is used, and neither layout is a stable foreign ABI.
+
+**Storing an element somewhere else shares it.** `others.push(items[0])` and `items[i] = items[j]` put one element in two slots rather than copying it. That is safe — the compiler counts references to that element type from then on — but it costs the counting, and for a struct of plain fields it also moves the type out of the Vec's block into one allocation per element. Store `copyOf(items[j])` when two independent values are what you want.
 
 ## Sorting
 

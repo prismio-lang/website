@@ -3,7 +3,7 @@ title: Types and ABI
 description: Prismio-to-LLVM type keys, storage forms, field layout, target widths, optional encoding, string ABI, and foreign-call coercion.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-08"
+lastUpdated: "2026-09-18"
 tags: [llvm, types, abi]
 related: [llvm/overview, runtime/collection-representations, compiler/string-representation]
 ---
@@ -20,7 +20,7 @@ analysis stores a resolved type on each annotation and expression; `mapTypeNode`
 | `Bool` | `i1` | `LLVMInt1TypeInContext` | Boolean in SSA; inline container storage rounds to one byte |
 | `Char`, `I8`, `U8` | `i8` | `LLVMInt8TypeInContext` | Signedness belongs to operations, not LLVM integer types |
 | `I16`, `U16` | `i16` | `LLVMInt16TypeInContext` | Cast selection determines extension behavior |
-| `Int`, `U32` | `i32` | `LLVMInt32TypeInContext` | `Int` is signed 32-bit |
+| `Int` (also `I32`), `U32` | `i32` | `LLVMInt32TypeInContext` | `Int` is signed 32-bit; the parser renames `I32` to `Int` |
 | `I64`, `U64` | `i64` | `LLVMInt64TypeInContext` | Used directly, not widened through `Int` |
 | `Isize`, `Usize` | selected pointer integer | `i32` or `i64` | `ir_set_pointer_int_type` follows the target data layout |
 | `Float` | `double` | `LLVMDoubleTypeInContext` | Prismio's current floating representation is 64-bit |
@@ -53,6 +53,40 @@ These functions must not be merged. If `storageType` were used for fields, a val
 would become an extra pointer and allocation. If `fieldStorageType` were used for parameters,
 the calling convention would silently change. If the fat string crossed FFI unchanged, a C
 function expecting `char *` would receive a two-word aggregate.
+
+## Arrays
+
+An array is an `[N x T]` `alloca`, and the binding holds a `ptr` to element 0 — which is why the
+table above lists arrays as `ptr`. Four backend entry points build and fill that storage, all in
+`runtime/llvm-api-backend.c`:
+
+| Entry point | Emitted for | What it builds |
+| --- | --- | --- |
+| `ir_array_alloca` | an array literal | the slot; codegen then stores each element |
+| `ir_array_alloca_zeroed` | `let m: Array<T, N>` with no initializer | the slot, and one store of `[N x T]`'s null constant |
+| `ir_array_copy` | `let b = a` where `typeArrayCopies` holds | a new slot and one `memcpy` of the whole array |
+| `ir_array_copy_into` | `d = c` where `typeArrayCopies` holds | one `memcpy` into `d`'s existing storage |
+
+**Every array slot is created in the entry block** (`array_slot`), wherever codegen is when it asks,
+exactly as `ir_alloca` does for scalars. Two reasons, both measured before the change:
+
+- A slot built at the current position inside a loop allocated again on every iteration. Ten
+  million iterations of `let a: [Int] = [i, 1, 2]` exited 139 at `-O0`; at `-O3` it survived only
+  because the optimizer deleted the array.
+- mem2reg and SROA promote only allocas in the entry block (the LLVM tutorial's
+  [Kaleidoscope chapter 7](https://llvm.org/docs/tutorial/MyFirstLanguageFrontend/LangImpl07.html)
+  states it for mem2reg, and SROA reuses the same promotion). An array declared inside a branch or
+  a loop could otherwise never be split into registers, however small.
+
+The *initialisation* stays where the declaration is: the zeroing store and the copies are emitted
+at the current position, so a declaration in a loop body starts at zero, or at its copied value, on
+every iteration. The zeroing store is lowered to `memset` and deleted by dead-store elimination when
+every element is written before it is read. The `memcpy` alignment is the element's ABI alignment,
+read from the module's data layout as `ir_copy_struct` does.
+
+An index store, `a[i] = v`, is `ir_elem_ptr` at the element's own IR type followed by
+`ir_store_ptr` — the address `generateIndex` reads through — with no release, which is why sema
+admits it only for elements that own nothing.
 
 ## Named structs and layout
 

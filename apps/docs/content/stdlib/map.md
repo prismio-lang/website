@@ -3,7 +3,7 @@ title: Map
 description: The std.map hash table, the Key bound its keys satisfy, and why values stay scalar in Prismio 0.1.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-08-29"
+lastUpdated: "2026-09-18"
 tags: [standard-library, map, collections, generics, traits, hash]
 related: [stdlib/vec, language/generics, language/traits]
 ---
@@ -11,6 +11,8 @@ related: [stdlib/vec, language/generics, language/traits]
 `Map<K, V>` is an associative container written in Prismio and shipped as `std/map.psm`. It is the first container in the language that is not built into the compiler, and it exists because [generics](/language/generics) do.
 
 Import it explicitly. So does `std.io`: there is no prelude, and every standard module is imported the same way.
+
+**Not available yet:** a set type and a sorted map. Both are planned. Until then a `Map<T, Bool>` stands in for a set, and sorting the keys gives a sorted traversal — see [what else is missing](/language/arrays-and-lists#not-available-yet).
 
 <!-- prismio-check: pass -->
 ```prismio

@@ -3,7 +3,7 @@ title: Engineering roadmap
 description: Evidence-backed Prismio compiler, AIF, runtime, tooling, and standard-surface priorities without invented release dates.
 status: draft
 version: "0.1.0"
-lastUpdated: "2026-09-08"
+lastUpdated: "2026-09-18"
 tags: [roadmap, compiler, status]
 related: [start, releases/0.1.0, performance/investigation-method]
 ---
@@ -55,7 +55,9 @@ failure mode.
 
 ## Unsupported surface
 
-The benchmark catalog records missing deques and ordered containers, priority queues, map deletion,
+Chunked vectors (`Vec<T, N>`, `Vec<T, Chunk>`) are designed in the compiler repository's
+`COLLECTIONS.md` (step 4) and deliberately not started for 0.1; the parser refuses `Vec<T, N>` with
+`P3006` until they exist. The benchmark catalog records missing deques and ordered containers, priority queues, map deletion,
 regex, JSON, generic serialization, user-facing atomics and locks, work stealing, async I/O,
 sockets, memory-mapped files, explicit SIMD types, and custom collection allocators.
 

@@ -5,7 +5,7 @@ status: experimental
 version: "0.1.0"
 tags: [aif, allocation, analysis]
 related: [aif/overview, aif/regions-views-and-provenance, runtime/allocation-arenas-rc-and-cycles]
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-09-18"
 ---
 
 A storage tier is the compiler's answer to one question: given everything it can prove about a
@@ -252,6 +252,26 @@ effective byte limit (256 bytes on the manifest above — the reason `Wide` in t
 a field count). `aif_site_is_rc`, `aif_site_is_cyclic`, and `aif_type_is_counted` expose the
 runtime mechanism implied by the final plan. `aif_site_thread` distinguishes isolated, transferred,
 and cross-thread values so codegen can select atomic RC only when required.
+
+**The T1 clause reads A for one kind of site.** SPEC 4.2's T1 tests only escape, on the grounds
+that "region membership dominates aliasing": an arena reset frees nothing individually, so sharing
+inside a region costs nothing. A container element is never arena-served — its container frees it
+through the deallocator — so a container element that is `Shared` would be freed once per holder.
+`derived_tier` (and the oracle's `tier_of`) therefore let `in_container && A == Shared` fall through
+to T3, or T4b for a recursive type. Before 2026-09-18 that site stayed T1, and
+`list_push(ys, list_get(xs, 0))` on a struct literal read `release of a pointer that is not live`
+while `--why` said "A rose to Shared <- A-CONTAIN" over the T1 site.
+
+**A stored view is a second holder.** A-CONTAIN counts *containers* (`container_of`), so a move
+within one list — `list_set(xs, i, list_get(xs, j))`, or `v[i] = v[j]` — never reached it. The
+RETAIN_IN rule now raises every site of a stored value that is a view (SPEC 8.4 provenance) to
+`Shared`, attributed to A-CONTAIN; a `String` is exempt, because storing a string view copies it.
+Because an element read resolves through the container type's element key, this counts every site
+of that element type that reaches such a list, which keeps one type's elements in one tier.
+
+A value returned from a helper was already counted — a return is `Caller` — which is why these
+probes read clean when the element came from a function and double-freed when it was a literal.
+Probe with literals. The regression guard is `tests/test_157_shared_container_elements.psm`.
 
 ### Pins and widening
 

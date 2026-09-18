@@ -3,7 +3,7 @@ title: Ownership and drop lowering
 description: How Prismio tracks moves, default borrows, consuming parameters, mutable borrows, reassignment, and destruction — and how that legality gets turned into an actual release call.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-09-18"
 tags: [ownership, borrowing, drops]
 related: [aif/overview, aif/regions-views-and-provenance, llvm/control-flow, runtime/overview]
 ---
@@ -22,7 +22,7 @@ import std.io
 import std.string
 
 fn main() -> Int {
-    let names: Vec<String> = []
+    let names: Vec<String>
     names.push("alpha".concat("-one"))
     names.push("beta".concat("-two"))
     println(names[1])

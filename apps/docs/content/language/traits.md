@@ -3,7 +3,7 @@ title: Traits and bounds
 description: Prismio traits -- generic trait declarations, structural trait arguments, impl Trait for Type, and bounds checked statically at instantiation.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-02"
+lastUpdated: "2026-09-18"
 tags: [traits, bounds, generics, impl, Self]
 related: [language/methods, language/generics, language/functions]
 ---
@@ -989,7 +989,7 @@ fn sortInPlace<T: Ord>(items: Vec<T>) {
 }
 
 fn main() -> Int {
-    let xs: Vec<Int> = []
+    let xs: Vec<Int>
     xs.push(5)
     xs.push(1)
     xs.push(4)

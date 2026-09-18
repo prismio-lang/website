@@ -3,7 +3,7 @@ title: Lexer, parser, and AST
 description: The Prismio frontend from UTF-8 scanning through parser recovery and the typed structures consumed by later stages.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-09-18"
 tags: [lexer, parser, ast]
 related: [compiler/pipeline-and-driver, compiler/semantic-analysis-and-types, compiler/diagnostics, cookbook/add-a-language-feature]
 ---
@@ -286,6 +286,21 @@ file/span information, and a semantic type pointer. `createNode` initializes
 every field; `nodeSpanFrom` copies the complete source range. `NodeList` and
 `nodeListPush` build ordered child chains without teaching every parser
 production its own list storage.
+
+A `TYPE_ANNOTATION` reuses the general slots, and every pass that reads an
+annotation reads them the same way: `i1` marks an array, `i2` a constructor with
+type arguments (the name in `s1`, the arguments a `next` chain under `child1`),
+and `i3` a trailing `?`. `child1` of an array is its element annotation.
+`Array<T, N>` and `Array<T>` are normalised by `parseArrayTypeArgs` into exactly
+the node `[T]` parses to, so no later pass learns a new shape; a written length
+rides on `child2` as a `LITERAL_EXPR`, which only a local `let` reads. A number
+in a type-argument list is accepted for `Array` alone — `parseTypeArgList`
+refuses it for any other constructor with `P3006` and drops it, so no pass after
+the parser meets a number where a type belongs. `src/` does not use
+`Array<T, N>` yet: under the seed rule it can once the seed has been refreshed
+by a compiler that parses it. Two names are renamed on the way through, so no
+later pass ever meets them: `Vec` becomes the internal `List`, and `I32` becomes
+`Int`, the one signed 32-bit type.
 
 `TypeInfo` is separate from syntax. `nodeSetType` attaches a copied resolved
 type after semantic analysis, and `nodeGetType` is the later contract.

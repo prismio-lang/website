@@ -3,7 +3,7 @@ title: Console I/O
 description: Source-defined print and println overloads available to Prismio programs.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-10"
+lastUpdated: "2026-09-18"
 tags: [standard-library, io, print, console]
 related: [start/hello-world, stdlib, language/ffi]
 ---
@@ -156,7 +156,7 @@ The same two names accept the five supported console value types. Overload selec
 | Value type | No newline | With newline |
 | --- | --- | --- |
 | `String` | `print` | `println` |
-| `Int`, `I8`, `I16`, `I64`, `Isize` | `print` | `println` |
+| `Int` (`I32`), `I8`, `I16`, `I64`, `Isize` | `print` | `println` |
 | `U8`, `U16`, `U32`, `U64`, `Usize` | `print` | `println` |
 | `Float` | `print` | `println` |
 | `Bool` | `print` | `println` |

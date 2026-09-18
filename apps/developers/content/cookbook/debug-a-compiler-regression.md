@@ -5,7 +5,7 @@ status: implemented
 version: "0.1.0"
 tags: [cookbook, debugging, aif]
 related: [tooling/debugging-targets-and-build-tracing, performance/investigation-method, testing/regression-suite, compiler/overview, compiler/diagnostics, testing/aif-differential]
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-09-18"
 ---
 
 A program that used to compile, or used to compile to the same thing, no longer does. Nothing in the message says which of the compiler's seven stages changed — lexer, imports, semantic analysis, the **Adaptive Inference Framework** (AIF, the pass that decides where each value your program allocates should live — see [the compiler overview](/compiler/overview)), LLVM code generation, optimization, or the native link. This page is the path from "something regressed" to "this stage, this line, this cause."
@@ -89,7 +89,7 @@ If `check` and `dump-ast` disagree — one accepts a program the other's seriali
 import std.io
 
 fn build() -> Vec<Int> {
-    let xs: Vec<Int> = []
+    let xs: Vec<Int>
     xs.push(1)
     xs.push(2)
     return xs

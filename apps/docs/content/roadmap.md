@@ -3,7 +3,7 @@ title: Roadmap and feature status
 description: Implementation status for current and planned Prismio language, tooling, platform, and library capabilities.
 status: draft
 version: "0.1.0"
-lastUpdated: "2026-09-09"
+lastUpdated: "2026-09-18"
 tags: [roadmap, status, coming-soon]
 related: [start/overview, releases/0.1.0, faq]
 ---
@@ -27,7 +27,10 @@ This page distinguishes shipped compiler behavior from intent. It does not assig
 | Generics, monomorphization, and per-specialization container layout | Implemented |
 | Inline storage for eligible `Vec<T>` structs | Implemented |
 | `Slice<T>` views of a `Vec<T>` and nested slicing | Implemented |
-| Sized arrays (`[T; N]`), chunked `Vec<T, N>`, slices of arrays | Coming Soon |
+| Local arrays with a written length (`Array<T, N>`, zero-filled; `[T]` when initialised), copied by value | Implemented |
+| Arrays by value across functions: returned, stored in fields, fixed-length parameters | Coming Soon |
+| Chunked `Vec<T, N>` and `Vec<T, Chunk>`, slices of arrays | Coming Soon |
+| More collections: `VecDeque<T>`, sets, a sorted map, a priority queue, a linked list | Coming Soon |
 | Programmer-directed AoS↔SoA data views | Experimental (conversion, checked reads, mutation and round trip implemented) |
 | Payload enums, `Option` and `Result` | Implemented |
 | Closures | Implemented |

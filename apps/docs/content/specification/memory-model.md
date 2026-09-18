@@ -3,7 +3,7 @@ title: Memory and ownership model
 description: Formal draft rules for Prismio 0.1 moves, borrows, drops, Vec slices, collections, arrays, and AIF allocation tiers.
 status: experimental
 version: "0.1.0"
-lastUpdated: "2026-08-25"
+lastUpdated: "2026-09-18"
 tags: [specification, memory-model, ownership, aif]
 related: [language/ownership-and-borrowing, compiler/aif, specification/behavior]
 ---
@@ -12,7 +12,7 @@ This page specifies the compiler-enforced ownership model and the experimental a
 
 ## Value categories
 
-Strings, vectors, and nominal struct values are move-only. Each owned value must have one active owner at a program point. Optional wrappers around these owned reference-shaped values preserve the ownership category. Scalars, raw pointer values, fieldless enums, arrays, and Slice descriptors use copy semantics in 0.1.
+Strings, vectors, and nominal struct values are move-only. Each owned value must have one active owner at a program point. Optional wrappers around these owned reference-shaped values preserve the ownership category. Scalars, raw pointer values, fieldless enums, arrays of a known length, and Slice descriptors use copy semantics in 0.1. A `[T]` parameter is a view of the caller's array.
 
 Copying a copy value leaves both source and destination usable. Moving a move-only value transfers responsibility to the destination and changes the source binding to the moved state.
 
@@ -46,7 +46,11 @@ Comparison with `none` does not refine the static type along a branch. The progr
 
 ## Arrays and stack storage
 
-Arrays are fixed stack values whose source type is `[T]`. Their assignment behavior is copy-based in 0.1. A local array cannot be returned because its storage would escape the function frame. Bounds behavior is not yet standardized as a guaranteed checked-access abstraction.
+An array is `Array<T, N>`: `N` elements in the defining function's frame, placed in the entry block so a declaration inside a loop reuses one slot. `[T]` and `Array<T>` take `N` from an initializer; `Array<T, N>` without one is zero-filled where the declaration executes, and requires an element type with a zero.
+
+An array whose length is known and whose elements own nothing is a value: binding it (`let b = a`) allocates storage for `b` and copies the elements, and assigning it (`d = c`) copies into `d`'s storage, requiring equal lengths. A `[T]` parameter takes an array of any length as a view of the caller's storage; a store through it, or through a name bound from it, writes the caller's array. An array of arrays, or of elements that own memory, is shared by a second binding in 0.1 rather than copied.
+
+A local array cannot be returned because its storage would escape the function frame. Bounds behavior is not yet standardized as a guaranteed checked-access abstraction.
 
 ## Vec views and Slice lifetime
 

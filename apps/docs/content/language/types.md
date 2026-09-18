@@ -3,7 +3,7 @@ title: Types
 description: Primitive, numeric, aggregate, optional, and inferred types in Prismio 0.1.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-08-25"
+lastUpdated: "2026-09-18"
 tags: [types, integers, floats, bool, string]
 related: [language/arrays-and-lists, language/structs, language/optionals, specification/type-system]
 ---
@@ -14,7 +14,7 @@ Local types are inferred from initializers when no annotation is present. Infere
 
 | Type | Meaning |
 | --- | --- |
-| `Int` | Signed 32-bit integer |
+| `Int`, `I32` | Signed 32-bit integer — two names for one type |
 | `I8`, `I16`, `I64`, `Isize` | Other signed integers |
 | `U8`, `U16`, `U32`, `U64`, `Usize` | Unsigned integers |
 | `Float` | 64-bit floating point |
@@ -22,12 +22,12 @@ Local types are inferred from initializers when no annotation is present. Infere
 | `Char` | Byte character |
 | `String` | Owned runtime string |
 | `Ptr` | Raw pointer |
-| `[T]` | Fixed-length stack array value |
+| `Array<T, N>` | Fixed-length array stored in the function's frame; `[T]` when the length comes from an initializer |
 | `Vec<T>` | Owned, growable vector |
 | `Slice<T>` | Copyable, bounds-checked view into a `Vec<T>` |
 | `T?` | Nullable reference-shaped value |
 
-`Int` is the spelling for signed 32-bit values; there is no separate `I32` type. Integer arithmetic requires matching widths. Use an explicit cast for conversions:
+`Int` and `I32` are two spellings of the same signed 32-bit type, so they mix freely and a diagnostic names either as `Int`. `I32` is there so the signed widths read `I8`, `I16`, `I32`, `I64` beside the unsigned ones. Integer arithmetic otherwise requires matching widths. Use an explicit cast for conversions:
 
 ```prismio
 let small: U8 = 200
@@ -124,7 +124,7 @@ See [structs](/language/structs) and [enums](/language/enums) for construction a
 
 ## Arrays, vectors, and slices
 
-`[T]` is a fixed-length stack array value. The length comes from the initializer and current compiler metadata rather than appearing in the source type spelling. Arrays are copied as values in 0.1.
+`Array<T, N>` is a fixed-length array stored in the function's frame. Without an initializer it holds `N` zeroed slots; `[T]` and `Array<T>` take the length from an initializer instead. An array whose length is known is copied by `let b = a` and by assignment, while a `[T]` parameter is a view of the caller's array. See [arrays, vectors, and slices](/language/arrays-and-lists#arrays).
 
 `Vec<T>` is the owned, growable vector. It is move-only, and it is used through its methods — `v.push(x)`, `v.length`, `v[i]`, `v.insert(i, x)`, `v.pop()` and the rest listed on the [Vec page](/stdlib/vec). It is built into the compiler and predates [generics](/language/generics) rather than being an instance of them — it has its own type kind, runtime, and handling in the memory model. Before 0.1's collections work it was spelled `List<T>`; that spelling is now an error naming `Vec<T>`.
 
@@ -162,20 +162,22 @@ Integer-to-float and float-to-integer conversions can lose precision. A cast sta
 
 ## Copy and move categories
 
-Strings, vectors, and structs are move-only. Scalars, enums, arrays, and Slice descriptors use
-value-copy semantics in 0.1.
+Strings, vectors, and structs are move-only. Scalars, enums, arrays of a known length, and Slice
+descriptors use value-copy semantics in 0.1.
 
 | Category | Types | Assignment behavior |
 | --- | --- | --- |
 | Scalar copy | integers, `Float`, `Bool`, `Char`, `Ptr` | copies the value |
 | Nominal copy | fieldless enums | copies the variant value |
-| Aggregate copy | arrays, `Slice<T>` descriptors | copies the value or view descriptor |
+| Aggregate copy | arrays of a known length, `Slice<T>` descriptors | copies the elements, or the view descriptor |
+| View | a `[T]` parameter, and a name bound from one | names the caller's array; nothing is copied |
 | Move-only | `String`, `Vec<T>`, structs, optional wrappers around owned references | transfers ownership in owning contexts |
 
 Function calls add parameter modes: an ordinary parameter borrows move-only data, `sink` consumes it, and `inout` forms a mutable borrow. The complete rules are in [ownership and borrowing](/language/ownership-and-borrowing).
 
 ## Types not implemented
 
-Prismio 0.1 has no tuples, user-defined type aliases, union types, function values, closures, trait
-objects, fixed source-spelled array lengths, arbitrary reference types, or user-written lifetime
-types. Do not infer support from examples written for proposals or older documentation.
+Prismio 0.1 has no tuples, user-defined type aliases, union types, function types (a
+[closure](/language/closures) is passed as a generic `F`), arbitrary reference types, or
+user-written lifetime types. An array's length is part of its type only for a local array; arrays
+cannot yet be returned, stored in a struct field, or taken as a parameter of one fixed length. Do not infer support from examples written for proposals or older documentation.

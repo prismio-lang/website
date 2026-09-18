@@ -3,7 +3,7 @@ title: Runtime architecture
 description: The native support Prismio programs link, how to see it in a built program, the boundary with compiler builtins and standard modules, and the runtime's ownership obligations.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-16"
+lastUpdated: "2026-09-18"
 tags: [runtime, architecture, native]
 related: [runtime/supported-surface, runtime/allocation-arenas-rc-and-cycles, llvm/runtime-ir-and-optimization]
 ---
@@ -24,7 +24,7 @@ import std.io
 import std.string
 
 fn main() -> Int {
-    let names: Vec<String> = []
+    let names: Vec<String>
     names.push("alpha".concat("-one"))
     names.push("beta".concat("-two"))
     println(names[1])

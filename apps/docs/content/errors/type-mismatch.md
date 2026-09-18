@@ -3,7 +3,7 @@ title: Type mismatch
 description: Fix Prismio diagnostics where an initializer, argument, assignment, or return has the wrong type.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-09-18"
 tags: [error, type-mismatch, type-system]
 related: [language/types, specification/type-system, errors/integer-width-mismatch]
 ---
@@ -46,7 +46,7 @@ Use `expect` rather than a cast for an optional reference. Construct a new struc
 
 ## An empty literal with no type
 
-`[]` has no element to infer a type from, so it takes its type from where it is written: an annotation, a struct field, or a function's return type. Anywhere else there is nothing to take it from:
+`[]` has no element to infer a type from, so it takes its type from where it is written: an annotation, a struct field, or a function's return type. Anywhere else there is nothing to take it from. An empty *array* is rarely what is meant — `Array<T, N>` reserves `N` zeroed slots instead:
 
 ```text
 error[P4001]: cannot infer the element type of an empty literal
@@ -54,7 +54,7 @@ error[P4001]: cannot infer the element type of an empty literal
   |
 2 |     let v = []
   |              ^
-  note: write the type: `let v: Vec<Int> = []` or `let v: [Int] = []`
+  note: write the type: `let v: Vec<Int>`, or reserve an array: `let a: Array<Int, 4>`
 ```
 
 <!-- prismio-check: fail -->
@@ -78,7 +78,7 @@ fn total(values: Vec<Int>) -> Int {
 }
 
 fn main() -> Int {
-    let empty: Vec<Int> = []
+    let empty: Vec<Int>
     return total(empty)
 }
 ```

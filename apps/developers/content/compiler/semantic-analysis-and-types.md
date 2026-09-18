@@ -3,7 +3,7 @@ title: Semantic analysis and types
 description: The semantic passes that resolve Prismio names, types, overloads, calls, fields, flow, and program validity — and why a rejection reports every mistake it can find rather than stopping at the first.
 status: implemented
 version: "0.1.0"
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-09-18"
 tags: [semantics, types, overloads]
 related: [compiler/imports-and-symbols, compiler/ownership-and-drop-lowering, compiler/generics-and-monomorphization, compiler/diagnostics, aif/overview]
 ---
@@ -134,6 +134,48 @@ Moving body analysis before predeclaration would break forward calls and mutual 
 `src/sema/builtins.psm` owns operations that look call-shaped in source but lower as compiler operations rather than as ordinary calls. Methods, operators, iteration, and selected standard-library behavior can all be rewritten to plain calls before overload resolution runs; the diagnostic for a failed rewrite should still name the source-level action the developer wrote, including a missing import when the rewrite depends on a standard module.
 
 Source sugar is rewritten before final overload resolution in a few specific places: `semaStringComparison` and `semaStringConcatChain` route string operators to the operations that implement them while evaluating each operand exactly once; `semaForEachDesugar` and `semaForEachIterator` turn `for`-style iteration into explicit iterator calls; `semaPropertyRewrite` converts supported property-style access into a call; and `semaBecomeCall` replaces a node with its resolved call shape without discarding the original source span (needed so the diagnostic still points at what the developer wrote).
+
+## Arrays: lengths, copies and views
+
+An array's length lives on its `TypeInfo`, in `length` — `0` means the type does not know it. It is
+set in three places and read everywhere else:
+
+- `semaArrayLiteralExpr` and the literal branch of `semaCheckValue` give a literal its element count.
+  A nested literal whose rows differ in length gets an element type of unknown length.
+- `semaSizedArrayAnnotation` types `Array<T, N>` in a `let`, the one place a written length is
+  read. `semaAnnotationInner` refuses a length anywhere else (a parameter, a return, a field, a type
+  argument) and detaches it once reported, because a signature is typed more than once.
+- `semaCheckArrayDecl` runs after the initializer and returns the binding's type: `[T]` and
+  `Array<T>` take a known initializer length, `Array<T, N>` must match one, and a declaration with
+  no initializer needs `N` and an element type with a zero.
+
+The length survives a binding because `typeSemKey` writes it — `array#16:U32`, against the
+unchanged `array:U32` for an unknown length — and `typeFromSemKey` reads it back. The key feeds
+sema's variable-type table only; no IR is derived from it.
+
+Two predicates in `src/ast/types.psm` are shared with code generation, so the two cannot disagree
+about what a store or a binding does:
+
+- `typeOwnsNothing(t)` — a number, `Bool`, `Char`, `Ptr` or a payload-less enum. An element must be
+  one for an index store (which releases nothing it displaces), a zero-filled array, or a copy.
+- `typeArrayCopies(t)` — the length is known and the elements own nothing. Then `let b = a` and
+  `d = c` copy the elements; `semaCheckArrayCopy` requires equal, known lengths on assignment. An
+  array without a known length is a view — a `[T]` parameter, and whatever is bound from one — and
+  binding or assigning it shares the storage, which is the borrow a parameter already is.
+
+A `Vec` binding with no initializer — `let items: Vec<Item>` — is given the `[]` it would otherwise
+have to write by `semaDefaultEmptyVec`, before anything else looks at the declaration, so it is
+checked and lowered exactly as `= []` and its IR is identical. It used to compile to an
+uninitialised pointer. `Vec<T>?` is left alone: its absent value is `none`. Because this is a
+sema rule rather than syntax, `src/` and `std/` must not rely on it until the seed has been
+refreshed — the seed would still compile the short form to that uninitialised pointer.
+
+`x[i] = v` is decided in `semaIndexAssignment` before the ordinary assignment path. A `Vec` or a
+`Slice` is rewritten by `semaVecLowerIndexStore` into `list_set` / `slice_set` — the call
+`v.set(i, x)` lowers to — and checked as that call. An array of elements that own nothing keeps the
+assignment for codegen's element-address store. Everything else is refused with the spelling that
+works. Assignment also sends a bare integer literal through `semaCheckValue`, so `w = 4294967296`
+into an `I64` adopts the type and range-checks exactly as a `let` does.
 
 ## Flow and program validity
 
