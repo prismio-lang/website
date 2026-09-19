@@ -8,6 +8,7 @@ import {AnimatePresence, motion} from "framer-motion";
 import {Button, Chip} from "@heroui/react";
 import Logo from "@prismio/ui/Logo";
 import Image from "next/image";
+import {PRISMIO_VERSION} from "@prismio/utils";
 
 interface NavItem {
     label: string;
@@ -53,7 +54,7 @@ const HeaderMain: React.FC = () => {
                         <Logo/>
 
                         <Chip variant={"secondary"}>
-                            <Chip.Label>v0.1.0</Chip.Label>
+                            <Chip.Label>{PRISMIO_VERSION}</Chip.Label>
                         </Chip>
                     </div>
 

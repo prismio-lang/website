@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import HeaderMain from "@/components/HeaderMain";
 import FooterMain from "@/components/FooterMain";
+import {PRISMIO_VERSION} from "@prismio/utils";
 
 export const metadata = {
     title: "About · Prismio Systems Language",
@@ -99,7 +100,7 @@ const TIMELINE = [
         status: "Completed",
     },
     {
-        phase: "Current (v0.1.0)",
+        phase: `Current ${PRISMIO_VERSION}`,
         title: "Ecosystem Expansion & Verification",
         detail: "Hardening the standard library, verifying memory invariant shims, publishing reproducible benchmarks, and growing the open-source contributor community.",
         status: "In Progress",

@@ -2,8 +2,8 @@
 
 import React, {useState} from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import {ArrowRight, Check, Copy, FileCode2, Terminal} from 'lucide-react';
+import {LLVM_VERSION} from "@prismio/utils";
 
 const QUICKSTART = 'curl -fsSL https://prismio.dev/install.sh | sh';
 
@@ -185,14 +185,14 @@ export default function Hero() {
                         </div>
                     </div>
 
-                    <dl className="mt-8 grid max-w-2xl grid-cols-3 gap-5 text-sm">
+                    <dl className="mt-10 grid max-w-2xl grid-cols-3 gap-5 text-sm">
                         <div>
                             <dt className="text-zinc-500">Compiler</dt>
                             <dd className="mt-1 font-medium text-zinc-200">Self-hosted</dd>
                         </div>
                         <div>
                             <dt className="text-zinc-500">Backend</dt>
-                            <dd className="mt-1 font-medium text-zinc-200">LLVM 22 AOT</dd>
+                            <dd className="mt-1 font-medium text-zinc-200">{`LLVM ${LLVM_VERSION} AOT + JIT`}</dd>
                         </div>
                         <div>
                             <dt className="text-zinc-500">Interop</dt>
@@ -223,7 +223,7 @@ export default function Hero() {
                                     </div>
                                     <div className="inline-flex items-center gap-2 rounded-md bg-white/[0.04] border border-white/[0.08] px-2.5 py-1 text-xs font-mono text-zinc-200">
                                         <FileCode2 size={13} className="text-indigo-400" />
-                                        <span>stack-placement.psm</span>
+                                        <span>main.psm</span>
                                     </div>
                                 </div>
                             </div>
@@ -260,7 +260,7 @@ export default function Hero() {
 
                             {/* Bottom: Compiler Output as Terminal Drawer */}
                             <div className="border-t border-white/[0.08] bg-[#06070a] p-4 sm:p-5 font-mono text-[11px] leading-5 sm:text-xs">
-                                <div className="text-zinc-500">$ prismio aif stack-placement.psm</div>
+                                <div className="text-zinc-500">$ prismio aif main.psm</div>
 
                                 <div className="mt-4 grid gap-6 sm:grid-cols-2">
                                     <div>
@@ -269,17 +269,32 @@ export default function Hero() {
                                             <span>Stack</span><span className="text-emerald-400">1</span>
                                             <span>Arena</span><span>0</span>
                                             <span>Unique heap</span><span>0</span>
+                                            <span>Scoped heap</span><span>0</span>
                                             <span>Shared heap</span><span>0</span>
+                                            <span>Cycle-managed heap</span><span>0</span>
+                                            <span>Cross-thread heap</span><span>0</span>
                                         </div>
                                     </div>
 
                                     <div className="sm:border-l sm:border-white/[0.07] sm:pl-6">
-                                        <div className="text-zinc-200 font-medium">Point → stack</div>
-                                        <p className="mt-1 font-sans text-xs leading-5 text-zinc-500">
-                                            Small value does not escape its frame.
-                                        </p>
-                                        <div className="mt-3.5 rounded-xl bg-indigo-500/[0.07] p-3 text-indigo-200 ring-1 ring-indigo-400/15">
-                                            Use <span className="text-white">--why=1</span> to inspect the derivation.
+                                        <div className="text-zinc-200 font-medium">Your code</div>
+                                        <div className="mt-2 grid grid-cols-[1fr_auto] gap-x-4 gap-y-1.5 text-zinc-400">
+                                            <span className="text-zinc-500">ID</span>
+                                            <span className="font-mono text-zinc-300">1</span>
+
+                                            <span className="text-zinc-500">Location</span>
+                                            <span className="font-mono text-zinc-300">main.psm:7:23</span>
+
+                                            <span className="text-zinc-500">Type</span>
+                                            <span className="font-medium text-[#47d7b5]">Point</span>
+
+                                            <span className="text-zinc-500">Storage</span>
+                                            <span className="font-medium text-emerald-400">stack</span>
+                                        </div>
+
+                                        <div className="mt-2.5 border-t border-white/[0.07] pt-2">
+                                            <div className="text-zinc-500">Reason</div>
+                                            <div className="mt-0.5 text-zinc-300">small value does not escape</div>
                                         </div>
                                     </div>
                                 </div>
