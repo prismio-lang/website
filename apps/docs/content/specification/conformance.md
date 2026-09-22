@@ -1,7 +1,8 @@
 ---
 title: Conformance and versioning
 description: What it means to conform to the Prismio 0.1 draft specification and how future documentation versions will coexist.
-status: draft
+status: stable
+draft: true
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [specification, conformance, versioning, compatibility]

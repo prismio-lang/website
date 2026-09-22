@@ -1,7 +1,7 @@
 ---
 title: Closures and captures
 description: How Prismio rewrites closures into a generated struct and call function, with no function pointer, no vtable, and no indirect call.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-17"
 tags: [closures, captures, ownership]

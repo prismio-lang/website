@@ -1,7 +1,7 @@
 ---
 title: Runtime platforms and packaging
 description: Platform abstraction, the packaged and project-local toolchain layouts, artifact discovery, and native targets.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-09"
 tags: [runtime, platforms, packaging]

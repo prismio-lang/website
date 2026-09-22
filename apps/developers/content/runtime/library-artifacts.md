@@ -1,7 +1,7 @@
 ---
 title: Library artifacts — runtime bitcode and PLIB
 description: The two shipped library formats, the PLIB v3 container with a code section per target, how both are merged into a program, and the rules for changing either producer.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-16"
 tags: [runtime, packaging, llvm, stdlib]

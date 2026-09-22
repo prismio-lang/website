@@ -1,7 +1,7 @@
 ---
 title: Platform
 description: The std.platform module — the operating system, architecture and ABI environment a program is compiled for, as compile-time constants.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-12"
 tags: [standard-library, platform, targets, cross-compilation]

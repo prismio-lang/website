@@ -1,7 +1,7 @@
 ---
 title: Call C with ownership contracts
 description: Declare C ABI functions and document pointer ownership at the Prismio 0.1 FFI boundary.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-09"
 tags: [guide, ffi, c-abi, ownership]

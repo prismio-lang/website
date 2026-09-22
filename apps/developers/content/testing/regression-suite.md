@@ -1,7 +1,7 @@
 ---
 title: Positive and negative regression tests
 description: How Prismio test fixtures establish accepted behavior, rejected boundaries, diagnostics, output, and ownership correctness.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-08"
 tags: [testing, regression, diagnostics]

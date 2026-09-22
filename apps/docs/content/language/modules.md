@@ -1,7 +1,7 @@
 ---
 title: Modules and imports
 description: Resolve Prismio 0.1 dotted file imports, wildcard imports, cycles, and declaration names.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [modules, imports, name-resolution]

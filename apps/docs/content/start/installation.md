@@ -1,7 +1,7 @@
 ---
 title: Install the Prismio compiler
 description: Configure LLVM 23 and bootstrap a Prismio 0.1 compiler on Windows, macOS, or Linux.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-17"
 tags: [installation, bootstrap, llvm]

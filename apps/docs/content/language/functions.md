@@ -1,7 +1,7 @@
 ---
 title: Functions and parameters
 description: Declare Prismio 0.1 functions, return values, overloads, and borrow, sink, or inout parameters.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-01"
 tags: [functions, parameters, returns, overloads]

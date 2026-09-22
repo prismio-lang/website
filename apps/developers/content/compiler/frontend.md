@@ -1,7 +1,7 @@
 ---
 title: Lexer, parser, and AST
 description: The Prismio frontend from UTF-8 scanning through parser recovery and the typed structures consumed by later stages.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [lexer, parser, ast]

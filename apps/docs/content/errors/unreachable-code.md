@@ -1,7 +1,7 @@
 ---
 title: Unreachable code
 description: Fix Prismio statements that can never execute after return or another terminator.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [error, unreachable, control-flow, return]

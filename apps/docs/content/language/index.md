@@ -1,7 +1,7 @@
 ---
 title: Language reference
 description: Canonical reference for syntax and behavior accepted by the Prismio 0.1 compiler.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-30"
 tags: [language, reference, syntax]

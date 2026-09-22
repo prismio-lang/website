@@ -8,7 +8,7 @@ import {
     ShieldCheck,
 } from "lucide-react";
 import HeaderMain from "@/components/HeaderMain";
-import FooterMain from "@/components/FooterMain";
+import FooterMain from "@prismio/ui/FooterMain";
 
 const SHIPPED = [
     {

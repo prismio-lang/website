@@ -1,7 +1,7 @@
 ---
 title: Traits and bounds
 description: Prismio traits -- generic trait declarations, structural trait arguments, impl Trait for Type, and bounds checked statically at instantiation.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [traits, bounds, generics, impl, Self]

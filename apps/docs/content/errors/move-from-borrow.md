@@ -1,7 +1,7 @@
 ---
 title: Cannot move from a borrowed value
 description: Fix Prismio code that drops or transfers ownership from an ordinary borrowed parameter.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [error, borrow, sink, ownership]

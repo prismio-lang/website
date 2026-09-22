@@ -1,7 +1,7 @@
 ---
 title: Security and compatibility boundaries
 description: Prismio compiler trust, unsafe foreign code, runtime verification limits, pre-1.0 compatibility, and responsible reporting.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-08"
 tags: [security, compatibility, ffi]

@@ -1,7 +1,8 @@
 ---
 title: Name and import resolution
 description: Scope, shadowing, overload, field, variant, and source-import resolution rules for Prismio 0.1.
-status: draft
+status: stable
+draft: true
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [specification, name-resolution, scope, imports]

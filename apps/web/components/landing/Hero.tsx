@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {ArrowRight, Check, Copy, FileCode2, Terminal} from 'lucide-react';
 import {LLVM_VERSION} from "@prismio/utils";
 
-const QUICKSTART = 'curl -fsSL https://prismio.dev/install.sh | sh';
+const QUICKSTART = 'curl -fsSL https://prismio.org/install.sh | sh';
 
 interface CodeToken {
     text: string;

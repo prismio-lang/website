@@ -1,7 +1,7 @@
 ---
 title: Private or internal function
 description: Fix Prismio calls that reach a private or internal function from outside the file or package that declares it.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-30"
 tags: [error, visibility, modules, private, internal]

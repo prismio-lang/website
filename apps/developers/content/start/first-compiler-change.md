@@ -1,7 +1,7 @@
 ---
 title: Trace your first compiler change
 description: A practical map for carrying one Prismio behavior change through syntax, semantics, AIF, LLVM, tests, and docs.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-08"
 tags: [workflow, compiler, testing]

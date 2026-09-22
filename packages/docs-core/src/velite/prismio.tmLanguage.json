@@ -1,0 +1,166 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Prismio",
+  "scopeName": "source.prismio",
+  "fileTypes": ["pr"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#keywords" },
+    { "include": "#types" },
+    { "include": "#numbers" },
+    { "include": "#functions" },
+    { "include": "#constants" },
+    { "include": "#operators" },
+    { "include": "#punctuation" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.prismio",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.prismio",
+          "begin": "/\\*",
+          "end": "\\*/",
+          "captures": {}
+        }
+      ]
+    },
+
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.triple.prismio",
+          "begin": "\"\"\"",
+          "end": "\"\"\"",
+          "patterns": [{ "include": "#string-interpolation" }]
+        },
+        {
+          "name": "string.quoted.double.prismio",
+          "begin": "r?\"",
+          "end": "\"",
+          "patterns": [
+            { "include": "#string-interpolation" },
+            { "include": "#string-escape" }
+          ]
+        },
+        {
+          "name": "string.quoted.single.prismio",
+          "match": "'(?:\\\\.|[^'\\\\])'"
+        }
+      ]
+    },
+
+    "string-interpolation": {
+      "name": "meta.interpolation.prismio",
+      "begin": "\\$\\{",
+      "end": "\\}",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.template-expression.begin.prismio" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.template-expression.end.prismio" }
+      },
+      "patterns": [{ "include": "$self" }]
+    },
+
+    "string-escape": {
+      "name": "constant.character.escape.prismio",
+      "match": "\\\\(?:n|r|t|0|\\\\|\"|'|u\\{[0-9a-fA-F]+\\})"
+    },
+
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.prismio",
+          "match": "\\b(if|else|when|match|for|in|loop|while|break|continue|return)\\b"
+        },
+        {
+          "name": "keyword.declaration.prismio",
+          "match": "\\b(fn|let|mut|pub|extern|unsafe|struct|impl|enum|module|import|as|type|trait|interface|abstract|override|open|sealed|data|object|companion|by|delegate|inline|infix|operator|suspend|async|await|defer)\\b"
+        },
+        {
+          "name": "keyword.other.prismio",
+          "match": "\\b(self|super|where|dyn|static|const|use|mod)\\b"
+        },
+        {
+          "name": "constant.language.boolean.prismio",
+          "match": "\\b(true|false|none)\\b"
+        }
+      ]
+    },
+
+    "types": {
+      "name": "entity.name.type.prismio",
+      "match": "\\b(Int|Int8|Int16|Int32|Int64|UInt|UInt8|UInt16|UInt32|UInt64|Float|Float32|Float64|Bool|Char|String|Unit|Never|Any|Nothing|Option|Result|Ok|Err|Some|List|Array|Map|Set|Vec|Box|Arc|Mutex|RwLock|Rc)\\b"
+    },
+
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.prismio",
+          "match": "\\b[0-9][0-9_]*\\.[0-9][0-9_]*([eE][+-]?[0-9]+)?f?\\b"
+        },
+        {
+          "name": "constant.numeric.hex.prismio",
+          "match": "\\b0[xX][0-9a-fA-F_]+\\b"
+        },
+        {
+          "name": "constant.numeric.binary.prismio",
+          "match": "\\b0[bB][01_]+\\b"
+        },
+        {
+          "name": "constant.numeric.octal.prismio",
+          "match": "\\b0[oO][0-7_]+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.prismio",
+          "match": "\\b[0-9][0-9_]*\\b"
+        }
+      ]
+    },
+
+    "functions": {
+      "patterns": [
+        {
+          "name": "entity.name.function.prismio",
+          "match": "\\b([a-z_][a-zA-Z0-9_]*)\\s*(?=\\()"
+        },
+        {
+          "comment": "fn declaration name",
+          "match": "\\b(fn)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.declaration.prismio" },
+            "2": { "name": "entity.name.function.prismio" }
+          }
+        }
+      ]
+    },
+
+    "constants": {
+      "name": "variable.other.constant.prismio",
+      "match": "\\b[A-Z][A-Z0-9_]+\\b"
+    },
+
+    "operators": {
+      "name": "keyword.operator.prismio",
+      "match": "(->|=>|\\?\\?=?|\\?\\.|\\.\\.=?|::|:=?|==|!=|<=?|>=?|&&|\\|\\||!|\\+|-|\\*|/|%|&|\\||\\^|~|<<|>>|=(?!=))"
+    },
+
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.brackets.prismio",
+          "match": "[\\[\\]\\(\\)\\{\\}]"
+        },
+        {
+          "name": "punctuation.separator.prismio",
+          "match": "[,;]"
+        }
+      ]
+    }
+  }
+}

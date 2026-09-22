@@ -1,7 +1,7 @@
 ---
 title: Hello, Prismio
 description: Compile and run a minimal Prismio 0.1 program.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-12"
 tags: [getting-started, hello-world, run]

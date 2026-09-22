@@ -1,7 +1,7 @@
 ---
 title: Operators and casts
 description: Prismio 0.1 arithmetic, comparison, logical, bitwise, shift, unary, assignment, and cast operators.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-30"
 tags: [operators, precedence, casts, bitwise]

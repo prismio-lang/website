@@ -1,7 +1,7 @@
 ---
 title: "Tutorial: your first complete program"
 description: Build a small Prismio program with a function, loop, mutable binding, and output.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-12"
 tags: [tutorial, functions, loops, variables]

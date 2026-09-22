@@ -92,7 +92,11 @@
 }
 
 @layer components {
-    .input-otp__caret{
+    .input-otp__caret {
         @apply bg-black/50;
+    }
+    .kbd,
+    .text-muted {
+        color: var(--muted-foreground);
     }
 }

@@ -1,7 +1,7 @@
 ---
 title: Console I/O
 description: Source-defined print and println overloads available to Prismio programs.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [standard-library, io, print, console]

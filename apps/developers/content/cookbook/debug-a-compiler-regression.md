@@ -1,7 +1,7 @@
 ---
 title: Debug a compiler or AIF regression
 description: Reduce a Prismio frontend failure, miscompile, ownership bug, or allocation-decision change to one file, then find the exact pipeline stage that changed.
-status: implemented
+status: stable
 version: "0.1.0"
 tags: [cookbook, debugging, aif]
 related: [tooling/debugging-targets-and-build-tracing, performance/investigation-method, testing/regression-suite, compiler/overview, compiler/diagnostics, testing/aif-differential]

@@ -1,7 +1,7 @@
 ---
 title: Releases and documentation versions
 description: Prismio release notes, current language version, and architecture for retaining older documentation.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [releases, versioning, changelog]

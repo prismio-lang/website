@@ -60,20 +60,22 @@ export default function PlaygroundPage() {
 
                     {/* CTAs */}
                     <div className="mt-8 pt-6 border-t border-white/[0.04] flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <a
+                            href="https://playground.prismio.org"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-[#47d7b5] text-black font-semibold rounded-full shadow-[0_0_25px_rgba(71,215,181,0.25)] hover:bg-[#3ec4a4] transition-all cursor-pointer text-xs"
+                        >
+                            <Sparkles size={14} />
+                            Launch Online Playground
+                        </a>
+
                         <Link
                             href="/install"
-                            className="group w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-white text-black font-semibold rounded-full shadow-lg hover:bg-gray-200 transition-all cursor-pointer text-xs"
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white rounded-full transition-all text-xs"
                         >
                             <Terminal size={14} />
                             Install Local Compiler
-                        </Link>
-                        
-                        <Link
-                            href="/"
-                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white rounded-full transition-all text-xs"
-                        >
-                            <ArrowLeft size={14} />
-                            Back to Home
                         </Link>
                     </div>
                 </div>

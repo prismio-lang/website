@@ -1,7 +1,7 @@
 ---
 title: Contributing to the Prismio compiler
 description: The entry point for developers building, testing, debugging, and extending the self-hosted Prismio toolchain.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-16"
 tags: [contributing, compiler, onboarding]
@@ -69,7 +69,7 @@ Wrote LLVM IR: hello.ll
 
 The `main` function in `hello.ll`:
 
-```text
+```llvm
 define i32 @main(i32 %0, ptr %1) {
 entry:
   store i32 %0, ptr @prismio_argc, align 4

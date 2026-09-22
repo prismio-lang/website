@@ -14,7 +14,7 @@ import {
     BookOpen,
 } from "lucide-react";
 import HeaderMain from "@/components/HeaderMain";
-import FooterMain from "@/components/FooterMain";
+import FooterMain from "@prismio/ui/FooterMain";
 import {PRISMIO_VERSION} from "@prismio/utils";
 
 export const metadata = {

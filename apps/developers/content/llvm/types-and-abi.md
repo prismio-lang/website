@@ -1,7 +1,7 @@
 ---
 title: Types and ABI
 description: Prismio-to-LLVM type keys, storage forms, field layout, target widths, optional encoding, string ABI, and foreign-call coercion.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [llvm, types, abi]

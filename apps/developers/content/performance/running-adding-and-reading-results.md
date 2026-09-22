@@ -1,7 +1,7 @@
 ---
 title: Run, extend, and read the benchmark suite
 description: Execute the Prismio benchmark harness, inspect its JSON, add equivalent language arms, and record unsupported capabilities honestly.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-08"
 tags: [benchmarks, harness, results]

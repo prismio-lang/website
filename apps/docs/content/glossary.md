@@ -1,7 +1,7 @@
 ---
 title: Prismio glossary
 description: Canonical definitions for Prismio compiler, type-system, ownership, module, and AIF terminology.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [glossary, terminology, definitions]

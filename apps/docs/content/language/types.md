@@ -1,7 +1,7 @@
 ---
 title: Types
 description: Primitive, numeric, aggregate, optional, and inferred types in Prismio 0.1.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [types, integers, floats, bool, string]

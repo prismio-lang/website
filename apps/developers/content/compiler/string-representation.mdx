@@ -1,7 +1,7 @@
 ---
 title: String representation and performance
 description: How Prismio stores inline, owned, and view strings in 16 bytes, proves view lifetimes, and measures the resulting performance.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-11"
 tags: [compiler, strings, memory, ownership, performance]
@@ -188,15 +188,15 @@ population.
 
 The LLVM-level value remains a two-field pair:
 
-```text
-%prismio.str = { ptr, i64 }
+```llvm
+%prismio.str = type { ptr, i64 }
 
-field 1, bits  0..30   byte length (maximum 2 GiB)
-field 1, bit      31   INLINE
-field 1, bits 32..63   INLINE ? data[8..11]
-                              : bit 32 = VIEW, bits 33..63 reserved
-field 0                INLINE ? data[0..7]
-                              : data pointer
+; field 1, bits  0..30   byte length (maximum 2 GiB)
+; field 1, bit      31   INLINE
+; field 1, bits 32..63   INLINE ? data[8..11]
+;                               : bit 32 = VIEW, bits 33..63 reserved
+; field 0                INLINE ? data[0..7]
+;                               : data pointer
 ```
 
 Bit 32 is text data when `INLINE` is set and the `VIEW` flag when it is clear.

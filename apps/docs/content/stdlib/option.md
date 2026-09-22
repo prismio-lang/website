@@ -1,7 +1,7 @@
 ---
 title: Option and Result
 description: The std.option module — Option<T> for absence, Result<T, E> for failure, and how they are represented.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-19"
 tags: [standard-library, option, result, errors, generics]

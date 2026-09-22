@@ -1,7 +1,7 @@
 ---
 title: Debugging, targets, and build tracing
 description: Separate frontend, AIF, LLVM, native-link, target, and runtime failures using Prismio's supported inspection commands.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-09"
 tags: [debugging, targets, tracing]

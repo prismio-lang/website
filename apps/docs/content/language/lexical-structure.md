@@ -1,7 +1,7 @@
 ---
 title: Lexical structure
 description: Prismio 0.1 identifiers, comments, literals, punctuation, and reserved words.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-03"
 tags: [lexer, comments, literals, keywords]

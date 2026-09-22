@@ -1,7 +1,7 @@
 ---
 title: Control-flow lowering
 description: How Prismio branches, loops, matches, short-circuit operators, returns, drops, and region exits become valid LLVM basic blocks.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-17"
 tags: [llvm, control-flow, lowering]
@@ -53,7 +53,7 @@ Wrote LLVM IR: loops.ll
 
 The loop becomes five blocks:
 
-```text
+```llvm
 label_0:                                          ; preds = %label_5, %entry
   %4 = load i32, ptr %i.1, align 4
   %5 = icmp slt i32 %4, 100
@@ -211,7 +211,7 @@ fn main() -> Int {
 prismio build drop.psm -o drop.ll
 ```
 
-```text
+```llvm
 label_6:                                          ; preds = %label_3
   %34 = extractvalue %prismio.str %30, 1
   %35 = and i64 %34, 6442450944

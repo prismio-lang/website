@@ -1,7 +1,7 @@
 ---
 title: Develop the self-hosted compiler
 description: Work on Prismio's self-hosted compiler with generation builds, fixed-point checks, and the regression suite.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-31"
 tags: [guide, compiler, self-hosting, testing]

@@ -1,7 +1,7 @@
 ---
 title: Assignment to an immutable binding
 description: Fix Prismio assignment where the target was declared with let rather than let mut.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [error, mutability, assignment, let]

@@ -1,7 +1,7 @@
 ---
 title: Project compiler host and promotion
 description: How an installed Prismio compiler delegates to a repository-local host, checks its generation, repairs a stale one, and atomically promotes successful self-builds.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-09"
 tags: [ums, self-hosting, compiler]

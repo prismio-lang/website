@@ -1,7 +1,7 @@
 ---
 title: Prismio cookbook
 description: Task-oriented Prismio 0.1 recipes that combine language and compiler features.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [cookbook, recipes, practical]

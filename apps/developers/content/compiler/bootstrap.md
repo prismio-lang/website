@@ -1,7 +1,7 @@
 ---
 title: Bootstrapping and fixed points
 description: Build Prismio compiler generations from the target-neutral seed or a trusted previous compiler.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [compiler, bootstrap, self-hosting, reproducibility]

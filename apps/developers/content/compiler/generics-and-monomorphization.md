@@ -1,7 +1,7 @@
 ---
 title: Generics and monomorphization
 description: How Prismio discovers generic instantiations, substitutes concrete types, validates bounds, and emits one specialized copy per combination of type arguments.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-17"
 tags: [generics, monomorphization, compiler]

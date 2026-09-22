@@ -1,7 +1,7 @@
 ---
 title: Time and date API
 description: Planned clocks, durations, calendars, and timers for Prismio; not included in 0.1.
-status: coming-soon
+status: planned
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [standard-library, time, date, coming-soon]

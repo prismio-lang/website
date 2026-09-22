@@ -1,7 +1,7 @@
 ---
 title: Read command-line arguments
 description: Access process arguments in Prismio 0.1 through program-support FFI declarations.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [cookbook, cli, arguments, ffi]

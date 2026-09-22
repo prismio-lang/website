@@ -1,7 +1,8 @@
 ---
 title: Prismio language specification
 description: Draft compiler-derived specification for Prismio 0.1 syntax, semantics, types, names, memory, and conformance.
-status: draft
+status: stable
+draft: true
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [specification, semantics, normative]

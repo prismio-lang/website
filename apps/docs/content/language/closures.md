@@ -1,7 +1,7 @@
 ---
 title: Closures
 description: Prismio 0.1 closures -- a struct, a call function, and overload resolution. No function pointers and no indirect calls.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-29"
 tags: [closures, lambdas, higher-order, generics, captures]

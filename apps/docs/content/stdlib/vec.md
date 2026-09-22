@@ -1,7 +1,7 @@
 ---
 title: Vec
 description: Vec<T>, Prismio's growable vector — building one, its methods, what removing an element does to views of it, and the sorting and higher-order algorithms in std.vec.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [standard-library, vec, collections, ownership]

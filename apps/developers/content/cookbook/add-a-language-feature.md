@@ -1,7 +1,7 @@
 ---
 title: Add a language feature
 description: A complete contributor path for changing Prismio syntax or semantics across tokens, parsing, types, ownership, AIF, LLVM, tests, and docs.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-17"
 tags: [cookbook, compiler, language]

@@ -1,7 +1,7 @@
 ---
 title: Native tasks and typed channels
 description: The runtime model behind spawn, join, Task results, blocking Channel operations, ownership transfer, and current concurrency limits.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-08"
 tags: [runtime, concurrency, channels]

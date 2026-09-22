@@ -1,7 +1,7 @@
 ---
 title: Add or change a diagnostic
 description: Implement Prismio diagnostics with accurate source spans, recovery behavior, human prose, JSON output, and negative-suite coverage.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-17"
 tags: [cookbook, diagnostics, testing]

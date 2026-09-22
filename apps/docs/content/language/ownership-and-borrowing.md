@@ -1,7 +1,7 @@
 ---
 title: Ownership and borrowing
 description: Move-only values, default borrows, sink transfers, inout mutation, drop, and loop restrictions in Prismio 0.1.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [ownership, borrowing, move, sink, inout]

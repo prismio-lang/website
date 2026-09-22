@@ -1,7 +1,7 @@
 ---
 title: LLVM backend overview
 description: How Prismio turns a checked program and its AIF plan into verified LLVM IR, how to read what it emitted, and the path through the C bridge for contributors changing it.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-16"
 tags: [llvm, backend, codegen]

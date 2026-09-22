@@ -1,7 +1,7 @@
 ---
 title: Error handling
 description: Signalling failure in Prismio with Result and Option instead of sentinel return values.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-19"
 tags: [errors, result, option, enums]

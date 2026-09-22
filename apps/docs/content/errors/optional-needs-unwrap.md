@@ -1,7 +1,7 @@
 ---
 title: Optional value needs unwrap
 description: Fix Prismio member access on T? by checking and unwrapping with expect.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [error, optional, none, expect]

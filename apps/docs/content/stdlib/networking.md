@@ -1,7 +1,7 @@
 ---
 title: Networking API
 description: Planned sockets and networking modules for Prismio; not included in 0.1.
-status: coming-soon
+status: planned
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [standard-library, networking, sockets, coming-soon]

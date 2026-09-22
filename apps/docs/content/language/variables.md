@@ -1,7 +1,7 @@
 ---
 title: Variables and bindings
 description: Declare local and global bindings, type annotations, mutability, shadowing, and initialization in Prismio 0.1.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [variables, let, mutability, scope]

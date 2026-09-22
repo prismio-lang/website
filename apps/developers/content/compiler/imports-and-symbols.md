@@ -1,7 +1,7 @@
 ---
 title: Imports, modules, and symbols
 description: How the compiler turns several .psm files into one flattened program, resolves std.* to precompiled .plib interfaces, and enforces public/private/internal visibility during lookup.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-17"
 tags: [imports, modules, symbols]

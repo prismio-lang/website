@@ -1,7 +1,7 @@
 ---
 title: Cross-language benchmark contract
 description: The equivalence, checksum, compiler, sampling, and unsupported-workload rules for Prismio's maintained benchmark suite.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-09"
 tags: [benchmarks, performance, methodology]

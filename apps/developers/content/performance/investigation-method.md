@@ -1,7 +1,7 @@
 ---
 title: Performance investigation method
 description: A repeatable path from benchmark regression through profiling, allocation evidence, LLVM IR, assembly, controlled candidates, and acceptance.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-08"
 tags: [performance, profiling, llvm]

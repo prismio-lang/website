@@ -1,7 +1,7 @@
 ---
 title: Unclosed block
 description: Fix a Prismio opening brace that reaches end of file without a matching closing brace.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [error, syntax, block, brace]

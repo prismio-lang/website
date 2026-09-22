@@ -1,7 +1,8 @@
 ---
 title: Evaluation and control-flow semantics
 description: Expression ordering, short circuiting, assignments, loops, matches, returns, and unreachable behavior in Prismio 0.1.
-status: draft
+status: stable
+draft: true
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [specification, evaluation, control-flow, precedence]

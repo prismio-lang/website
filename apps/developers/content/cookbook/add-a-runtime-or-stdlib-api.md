@@ -1,7 +1,7 @@
 ---
 title: Add a runtime or standard-library API
 description: Choose the correct Prismio implementation layer, specify ownership, connect native symbols, and prove behavior across targets.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [cookbook, runtime, stdlib]

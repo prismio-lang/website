@@ -1,7 +1,7 @@
 ---
 title: Unified Manifest System overview
 description: The UMS architecture from build.ums tokens and AST through validation, dependency resolution, build planning, and command execution.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-08"
 tags: [ums, build-system, projects]

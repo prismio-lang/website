@@ -1,7 +1,7 @@
 ---
 title: Toolchain layout
 description: What an installed Prismio toolchain contains, why a compiler is a directory rather than a file, and how to read a missing-module error.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-09"
 tags: [installation, packaging, runtime, stdlib]

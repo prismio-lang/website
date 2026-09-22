@@ -1,7 +1,7 @@
 ---
 title: Foreign function declarations
 description: Prismio 0.1 extern fn and extern let syntax, C ABI types, ownership contracts, and globals defined in C.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-17"
 tags: [ffi, extern, c-abi, ownership-contracts, globals]

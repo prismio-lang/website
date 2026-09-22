@@ -1,7 +1,7 @@
 ---
 title: Development environment
 description: Prepare a Prismio compiler checkout with LLVM 23, platform tools, Python, and a known compiler generation.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-08"
 tags: [setup, llvm, toolchain]

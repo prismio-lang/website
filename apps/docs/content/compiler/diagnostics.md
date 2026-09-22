@@ -1,7 +1,7 @@
 ---
 title: Compiler diagnostics
 description: Prismio 0.1 error rendering, recovery, warnings, notes, source spans, and permanent documentation identifiers.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [compiler, diagnostics, errors, warnings]

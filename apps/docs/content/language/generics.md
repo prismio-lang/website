@@ -1,7 +1,7 @@
 ---
 title: Generics
 description: Generic functions and types in Prismio, type argument inference, and the monomorphization that makes them free at runtime.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-02"
 tags: [generics, type-parameters, monomorphization]

@@ -1,7 +1,7 @@
 ---
 title: Self-hosted fixed-point verification
 description: How Prismio compares compiler generations, seed output, deterministic IR, and packaged toolchains to protect bootstrap trust.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-08"
 tags: [testing, bootstrap, determinism]

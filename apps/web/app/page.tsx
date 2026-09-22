@@ -7,7 +7,7 @@ import WhyPrismio from "@/components/landing/WhyPrismio";
 import AIReady from "@/components/landing/AIReady";
 import Sponsors from "@/components/landing/Sponsors";
 import CTA from "@/components/landing/CTA";
-import FooterMain from "@/components/FooterMain";
+import FooterMain from "@prismio/ui/FooterMain";
 
 export default function LandingPage() {
     return (

@@ -1,7 +1,7 @@
 ---
 title: Compiler command-line reference
 description: Complete Prismio 0.1 build, run, bootstrap, AST, AIF, target, optimization, and verification command reference.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-09"
 tags: [compiler, cli, flags, commands]

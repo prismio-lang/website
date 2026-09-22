@@ -1,7 +1,7 @@
 ---
 title: Functions and calls
 description: Declaration staging, symbol selection, parameter attributes, direct and indirect calls, task thunks, vtables, and temporary ownership.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-17"
 tags: [llvm, functions, calls]
@@ -56,7 +56,7 @@ Wrote LLVM IR: overload.ll
 
 Three things to read off the output:
 
-```text
+```llvm
 declare void @exit(i32)
 
 define %prismio.str @describe__Int(i32 %0) {
@@ -67,7 +67,7 @@ entry:
 }
 ```
 
-```text
+```llvm
 define i32 @main(i32 %0, ptr %1) {
 entry:
   store i32 %0, ptr @prismio_argc, align 4

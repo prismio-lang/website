@@ -1,7 +1,7 @@
 ---
 title: Standard library status
 description: Prismio's shipped source standard library and the modules still planned.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [standard-library, runtime, status]

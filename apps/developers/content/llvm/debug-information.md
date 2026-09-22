@@ -1,7 +1,7 @@
 ---
 title: Debug information
 description: How Prismio emits DWARF compile units, files, functions, lexical scopes, variables, globals, structs, enums, strings, and source locations, and how to inspect what it emitted.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [llvm, debug, dwarf]

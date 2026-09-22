@@ -1,7 +1,7 @@
 ---
 title: Package manager
 description: The UMS manifest, project commands, path dependencies and the lockfile in Prismio 0.1, and what a registry would still add.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-03"
 tags: [package-manager, registry, dependencies, manifest, lockfile]

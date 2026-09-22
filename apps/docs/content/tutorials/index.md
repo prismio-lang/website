@@ -1,7 +1,7 @@
 ---
 title: Prismio tutorials
 description: Step-by-step Prismio 0.1 lessons for a first complete program and explicit owned-data design.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [tutorials, learning, programs, ownership]

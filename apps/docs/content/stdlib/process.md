@@ -1,7 +1,7 @@
 ---
 title: Process and arguments
 description: The std.process module — command-line arguments, starting other programs and talking to them through pipes, and why an argument comes back as a copy.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-17"
 tags: [standard-library, process, arguments, ffi]

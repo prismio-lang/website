@@ -1,7 +1,8 @@
 ---
 title: Engineering roadmap
 description: Evidence-backed Prismio compiler, AIF, runtime, tooling, and standard-surface priorities without invented release dates.
-status: draft
+status: stable
+draft: true
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [roadmap, compiler, status]

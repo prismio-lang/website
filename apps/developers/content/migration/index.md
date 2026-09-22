@@ -1,7 +1,8 @@
 ---
 title: Migration guides
 description: Version-aware migration policy and current checks for code written against earlier Prismio prototypes or documentation.
-status: draft
+status: stable
+draft: true
 version: "0.1.0"
 lastUpdated: "2026-09-08"
 tags: [migration, compatibility, versions]

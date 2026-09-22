@@ -1,7 +1,7 @@
 ---
 title: Runtime architecture
 description: The native support Prismio programs link, how to see it in a built program, the boundary with compiler builtins and standard modules, and the runtime's ownership obligations.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [runtime, architecture, native]

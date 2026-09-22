@@ -1,7 +1,7 @@
 ---
 title: Map
 description: The std.map hash table, the Key bound its keys satisfy, and why values stay scalar in Prismio 0.1.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [standard-library, map, collections, generics, traits, hash]

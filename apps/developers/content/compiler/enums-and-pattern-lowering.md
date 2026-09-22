@@ -1,7 +1,7 @@
 ---
 title: Enums and pattern lowering
 description: How Prismio represents fieldless and payload enums, checks exhaustive matches on payload enums, and lowers payload ownership safely.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-17"
 tags: [enums, pattern-matching, lowering]

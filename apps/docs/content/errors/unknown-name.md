@@ -1,7 +1,7 @@
 ---
 title: Unknown identifier
 description: Fix Prismio names that are misspelled, undeclared, outside their lexical scope, or absent from imports.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [error, identifier, scope, imports]

@@ -1,7 +1,7 @@
 ---
 title: Frequently asked questions
 description: Concise answers about Prismio 0.1 stability, self-hosting, memory, platforms, packages, and documentation status.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [faq, support, status]

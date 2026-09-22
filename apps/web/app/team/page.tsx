@@ -21,7 +21,7 @@ import {
     CheckCircle2,
 } from "lucide-react";
 import HeaderMain from "@/components/HeaderMain";
-import FooterMain from "@/components/FooterMain";
+import FooterMain from "@prismio/ui/FooterMain";
 
 export const metadata = {
     title: "Team & Community · Prismio Systems Language",

@@ -1,7 +1,7 @@
 ---
 title: Arrays, vectors, and slices
 description: Fixed stack arrays, the growable Vec<T>, and bounds-checked slices in Prismio 0.1 — which to choose, how each is owned, and how to view part of one.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [arrays, vec, slices, collections, indexing]

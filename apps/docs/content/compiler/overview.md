@@ -1,7 +1,7 @@
 ---
 title: Compiler architecture
 description: The self-hosted Prismio 0.1 pipeline from source and imports through semantics, AIF, LLVM IR, and native linking.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-09"
 tags: [compiler, architecture, self-hosting, llvm]

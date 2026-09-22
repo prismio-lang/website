@@ -1,7 +1,7 @@
 ---
 title: Compiler diagnostics
 description: How Prismio reports failures — stable codes, recovery that finds several errors in one run, warnings that don't stop a build, and how to read any of it.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-17"
 tags: [compiler, diagnostics, errors, warnings]

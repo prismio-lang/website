@@ -2,7 +2,7 @@
 
 import React from "react";
 import HeaderMain from "@/components/HeaderMain";
-import FooterMain from "@/components/FooterMain";
+import FooterMain from "@prismio/ui/FooterMain";
 import Link from "next/link";
 import { Sparkles, ArrowLeft } from "lucide-react";
 

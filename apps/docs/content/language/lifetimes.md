@@ -1,7 +1,7 @@
 ---
 title: Lifetimes
 description: Status of user-visible lifetime syntax in Prismio and the checks available in 0.1.
-status: coming-soon
+status: planned
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [lifetimes, borrowing, coming-soon]

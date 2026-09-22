@@ -14,7 +14,7 @@ import {
     Terminal,
 } from "lucide-react";
 import HeaderMain from "@/components/HeaderMain";
-import FooterMain from "@/components/FooterMain";
+import FooterMain from "@prismio/ui/FooterMain";
 
 export const metadata = {
     title: "Sponsors & Project Stewardship · Prismio",

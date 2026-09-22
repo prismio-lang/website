@@ -1,7 +1,7 @@
 ---
 title: Structs
 description: Define, construct, access, mutate, and transfer nominal struct values in Prismio 0.1.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [structs, fields, aggregate-types]

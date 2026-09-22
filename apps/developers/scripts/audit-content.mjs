@@ -50,11 +50,11 @@ for (const record of records) {
     }
 
     const status = field(record.frontmatter, "status");
-    if (!new Set(["implemented", "experimental", "draft", "coming-soon"]).has(status)) {
+    if (!new Set(["stable", "experimental", "planned"]).has(status)) {
         failures.push(`${record.slug}: invalid status ${status}`);
     }
-    if (status === "coming-soon" && !/(not implemented|not included|Coming Soon|\bno\b)/i.test(record.body)) {
-        failures.push(`${record.slug}: Coming Soon page must plainly state that it is not implemented`);
+    if (status === "planned" && !/(not implemented|not included|Coming Soon|planned|\bno\b)/i.test(record.body)) {
+        failures.push(`${record.slug}: Planned page must plainly state that it is not implemented`);
     }
     if (/^#\s+/m.test(record.prose)) failures.push(`${record.slug}: body must not duplicate the page H1`);
 

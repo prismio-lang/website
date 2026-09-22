@@ -1,7 +1,8 @@
 ---
 title: Undefined and implementation-defined behavior
 description: Boundaries where Prismio 0.1 rejects code, checks at runtime, or does not yet define portable behavior.
-status: draft
+status: stable
+draft: true
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [specification, undefined-behavior, portability, safety]

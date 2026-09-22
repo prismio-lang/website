@@ -1,7 +1,7 @@
 ---
 title: Container ownership transfer
 description: Fix a Prismio Vec insertion that reuses a moved element or moves from a borrowed parameter.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [error, vec, container, ownership, sink]

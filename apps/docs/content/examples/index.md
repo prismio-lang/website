@@ -1,7 +1,7 @@
 ---
 title: Verified examples
 description: Small, focused Prismio 0.1 programs categorized by language feature and checked against the compiler.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [examples, verified, learning]

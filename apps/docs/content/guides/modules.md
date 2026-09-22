@@ -1,7 +1,7 @@
 ---
 title: Organize source with modules
 description: Structure Prismio 0.1 source files with relative dotted imports and direct wildcard imports.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [guide, modules, imports]

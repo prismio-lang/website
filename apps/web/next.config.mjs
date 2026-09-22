@@ -1,6 +1,23 @@
 const nextConfig = {
     transpilePackages: ['lucide-react'],
     pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
+    async headers() {
+        return [
+            {
+                source: '/install.sh',
+                headers: [
+                    {
+                        key: 'Content-Type',
+                        value: 'text/plain; charset=utf-8',
+                    },
+                    {
+                        key: 'Cache-Control',
+                        value: 'public, max-age=300, s-maxage=300',
+                    },
+                ],
+            },
+        ];
+    },
     async redirects() {
         return [
             {

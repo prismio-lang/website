@@ -1,7 +1,7 @@
 ---
 title: Collection representations
 description: The current List, Map, Slice, and DataView runtime forms, ownership modes, growth behavior, and compiler specialization points.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [runtime, collections, memory]

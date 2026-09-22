@@ -1,7 +1,7 @@
 ---
 title: Semantic analysis and types
 description: The semantic passes that resolve Prismio names, types, overloads, calls, fields, flow, and program validity — and why a rejection reports every mistake it can find rather than stopping at the first.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [semantics, types, overloads]

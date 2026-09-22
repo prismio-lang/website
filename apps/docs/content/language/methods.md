@@ -1,7 +1,7 @@
 ---
 title: Methods and impl blocks
 description: Method call syntax and concrete or generic impl blocks in Prismio -- x.f(a) is f(x, a), and an impl block is where the free function is written.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-02"
 tags: [methods, impl, receiver, self, overloads]

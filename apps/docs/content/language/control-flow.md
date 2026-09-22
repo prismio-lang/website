@@ -1,7 +1,7 @@
 ---
 title: Control flow
 description: Use if, while, loop, for ranges, break, continue, and return in Prismio 0.1.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-30"
 tags: [control-flow, if, loops, return]

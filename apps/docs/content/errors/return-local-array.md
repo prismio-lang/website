@@ -1,7 +1,7 @@
 ---
 title: Cannot return a local array
 description: Fix Prismio functions that return stack-array storage created in their own frame.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-18"
 tags: [error, array, slice, lifetime, return]

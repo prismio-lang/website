@@ -1,7 +1,7 @@
 ---
 title: Use after move
 description: Fix Prismio ownership errors caused by reading a string, list, or struct after transfer or drop.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [error, ownership, move, drop]

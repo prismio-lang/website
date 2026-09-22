@@ -1,7 +1,7 @@
 ---
 title: Frequently asked questions
 description: Current answers about Prismio stability, self-hosting, AIF, LLVM, platforms, standard modules, UMS, and compiler support.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-08"
 tags: [faq, support, status]

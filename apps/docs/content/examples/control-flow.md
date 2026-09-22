@@ -1,7 +1,7 @@
 ---
 title: "Example: classify a range"
 description: A complete Prismio program using a half-open for range, modulo, conditions, and mutable accumulation.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [example, loop, if, modulo]

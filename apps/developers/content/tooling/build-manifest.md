@@ -1,7 +1,7 @@
 ---
 title: build.ums manifest reference
 description: The developer reference for Prismio workspace, target, profile, dependency, toolchain, source, output, and native link declarations.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-08"
 tags: [ums, manifest, reference]

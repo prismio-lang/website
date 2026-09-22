@@ -1,7 +1,7 @@
 ---
 title: Prismio guides
 description: Practical guides for organizing Prismio programs, integrating C, reasoning about memory, and developing the self-hosted compiler.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-09"
 tags: [guides, modules, ffi, aif, compiler]

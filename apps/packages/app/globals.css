@@ -73,3 +73,11 @@
         color: #1e1b4b;
     }
 }
+
+@layer components {
+    .kbd,
+    .text-muted {
+        color: var(--muted-foreground);
+    }
+}
+

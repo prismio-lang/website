@@ -1,7 +1,7 @@
 ---
 title: Testing the compiler
 description: The Prismio validation layers from focused language regressions through AIF differentials, fixed points, packaging, and platforms.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-09"
 tags: [testing, compiler, contributing]

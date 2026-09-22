@@ -1,7 +1,7 @@
 ---
 title: Filesystem API
 description: The std.fs module — files, paths, and directory listing, with the ownership contracts the raw runtime calls do not carry.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-16"
 tags: [standard-library, filesystem, paths]

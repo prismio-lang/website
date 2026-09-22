@@ -1,7 +1,7 @@
 ---
 title: Traits, impl blocks, and dispatch
 description: How Prismio resolves a trait method at compile time when the receiver's type is known, and through a runtime table when it isn't — plus coherence, associated items, impl Trait, and trait objects.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-17"
 tags: [traits, impl, dispatch]

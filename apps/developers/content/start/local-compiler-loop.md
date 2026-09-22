@@ -1,7 +1,7 @@
 ---
 title: Local compiler development loop
 description: Build and test Prismio through the UMS project host without losing a working compiler generation.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-09"
 tags: [workflow, self-hosting, ums]

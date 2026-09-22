@@ -1,7 +1,7 @@
 ---
 title: Prismio 0.1 overview
 description: What Prismio is, what the self-hosted 0.1 compiler implements, and which capabilities are still planned.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-08-29"
 tags: [overview, status, compiler]

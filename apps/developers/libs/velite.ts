@@ -1,20 +1,3 @@
-// Re-export from Velite's generated output.
-// This file exists so we have a single import alias (@/libs/velite)
-// throughout the codebase.
-
+// Re-export from Velite's generated output and @prismio/docs-core.
 export { docs } from ".velite";
-
-export type DocStatus = "implemented" | "experimental" | "draft" | "coming-soon";
-
-export type Docs = {
-    title: string;
-    description: string;
-    status: DocStatus;
-    version: string;
-    lastUpdated: string;
-    tags: string[];
-    related: string[];
-    slug: string;
-    raw: string;
-    code: string;
-};
+export type { DocStatus, DocRecord as Docs } from "@prismio/docs-core";

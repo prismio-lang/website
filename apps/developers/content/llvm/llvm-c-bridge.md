@@ -1,7 +1,7 @@
 ---
 title: LLVM C API bridge
 description: A categorized reference to the LLVM 23 C API used by Prismio's native backend and the ir_* operations exposed to self-hosted code.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-08"
 tags: [llvm, c-api, bridge]

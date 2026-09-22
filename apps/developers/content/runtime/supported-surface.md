@@ -1,7 +1,7 @@
 ---
 title: Builtins, standard modules, and foreign code
 description: How contributors decide whether an operation belongs in compiler lowering, an importable Prismio module, or the C-compatible runtime surface.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-16"
 tags: [runtime, stdlib, ffi]

@@ -1,7 +1,7 @@
 ---
 title: UMS build graph and native linking
 description: How UMS resolves packages, local dependencies, targets, artifacts, libraries, frameworks, files, and ordered build commands.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-08"
 tags: [ums, dependencies, linking]

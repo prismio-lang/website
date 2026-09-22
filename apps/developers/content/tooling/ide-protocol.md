@@ -1,7 +1,7 @@
 ---
 title: IDE and JSON diagnostics protocol
 description: The analysis-only check command, versioned JSON Lines diagnostics, source positions, severities, and editor integration rules.
-status: implemented
+status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-08"
 tags: [ide, diagnostics, json]

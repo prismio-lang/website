@@ -1,7 +1,7 @@
 ---
 title: Concurrency library
 description: Prismio 0.1 ships no standard concurrency module; tasks and channels are language features rather than libraries.
-status: coming-soon
+status: planned
 version: "0.1.0"
 lastUpdated: "2026-08-29"
 tags: [standard-library, concurrency, threads, channels, coming-soon]
