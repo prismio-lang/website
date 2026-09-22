@@ -3,8 +3,6 @@ import localFont from "next/font/local";
 import "./globals.css";
 import React from "react";
 
-import ComingSoon from "@/components/ComingSoon";
-
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
     variable: "--font-geist-sans",
@@ -40,8 +38,7 @@ export default function RootLayout({
     return (
         <html lang="en" className="light" style={{colorScheme: "light"}} suppressHydrationWarning>
             <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-white text-zinc-900`}>
-                <ComingSoon />
-                {/* Once registry launches, replace <ComingSoon /> with {children} */}
+                {children}
             </body>
         </html>
     );
