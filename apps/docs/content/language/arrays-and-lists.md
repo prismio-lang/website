@@ -252,9 +252,9 @@ Removing an element that another name still views is safe: a removed element tha
 import std.vec
 
 fn main() -> Int {
-    let values: Vec<Int> = [10, 20, 30]
+    let mut values: Vec<Int> = [10, 20, 30]
 
-    let middle: Slice<Int> = values[1..<3]
+    let mut middle: Slice<Int> = values[1..<3]
     middle[0] = 40
     let tail = middle[1..<2]
     return middle[0] + tail[0] - 70
@@ -262,6 +262,29 @@ fn main() -> Int {
 ```
 
 `view.length` returns the view's length, `view[index]` reads through it, and `view[index] = value` writes to the underlying Vec. Overlapping slices are permitted in one task; a write through either is visible through the other.
+
+A write through a Slice changes the Vec it views, so it needs what a write into that Vec needs. The view's own binding is `let mut`, or an `inout` parameter, as for a [Vec](/language/variables#immutability-and-reassignment). And the view has to be of something changeable. Two kinds of Slice are read-only:
+
+- a slice of a Vec that is not `mut`, of an ordinary parameter, or of another read-only view;
+- a Slice returned by a function that has no `inout` parameter. Such a function was only allowed to read what it was given, so the view it returns can only be read too.
+
+<!-- prismio-check: fail -->
+```prismio
+import std.vec
+
+fn main() -> Int {
+    let values: Vec<Int> = [10, 20, 30]
+    let mut view = values[0..<2]
+    view[0] = 1
+    return 0
+}
+```
+
+```text
+error[P4001]: cannot change what `view` views: the view is read-only
+```
+
+`mut` on a read-only view lets the binding be pointed at another range. It does not make the view writable. A binding that starts as a writable view cannot later be given a read-only one, because a store written before that assignment in a loop would run through it on the next pass. Reading through any view needs nothing, and a function that only reads a Slice takes it as an ordinary parameter.
 
 A Slice stores the Vec's identity, an offset and a length — not a pointer into the element block. Growing the Vec may move that block, and an existing Slice stays valid because each access finds the block again. Construction and every access are bounds checked: an invalid range or an out-of-range access stops the program with a bounds error instead of reading freed memory.
 

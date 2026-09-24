@@ -163,7 +163,9 @@ fn main() -> Int {
 
 The rule follows indexing to the binding at its root: `grid[i].push(x)` changes `grid`. The same holds for the library's changing methods — `sort`, `sortBy`, `reverse`, `extend`, `pop`, `removeAt` take their Vec `inout`.
 
-**Structs are the exception, for now.** A struct is reached by reference, so assigning one of its fields — and changing a Vec that is one of its fields — is permitted even when the binding lacks `mut`. Replacing the binding itself still requires `mut`. A Slice is a view with its own write operation and is not covered by this rule yet.
+**Structs are the exception, for now.** A struct is reached by reference, so assigning one of its fields — and changing a Vec that is one of its fields — is permitted even when the binding lacks `mut`. Replacing the binding itself still requires `mut`.
+
+A Slice follows the rule twice. Its own binding has to be `let mut` or `inout`, and it has to view something changeable: a slice of a Vec that is not `mut` is [read-only](/language/arrays-and-lists#slices), whatever its binding says.
 
 ## Scope and shadowing
 
@@ -242,6 +244,7 @@ The final call tries to read `first` after its string has moved to `second`. Dec
 - A binding needs an initializer, an annotation, or both.
 - An initializer must have the declared type; numeric coercions are not implicit.
 - Direct reassignment and compound assignment require `mut`, and so does changing a Vec's or an array's contents; a parameter changes them only when it is `inout`.
+- A write through a Slice needs a `mut` or `inout` view of something changeable; a slice of a non-`mut` Vec is read-only.
 - `default` is the expected type's default value; it needs an annotation or other context to know the type.
 - A binding is visible only in its lexical scope and may shadow an outer name.
 - Global initialization is restricted to supported static literals.
