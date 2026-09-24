@@ -3,7 +3,7 @@ title: Lexer, parser, and AST
 description: The Prismio frontend from UTF-8 scanning through parser recovery and the typed structures consumed by later stages.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-18"
+lastUpdated: "2026-09-24"
 tags: [lexer, parser, ast]
 related: [compiler/pipeline-and-driver, compiler/semantic-analysis-and-types, compiler/diagnostics, cookbook/add-a-language-feature]
 ---
@@ -243,11 +243,17 @@ Token-producing functions are separated by grammar:
   reserved words and boolean literals;
 - `lexNumber` handles the currently supported integer and floating spellings;
 - `lexString` and `lexChar` enforce closing delimiters and decoded-width
-  rules;
+  rules. `lexerDecodeEscapes` decodes a string's escapes, including `\e`
+  (ESC), `\xHH` (one byte, `lexerHexByteEscape`) and `\u{...}` (a Unicode
+  scalar written as UTF-8 by `utf8Text`); NUL is refused in every spelling,
+  since a String is NUL-terminated. `src/` must not use the three new escapes
+  until the seed has been refreshed by a compiler that decodes them;
 - `lexOperator` uses `isTwoCharOperator`, `twoCharOperatorType`, and
   `oneCharOperatorType`; and
 - `lexRange` distinguishes range punctuation from ordinary dot/separator
-  tokens.
+  tokens. `..` and `..<` are one `RANGE` kind told apart by the token's
+  value, so every production that accepts a range accepts both and records
+  which it saw. `@`, for loop labels, is a `SEPARATOR`.
 
 `lexerToken` records token type, value, file, start/end line and column, and
 source offsets. `lexerFatal` emits a location-aware diagnostic and terminates
@@ -274,7 +280,48 @@ keeps the most-negative signed literal representable instead of requiring an
 out-of-range positive intermediate.
 
 `parseBlock` repeatedly calls `parseStatement`. Dedicated functions own `if`,
-`while`, `loop`, `for`, `region`, `match`, `return`, and compound assignment.
+`while`, `loop`, `for`, `repeat`, `region`, `match`, `return`, and compound assignment.
+
+The loop productions carry the most shape:
+
+- **`for`** (`parseForStatement`) accepts a parenthesised header — `for (x in 1..10)` — told
+  apart from the pair `for (k, v) in m` by whether a `,` follows the first name. A range leaves
+  `child1` the start, `child2` the end with an optional `step` expression on the end's `next`,
+  `child3` the body, and `i1 = 1` when the end is included (`..`). A header with no range
+  operator is a collection loop, marked by the absent `child2`; a pair puts its second name in
+  `s2`. `step` is contextual and read only after an end.
+- **`repeat(n)`** is contextual too, because `"ab".repeat(3)` is a String method.
+  `atRepeatStatement` looks ahead for `repeat`, a balanced parenthesised count and a `{` — a
+  shape no call statement can have — and `parseRepeatStatement` builds the loop as
+  `for $repeat_L_C in 0..<n`.
+- **A label** (`outer@ for …`) is an identifier followed by `@` at the start of a statement.
+  `parseLabeledLoop` parses the loop and stores the label on its body BLOCK's `s1`, which a
+  BLOCK does not otherwise use and which every later rewrite of a loop preserves.
+  `break@outer` and `continue@outer` store it in their own `s1`; the `@` must be on the
+  keyword's line.
+
+**Imports.** `parseImportStatement` reads a dotted path, an optional `.*`, and an optional
+`as` alias (`parseImportAlias`). A leading `{` starts a group, `import {io, string} from std`:
+`parseImportGroup` reads single-segment entries, each with its own optional `as`, then
+`from` and the directory (`parseImportFrom`), and returns one `IMPORT_STATEMENT` per entry
+chained on `next`, exactly the nodes the entries would have been as separate lines.
+`parseModule` splices the chain into the declarations. A leading `*` is `import * from std`,
+the same node `import std.*` builds. `from` is contextual: an identifier with that
+spelling, only after a group or a `*`.
+
+A group entry names a file, never a declaration, and the parser cannot tell the two
+apart, so it marks each entry with `i2 = 1`. `refuseGroupDeclaration` in
+`driver/imports.psm` reports P1072 for a marked entry whose path is a declaration inside
+a module, before `mergeNamedModule`'s selective-import fallback can quietly select it. An
+empty group, an alias after the directory, a dotted entry, and the path-first
+`import std.{io}` are syntax errors; the last one's message spells the right order.
+
+**`default`** is a keyword and parses as a `DEFAULT_EXPR` primary, beside `none`. It has no
+type of its own; sema rewrites it in place (see
+[semantic analysis](/compiler/semantic-analysis-and-types#builtins-and-source-rewrites)).
+
+A slice's end is normalised by `parseSliceEnd`: `a[x..y]` is stored as the exclusive bound
+`y + 1`, so sema and codegen only ever see the half-open form they always handled.
 Parsing a construct into a generic expression statement and repairing it later
 loses recovery boundaries and usually produces worse diagnostics.
 

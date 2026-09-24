@@ -4,7 +4,7 @@ description: Implementation status for current and planned Prismio language, too
 status: stable
 draft: true
 version: "0.1.0"
-lastUpdated: "2026-09-18"
+lastUpdated: "2026-09-24"
 tags: [roadmap, status, coming-soon]
 related: [start/overview, releases/0.1.0, faq]
 ---
@@ -19,7 +19,8 @@ This page distinguishes shipped compiler behavior from intent. It does not assig
 | Cross-compilation (`--target`, `--sysroot`) | Implemented |
 | WebAssembly past IR | Blocked |
 | Importable standard-library modules | Implemented |
-| Module qualifiers (`std.string.strTrim(x)`) | Implemented (calls only, by full import path) |
+| Terminal colours and styles (`std.term`), `\e` / `\xHH` / `\u{…}` escapes | Implemented |
+| Module qualifiers (`std.string.trim(x)`) | Implemented (calls only, by full import path) |
 | Visibility: `public`, `private`, `internal` | Implemented (`fn` and `extern fn`; `public` is the default) |
 | Selective imports (`import m.name`) | Implemented |
 | Aliased imports (`import m as n`) | Coming Soon |
@@ -34,6 +35,11 @@ This page distinguishes shipped compiler behavior from intent. It does not assig
 | Chunked `Vec<T, N>` and `Vec<T, Chunk>`, slices of arrays | Coming Soon |
 | More collections: `VecDeque<T>`, sets, a sorted map, a priority queue, a linked list | Coming Soon |
 | Programmer-directed AoS↔SoA data views | Experimental (conversion, checked reads, mutation and round trip implemented) |
+| `else if` chains, `while`, `loop`, `repeat(n)` | Implemented |
+| Ranges `a..b` (end included) and `a..<b`, with `step` | Implemented |
+| `for` over String, Vec, Slice, arrays, Map and `Iterator` types, with `(index, element)` | Implemented |
+| Labelled loops: `outer@ for …`, `break@outer`, `continue@outer` | Implemented |
+| Descending ranges, `break` with a value, `if`/`match` as expressions | Coming Soon |
 | Payload enums, `Option` and `Result` | Implemented |
 | Closures | Implemented |
 | User-written lifetimes | Coming Soon |

@@ -3,7 +3,7 @@ title: "Tutorial: your first complete program"
 description: Build a small Prismio program with a function, loop, mutable binding, and output.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-08-12"
+lastUpdated: "2026-09-23"
 tags: [tutorial, functions, loops, variables]
 related: [language/variables, language/functions, language/control-flow]
 ---
@@ -20,7 +20,7 @@ import std.io
 
 fn sum_to(limit: Int) -> Int {
     let mut total: Int = 0
-    for value in 1..limit {
+    for value in 1..<limit {
         total += value
     }
     return total
@@ -60,12 +60,12 @@ let mut total: Int = 0
 `let` introduces a local binding. `mut` is necessary because the loop updates `total`. The explicit annotation is not required here—`0` can infer `Int`—but it documents the accumulator's width.
 
 ```prismio
-for value in 1..limit {
+for value in 1..<limit {
     total += value
 }
 ```
 
-`start..end` is half-open. With `limit` equal to `6`, the loop visits `1`, `2`, `3`, `4`, and `5`. The iteration binding `value` exists only inside the loop body.
+`start..<end` stops before its end. With `limit` equal to `6`, the loop visits `1`, `2`, `3`, `4`, and `5`. Written `1..limit`, the range would include `6` as well and the total would be `21`. The iteration binding `value` exists only inside the loop body.
 
 ```prismio
 return total
@@ -93,7 +93,7 @@ import std.io
 
 fn sum_to(limit: Int) -> Int {
     let mut total = 0
-    for value in 1..limit {
+    for value in 1..<limit {
         total += value
     }
     return total

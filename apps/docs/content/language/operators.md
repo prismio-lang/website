@@ -3,7 +3,7 @@ title: Operators and casts
 description: Prismio 0.1 arithmetic, comparison, logical, bitwise, shift, unary, assignment, and cast operators.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-08-30"
+lastUpdated: "2026-09-23"
 tags: [operators, precedence, casts, bitwise]
 related: [language/types, specification/evaluation, errors/integer-width-mismatch]
 ---
@@ -137,7 +137,8 @@ them allocate exactly as the call they stand for does.
 | `a < b`, `a <= b`, `a > b`, `a >= b` | sign of `a.compare(b)` — byte order | no |
 | `a + b` | `a.concat(b)` | **yes** |
 | `s[i]` | `s.charAt(i)` — the byte at `i`, NUL out of range | no |
-| `s[start..end]` | `s.slice(start, end)` — half-open, clamped | **yes** |
+| `s[start..<end]` | `s.slice(start, end)` — stops before `end`, clamped | **yes** |
+| `s[start..end]` | `s.slice(start, end + 1)` — includes `end`, clamped | **yes** |
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -150,7 +151,7 @@ fn main() -> Int {
     if (name == "prismio") { println("matched") }
     if (name < "rust") { println("sorts first") }
 
-    let head = name[0..4]
+    let head = name[0..<4]
     let label = "lang: " + head
     println(label)
     return 0

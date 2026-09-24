@@ -3,7 +3,7 @@ title: Ownership and borrowing
 description: Move-only values, default borrows, sink transfers, inout mutation, drop, and loop restrictions in Prismio 0.1.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-18"
+lastUpdated: "2026-09-24"
 tags: [ownership, borrowing, move, sink, inout]
 related: [language/functions, language/annotations, specification/memory-model, errors/use-after-move]
 ---
@@ -103,7 +103,7 @@ fn main() -> Int {
 
 ## Mutate with inout
 
-An `inout` parameter is an exclusive mutable borrow. Mutations are visible to the caller, which retains ownership.
+An `inout` parameter is an exclusive mutable borrow. Mutations are visible to the caller, which retains ownership. Because the callee may change the value, the caller must be allowed to: the argument is a `let mut` binding, or an `inout` parameter of the caller's own.
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -111,7 +111,7 @@ struct Box { value: Int }
 fn bump(inout box: Box) { box.value = box.value + 1 }
 
 fn main() -> Int {
-    let box = Box { value: 9 }
+    let mut box = Box { value: 9 }
     bump(box)
     return box.value - 10
 }
@@ -176,7 +176,7 @@ fn consume(sink work: Work) -> Int { return work.id }
 
 fn main() -> Int {
     let work = Work { id: 1 }
-    for index in 0..2 {
+    for index in 0..<2 {
         consume(work)
         println(index)
     }

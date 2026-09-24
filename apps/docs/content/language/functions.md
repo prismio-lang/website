@@ -3,7 +3,7 @@ title: Functions and parameters
 description: Declare Prismio 0.1 functions, return values, overloads, and borrow, sink, or inout parameters.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-01"
+lastUpdated: "2026-09-24"
 tags: [functions, parameters, returns, overloads]
 related: [language/ownership-and-borrowing, language/ffi, errors/wrong-arity]
 ---
@@ -140,7 +140,7 @@ The last field access is a use after move. `sink` on a copy type is accepted as 
 
 ### `inout` permits caller-visible mutation
 
-`inout` forms an exclusive mutable borrow. It does not move the value, and changes made through the parameter are visible after the call.
+`inout` forms an exclusive mutable borrow. It does not move the value, and changes made through the parameter are visible after the call. The argument has to be something the caller may change — a `let mut` binding or its own `inout` parameter — and an `inout` parameter may be a struct, a `Vec`, an array or a slice. An ordinary parameter is read-only: pushing to a `Vec` parameter or storing into an array parameter needs `inout`.
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -151,7 +151,7 @@ fn increment(inout counter: Counter) {
 }
 
 fn main() -> Int {
-    let counter = Counter { value: 4 }
+    let mut counter = Counter { value: 4 }
     increment(counter)
     return counter.value - 5
 }

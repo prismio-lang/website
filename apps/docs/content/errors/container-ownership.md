@@ -3,7 +3,7 @@ title: Container ownership transfer
 description: Fix a Prismio Vec insertion that reuses a moved element or moves from a borrowed parameter.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-18"
+lastUpdated: "2026-09-24"
 tags: [error, vec, container, ownership, sink]
 related: [stdlib/vec, language/ownership-and-borrowing, errors/use-after-move]
 ---
@@ -16,7 +16,7 @@ The container needs an owner for every move-only element it stores. A borrowed v
 
 ## Why it happens
 
-`push`, `insert` and `set` are sometimes mistaken for copy operations. They copy scalar/enum/array elements, but transfer strings, structs, vectors, and owned optional values. `list_set_exclusive`, the runtime-layer replacement, additionally reclaims the displaced boxed struct and is therefore accepted only while the Vec remains an unobserved local owner.
+`push`, `insert` and `set` are sometimes mistaken for copy operations. They copy scalar/enum/array elements, but transfer strings, structs, vectors, and owned optional values. `replace`, the reclaiming replacement, additionally reclaims the displaced boxed struct and is therefore accepted only while the Vec remains an unobserved local owner.
 
 ## Invalid code
 
@@ -37,9 +37,9 @@ fn main() -> Int {
 <!-- prismio-check: pass -->
 ```prismio
 struct Item { value: Int }
-fn hold(items: Vec<Item>, sink item: Item) { items.push(item) }
+fn hold(inout items: Vec<Item>, sink item: Item) { items.push(item) }
 fn main() -> Int {
-    let items: Vec<Item>
+    let mut items: Vec<Item>
     hold(items, Item { value: 1 })
     return items.length - 1
 }

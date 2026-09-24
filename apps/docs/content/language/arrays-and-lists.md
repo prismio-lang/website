@@ -3,7 +3,7 @@ title: Arrays, vectors, and slices
 description: Fixed stack arrays, the growable Vec<T>, and bounds-checked slices in Prismio 0.1 — which to choose, how each is owned, and how to view part of one.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-18"
+lastUpdated: "2026-09-24"
 tags: [arrays, vec, slices, collections, indexing]
 related: [language/types, language/ownership-and-borrowing, stdlib/vec]
 ---
@@ -29,7 +29,7 @@ Inside a loop body, a zero-filled array starts at zero again on every iteration.
 <!-- prismio-check: pass -->
 ```prismio
 fn main() -> Int {
-    let counts: Array<Int, 4>
+    let mut counts: Array<Int, 4>
     counts[2] = 7
     let sized: Array<Int, 3> = [1, 2, 3]
     let inferred: [Int] = [4, 5]
@@ -62,9 +62,9 @@ An element is replaced by assigning through its index when the element owns noth
 <!-- prismio-check: pass -->
 ```prismio
 fn main() -> Int {
-    let grid: [[Int]] = [[1, 2], [3, 4]]
+    let mut grid: [[Int]] = [[1, 2], [3, 4]]
     grid[1][0] = 30
-    let wide: Array<I64, 2>
+    let mut wide: Array<I64, 2>
     wide[0] = 4294967296
     return grid[1][0] - 30
 }
@@ -89,13 +89,13 @@ A parameter written `[T]` takes an array of any length, and it is a **view** of 
 
 <!-- prismio-check: pass -->
 ```prismio
-fn clear(xs: [Int]) {
+fn clear(inout xs: [Int]) {
     xs[0] = 0
 }
 
 fn main() -> Int {
-    let a: [Int] = [1, 2, 3]
-    let b = a
+    let mut a: [Int] = [1, 2, 3]
+    let mut b = a
     b[0] = 9
     clear(a)
     return a[0] + b[0] - 9
@@ -114,15 +114,15 @@ Two kinds of array are **shared** by a second binding rather than copied, until 
 <!-- prismio-check: pass -->
 ```prismio
 fn squares() -> Array<Int, 4> {
-    let out: Array<Int, 4>
-    for i in 0..4 {
+    let mut out: Array<Int, 4>
+    for i in 0..<4 {
         out[i] = i * i
     }
     return out
 }
 
 fn main() -> Int {
-    let s = squares()
+    let mut s = squares()
     s[0] = 100
     return s[3] + squares()[2] + squares()[0] - 13
 }
@@ -149,13 +149,13 @@ struct Packet {
     payload: Array<U8, 8>
 }
 
-fn stamp(bytes: [U8]) {
+fn stamp(inout bytes: [U8]) {
     bytes[0] = 200
 }
 
 fn checksum(bytes: [U8], n: Int) -> Int {
     let mut sum = 0
-    for i in 0..n {
+    for i in 0..<n {
         sum = sum + (bytes[i] as Int)
     }
     return sum
@@ -165,7 +165,7 @@ fn main() -> Int {
     let p = Packet { id: 1 }
     stamp(p.payload)
     p.payload[7] = 55
-    let copy = p.payload
+    let mut copy = p.payload
     copy[0] = 0
     return checksum(p.payload, 8) - 255
 }
@@ -205,7 +205,7 @@ fn sumFirstTwo(values: Vec<Int>) -> Int {
 }
 
 fn main() -> Int {
-    let values: Vec<Int> = [20]
+    let mut values: Vec<Int> = [20]
     values.push(22)
     return sumFirstTwo(values) - 42
 }
@@ -245,7 +245,7 @@ Removing an element that another name still views is safe: a removed element tha
 
 ## Slices
 
-`Slice<T>` is a copyable, non-owning view of a range in a `Vec<T>`. Create one with an end-exclusive range. Slicing another Slice composes the offsets rather than copying elements.
+`Slice<T>` is a copyable, non-owning view of a range in a `Vec<T>`. Create one with a range: `values[1..<3]` stops before index 3, and `values[1..3]` includes it. Slicing another Slice composes the offsets rather than copying elements.
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -254,14 +254,14 @@ import std.vec
 fn main() -> Int {
     let values: Vec<Int> = [10, 20, 30]
 
-    let middle: Slice<Int> = values[1..3]
-    slice_set(middle, 0, 40)
-    let tail = middle[1..2]
+    let middle: Slice<Int> = values[1..<3]
+    middle[0] = 40
+    let tail = middle[1..<2]
     return middle[0] + tail[0] - 70
 }
 ```
 
-`slice_len(view)` returns the view's length, `view[index]` reads through it, and `view[index] = value` — or `slice_set(view, index, value)` — writes to the underlying Vec. Overlapping slices are permitted in one task; a write through either is visible through the other.
+`view.length` returns the view's length, `view[index]` reads through it, and `view[index] = value` writes to the underlying Vec. Overlapping slices are permitted in one task; a write through either is visible through the other.
 
 A Slice stores the Vec's identity, an offset and a length — not a pointer into the element block. Growing the Vec may move that block, and an existing Slice stays valid because each access finds the block again. Construction and every access are bounds checked: an invalid range or an out-of-range access stops the program with a bounds error instead of reading freed memory.
 
@@ -276,7 +276,7 @@ Indices are `Int`.
 - **A Slice checks every access** and stops the program on an out-of-range index.
 - **A Vec does not.** `values[i]` outside `[0, length)` answers the element type's zero. Check `values.length` first, or use `values.get(i)`, which answers `Option.None` for a missing element.
 
-`for x in values` visits each element in order and borrows the Vec, which stays usable afterwards. The Vec has to be a name: bind a call's result first. When the index matters, loop over the range:
+`for x in values` visits each element in order and borrows the Vec, which stays usable afterwards. `for (i, x) in values` gives the index as well, and a range over `0..<values.length` works when only the index matters. [Control flow](/language/control-flow#collections-for-x-in-items) covers every collection `for` accepts.
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -288,8 +288,8 @@ fn main() -> Int {
     for v in values {
         println(v)
     }
-    for i in 0..values.length {
-        println(i * values[i])
+    for (i, v) in values {
+        println(i * v)
     }
     return 0
 }
@@ -306,12 +306,13 @@ fn main() -> Int {
 | Assignment | copy (a `[T]` parameter is a view) | move |
 | Returned from a function | by value, declared `-> Array<T, N>` | yes |
 | In a struct field | in place, declared `Array<T, N>` | yes, as a pointer to the Vec |
-| `for x in …` and `.length` | no | yes |
+| `for x in …` | yes, when the length is known | yes |
+| `.length` | no | yes |
 | Index type | `Int` | `Int` |
 
 ## DataView
 
-Programmer-directed SoA data views are experimental. For an eligible flat struct `T`, `soa(rows)` consumes a `Vec<T>` into a move-only `DataView<T>`, `data_len(view)` borrows its length, and `view[index].field` reads or mutates the corresponding column through a checked handle-and-index descriptor. Nested flat fields can be mutated as well. A struct holding an `Array<T, N>` field is not eligible: a column holds one scalar per row. `aos(view)` consumes the view and rebuilds a `Vec<T>` containing those changes. An `extern fn` taking or returning a DataView is rejected until explicit marshalling exists.
+Programmer-directed SoA data views are experimental. For an eligible flat struct `T`, `soa(rows)` consumes a `Vec<T>` into a move-only `DataView<T>`, `view.length` borrows its length, and `view[index].field` reads or mutates the corresponding column through a checked handle-and-index descriptor. Nested flat fields can be mutated as well. A struct holding an `Array<T, N>` field is not eligible: a column holds one scalar per row. `aos(view)` consumes the view and rebuilds a `Vec<T>` containing those changes. An `extern fn` taking or returning a DataView is rejected until explicit marshalling exists.
 
 ## Not available yet
 
@@ -320,7 +321,7 @@ These are not in Prismio 0.1. Each is planned, and this page will say so when on
 | Missing | Use today |
 | --- | --- |
 | **A parameter of one fixed length** (`xs: Array<Int, 4>`), compiled once per length | a `[T]` parameter, with the length passed beside it |
-| **`for x in` and `.length` on an array** | `for i in 0..N`, with the `N` you wrote |
+| **`.length` on an array**, and `for x in` over a `[T]` parameter whose length is not known | the `N` you wrote, or a length passed beside the parameter: `for i in 0..<n` |
 | **An array field in a generic struct**, or one whose elements own memory | a struct without type parameters, or a `Vec<T>` field |
 | **Copying an array of arrays**, or of elements that own memory (today a second binding shares them) | copy row by row into an `Array<T, N>` |
 | **Slices of arrays** — `Slice<T>` views a `Vec<T>` only | index the array directly, or build a `Vec<T>` |

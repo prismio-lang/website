@@ -3,7 +3,7 @@ title: Generics
 description: Generic functions and types in Prismio, type argument inference, and the monomorphization that makes them free at runtime.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-02"
+lastUpdated: "2026-09-23"
 tags: [generics, type-parameters, monomorphization]
 related: [language/traits, language/functions, language/structs, stdlib/map]
 ---
@@ -118,7 +118,7 @@ fn first<T>(items: Slice<T>) -> T {
 
 fn main() -> Int {
     let values: Vec<Int> = [42]
-    return first(values[0..1]) - 42
+    return first(values[0..<1]) - 42
 }
 ```
 

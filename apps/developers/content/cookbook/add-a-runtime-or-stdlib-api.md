@@ -3,7 +3,7 @@ title: Add a runtime or standard-library API
 description: Choose the correct Prismio implementation layer, specify ownership, connect native symbols, and prove behavior across targets.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-18"
+lastUpdated: "2026-09-24"
 tags: [cookbook, runtime, stdlib]
 related: [runtime/supported-surface, aif/ffi-contracts, llvm/llvm-c-bridge, runtime/overview, runtime/library-artifacts, tooling/compiler-host-and-promotion]
 ---
@@ -24,7 +24,7 @@ import std.io
 import std.string
 
 fn main() -> Int {
-    let names: Vec<String>
+    let mut names: Vec<String>
     names.push("alpha".concat("-one"))
     names.push("beta".concat("-two"))
     println(names[1])
@@ -100,6 +100,14 @@ The general form: for an allocating return, every success and failure path must 
 | Object emission and native linking | `runtime/build_driver.c` | Compiler-only driver API |
 
 Do not place an application API directly in the LLVM bridge. Bridge functions manipulate compiler objects and are linked into the *compiler*; program runtime functions are linked into *generated applications* — mixing the two blurs a boundary that the rest of the toolchain assumes is solid.
+
+### Who may call it
+
+A program reaches the library through methods, operators and the few free functions a module keeps `public`. Everything else is `internal` — visible within `std` and nowhere else, which is the package rule applied to the `std` package:
+
+- **A String or Char operation** is a method in `impl String` / `impl Char`. Its body may live in an `internal fn str…` that other `std` code shares; the method is the only spelling a program sees.
+- **A runtime entry point a method lowers to** (a new `list_*` builtin, say) is refused when a program writes it: add its name and the method to write to `semaRuntimeCallSpelling` in `src/sema/vec.psm`.
+- **A raw `extern fn`** that a wrapper exists for is declared `internal extern fn` in its std module, so the wrapper's ownership contract is the only way in.
 
 ## Native boundary
 

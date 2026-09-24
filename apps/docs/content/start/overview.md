@@ -3,7 +3,7 @@ title: Prismio 0.1 overview
 description: What Prismio is, what the self-hosted 0.1 compiler implements, and which capabilities are still planned.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-08-29"
+lastUpdated: "2026-09-23"
 tags: [overview, status, compiler]
 related: [start/installation, language, compiler/overview, roadmap]
 ---
@@ -48,7 +48,7 @@ fn read(counter: Counter) -> Int {
 }
 
 fn main() -> Int {
-    let counter = Counter { value: 40 }
+    let mut counter = Counter { value: 40 }
     increment(counter)
     increment(counter)
     println(read(counter))
@@ -70,7 +70,7 @@ User-written lifetime syntax, exceptions, macros, `async`/`await`, and a package
 
 `std.io`, `std.string`, `std.fs`, `std.process`, `std.vec`, `std.map`, `std.option`, `std.key`, `std.ord` and `std.copy` are ordinary importable modules — `std.io` is an import rather than a prelude, so a program that names no I/O carries none. See [Standard library status](/stdlib) before assuming a module exists.
 
-The current language does not provide tuple types, an iterator protocol, general non-owning references, implicit numeric promotion, or string interpolation. These limits are stated on the relevant reference pages instead of being hidden in a single roadmap.
+The current language does not provide tuple types, general non-owning references, or implicit numeric promotion. These limits are stated on the relevant reference pages instead of being hidden in a single roadmap.
 
 ## Documentation statuses
 

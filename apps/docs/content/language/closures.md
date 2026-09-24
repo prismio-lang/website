@@ -3,7 +3,7 @@ title: Closures
 description: Prismio 0.1 closures -- a struct, a call function, and overload resolution. No function pointers and no indirect calls.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-08-29"
+lastUpdated: "2026-09-24"
 tags: [closures, lambdas, higher-order, generics, captures]
 related: [language/traits, language/methods, stdlib/vec]
 ---
@@ -94,7 +94,7 @@ fn main() -> Int {
 ```
 
 By value is not a default chosen over borrowing — it is the only sound option today, because
-Prismio has no way to hold a borrow in a struct field. `strClone` the value first if the original
+Prismio has no way to hold a borrow in a struct field. `.clone()` the value first if the original
 is needed afterwards.
 
 This is also why closures cost the ownership model nothing. A capture is spelled as an ordinary

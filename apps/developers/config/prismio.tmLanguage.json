@@ -69,7 +69,7 @@
 
     "string-escape": {
       "name": "constant.character.escape.prismio",
-      "match": "\\\\(?:n|r|t|0|\\\\|\"|'|u\\{[0-9a-fA-F]+\\})"
+      "match": "\\\\(?:n|r|t|e|0|\\\\|\"|'|\\$|x[0-9a-fA-F]{2}|u\\{[0-9a-fA-F]+\\})"
     },
 
     "keywords": {
@@ -77,6 +77,22 @@
         {
           "name": "keyword.control.prismio",
           "match": "\\b(if|else|when|match|for|in|loop|while|break|continue|return)\\b"
+        },
+        {
+          "name": "keyword.control.prismio",
+          "match": "(?<![.\\w])repeat(?=\\s*\\()"
+        },
+        {
+          "name": "entity.name.label.prismio",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*@(?=\\s*(?:for|while|loop|repeat)\\b)"
+        },
+        {
+          "name": "entity.name.label.prismio",
+          "match": "(?<=\\bbreak|\\bcontinue)@[A-Za-z_][A-Za-z0-9_]*"
+        },
+        {
+          "name": "keyword.declaration.prismio",
+          "match": "(?<=[}*])\\s*\\bfrom\\b"
         },
         {
           "name": "keyword.declaration.prismio",
@@ -88,7 +104,7 @@
         },
         {
           "name": "constant.language.boolean.prismio",
-          "match": "\\b(true|false|none)\\b"
+          "match": "\\b(true|false|none|default)\\b"
         }
       ]
     },
@@ -147,7 +163,7 @@
 
     "operators": {
       "name": "keyword.operator.prismio",
-      "match": "(->|=>|\\?\\?=?|\\?\\.|\\.\\.=?|::|:=?|==|!=|<=?|>=?|&&|\\|\\||!|\\+|-|\\*|/|%|&|\\||\\^|~|<<|>>|=(?!=))"
+      "match": "(->|=>|\\?\\?=?|\\?\\.|\\.\\.<|\\.\\.=?|::|:=?|==|!=|<=?|>=?|&&|\\|\\||!|\\+|-|\\*|/|%|&|\\||\\^|~|<<|>>|=(?!=))"
     },
 
     "punctuation": {

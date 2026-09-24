@@ -1,16 +1,26 @@
 ---
 title: Control flow
-description: Use if, while, loop, for ranges, break, continue, and return in Prismio 0.1.
+description: Branch with if and else if, loop with while, loop, repeat and for over ranges and collections, and leave nested loops with labels.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-08-30"
-tags: [control-flow, if, loops, return]
-related: [language/pattern-matching, language/functions, specification/evaluation]
+lastUpdated: "2026-09-23"
+tags: [control-flow, if, loops, ranges, labels, return]
+related: [language/pattern-matching, language/functions, language/arrays-and-lists, specification/evaluation]
 ---
 
 Control-flow constructs are statements. Conditions are parenthesized and bodies are blocks. In 0.1, `if`, loops, and `match` do not produce values; assign into a mutable binding or return from a branch when a computation must select a result.
 
-## Conditional execution
+| To… | Write |
+| --- | --- |
+| choose between branches | `if (c) { } else if (d) { } else { }` |
+| repeat while a condition holds | `while (c) { }` |
+| repeat until you `break` | `loop { }` |
+| repeat a fixed number of times | `repeat(n) { }` |
+| count through a range | `for i in 1..10 { }`, `for i in 0..<n step 2 { }` |
+| visit every element | `for x in items { }`, `for (i, x) in items { }` |
+| leave or continue an outer loop | `outer@ for … { break@outer }` |
+
+## `if`, `else if`, `else`
 
 ```prismio
 if (ready) {
@@ -33,37 +43,38 @@ fn main() -> Int {
 
 Compare explicitly, such as `count != 0`.
 
-Each branch establishes its own lexical scope. Since `if` is a statement, syntax such as `let sign = if (...) { ... } else { ... }` is not supported.
+Chain as many conditions as you need with `else if`. They are tested in order and the first one that holds runs; the final `else` is optional. Any branch can hold further `if` statements.
 
+<!-- prismio-check: pass -->
 ```prismio
-fn sign(value: Int) -> Int {
-    if (value < 0) {
-        return -1
+import std.io
+
+fn grade(score: Int) -> String {
+    if (score >= 90) {
+        return "A"
+    } else if (score >= 80) {
+        return "B"
+    } else if (score >= 70) {
+        if (score >= 75) { return "C+" }
+        return "C"
     } else {
-        if (value > 0) {
-            return 1
-        }
+        return "F"
     }
+}
+
+fn main() -> Int {
+    println(grade(95))
+    println(grade(77))
+    println(grade(12))
     return 0
 }
 ```
 
+Each branch establishes its own lexical scope. Since `if` is a statement, syntax such as `let sign = if (...) { ... } else { ... }` is not supported.
+
 ## `while`
 
-`while` repeats while a Boolean condition is true. `loop` repeats indefinitely until `break` or `return`. `continue` begins the next iteration.
-
-```prismio
-let mut i = 0
-while (i < 3) {
-    i += 1
-}
-
-loop {
-    if (i == 3) { break }
-}
-```
-
-The `while` condition is evaluated before every iteration. If it begins false, the body does not execute.
+`while` repeats while a Boolean condition is true. The condition is evaluated before every iteration, so a body whose condition begins false never runs.
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -78,9 +89,9 @@ fn main() -> Int {
 }
 ```
 
-## Infinite `loop`
+## `loop`
 
-`loop` has no condition. It is useful when the termination test belongs in the middle of the body.
+`loop` has no condition. It repeats until a `break` or `return`, which makes it the loop to use when the test belongs in the middle of the body.
 
 ```prismio
 let mut value = 0
@@ -90,87 +101,137 @@ loop {
 }
 ```
 
-An unconditionally diverging loop can satisfy definite-return analysis in relevant positions. Code that follows an unconditional control transfer is rejected when it is statically unreachable.
+A `loop` with no `break` never finishes, and the compiler knows it: it satisfies definite-return analysis, and code after it is rejected as unreachable.
 
-## Integer range loops
+## `repeat`
 
-A range loop `for item in start..end` iterates from the start, inclusive, to the end, exclusive.
-
-```prismio
-for value in 0..3 {
-    println(value)
-}
-```
-
-The range is ascending and half-open: `0..3` produces `0`, `1`, and `2`. A start that is not below the end produces no iterations. There is no descending or inclusive-range spelling in 0.1.
-
-The iteration name is scoped to the loop body.
-
-### Iterating a String or a Vec
-
-Leaving out the `..` iterates a collection instead of a range. A `String` yields
-each byte as a `Char`; a `Vec<T>` yields each element.
+`repeat(n)` runs its body `n` times. The count is any `Int` expression, evaluated once before the first iteration; zero or less runs the body no times.
 
 <!-- prismio-check: pass -->
 ```prismio
 import std.io
-import std.string
 
 fn main() -> Int {
-    let word = "prismio"
-    let mut vowels = 0
-
-    for c in word {
-        if (c == 'i' or c == 'o') { vowels = vowels + 1 }
-    }
-    println(vowels)
-
-    let parts = "a,b,c".split(',')
-    for p in parts {
-        println(p)
+    repeat(3) {
+        println("Hello")
     }
     return 0
 }
 ```
 
-The collection is borrowed, not moved, so it is still usable after the loop.
+`repeat` has no loop variable. When you need the iteration number, count with a range instead: `for i in 0..<n`.
 
-**The collection must be a name.** `for line in text.lines()` is refused: the loop
-needs the collection more than once, and an expression after `in` would be
-evaluated per iteration. Bind it first — which is the same rule that already
-applies to any owned result:
+`repeat` is recognised only at the start of a statement followed by a parenthesised count and a block, so it remains an ordinary name everywhere else — `"ab".repeat(3)` is still the String method.
 
-<!-- prismio-check: fail -->
+## Ranges: `for i in a..b`
+
+A range loop visits integers in increasing order:
+
+| Syntax | Meaning | Example |
+| --- | --- | --- |
+| `a..b` | from `a` up to **and including** `b` | `1..5` → 1, 2, 3, 4, 5 |
+| `a..<b` | from `a` up to **but not including** `b` | `1..<5` → 1, 2, 3, 4 |
+| `… step k` | every `k`-th value | `1..10 step 2` → 1, 3, 5, 7, 9 |
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+fn main() -> Int {
+    for i in 1..5 {
+        print(i)
+    }
+    println("")
+
+    let n = 4
+    for i in 0..<n {
+        print(i)
+    }
+    println("")
+
+    for i in 0..<10 step 3 {
+        print(i)
+    }
+    println("")
+    return 0
+}
+```
+
+This prints `12345`, `0123` and `0369`.
+
+- **`..<` is the one for indices.** A `Vec` of length `n` is indexed `0..<n`; `0..n` would visit one past the end.
+- **Either bound can be any `Int` expression.** Parentheses are allowed but not required: `for i in 1..(x + n * 2)` and `for i in lo + 1..hi` both work.
+- **The start, the end and the step are each evaluated once**, in that order, before the first test. Changing a variable used in the end inside the body does not change how many times the loop runs, and `for i in 0..<v.length` does not recompute the length every iteration.
+- **A range whose start is past its end is empty.** `5..1` and `3..<3` run no times; `3..3` runs once.
+- **`step` must be positive.** A literal `step 0` or `step -2` is a compile error. A computed step that turns out zero or negative runs the loop no times. There is no descending range; count up and subtract (`for i in 0..<n { let j = n - 1 - i }`).
+- **Ranges stop at the largest `Int`.** `for i in 2147483640..2147483647` runs eight times and ends; it does not wrap around.
+- **The loop variable is an immutable `Int`** scoped to the body.
+
+The header may be written in parentheses, which reads naturally with `step`:
+
+```prismio
+for (x in 1..10 step 2) {
+    println(x)
+}
+```
+
+The same two range operators select part of a String, Vec or Slice: `s[0..2]` is the first three characters and `s[0..<2]` the first two. See [slices](/language/arrays-and-lists#slices).
+
+## Collections: `for x in items`
+
+Without a range operator, `for` visits the elements of a collection:
+
+| After `in` | `for x in …` gives | `for (a, b) in …` gives |
+| --- | --- | --- |
+| `String` | each byte, as a `Char` | index, `Char` |
+| `Vec<T>` | each element | index, element |
+| `Slice<T>` | each element of the view | index, element |
+| `Array<T, N>`, `[T]` with a known length | each element | index, element |
+| `Map<K, V>` | each key, in insertion order | key, value |
+| a type implementing [`Iterator`](/language/traits) | each `next()` | — |
+
+<!-- prismio-check: pass -->
 ```prismio
 import std.io
 import std.string
+import std.vec
+import std.map
 
 fn main() -> Int {
-    let report = "alpha\nbeta\n"
-    for line in report.lines() {
+    let word = "prism"
+    for (i, c) in word {
+        if (c == 'i') { println(i) }
+    }
+
+    let scores: Vec<Int> = [70, 85, 92]
+    let mut total = 0
+    for score in scores { total += score }
+    println(total)
+
+    let ages = mapNew<String, Int>()
+    mapSet(ages, "ann", 31)
+    mapSet(ages, "bob", 42)
+    for (name, age) in ages {
+        println(name.concat(" is ", age.toString()))
+    }
+
+    for line in "alpha\nbeta".lines() {
         println(line)
     }
     return 0
 }
 ```
 
-Only `String` and `Vec<T>` may follow `in` without a range. Anything else —
-arrays, `Slice<T>`, `Map<K, V>` — is iterated by index with `for i in 0..n`.
+- **The collection is borrowed, not moved**, so it is still usable after the loop.
+- **The collection can be any expression.** `for line in text.lines()` evaluates `text.lines()` once, keeps the result for the loop, and releases it when the enclosing block ends. A name or a field (`for b in shelf.books`) is read in place.
+- **Changing a Vec while iterating it** is not an error, but the loop visits the length it had when the loop began.
+- **An array must have a known length.** A `[T]` parameter takes arrays of any length and does not know its own, so pass the length beside it and write `for i in 0..<n`.
 
-This is a desugaring, not an iterator protocol: `for c in s` becomes the range loop
-over `s[i]`, so there is no trait a user type can implement to participate.
+Your own types join in by implementing `Iterator` from `std.iter` — `hasNext(self)` and `next(inout self)`. The iterator is advanced in place, so iterating a name requires a `let mut` binding; a call that returns an iterator (`for x in countdown(5)`) needs nothing.
 
-```prismio
-for row in 0..2 {
-    for column in 0..3 {
-        println(row * 3 + column)
-    }
-}
-```
+## `break`, `continue` and labels
 
-## `break` and `continue`
-
-`break` exits the nearest enclosing loop. `continue` skips the remainder of the current iteration and begins the next one. Neither carries a value.
+`break` exits the nearest enclosing loop. `continue` skips the rest of the current iteration and begins the next one; in a range loop that means the next value. Neither carries a value, and both are errors outside a loop.
 
 <!-- prismio-check: fail -->
 ```prismio
@@ -180,7 +241,42 @@ fn main() -> Int {
 }
 ```
 
-The compiler rejects `break` and `continue` outside a loop. In nested loops they affect only the innermost one; labels are not implemented.
+To leave or continue a loop further out, **label** it by writing a name and `@` in front of it, then name the label after the keyword:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+fn main() -> Int {
+    outer@ for row in 0..<3 {
+        for column in 0..<3 {
+            if (column == 2) { continue@outer }
+            if (row == 2) { break@outer }
+            println(row * 10 + column)
+        }
+    }
+    return 0
+}
+```
+
+This prints `0`, `1`, `10`, `11`. Any loop can carry a label — `for`, `while`, `loop` and `repeat`:
+
+```prismio
+search@ while (pending > 0) {
+    loop {
+        if (found) { break@search }
+        pending -= 1
+    }
+}
+```
+
+Everything created inside the loops being left is released on the way out, exactly as for an unlabelled `break`. The compiler rejects:
+
+- a label that no enclosing loop carries (`break@inner` outside an `inner@` loop);
+- a label that repeats one already used by an enclosing loop, since `break@outer` would then silently mean the nearer one;
+- a label in front of anything that is not a loop.
+
+`break@outer` must be on the same line as `break`; a statement ends at the end of its line.
 
 ## `return`
 
@@ -199,8 +295,13 @@ The compiler rejects moving an outer move-only binding from inside a loop when a
 
 This conservative restriction prevents a path that succeeds once and becomes a use-after-move on the next iteration.
 
-`if`, loops, and `match` do not produce values in 0.1. `break` and `continue` are only valid inside loops. The compiler performs definite-return and unreachable-code analysis.
+## Not available yet
 
-## Not implemented
-
-Prismio 0.1 has no labeled loops, value-carrying `break`, `do while`, `defer`, exception control flow, conditional binding syntax, or expression-form `if` and `match`. Collection iteration covers `String` and `Vec<T>` only, as a desugaring rather than an extensible iterator protocol.
+| Missing | Use today |
+| --- | --- |
+| **`if` and `match` as expressions** (`let x = if (c) { 1 } else { 2 }`) | assign into a `let mut` in each branch, or `return` from a helper |
+| **A `break` that carries a value** out of a `loop` | assign into a `let mut` declared before the loop, then `break` |
+| **Descending ranges** (`10 downTo 1`) | `for i in 0..<n { let j = n - 1 - i }` |
+| **`for` over a `[T]` parameter**, whose length is not known | pass the length and write `for i in 0..<n` |
+| **`(key, value)` from an `Iterator`** | return a struct from `next()` and read its fields |
+| **`defer`**, exceptions, and conditional binding syntax (`if let`) | release explicitly on each path; use `Option` with `match` |

@@ -3,7 +3,7 @@ title: Modules and imports
 description: Resolve Prismio 0.1 dotted file imports, wildcard imports, cycles, and declaration names.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-08-09"
+lastUpdated: "2026-09-24"
 tags: [modules, imports, name-resolution]
 related: [guides/modules, specification/name-resolution, package-manager]
 ---
@@ -44,6 +44,15 @@ From `src/main.psm`:
 
 Import `syntax.internal.cursor` explicitly when it is needed.
 
+Every import has one of four shapes, and each says what it reaches by how it is written:
+
+| Written | Brings in |
+| --- | --- |
+| `import syntax.token` | one file |
+| `import {parser, token} from syntax` | [the files you name](#import-groups) in one directory |
+| `import syntax.*` or `import * from syntax` | [every file](#wildcard-imports) directly in one directory |
+| `import std.string.trim` | [one declaration](#selective-imports) inside a file |
+
 ## A flattened declaration space
 
 Imported syntax trees are flattened into one program before semantic analysis. This means declarations are not selected through a module namespace at use sites. The resolver memoizes files, so cycles and diamond-shaped dependency graphs do not repeatedly merge the same source.
@@ -64,12 +73,12 @@ import std.io
 import std.string
 
 fn main() -> Int {
-    print(std.string.strTrim("  padded  "))
+    print(std.string.trim("  padded  "))
     return 0
 }
 ```
 
-Qualifying is optional. An import still brings its declarations into the program unqualified, so `strTrim("  padded  ")` remains correct and is the usual spelling. A qualifier is worth reaching for when two modules declare the same function name, which flattening would otherwise make ambiguous.
+Qualifying is optional. An import still brings its declarations into the program unqualified, so `"  padded  ".trim()` remains correct and is the usual spelling. A qualifier is worth reaching for when two modules declare the same function name, which flattening would otherwise make ambiguous.
 
 Only the full path resolves. A leaf alone is not a qualifier, because leaves are not unique — a source tree may hold several files named `types.psm`.
 
@@ -79,7 +88,7 @@ import std.io
 import std.string
 
 fn main() -> Int {
-    print(string.strTrim("  padded  "))
+    print(string.trim("  padded  "))
     return 0
 }
 ```
@@ -131,30 +140,30 @@ Modifiers apply to `fn`, `extern fn`, and a method inside an [`impl` block](/lan
 
 ## Selective imports
 
-`import std.string.strTrim` brings in one name rather than the whole module.
+`import std.string.trim` brings in one name rather than the whole module.
 
 <!-- prismio-check: pass -->
 ```prismio
 import std.io
-import std.string.strTrim
+import std.string.trim
 
 fn main() -> Int {
-    println(strTrim("  hello  "))
+    println("  hello  ".trim())
     return 0
 }
 ```
 
-Whether a trailing segment names a module or a name inside one is decided by resolution rather than by the grammar. The full path is tried as a file first, and only when there is no such file is the last segment treated as a selected name in its parent -- so `std.string.strTrim` would mean the module `std/string/strTrim.psm` if that file existed.
+Whether a trailing segment names a module or a name inside one is decided by resolution rather than by the grammar. The full path is tried as a file first, and only when there is no such file is the last segment treated as a selected name in its parent -- so `std.string.trim` would mean the module `std/string/trim.psm` if that file existed.
 
-Select several names with several imports. A name the file did not select is not in scope in that file, even though the merge still places every declaration of the module into one flat program:
+Select several names with one import each. An [import group](#import-groups) selects files, never declarations, so braces keep one meaning. A name the file did not select is not in scope in that file, even though the merge still places every declaration of the module into one flat program:
 
 <!-- prismio-check: fail -->
 ```prismio
 import std.io
-import std.string.strTrim
+import std.string.trim
 
 fn main() -> Int {
-    println(strToUpper("shout"))
+    println("shout".toUpper())
     return 0
 }
 ```
@@ -163,9 +172,45 @@ The diagnostic is `unknown function`, not a visibility error. The name was never
 
 Selection is per importing file. A module that imports `std.string` wholesale keeps every name in it, whatever another file selected from that same module, and this holds even though the module itself is merged only once.
 
+## Import groups
+
+`import {…} from <directory>` imports several files that sit in one directory:
+
+<!-- prismio-check: pass -->
+```prismio
+import {io, string, vec} from std
+
+fn main() -> Int {
+    let mut words: Vec<String> = ["  b ", "a"]
+    words.sort()
+    println(words[1].trim())
+    return 0
+}
+```
+
+Each entry is exactly the import its own line would be, so `import {io, string, vec} from std` is `import std.io`, `import std.string` and `import std.vec`. An entry can carry its own [alias](#import-aliases): `import {decode, encode as enc} from protocol`.
+
+An entry names a **file**, never a declaration. `import std.string.trim` already selects a name, and braces that selected files in one place and declarations in another would be one spelling for two jobs:
+
+<!-- prismio-check: fail -->
+```prismio
+import {Option} from std.option
+
+fn main() -> Int { return 0 }
+```
+
+```text
+error[P1072]: an import group names modules, and `std.option.Option` is a declaration inside `std.option`
+  note: select a declaration with its own import: `import std.option.Option`
+```
+
+The entries are siblings, so a dotted entry is rejected too; a nested directory is its own group. So are an empty group, `as` after the directory (an alias names one module, so it goes on an entry), and the path-first spelling `import std.{io, string}`, which the error rewrites for you.
+
+`from` is only special in this position. A variable or function named `from` elsewhere means what it always did.
+
 ## Wildcard imports
 
-`directory.*` discovers direct `.psm` children and merges them in sorted path order. Sorting makes discovery deterministic for a fixed file tree, but programs should not depend on declaration order for semantics that the language does not guarantee.
+`directory.*` discovers direct `.psm` children and merges them in sorted path order. `import * from directory` is the same import with the directory last, the order an [import group](#import-groups) uses. Sorting makes discovery deterministic for a fixed file tree, but programs should not depend on declaration order for semantics that the language does not guarantee.
 
 Wildcard imports are useful for a directory whose direct children intentionally form one unit. They can also make changes less visible: adding a new `.psm` file changes the program without editing the importer. Prefer explicit imports where dependency review matters.
 
@@ -205,7 +250,7 @@ import std.io as io
 import std.string as str
 
 fn main() -> Int {
-    io.println(str.strLength("abcd"))
+    io.println(str.length("abcd"))
     return 0
 }
 ```
@@ -221,7 +266,7 @@ import std.string
 
 // This file's own `print`. Unqualified `print(...)` here means this one.
 fn print(value: String) -> Int {
-    return strLength(value)
+    return value.length
 }
 
 fn main() -> Int {
@@ -237,7 +282,7 @@ An alias is scoped to the file that writes it: aliasing `std.io` as `io` in one 
 | --- | --- |
 | two `as` names alike in one file | the second would resolve by merge order, which is not readable from the source |
 | `import pkg.* as name` | a wildcard brings in every module in the package and an alias can only name one |
-| `import std.string.strLength as len` | `as` names a module, and that path names a declaration inside one |
+| `import std.string.length as len` | `as` names a module, and that path names a declaration inside one |
 | an alias a module in the project already answers to | `name.f(x)` would have two meanings, and the alias would silently win |
 
 ## Imports are not transitive
@@ -250,7 +295,7 @@ import std.io
 
 fn main() -> Int {
     // `std.io` imports `std.string`, but this file must say so itself.
-    println(strTrim("  x  "))
+    println(strFromScalar(233))
     return 0
 }
 ```
@@ -258,7 +303,7 @@ fn main() -> Int {
 The diagnostic names the module to add:
 
 ```text
-error[P4001]: `strTrim` is declared in `std.string`, which this file does not import
+error[P4001]: `strFromScalar` is declared in `std.string`, which this file does not import
   note: add `import std.string`; an import is not transitive, so importing a
         module that imports it is not enough
 ```
@@ -286,10 +331,8 @@ src/
 From `src/main.psm`:
 
 ```prismio
-import model.request
-import model.response
-import protocol.decode
-import protocol.encode
+import {request, response} from model
+import {decode, encode} from protocol
 ```
 
 ## Not implemented

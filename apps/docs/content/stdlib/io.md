@@ -3,7 +3,7 @@ title: Console I/O
 description: Source-defined print and println overloads available to Prismio programs.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-18"
+lastUpdated: "2026-09-23"
 tags: [standard-library, io, print, console]
 related: [start/hello-world, stdlib, language/ffi]
 ---
@@ -78,7 +78,7 @@ x | y | z
 ```
 
 It takes a String literal or a name. The separator is written once per gap, so a
-call in that position -- `separator(strFromInt(n))` -- is refused rather than run
+call in that position -- `separator(n.toString())` -- is refused rather than run
 repeatedly; bind it to a `let` first and pass the name.
 
 ### What this is, and is not
@@ -103,6 +103,10 @@ Two consequences worth knowing:
 
 - **Your own declaration wins.** A program that declares `fn print(a: String, b: String)` is calling that, not being rewritten around it. The same is true of `separator`: declare a function with that name and the marker turns itself off.
 - **The pieces are separate writes.** `println("a", "b")` reaches the descriptor as three writes rather than one, so another thread printing at the same time can land between them.
+
+## Colour
+
+`print` writes exactly the bytes it is given, so coloured output is a String carrying ANSI escape sequences. [`std.term`](/stdlib/term) builds them — `println("error:".red().bold())` — and says whether stdout will show them; `"\e[31m"` writes one by hand.
 
 ## Standard error
 

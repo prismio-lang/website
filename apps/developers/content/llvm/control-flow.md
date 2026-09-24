@@ -3,7 +3,7 @@ title: Control-flow lowering
 description: How Prismio branches, loops, matches, short-circuit operators, returns, drops, and region exits become valid LLVM basic blocks.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-09-23"
 tags: [llvm, control-flow, lowering]
 related: [compiler/enums-and-pattern-lowering, compiler/loop-guards, llvm/functions-and-calls]
 ---
@@ -285,15 +285,51 @@ discipline:
 - `loop` has body and exit blocks and branches back unconditionally;
 - `for` additionally initializes and updates the induction binding.
 
-`ir_loop_push(continueLabel, breakLabel)` records targets in the native symbol state;
-`ir_loop_continue_label` and `ir_loop_break_label` are used by `continue` and `break`.
-`ir_loop_pop` restores the enclosing loop. Nested loops therefore never search labels by name.
+`repeat(n)` has no generator of its own: the parser builds it as `for $repeat_L_C in 0..<n`, with a
+counter name no source can spell. Collection loops never reach codegen either — sema rewrites
+`for x in v` into a range over the length with `let x = v[$x]` prepended to the body, and an
+`Iterator` loop into a `while` over `hasNext`/`next` (see
+[semantic analysis](/compiler/semantic-analysis-and-types)).
+
+**A range `for` evaluates its start, end and step once, in the preheader**, and has two shapes:
+
+| Header | Test | Latch |
+| --- | --- | --- |
+| `a..<b` with no step | `i < b` before every iteration | `i = i + 1`, back to the test |
+| `a..b`, or any `step k` | `i <= b` (or `i < b`) once, on entry | continue while `b - i`, read unsigned, is `>= k` (`> k` for `..<`); then `i = i + k` and back to the body |
+
+The first is the canonical counted loop LLVM's loop passes expect, and `i + 1` cannot wrap because
+`i < b` held. The second tests before incrementing because incrementing first would wrap past the
+largest `Int` and never exit — `for i in 0..2147483647` has to stop. `b - i` is non-negative there,
+since `i` never passes `b`, so taken as unsigned it is the exact distance left even when it does not
+fit in a signed `Int`. A computed step is additionally tested `> 0` on entry, so a zero or negative
+step runs no iterations instead of forever; sema refuses a literal one.
+
+Every loop enters its body through `irLoopEnter(stmt, continueLabel, breakLabel)`, which calls
+`ir_loop_push(continueLabel, breakLabel)` to record targets in the native symbol state and
+`ir_drop_barrier_push()` to record the drop floor. `ir_loop_continue_label` and
+`ir_loop_break_label` answer for an unlabelled `continue` and `break`; `irLoopExit` pops both.
+
+**A labelled loop** (`outer@ for …`) keeps its label on its body BLOCK, in the otherwise unused
+`s1`, because every loop kind has a body and every rewrite a loop goes through keeps it.
+`irLoopEnter` passes it to `ir_loop_label(name)`, which names the innermost loop-stack entry and
+captures the drop floor and region depth a jump to it must unwind to. `break@outer` and
+`continue@outer` (`s1` on the BREAK/CONTINUE node) read `ir_loop_break_label_named`,
+`ir_loop_continue_label_named`, `ir_loop_drop_floor_named` and `ir_loop_region_depth_named`, so
+the jump releases every binding and closes every region between itself and the named loop, not
+only the innermost one. Sema has already refused a label no enclosing loop carries, and one that
+shadows an enclosing label (`semaCheckJumps` in `src/sema/flow.psm`).
 
 `ir_loop_barrier_push`, `ir_drop_barrier_push`, and the matching pop calls record lexical
 boundaries for ownership cleanup. `ir_loop_drop_floor` identifies which bindings were created
 inside the loop. Before emitting a break, continue, or return, `generateScopeDrops` releases
 owned bindings above the appropriate floor and `generateRegionExits` closes dynamically entered
 arenas.
+
+**A value-returning function never falls off its end.** Sema refuses one that can, so when
+`generateFunction` finds the last block unterminated — the join after an `if` whose every branch
+returned — it closes it with `ir_unreachable()`. It used to emit `ret <T> 0`, which is invalid IR
+for any `T` that is not a number: a String function ending in an `if`/`else` failed verification.
 
 ### Match lowering
 

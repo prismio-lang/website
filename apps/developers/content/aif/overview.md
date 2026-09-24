@@ -27,7 +27,7 @@ import std.string
 struct Point { x: Int, y: Int }
 
 fn label(n: Int) -> String {
-    return "point-".concat(strFromInt(n))
+    return "point-".concat(n.toString())
 }
 
 fn main() -> Int {

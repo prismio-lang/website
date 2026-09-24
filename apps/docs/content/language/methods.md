@@ -297,7 +297,7 @@ import std.string
 
 fn main() -> Int {
     let text = "  Prismio  "
-    println(strTrim(text))
+    println(text.trim())
     println(text.trim())
     return 0
 }

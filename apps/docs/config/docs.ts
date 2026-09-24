@@ -197,6 +197,7 @@ export const docsConfig: DocsAppConfig = {
             items: [
                 { label: "Library status", href: "/stdlib" },
                 { label: "Console I/O", href: "/stdlib/io" },
+                { label: "Terminal colors", href: "/stdlib/term" },
                 { label: "Strings", href: "/stdlib/strings" },
                 { label: "Vec", href: "/stdlib/vec" },
                 { label: "Map", href: "/stdlib/map" },

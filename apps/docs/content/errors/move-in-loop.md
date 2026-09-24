@@ -3,7 +3,7 @@ title: Move inside a loop
 description: Fix Prismio ownership transfers that would repeat for an outer binding across loop iterations.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-08-09"
+lastUpdated: "2026-09-23"
 tags: [error, ownership, loop, move]
 related: [language/ownership-and-borrowing, language/control-flow, errors/use-after-move]
 ---
@@ -44,7 +44,7 @@ struct Box { value: Int }
 fn read(box: Box) -> Int { return box.value }
 fn main() -> Int {
     let box = Box { value: 1 }
-    for i in 0..3 { println(read(box) + i) }
+    for i in 0..<3 { println(read(box) + i) }
     drop(box)
     return 0
 }

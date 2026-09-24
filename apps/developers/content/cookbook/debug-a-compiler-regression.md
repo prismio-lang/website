@@ -89,7 +89,7 @@ If `check` and `dump-ast` disagree — one accepts a program the other's seriali
 import std.io
 
 fn build() -> Vec<Int> {
-    let xs: Vec<Int>
+    let mut xs: Vec<Int>
     xs.push(1)
     xs.push(2)
     return xs

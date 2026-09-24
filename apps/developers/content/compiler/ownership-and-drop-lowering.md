@@ -3,7 +3,7 @@ title: Ownership and drop lowering
 description: How Prismio tracks moves, default borrows, consuming parameters, mutable borrows, reassignment, and destruction — and how that legality gets turned into an actual release call.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-18"
+lastUpdated: "2026-09-23"
 tags: [ownership, borrowing, drops]
 related: [aif/overview, aif/regions-views-and-provenance, llvm/control-flow, runtime/overview]
 ---
@@ -22,7 +22,7 @@ import std.io
 import std.string
 
 fn main() -> Int {
-    let names: Vec<String>
+    let mut names: Vec<String>
     names.push("alpha".concat("-one"))
     names.push("beta".concat("-two"))
     println(names[1])
@@ -159,6 +159,7 @@ The semantic checker records legality only. It does not decide whether the event
 - a list calls `ir_free_list`, which also handles its element policy (this is what compiled to `list_release` above);
 - a `DataView` calls `ir_free_data_view`;
 - an owning struct calls `ir_free_typed(value, releaseFnName(type))`;
+- a struct on the frame whose type's fields own their values (`IR_DROP_FIELDS`) calls `ir_free_typed(value, frameReleaseFnName(type))` — the same field walk without freeing the stack slot;
 - shared/counted storage calls `ir_free_rc` or `ir_free_rc_atomic`;
 - cycle-managed storage follows its generated typed release/cycle path; and
 - stack, static, borrowed, transferred, or arena-owned values emit no individual free at all.
@@ -166,6 +167,15 @@ The semantic checker records legality only. It does not decide whether the event
 `generateReleaseFn` creates one helper per struct whose fields require teardown. `generatedFieldRelease` asks AIF whether each field is owned, counted, cyclic, or inert and emits the matching action. `generateCyclicChildrenFn` creates the visitor the cycle collector uses.
 
 Assignment needs a separate path, because the old value can only be released once its replacement has been evaluated safely: `generateDisplacedRelease` does that ordering. `aif_releases_on_overwrite_node` determines when a write displaces an owned value in the first place. `ir_set_reinit_target` marks a self-reinitializing accumulator so string/list operations can reuse existing storage without releasing the buffer they are about to mutate.
+
+### Structs on the frame
+
+AIF puts a struct that does not outlive its function in a stack slot (T0), and a stack slot has no release, so nothing released the fields of one. Two rules give those fields owners, and each asks the question the equivalent heap or binding case already asks, so the two cannot disagree:
+
+- **An owned temporary written into a frame struct's field** — `Bag { items: [] }`, or `bag.items = f()` in the block that declared `bag` — is spilled to a hidden binding on the drop list by `spillOwnedFieldTemporary` (`src/ir/expr.psm`), exactly as `spawn` does for its arguments. It is gated by the questions a `let` of the value would ask, in the same order: `aif_frees_at_scope_node` first, because it answers per node where one allocation site backs many calls (every `concat`), then `aif_owns_call_result_at_node`. The assignment form requires the same block because a hidden binding is dropped at the exit of the scope it is made in, and a binding the function reassigns is excluded (`irFrameStructSlots`).
+- **Where the type's fields are the release point**, the frame struct's binding gets `IR_DROP_FIELDS` (`frameStructOwnsFields` in `src/ir/stmt.psm`). Once any object of a type is reclaimed — `aif_type_is_reclaimed`, the premise `site_in_released_field` is built on — a value stored into an owning field has no other owner, including one stored into a frame instance, because a field's points-to set is the type's and not the object's. `generateFrameReleaseFns` defines `__aif_release_fields_T` after every function, for exactly the types some drop named, so a program without one carries none; it shares `generateOwnedFieldRelease` with `__aif_release_T`. A type none of whose objects is reclaimed bars nobody, and must not be released here as well.
+
+Releasing the value a field *assignment* displaces is still not done: `let old = bag.items` is a view, and so is a value a call returns out of `bag`, so the displaced value may still be read. It needs a "no view can be live" proof; KNOWN_ISSUES.md lists it with the other open field shapes.
 
 ### Calls, temporaries, and returns
 

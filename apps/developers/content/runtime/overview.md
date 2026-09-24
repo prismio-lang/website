@@ -3,7 +3,7 @@ title: Runtime architecture
 description: The native support Prismio programs link, how to see it in a built program, the boundary with compiler builtins and standard modules, and the runtime's ownership obligations.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-18"
+lastUpdated: "2026-09-23"
 tags: [runtime, architecture, native]
 related: [runtime/supported-surface, runtime/allocation-arenas-rc-and-cycles, llvm/runtime-ir-and-optimization]
 ---
@@ -24,7 +24,7 @@ import std.io
 import std.string
 
 fn main() -> Int {
-    let names: Vec<String>
+    let mut names: Vec<String>
     names.push("alpha".concat("-one"))
     names.push("beta".concat("-two"))
     println(names[1])
@@ -91,16 +91,16 @@ Where the runtime detects misuse it cannot recover from, it prints a `runtime er
 <!-- prismio-check: pass -->
 ```prismio
 fn main() -> Int {
-    let mut values: Vec<Int> = list_new()
-    list_push(values, 1)
-    let invalid = values[0..2]
-    return slice_len(invalid)
+    let mut values: Vec<Int> = []
+    values.push(1)
+    let invalid = values[0..<2]
+    return invalid.length
 }
 ```
 
 ```text
 Built slice_bounds
-runtime error: slice range [0..2] is outside collection length 1
+runtime error: slice range [0..<2] is outside collection length 1
 error[P1012]: slice_bounds exited with a failure status
 ```
 

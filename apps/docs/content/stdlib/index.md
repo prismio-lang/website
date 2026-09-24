@@ -3,12 +3,12 @@ title: Standard library status
 description: Prismio's shipped source standard library and the modules still planned.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-18"
+lastUpdated: "2026-09-24"
 tags: [standard-library, runtime, status]
 related: [stdlib/io, stdlib/strings, stdlib/vec, stdlib/map, stdlib/option, roadmap]
 ---
 
-Prismio ships fifteen standard-library modules: `std.io`, `std.string`, `std.fs`, `std.process`, `std.platform`, `std.vec`, `std.map`, `std.option`, `std.key`, `std.ord`, `std.copy`, `std.eq`, `std.iter`, `std.math` and `std.display`.
+Prismio ships sixteen standard-library modules: `std.io`, `std.string`, `std.fs`, `std.process`, `std.platform`, `std.vec`, `std.map`, `std.option`, `std.key`, `std.ord`, `std.copy`, `std.eq`, `std.iter`, `std.math`, `std.display` and [`std.term`](/stdlib/term), which colours terminal output.
 
 A packaged toolchain installs them as **compiled `stdlib/*.plib` artifacts**, not as `.psm` source. A PLIB carries the module's interface — which the frontend still parses, because generic bodies have to be instantiated against your concrete types — together with its compiled LLVM bitcode, which the driver merges into your program before optimization. The directory is **flattened**, so never derive a module's logical name from its path on disk: `std.map` is `stdlib/map.plib`.
 
@@ -25,8 +25,11 @@ Inside a Prismio checkout the `std/*.psm` sources win instead, because imports r
 The compiler provides a small built-in surface that needs no import at all:
 
 - Explicit `drop` and checked `expect`
-- `Vec<T>`'s core: the empty literal `[]`, indexing, `for x in v`, the methods `push`, `set`, `swap`, `insert`, `reserve`, `truncate` and `clear`, and the properties `length`, `capacity`, `first`, `last`, `isEmpty` and `isNotEmpty`
-- the `list_*` runtime layer those compile to, including `list_set_exclusive`, which has no method spelling
+- `Vec<T>`'s core: the empty literal `[]`, `Vec<T>.withCapacity(n)`, indexing, `for x in v`, the methods `push`, `set`, `replace`, `swap`, `insert`, `reserve`, `truncate` and `clear`, and the properties `length`, `capacity`, `first`, `last`, `isEmpty` and `isNotEmpty`
+- a Slice's and a DataView's `length`
+- the [`default`](/language/variables#default-values) value of any type that has one
+
+The `list_*` runtime entry points these compile to are internal to the standard library; calling one names the method to write instead.
 
 That is the whole of it. `print` and `println` are **not** in this list — they are ordinary source-defined overloads in `std/io.psm` and need `import std.io` like anything else.
 
@@ -44,16 +47,16 @@ Still absent: interpolation syntax, Unicode scalar iteration, a string builder, 
 
 ## Vectors
 
-`Vec<T>` is the built-in growable owned sequence. It is built into the compiler rather than defined in the library: the methods that store an element or read its size are compiled straight to runtime calls, which is why the core surface above needs no import. A non-empty literal, `Vec<T>.withCapacity(n)` and the other methods — `get`, `contains`, `indexOf`, `pop`, `removeAt`, `extend`, `sort` and the rest — come from `std.vec`. It was spelled `List<T>` before 0.1's collections work; that spelling is now an error naming `Vec<T>`.
+`Vec<T>` is the built-in growable owned sequence. It is built into the compiler rather than defined in the library: the methods that store an element or read its size are compiled straight to runtime calls, which is why the core surface above needs no import. A non-empty literal and the other methods — `get`, `contains`, `indexOf`, `pop`, `removeAt`, `extend`, `sort` and the rest — come from `std.vec`. It was spelled `List<T>` before 0.1's collections work; that spelling is now an error naming `Vec<T>`.
 
-For boxed struct elements, `list_set_exclusive(items, index, value)` replaces and reclaims the old
+For boxed struct elements, `items.replace(index, value)` replaces and reclaims the old
 element when the compiler can prove `items` is still an unobserved local Vec. A prior element read,
 Slice construction, or arbitrary borrowing call closes that capability. `items.set(index, value)`
 remains the general conservative replacement operation.
 
 [`Map<K, V>`](/stdlib/map) is defined in Prismio, in `std/map.psm`, as an open-addressed table over `Vec`. Its key type carries `Key + Copy` bounds: [`std.key`](/stdlib) supplies `hash` and `eq`, while `std.copy` supplies `copyOf` so the table can retain a key — therefore **`String` keys work**, and every integer width does. `Float` deliberately has no `impl Key`: NaN is not equal to itself, so a NaN key could be inserted and never found again.
 
-[`std.vec`](/stdlib/vec) gives `Vec<T>` its literals and methods — `push`, `insert`, `pop`, `removeAt`, `contains`, `indexOf`, `reverse`, `clone` and the rest — plus `sort` for a `T: Ord`, `sortBy` with a closure comparator, `binarySearch`, `filter`, `mapInto`, `countWhere`, `anyOf` and `allOf`. There is still no iterator protocol.
+[`std.vec`](/stdlib/vec) gives `Vec<T>` its literals and methods — `push`, `insert`, `pop`, `removeAt`, `contains`, `indexOf`, `reverse`, `clone` and the rest — plus `sort` for a `T: Ord`, `sortBy` with a closure comparator, `binarySearch`, `filter`, `mapInto`, `countWhere`, `anyOf` and `allOf`. `for x in v` and `for (i, x) in v` visit it, and [`std.iter`](/language/traits)'s `Iterator` lets a type of your own join a `for` loop; there are no lazy adapter chains (`v.iter().map(…)`) yet.
 
 **`Vec<T>` and `Map<K, V>` are the only collections in 0.1.** Not available yet, and planned: `VecDeque<T>`, sets, a sorted map, a priority queue, a linked list and the chunked `Vec<T, N>`. The fixed-length `Array<T, N>` is a language type rather than a library one. [What each missing collection is, and what to use until it ships](/language/arrays-and-lists#not-available-yet).
 

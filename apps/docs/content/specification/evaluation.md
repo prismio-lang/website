@@ -4,7 +4,7 @@ description: Expression ordering, short circuiting, assignments, loops, matches,
 status: stable
 draft: true
 version: "0.1.0"
-lastUpdated: "2026-08-09"
+lastUpdated: "2026-09-23"
 tags: [specification, evaluation, control-flow, precedence]
 related: [language/operators, language/control-flow, language/pattern-matching]
 ---
@@ -35,9 +35,15 @@ Compound assignment is not a general member/index place operation in 0.1.
 
 ## Branches and loops
 
-`if` selects at most one branch. `while` tests before each iteration. `loop` has no condition. A `for name in start..end` loop evaluates bounds and visits increasing integer values from start inclusive to end exclusive.
+`if` selects at most one branch; an `else if` chain tests its conditions in order and runs the first branch whose condition holds. `while` tests before each iteration. `loop` has no condition. `repeat(n)` evaluates `n` once and runs its body that many times, or none when `n` is not positive.
 
-An `if` condition and a `while` condition must be `Bool`. Branch and loop bodies establish lexical scopes. An ascending range with a start not less than its end executes zero iterations.
+A range `for` evaluates its start, end and step once each, in that order, before the first test, and visits increasing integer values from the start. `start..end` includes `end`; `start..<end` stops before it. With `step k` it visits every `k`-th value; a literal step must be positive, and a computed one that is not positive runs zero iterations. A range whose start is past its end runs zero iterations, and a range that ends at the largest `Int` ends there rather than wrapping.
+
+A collection `for` evaluates the collection once. An expression that is not a name or a field is kept for the duration of the loop and released at the end of the enclosing block. The loop visits the elements present when it began, by index, in order; a `Map` in insertion order; an `Iterator` by `hasNext` and `next` until `hasNext` answers false.
+
+An `if` condition and a `while` condition must be `Bool`. Branch and loop bodies establish lexical scopes.
+
+`break` leaves the innermost loop and `continue` begins its next iteration; `break@label` and `continue@label` do the same for the enclosing loop carrying that label. Every binding created inside the loops being left is released on the way out, in reverse order of creation.
 
 Moving one outer move-only binding inside a repeating loop is rejected when another iteration could observe the moved state. This is a static ownership restriction, not a runtime retry.
 

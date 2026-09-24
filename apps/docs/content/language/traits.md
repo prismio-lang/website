@@ -93,7 +93,7 @@ trait From<T> {
 
 impl From<Int> for String {
     fn from(value: Int) -> String {
-        return strFromInt(value)
+        return value.toString()
     }
 }
 
@@ -103,7 +103,7 @@ fn make<U: From<Int>>(value: Int) -> U {
 
 fn main() -> Int {
     let text = make<String>(7)
-    return strLength(text) - 1
+    return text.length - 1
 }
 ```
 
@@ -128,13 +128,13 @@ struct Version {
 
 impl Label for Version {
     fn describe(self) -> String {
-        return strFromInt(self.major).concat(".", strFromInt(self.minor))
+        return self.major.toString().concat(".", self.minor.toString())
     }
 }
 
 impl Label for Int {
     fn describe(self) -> String {
-        return strFromInt(self)
+        return self.toString()
     }
 }
 
@@ -256,7 +256,7 @@ impl Greet for Int {
 }
 
 fn main() -> Int {
-    return strLength(greet(1)) - 9
+    return greet(1).length - 9
 }
 ```
 
@@ -369,7 +369,7 @@ trait Show {
 struct Point { x: Int, y: Int }
 
 impl Show for Point {
-    fn show(self) -> String { return "P".concat(strFromInt(self.x)) }
+    fn show(self) -> String { return "P".concat(self.x.toString()) }
 }
 
 fn describe(v: impl Show) -> String {
@@ -403,7 +403,7 @@ trait Show {
 struct Point { x: Int, y: Int }
 
 impl Show for Point {
-    fn show(self) -> String { return "P".concat(strFromInt(self.x)) }
+    fn show(self) -> String { return "P".concat(self.x.toString()) }
 }
 
 fn origin() -> impl Show {
@@ -894,7 +894,7 @@ fn describe<T: Described>(value: T) -> String {
 }
 
 fn main() -> Int {
-    return strLength(describe(1)) - 8
+    return describe(1).length - 8
 }
 ```
 
@@ -926,7 +926,7 @@ trait Weigh {
 }
 
 impl Show for Int {
-    fn show(self) -> String { return strFromInt(self) }
+    fn show(self) -> String { return self.toString() }
 }
 
 impl Weigh for Int {
@@ -934,7 +934,7 @@ impl Weigh for Int {
 }
 
 fn describe<T>(value: T) -> Int where T: Show + Weigh {
-    return strLength(show(value)) + weigh(value)
+    return show(value).length + weigh(value)
 }
 
 fn main() -> Int {
@@ -976,7 +976,7 @@ impl Ord for Int {
     }
 }
 
-fn sortInPlace<T: Ord>(items: Vec<T>) {
+fn sortInPlace<T: Ord>(inout items: Vec<T>) {
     let mut i = 1
     while (i < items.length) {
         let mut j = i
@@ -989,7 +989,7 @@ fn sortInPlace<T: Ord>(items: Vec<T>) {
 }
 
 fn main() -> Int {
-    let xs: Vec<Int>
+    let mut xs: Vec<Int>
     xs.push(5)
     xs.push(1)
     xs.push(4)

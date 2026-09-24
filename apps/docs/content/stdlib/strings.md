@@ -3,7 +3,7 @@ title: Strings
 description: The String type, its operators, and the std.string method surface -- length, indexing, comparison, concatenation, slicing, iteration, searching, and parsing.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-10"
+lastUpdated: "2026-09-24"
 tags: [standard-library, strings, operators, methods, ownership]
 related: [language/operators, language/methods, language/ownership-and-borrowing, language/control-flow]
 ---
@@ -64,7 +64,8 @@ applies to `+` and `[a..b]` just as it does to a method.
 | `a < b`, `a <= b`, `a > b`, `a >= b` | sign of `a.compare(b)`, byte order | no |
 | `a + b` | `a.concat(b)` | **yes** |
 | `s[i]` | `s.charAt(i)` — the byte at `i`, NUL out of range | no |
-| `s[start..end]` | `s.slice(start, end)` — half-open, clamped | **yes** |
+| `s[start..<end]` | `s.slice(start, end)` — stops before `end`, clamped | **yes** |
+| `s[start..end]` | `s.slice(start, end + 1)` — includes `end`, clamped | **yes** |
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -76,7 +77,7 @@ fn main() -> Int {
 
     if (path.endsWith(".psm")) { println("prismio source") }
 
-    let name = path[4..12]
+    let name = path[4..<12]
     println(name)
 
     let label = "file: " + name
@@ -180,8 +181,8 @@ fn main() -> Int {
 }
 ```
 
-`for i in 0..s.length` remains available and is what to use when the index itself
-is wanted.
+`for (i, c) in s` gives the index beside each byte, and `for i in 0..<s.length`
+remains available when only the index is wanted.
 
 ## Access and conversion
 
@@ -232,8 +233,8 @@ fn main() -> Int {
     let at = line.indexOf('=')
     if (at < 0) { return 1 }
 
-    let key = line[0..at].trim()
-    let value = line[at + 1..line.length].trim()
+    let key = line[0..<at].trim()
+    let value = line[at + 1..<line.length].trim()
 
     println(key)
     println(value)
@@ -254,7 +255,7 @@ Every method here allocates and returns an owned `String`. Bind the result.
 |---|---|
 | `s.concat(other)` | same as `a + b` |
 | `s.substring(start, length)` | **length**-based; a range past the end is clamped |
-| `s.slice(start, end)` | **end**-exclusive; same as `s[start..end]` |
+| `s.slice(start, end)` | **end**-exclusive; same as `s[start..<end]` |
 | `s.trim()`, `s.trimStart()`, `s.trimEnd()` | space, tab, newline, carriage return |
 | `s.trimChars(set)` | trim any byte appearing in `set`, from both ends |
 | `s.toUpper()`, `s.toLower()` | ASCII only |
@@ -268,9 +269,9 @@ Every method here allocates and returns an owned `String`. Bind the result.
 | `s.removeRange(start, length)` | clamped |
 | `s.stripPrefix(p)`, `s.stripSuffix(p)` | `Option<String>` — `None` when absent |
 
-`substring` takes a length and `slice` takes an end. Both exist because `s[a..b]`
-is end-exclusive, and reading a range as a length is the mistake the pair is meant
-to prevent.
+`substring` takes a length and `slice` takes an end. Both exist because reading a
+range as a length is the mistake the pair is meant to prevent: `s[a..<b]` and
+`s.slice(a, b)` stop before `b`, and `s[a..b]` includes it.
 
 `replace` does not rescan its own replacement, so replacing `a` with `aa`
 terminates.
@@ -319,8 +320,8 @@ import std.string
 
 fn main() -> Int {
     let token = "abc123"
-    println(token.countIf(|c: Char| charIsDigit(c)))
-    println(token.allChars(|c: Char| charIsAlnum(c)))
+    println(token.countIf(|c: Char| c.isDigit()))
+    println(token.allChars(|c: Char| c.isAlnum()))
     return 0
 }
 ```
@@ -394,13 +395,13 @@ import std.string
 import std.option
 
 fn main() -> Int {
-    let text = strFromFloat(1.0 / 3.0)
+    let text = (1.0 / 3.0).toString()
     println(text)
 
-    let back = optionOr(strParseFloat(text), 0.0)
+    let back = optionOr(text.parseFloat(), 0.0)
     if (back == 1.0 / 3.0) { println("same double") }
 
-    println(strFromFloatFixed(1.0 / 3.0, 2))
+    println((1.0 / 3.0).toString(2))
     return 0
 }
 ```
@@ -413,7 +414,7 @@ same double
 
 `strFromFloat` writes the shortest decimal that reads back as the same double, and
 `print(f)` writes exactly that text — a value on the console and the same value in
-a String cannot disagree. `strFromFloatFixed(v, decimals)` is the presentation form
+a String cannot disagree. `v.toString(decimals)` is the presentation form
 for a column, and is not required to round-trip.
 
 ## Interpolation
@@ -502,23 +503,34 @@ A width here is still not a *display* width. An East Asian character occupies tw
 terminal columns and a combining mark none, which needs tables this library does not
 carry.
 
-## Prefixed free functions
+## Methods are the interface
 
-Most methods have a `strX` free function behind them — `s.trim()` is `strTrim(s)`,
-and `strTrim` is where the implementation lives. Both spellings are supported and
-neither is deprecated. The prefix exists because Prismio has no namespacing yet: a
-method is a free function whose first parameter is the receiver, so a method name
-is a global name, and `strTrim` is what keeps this module's names out of an
-application's.
+Every operation on this page is a method or an operator. The `str*` and `char*`
+free functions that earlier versions exposed — `strTrim(s)`, `strFromInt(n)`,
+`charIsDigit(c)` — are internal to the standard library now, and calling one
+reports that it is:
 
-**Five have no prefixed twin: `equals`, `concat`, `slice`, `charAt` and
-`compare`.** These are what the operators above lower to, so they carry the
-implementation directly and `strEquals`, `strConcat`, `strSlice`, `strCharAt` and
-`strCompare` no longer exist. Call the method, or write the operator.
+<!-- prismio-check: fail -->
+```prismio
+import std.string
 
-**Do not declare these as `extern fn` yourself.** The wrapper carries the ownership
-contract; an extern with no contract has unknown provenance, so the result gets no
-owner and leaks on every call.
+fn main() -> Int {
+    return strTrim("  x ").length
+}
+```
+
+``error: `strTrim` is internal to the package that declares it`` — write
+`"  x ".trim()`. The number conversions are methods on the number: `n.toString()`,
+`n.toString(16)`, `n.toHex()`, `f.toString(2)`. The character predicates are
+methods on `Char`: `c.isDigit()`, `c.toUpper()`, `c.digitValue()`.
+
+Three free functions remain, because none of them has a receiver to hang on:
+`join(parts, sep)` (also written `parts.join(sep)`), `strFromScalar(code)`, and,
+in [std.unicode](/stdlib/unicode), `scalarWidth(code)`.
+
+**A program that defines its own `trim`** still reaches the library's with the
+module path: `std.string.trim(s)`. An unqualified call prefers the program's own
+function, and the operators always mean the library's.
 
 ## Performance
 

@@ -3,7 +3,7 @@ title: Private or internal function
 description: Fix Prismio calls that reach a private or internal function from outside the file or package that declares it.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-08-30"
+lastUpdated: "2026-09-24"
 tags: [error, visibility, modules, private, internal]
 related: [language/modules, language/methods, specification/name-resolution]
 ---
@@ -85,6 +85,6 @@ The same two errors apply to reading an `extern let` from another file: a privat
 ## Related module errors
 
 - `` module `m` declares no `name` `` — the qualifier named a real module that has no such function. Check the module, not the spelling.
-- `no module `m`` on a bare leaf — a qualifier is the **full import path**, so it is `std.string.strTrim(x)`, not `string.strTrim(x)`. The compiler names the module you likely meant.
+- `no module `m`` on a bare leaf — a qualifier is the **full import path**, so it is `std.string.trim(x)`, not `string.trim(x)`. The compiler names the module you likely meant.
 
 See [modules and imports](/language/modules#visibility).

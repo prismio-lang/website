@@ -3,7 +3,7 @@ title: Types
 description: Primitive, numeric, aggregate, optional, and inferred types in Prismio 0.1.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-18"
+lastUpdated: "2026-09-24"
 tags: [types, integers, floats, bool, string]
 related: [language/arrays-and-lists, language/structs, language/optionals, specification/type-system]
 ---
@@ -128,15 +128,15 @@ See [structs](/language/structs) and [enums](/language/enums) for construction a
 
 `Vec<T>` is the owned, growable vector. It is move-only, and it is used through its methods — `v.push(x)`, `v.length`, `v[i]`, `v.insert(i, x)`, `v.pop()` and the rest listed on the [Vec page](/stdlib/vec). It is built into the compiler and predates [generics](/language/generics) rather than being an instance of them — it has its own type kind, runtime, and handling in the memory model. Before 0.1's collections work it was spelled `List<T>`; that spelling is now an error naming `Vec<T>`.
 
-`list_set_exclusive(v, index, value)` is the reclaiming replacement operation for boxed struct
-elements, and has no method spelling. The compiler accepts it only for a locally created Vec that
+`v.replace(index, value)` is the reclaiming replacement operation for boxed struct
+elements. The compiler accepts it only for a locally created Vec that
 has not exposed an element, been sliced, or crossed another borrowing call. It releases the
 displaced object immediately. Use ordinary `v.set(index, value)` for inline flat elements or when
 the Vec has already been observed; that operation preserves existing borrow safety conservatively
 and does not promise immediate reclamation of a displaced boxed object.
 
-`Slice<T>` is a compiler-known view type created with `v[start..end]` or
-`slice[start..end]`. It copies as a three-part descriptor—Vec identity, offset, and length—and
+`Slice<T>` is a compiler-known view type created with `v[start..<end]` or
+`slice[start..<end]` (or `..` to include `end`). It copies as a three-part descriptor—Vec identity, offset, and length—and
 does not own or copy the elements. The memory analysis extends the underlying Vec's lifetime when
 a Slice escapes. See [arrays, vectors, and slices](/language/arrays-and-lists).
 

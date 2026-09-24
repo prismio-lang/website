@@ -1,9 +1,9 @@
 ---
 title: Variables and bindings
-description: Declare local and global bindings, type annotations, mutability, shadowing, and initialization in Prismio 0.1.
+description: Declare local and global bindings, type annotations, default values, mutability, shadowing, and initialization in Prismio 0.1.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-08-09"
+lastUpdated: "2026-09-24"
 tags: [variables, let, mutability, scope]
 related: [language/types, language/control-flow, errors/immutable-assignment]
 ---
@@ -44,7 +44,58 @@ let bytes: [U8] = [80, 83, 77]
 let pointer: Ptr? = none
 ```
 
-An annotation without an initializer is accepted by the current compiler and allocates storage, but 0.1 does not implement a complete definite-initialization analysis for later reads. Prefer initializing a binding at its declaration. Reading annotation-only storage before assigning it can expose unspecified backend data and should not be used as a language feature.
+An annotation without an initializer is accepted by the current compiler and allocates storage, but 0.1 does not implement a complete definite-initialization analysis for later reads. Prefer initializing a binding at its declaration — with [`default`](#default-values) when there is no better value yet. Reading annotation-only storage before assigning it can expose unspecified backend data and should not be used as a language feature. (Two annotation-only forms are defined: `let v: Vec<T>` is an empty Vec, and `let a: Array<T, N>` of numbers is zeroed.)
+
+## Default values
+
+`default` is the value of whatever type its context expects:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+import std.string
+
+struct Settings { name: String, retries: Int, verbose: Bool, tags: Vec<String> }
+
+fn fresh() -> Settings { return default }
+
+fn main() -> Int {
+    let title: String = default
+    let count: Int = default
+    let settings: Settings = default
+    println(title.length, count, settings.retries, settings.tags.length)
+    return 0
+}
+```
+
+| Type | `default` is |
+|---|---|
+| `Int`, `I8` … `U64`, `Isize`, `Usize` | `0` |
+| `Float` | `0.0` |
+| `Bool` | `false` |
+| `Char` | `'\0'` |
+| `String` | `""` |
+| `Vec<T>` | `[]` |
+| `Array<T, N>` | `N` defaults of `T` (up to 64 elements, or any length of numbers in a `let`) |
+| `T?` | `none` |
+| `Option<T>` | `Option<T>.None` |
+| `Map<K, V>` | an empty map |
+| a struct | the struct with every field set to its field type's default |
+
+It is resolved where a type is already known: a `let` with an annotation, a `return`, a struct field, or an assignment. It works inside generic code — `let x: T = default` is resolved separately for each type `T` is instantiated with.
+
+**What has no default.** An enum does not: its value should be named, not guessed. Neither does a struct with a field that has none, a closure, a trait object, a channel, or an array whose length is not known. `default` also cannot be a function argument, because the overload is chosen from the argument types — bind it first:
+
+<!-- prismio-check: fail -->
+```prismio
+fn take(x: Int) -> Int { return x }
+
+fn main() -> Int {
+    return take(default)
+}
+```
+
+The compiler reports ``` `default` needs a type from its context ```.
 
 ## Immutability and reassignment
 
@@ -59,7 +110,7 @@ fn main() -> Int {
 }
 ```
 
-The compiler reports `cannot assign to immutable variable 'count'`.
+The compiler reports ``cannot assign to `count`, which is not declared `mut` ``.
 
 `mut` controls reassignment of the binding itself:
 
@@ -75,7 +126,44 @@ fn main() -> Int {
 
 Compound assignment is supported for a plain mutable binding. It is not currently a general place-expression feature, so use `item.field = item.field + 1` instead of `item.field += 1`, and read-modify-write an indexed element with the relevant collection operation.
 
-Struct field assignment has a notable 0.1 behavior: the compiler permits it even when the containing binding lacks `mut`. Directly replacing that binding still requires `mut`. This distinction is documented for compatibility, but may be tightened in a future language version.
+### A Vec's or an array's contents need `mut` too
+
+A binding without `mut` keeps its contents as well as its value. Pushing, storing an element, sorting, clearing — anything that changes a `Vec` or an array — needs a `let mut` binding:
+
+<!-- prismio-check: fail -->
+```prismio
+import std.vec
+
+fn main() -> Int {
+    let v: Vec<Int> = [3, 1, 2]
+    v.push(4)
+    return v.length
+}
+```
+
+The compiler reports ``cannot change `v`, which is not declared `mut` ``. Declare it `let mut v`.
+
+A parameter is a borrow, so a function that changes a Vec or an array it was given declares that parameter `inout` — and the caller has to pass something it may change itself:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.vec
+
+fn addDefaults(inout names: Vec<String>) {
+    names.push("admin")
+    names.sort()
+}
+
+fn main() -> Int {
+    let mut names: Vec<String> = ["zoe", "ann"]
+    addDefaults(names)
+    return names.length
+}
+```
+
+The rule follows indexing to the binding at its root: `grid[i].push(x)` changes `grid`. The same holds for the library's changing methods — `sort`, `sortBy`, `reverse`, `extend`, `pop`, `removeAt` take their Vec `inout`.
+
+**Structs are the exception, for now.** A struct is reached by reference, so assigning one of its fields — and changing a Vec that is one of its fields — is permitted even when the binding lacks `mut`. Replacing the binding itself still requires `mut`. A Slice is a view with its own write operation and is not covered by this rule yet.
 
 ## Scope and shadowing
 
@@ -153,7 +241,8 @@ The final call tries to read `first` after its string has moved to `second`. Dec
 
 - A binding needs an initializer, an annotation, or both.
 - An initializer must have the declared type; numeric coercions are not implicit.
-- Direct reassignment and compound assignment require `mut`.
+- Direct reassignment and compound assignment require `mut`, and so does changing a Vec's or an array's contents; a parameter changes them only when it is `inout`.
+- `default` is the expected type's default value; it needs an annotation or other context to know the type.
 - A binding is visible only in its lexical scope and may shadow an outer name.
 - Global initialization is restricted to supported static literals.
 - Move-only bindings cannot be read after consumption.

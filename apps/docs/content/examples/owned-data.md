@@ -27,7 +27,7 @@ fn finish(sink counter: Counter) -> Int {
 }
 
 fn main() -> Int {
-    let counter = Counter { value: 4 }
+    let mut counter = Counter { value: 4 }
     println(read(counter))
     bump(counter)
     println(finish(counter))

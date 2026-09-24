@@ -69,7 +69,7 @@ fn main() -> Int {
     let path = joinPath("src", "main.psm")
     if (fileExists(path)) {
         let text = readFile(path)
-        println(strLength(text))
+        println(text.length)
     }
     return 0
 }

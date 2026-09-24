@@ -73,10 +73,10 @@ container yourself rather than waiting for the compiler to infer a split:
 struct Cell { x: Int, y: Float }
 
 fn main() -> Int {
-    let mut rows: Vec<Cell> = list_new()
-    list_push(rows, Cell { x: 1, y: 2.0 })
+    let mut rows: Vec<Cell> = []
+    rows.push(Cell { x: 1, y: 2.0 })
     let view: DataView<Cell> = soa(rows)
-    if (data_len(view) != 1) { return 1 }
+    if (view.length != 1) { return 1 }
     return 0
 }
 ```

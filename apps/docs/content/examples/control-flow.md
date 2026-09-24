@@ -1,14 +1,14 @@
 ---
 title: "Example: classify a range"
-description: A complete Prismio program using a half-open for range, modulo, conditions, and mutable accumulation.
+description: A complete Prismio program using a for range, modulo, conditions, and mutable accumulation.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-08-09"
+lastUpdated: "2026-09-23"
 tags: [example, loop, if, modulo]
 related: [language/control-flow, language/operators, tutorials/first-program]
 ---
 
-The range `1..11` visits 1 through 10. This program sums the even values.
+The range `1..10` visits 1 through 10, both ends included. This program sums the even values.
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -16,7 +16,7 @@ import std.io
 
 fn main() -> Int {
     let mut total = 0
-    for value in 1..11 {
+    for value in 1..10 {
         if (value % 2 == 0) {
             total += value
         }
@@ -30,7 +30,7 @@ Expected output: `30`.
 
 ## Why it works
 
-`total` is declared `mut` because compound assignment changes the binding. The `for` range is half-open, so the end value `11` is excluded. `% 2` computes the remainder and `== 0` produces the Boolean required by `if`.
+`total` is declared `mut` because compound assignment changes the binding. `1..10` includes its end; `1..<11` would visit the same values, stopping before `11`. `% 2` computes the remainder and `== 0` produces the Boolean required by `if`.
 
 The compiler infers each ordinary integer as `Int`, keeping `%`, `==`, and `+=` on compatible exact types. Mixing `U8` or `I64` into the expression would require explicit casts.
 
@@ -40,7 +40,7 @@ Replace `total += value` with `total += 1` to count even values rather than sum 
 
 ## Boundaries demonstrated
 
-- `for value in 1..11` is an integer range, not collection iteration.
+- `for value in 1..10` is an integer range, not collection iteration.
 - `if` is a statement and does not return the selected value.
 - The condition must be `Bool`; `if (value % 2)` is invalid.
 - Loop and branch bodies establish nested lexical scopes.

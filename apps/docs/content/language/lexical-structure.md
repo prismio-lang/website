@@ -3,7 +3,7 @@ title: Lexical structure
 description: Prismio 0.1 identifiers, comments, literals, punctuation, and reserved words.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-03"
+lastUpdated: "2026-09-24"
 tags: [lexer, comments, literals, keywords]
 related: [specification/grammar, language/operators, language/types]
 ---
@@ -68,9 +68,9 @@ A reserved word cannot be used as an identifier. Name resolution also distinguis
 
 ## Integer literals
 
-Integer literals are decimal: `0`, `42`, and `5000000000`. A leading `-` is a unary operator rather than part of the token, which matters when the compiler checks types and constant expressions.
+Integer literals are decimal — `0`, `42`, `5000000000` — or hexadecimal, octal and binary with a prefix: `0xFF`, `0o755`, `0b1010`. A leading zero is not octal: `010` is ten. A leading `-` is a unary operator rather than part of the token, which matters when the compiler checks types and constant expressions.
 
-Literal values are checked against their contextual type. For example, `255` fits `U8`, but `256` does not. There are no hexadecimal, octal, or binary literal prefixes and no digit separators in 0.1.
+Literal values are checked against their contextual type. For example, `255` fits `U8`, but `256` does not. There are no digit separators in 0.1.
 
 ```prismio
 let signed: Int = -42
@@ -93,7 +93,17 @@ let message: String = "line one\nline two"
 let initial: Char = 'P'
 ```
 
-String and character escapes include `\n`, `\t`, `\r`, `\\`, `\"`, and `\'`. Character literals additionally support `\0`; a NUL escape is rejected in a string. Hexadecimal and binary literals are not implemented.
+| Escape | Means | In a String | In a Char |
+| --- | --- | --- | --- |
+| `\n`, `\t`, `\r` | newline, tab, carriage return | yes | yes |
+| `\\`, `\"`, `\'` | a backslash or quote | yes | yes |
+| `\$` | a literal `$`, where `${` would start [interpolation](#strings-and-characters) | yes | — |
+| `\e` | ESC (27), which starts every terminal colour and cursor sequence | yes | yes |
+| `\xHH` | the byte with that hex value: `\x1b`, `\x41` | yes | yes |
+| `\u{H…}` | a Unicode scalar value, written as UTF-8: `\u{E9}` is é, `\u{1F600}` is 😀 | yes | — |
+| `\0` | NUL | rejected | yes |
+
+A NUL is rejected in a String — `\0`, `\x00` and `\u{0}` alike — because a String is NUL-terminated and one would silently cut it short. `\u{…}` holds one to six hex digits and may not name a UTF-16 surrogate half (`D800`–`DFFF`), which no UTF-8 text can hold. `"\e[31mred\e[0m"` prints red in a terminal; [std.term](/stdlib/term) writes those sequences for you.
 
 **A `"..."` literal is one line.** A newline inside one is an error rather than part of the text, which is what makes a missing closing quote a mistake reported on the line that made it instead of a string that swallows the rest of the file:
 
@@ -127,7 +137,7 @@ import std.string
 
 fn main() -> Int {
     let pattern = """C:\logs\"today".txt"""
-    println(strLength(pattern))
+    println(pattern.length)
     return 0
 }
 ```
@@ -167,15 +177,15 @@ fn empty_next() -> Node? {
 
 ## Punctuation and operators
 
-Braces delimit blocks and declarations. Parentheses delimit parameter lists, call arguments, and control-flow conditions. Brackets form array types, array literals, and index expressions. A dot selects fields and enum variants, while `..` forms a half-open integer range in `for`.
+Braces delimit blocks and declarations. Parentheses delimit parameter lists, call arguments, and control-flow conditions. Brackets form array types, array literals, and index expressions. A dot selects fields and enum variants. `..` forms a range that includes its end and `..<` one that stops before it, in a `for` header or inside brackets as a slice. `@` names a loop (`outer@ for …`) and the loop a `break@outer` or `continue@outer` leaves.
 
 The lexer recognizes the operator spellings documented in [operators and casts](/language/operators). A longer token wins where punctuation shares a prefix, so `!=`, `<=`, `>=`, `<<`, `>>`, and compound assignments are each single tokens.
 
 ## Reserved vocabulary
 
-Implemented words include `import`, `let`, `mut`, `fn`, `extern`, `struct`, `enum`, `if`, `else`, `match`, `while`, `loop`, `for`, `in`, `break`, `continue`, `return`, `and`, `or`, `as`, `sink`, `inout`, `region`, `unique`, and `none`.
+Implemented words include `import`, `let`, `mut`, `fn`, `extern`, `struct`, `enum`, `trait`, `impl`, `where`, `if`, `else`, `match`, `while`, `loop`, `for`, `in`, `break`, `continue`, `return`, `and`, `or`, `as`, `sink`, `inout`, `region`, `none`, and `default` — the last two are values: `none` is the absent optional, and [`default`](/language/variables#default-values) is the default of whatever type the context expects.
 
-`trait`, `impl`, and `throw` are lexed as reserved words but their constructs are not parsed in 0.1. They are Coming Soon, not partially supported features.
+`repeat`, `step`, `unique` and `pin` are contextual: each means something only in its own position and is an ordinary name everywhere else, so `"ab".repeat(3)` and a variable called `step` both work. `throw` is lexed as a reserved word but no statement using it is parsed in 0.1.
 
 ## Lexical errors
 
@@ -193,7 +203,7 @@ This program is invalid because the 0.1 lexer does not allow the NUL escape insi
 
 ## Current limitations
 
-- Only `//` comments are recognized.
+- Comments are `//` to the end of the line and `/* ... */`, which nests.
 - Numeric bases and numeric separators are unavailable.
 - A byte-string prefix is unavailable; for raw text use a triple-quoted string, which takes its content as written.
 - `Char` is byte-sized rather than a complete Unicode character abstraction.

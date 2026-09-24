@@ -3,7 +3,7 @@ title: Vec
 description: Vec<T>, Prismio's growable vector — building one, its methods, what removing an element does to views of it, and the sorting and higher-order algorithms in std.vec.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-18"
+lastUpdated: "2026-09-24"
 tags: [standard-library, vec, collections, ownership]
 related: [language/arrays-and-lists, language/ownership-and-borrowing, errors/container-ownership, stdlib/map]
 ---
@@ -16,7 +16,7 @@ import std.io
 import std.vec
 
 fn main() -> Int {
-    let scores: Vec<Int> = [70, 85]
+    let mut scores: Vec<Int> = [70, 85]
     scores.push(92)
     scores.insert(0, 60)
 
@@ -30,7 +30,7 @@ fn main() -> Int {
 
 The type was called `List<T>` before 0.1's collections work. That spelling is now an error that names `Vec<T>`; nothing else about the type changed.
 
-**Not available yet:** a chunked `Vec<T, N>` whose elements never move as it grows, a `VecDeque<T>` with `pushFront` and `popFront`, an iterator protocol, and a `pop`/`removeAt` that moves the element out instead of copying it (so works without `T: Copy`). They are planned; [what to use until then](/language/arrays-and-lists#not-available-yet).
+**Not available yet:** a chunked `Vec<T, N>` whose elements never move as it grows, a `VecDeque<T>` with `pushFront` and `popFront`, lazy iterator adapters (`v.iter().map(…)`), and a `pop`/`removeAt` that moves the element out instead of copying it (so works without `T: Copy`). They are planned; [what to use until then](/language/arrays-and-lists#not-available-yet).
 
 ## Build one
 
@@ -38,7 +38,7 @@ The type was called `List<T>` before 0.1's collections work. That spelling is no
 |---|---|
 | `let v: Vec<Int>` | an empty Vec — the same as `let v: Vec<Int> = []` |
 | `let v: Vec<Int> = [1, 2, 3]` | a Vec holding those elements, up to twelve of them |
-| `Vec<Int>.withCapacity(n)` | an empty Vec with room for `n` elements before it reallocates |
+| `Vec<Int>.withCapacity(n)` | an empty Vec with room for `n` elements before it reallocates; like `[]`, it needs no import |
 
 The element type comes from what the literal is assigned to — an annotation, a struct field, a parameter. `[1, 2]` written as a `Vec<I64>` holds `I64`s.
 
@@ -64,7 +64,7 @@ A literal needs its elements to implement `Copy` (every scalar, `String`, and an
 | `v.first` / `v.last` | the element at either end |
 | `v.get(i)` | `Option.Some(element)`, or `Option.None` when `i` is outside `[0, length)` |
 | `for x in v` | each element in order |
-| `v[a..b]` | a [slice](/language/arrays-and-lists#slices) of the range |
+| `v[a..<b]`, `v[a..b]` | a [slice](/language/arrays-and-lists#slices) of the range — `..<` stops before `b`, `..` includes it |
 
 **An index outside the Vec answers the element type's zero, not an error** — `0` for an `Int`, `""` for a `String`. Check `length` first, or use `get`, which says whether the element was there. `last` reads its receiver twice, so it has to be a name or a field of one; bind a call's result first.
 
@@ -82,12 +82,15 @@ Requires `T: Eq` (from `std.eq`, which covers every scalar and `String`).
 
 ### Change
 
+Everything in this table changes the Vec, so the Vec has to be one the code may change: a `let mut` binding, or an `inout` parameter. On a plain `let` the compiler reports ``cannot change `v`, which is not declared `mut` `` — see [mutability](/language/variables#a-vecs-or-an-arrays-contents-need-mut-too).
+
 | Method | Does |
 |---|---|
 | `v.push(x)` | appends `x` |
 | `v.insert(i, x)` | puts `x` at `i` and moves the rest up; `i` may be `length` |
 | `v[i] = x` / `v.set(i, x)` | replaces the element at `i` |
 | `v.swap(i, j)` | exchanges two elements |
+| `v.replace(i, x)` | replaces the element at `i` and releases the one it displaced at once; boxed struct elements only, on a local Vec nothing has read an element of yet |
 | `v.pop()` | removes the last element: `Option.Some(it)`, or `Option.None` when empty |
 | `v.removeAt(i)` | removes the element at `i` and returns it; everything after moves down |
 | `v.truncate(n)` | keeps the first `n` elements |
@@ -106,7 +109,7 @@ import std.vec
 import std.option
 
 fn main() -> Int {
-    let queue: Vec<String> = ["build", "test"]
+    let mut queue: Vec<String> = ["build", "test"]
     queue.insert(0, "fetch")
     queue.push("ship")
 
@@ -144,7 +147,7 @@ import std.io
 import std.vec
 
 fn main() -> Int {
-    let words: Vec<String> = ["a long enough string to own its own memory", "b"]
+    let mut words: Vec<String> = ["a long enough string to own its own memory", "b"]
     let first = words[0]
     words.clear()
     println(first)       // still the string
@@ -163,12 +166,12 @@ import std.vec
 import std.string
 
 fn main() -> Int {
-    let buf: Vec<String>
+    let mut buf: Vec<String>
     let mut total = 0
     let mut i = 0
     while (i < 1000) {
         buf.clear()                   // frees the last iteration's strings
-        buf.push("line ".concat(strFromInt(i), " of the input, long enough to allocate"))
+        buf.push("line ".concat(i.toString(), " of the input, long enough to allocate"))
         for line in buf { total = total + line.length }
         i = i + 1
     }
@@ -231,7 +234,7 @@ import std.io
 import std.vec
 
 fn main() -> Int {
-    let xs: Vec<Int> = [5, 1, 4]
+    let mut xs: Vec<Int> = [5, 1, 4]
     xs.sort()
     println(xs.first)              // 1
     println(xs.binarySearch(4))    // 1
@@ -290,7 +293,7 @@ import std.io
 import std.vec
 
 fn main() -> Int {
-    let xs: Vec<Int> = [3, 9, 1]
+    let mut xs: Vec<Int> = [3, 9, 1]
     xs.sortBy(|a: Int, b: Int| b - a)
     println(xs.first)                              // 9
 
@@ -305,4 +308,15 @@ fn main() -> Int {
 
 ## The runtime layer
 
-The `list_*` functions (`list_new`, `list_push`, `list_len`, …) are what the methods compile to, as the `str_*` functions are under `String`. They still work, and they are not the interface this page describes.
+The methods compile to runtime entry points — `v.push(x)` to `list_push`, `v[i]` to `list_get`, `v.length` to a field read. Those names are internal to the standard library: a program that calls one directly is told which method to write instead.
+
+<!-- prismio-check: fail -->
+```prismio
+fn main() -> Int {
+    let mut v: Vec<Int> = []
+    list_push(v, 1)
+    return v.length
+}
+```
+
+``error: `list_push` is internal to the standard library`` — ``note: write `v.push(x)` ``.

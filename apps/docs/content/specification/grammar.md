@@ -4,7 +4,7 @@ description: Compact EBNF-style grammar for declarations, statements, types, and
 status: stable
 draft: true
 version: "0.1.0"
-lastUpdated: "2026-09-03"
+lastUpdated: "2026-09-23"
 tags: [specification, grammar, ebnf, parser]
 related: [language/lexical-structure, specification/evaluation, specification/conformance]
 ---
@@ -17,7 +17,10 @@ The notation uses `*` for repetition, `?` for optional syntax, `|` for alternati
 program        = declaration* EOF ;
 declaration    = importDecl | letDecl | functionDecl | externDecl
                | structDecl | enumDecl ;
-importDecl     = "import" qualifiedName ("." "*")? ("as" identifier)? ;
+importDecl     = "import" qualifiedName ("." "*")? ("as" identifier)?
+               | "import" "{" importEntry ("," importEntry)* ","? "}" "from" qualifiedName
+               | "import" "*" "from" qualifiedName ;
+importEntry    = identifier ("as" identifier)? ;
 functionDecl   = "fn" identifier typeParams? "(" parameters? ")" returnType? block ;
 typeParams     = "<" identifier ("," identifier)* ">" ;
 externDecl     = externFnDecl | externLetDecl ;
@@ -34,13 +37,21 @@ pin            = "pin" "(" tier ")" ;
 type           = identifier typeArgs? | "[" type "]" | type "?" ;
 typeArgs       = "<" type ("," type)* ">" ;
 
-statement      = letDecl | block | ifStmt | whileStmt | loopStmt | forStmt
+statement      = letDecl | block | ifStmt | loopKind | labeledLoop
                | matchStmt | regionStmt | breakStmt | continueStmt
                | returnStmt | expressionStmt ;
 ifStmt         = "if" "(" expression ")" block ("else" (block | ifStmt))? ;
+loopKind       = whileStmt | loopStmt | forStmt | repeatStmt ;
+labeledLoop    = identifier "@" loopKind ;
 whileStmt      = "while" "(" expression ")" block ;
 loopStmt       = "loop" block ;
-forStmt        = "for" identifier "in" expression ".." expression block ;
+repeatStmt     = "repeat" "(" expression ")" block ;
+forStmt        = "for" (forHeader | "(" forHeader ")") block ;
+forHeader      = forBinding "in" expression (range expression ("step" expression)?)? ;
+forBinding     = identifier | "(" identifier "," identifier ")" ;
+range          = ".." | "..<" ;
+breakStmt      = "break" ("@" identifier)? ;
+continueStmt   = "continue" ("@" identifier)? ;
 matchStmt      = "match" "(" expression ")" "{" matchArm* "}" ;
 matchArm       = (pattern | "_") "=>" block ;
 pattern        = expression | variantPattern ;
@@ -48,6 +59,8 @@ variantPattern = identifier typeArgs? "." identifier ("(" identifier ("," identi
 regionStmt     = "region" identifier ("pin" "(" integer ")")? block ;
 block          = "{" statement* "}" ;
 ```
+
+`repeat` and `step` are contextual: `repeat` begins a `repeatStmt` only at the start of a statement when a parenthesised count and a block follow, and `step` is read only after a range's end, so both remain ordinary names elsewhere. The label in `breakStmt` and `continueStmt` must be on the same line as the keyword. A slice is an index expression whose brackets hold a range, `base "[" expression range expression "]"`.
 
 Function parameters take an optional leading `sink` or `inout` mode and an optional contextual `unique`, followed by `name: Type`. Expressions include literals, names, calls, struct and array literals, field/index access, unary and binary operations, assignments, and `as` casts.
 

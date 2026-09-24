@@ -121,7 +121,7 @@ fn read(counter: Counter) -> Int {
 }
 
 fn main() -> Int {
-    let counter = Counter { value: 40 }
+    let mut counter = Counter { value: 40 }
     increment(counter)
     increment(counter)
     return read(counter) - 42

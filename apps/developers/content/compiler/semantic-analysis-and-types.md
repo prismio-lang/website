@@ -3,7 +3,7 @@ title: Semantic analysis and types
 description: The semantic passes that resolve Prismio names, types, overloads, calls, fields, flow, and program validity — and why a rejection reports every mistake it can find rather than stopping at the first.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-18"
+lastUpdated: "2026-09-24"
 tags: [semantics, types, overloads]
 related: [compiler/imports-and-symbols, compiler/ownership-and-drop-lowering, compiler/generics-and-monomorphization, compiler/diagnostics, aif/overview]
 ---
@@ -133,7 +133,15 @@ Moving body analysis before predeclaration would break forward calls and mutual 
 
 `src/sema/builtins.psm` owns operations that look call-shaped in source but lower as compiler operations rather than as ordinary calls. Methods, operators, iteration, and selected standard-library behavior can all be rewritten to plain calls before overload resolution runs; the diagnostic for a failed rewrite should still name the source-level action the developer wrote, including a missing import when the rewrite depends on a standard module.
 
-Source sugar is rewritten before final overload resolution in a few specific places: `semaStringComparison` and `semaStringConcatChain` route string operators to the operations that implement them while evaluating each operand exactly once; `semaForEachDesugar` and `semaForEachIterator` turn `for`-style iteration into explicit iterator calls; `semaPropertyRewrite` converts supported property-style access into a call; and `semaBecomeCall` replaces a node with its resolved call shape without discarding the original source span (needed so the diagnostic still points at what the developer wrote).
+**Two syntactic passes run first in `analyzeModule`, before any rewrite**, because a rewrite can produce the very shape they refuse. `semaCheckArrayLengthPositions` refuses an `Array<T, N>` length where one cannot be written. `semaRefuseRuntimeCalls` (`src/sema/vec.psm`) refuses a written call to a runtime entry point — `list_push`, `list_get`, `slice_len`, `data_len` and the rest — outside `std/`, and names the method to write. After the Vec lowerings run, `list_push(v, x)` may be `v.push(x)`; only before them is every such call one a person typed. Both passes walk `module.child1` and `module.child2`, where `monoCollectTemplates` parked the generic templates.
+
+**Element reads are `list_get`.** `semaIndexExpr` rewrites a Vec `v[i]` read into `list_get(v, i)`, the same entry point every element-reading method lowers to, so codegen's flat guards and hoisting (which match the call) see one shape. `semaBindingIsBorrow` treats the lowered call as a borrow, as it treated the index: `let x = v[i]` does not own `x`, and storing it into another slot is refused rather than putting one owned element under two slots. `Vec<T>.withCapacity(n)` lowers to `list_new_with_capacity`, typed `Vec<T>` from the written `T` — like `[]`, it names no library function. `for c in s` over a String takes its bound from `__builtin_string_len`.
+
+**`default`** is a `DEFAULT_EXPR` until `semaCheckValue` meets it with an expected type; `semaResolveDefault` (`src/sema/defaults.psm`) then rewrites the node in place into the source expression that builds that type's value — a literal, `[]`, `none`, `Option<T>.None`, `mapNew<K, V>()`, or a struct literal of the fields' defaults, recursively, to a depth of 16 — and checking continues on what it became. A `let` of `Array<T, N>` numbers drops the initializer instead (`semaDefaultZeroesArray`), which is the zeroing `let`. With no expected type (`semaExpr` reaching the node directly: an argument, an unannotated `let`) it is an error; nothing after sema ever sees the kind.
+
+**Mutation needs a changeable root.** `semaCheckMutablePlace` (`src/sema/ownership.psm`) is asked of the receiver of every Vec builtin that changes contents (`list_push`, `list_set`, `list_set_exclusive`, `list_swap`, `list_insert`, `list_reserve`, `list_truncate`, `list_remove_at`), of an array element store, and of every argument to an `inout` parameter. It follows indexing (`INDEX_EXPR` and the lowered `list_get`) to the root binding and accepts `let mut` (`ir_var_is_mutable`) or an `inout` parameter (`ir_var_is_inout`, a flag beside `is_mutable` on the scoped binding in `runtime/ir_symbols.c`, set by `ir_mark_inout` where parameters are bound). A field access stops the walk: struct fields are assignable through any binding, so a Vec field changes with its struct. An `inout` parameter's binding is never itself mutable — `inout` is a borrow, not a reference to the caller's slot, so rebinding it would be invisible to the caller.
+
+Source sugar is rewritten before final overload resolution in a few specific places: `semaStringComparison` and `semaStringConcatChain` route string operators to the operations that implement them while evaluating each operand exactly once; `semaForEachDesugar` and `semaForEachIterator` turn `for`-style iteration into explicit loops (below); `semaPropertyRewrite` converts supported property-style access into a call; and `semaBecomeCall` replaces a node with its resolved call shape without discarding the original source span (needed so the diagnostic still points at what the developer wrote).
 
 ## Arrays: lengths, copies and views
 
@@ -215,7 +223,23 @@ into an `I64` adopts the type and range-checks exactly as a `let` does.
 
 ## Flow and program validity
 
-`src/sema/flow.psm` tracks returns, unreachable statements, loop behavior, and the facts safe lowering depends on. `semaStmtDiverges` identifies returns, breaks, continues, fully diverging `if` chains, and unbroken infinite `loop` statements; `semaBlockDiverges` walks a block until one statement prevents fall-through. The private `semaBlockHasBreak` and `semaIfHasBreak` helpers stop a `loop` that has any reachable structured `break` from being misclassified as divergent — get this wrong and either a live path is called unreachable, or a function that never returns is accepted as if it does.
+### `for` over a collection
+
+`semaForStatement` leaves a range loop as it is and hands a collection loop — no `child2` — to `semaForEachDesugar`, which rewrites the statement in place into a loop every later pass already handles:
+
+| Collection | Becomes |
+| --- | --- |
+| String, `Vec<T>`, `Slice<T>`, `Array<T, N>` | `for $x in 0..<length { let x = c[$x]  … }` — the length is `strLength`, `list_len`, `slice_len`, or the literal `N` |
+| `Map<K, V>` (a `Map$…` instantiation, with std.map imported) | `for $k in 0..<mapLen(m) { let k = mapKeyAt(m, $k)  … }`, and `let v = mapValueAt(m, $k)` for a pair |
+| a struct implementing `Iterator` | `while (hasNext(it)) { let x = next(it)  … }` — the node becomes a WHILE_STATEMENT |
+
+The element read is an INDEX_EXPR rather than a direct call so that it re-enters the indexing arm and gets its bookkeeping — `ir_unmark_list_exclusive` for a Vec. A pair `(i, x)` makes the first name the loop variable itself, so no hidden index is needed.
+
+The collection appears several times in the rewrite, so it must be something that can be read twice without evaluating anything, and that must not be bound, since binding a name moves it: a name, or a field of one (`semaForSourceIsPlace`). Anything else is bound first by `semaForHoistSource`, which splices a statement into the block's chain: this node becomes `let $for_L_C = <expression>` (`mut` for an Iterator, whose `next` takes it `inout`) and the loop moves to a new node after it, which the block's walk reaches next and desugars as a name. The hidden binding is then released at the block's exit like any other.
+
+Jumps are checked before the body is typed. `semaCheckJumps` (`src/sema/flow.psm`) walks the statement tree with the enclosing loops' labels and rejects `break`/`continue` outside any loop, a label no enclosing loop carries, and a label that shadows an enclosing one. It enters loops, `if`, `match` and `region` but never an expression, so a closure's body is checked as its own function.
+
+`src/sema/flow.psm` tracks returns, unreachable statements, loop behavior, and the facts safe lowering depends on. `semaStmtDiverges` identifies returns, breaks, continues, fully diverging `if` chains, and unbroken infinite `loop` statements; `semaBlockDiverges` walks a block until one statement prevents fall-through. The private `semaBlockHasBreak` and `semaIfHasBreak` helpers stop a `loop` that has any reachable structured `break` — including a `break@outer` inside a nested loop, which leaves the outer one too — from being misclassified as divergent — get this wrong and either a live path is called unreachable, or a function that never returns is accepted as if it does.
 
 ## If you are changing semantic analysis
 

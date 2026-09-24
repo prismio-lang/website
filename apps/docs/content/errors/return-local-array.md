@@ -51,13 +51,13 @@ To produce an array's contents in another function, let the caller own the stora
 
 <!-- prismio-check: pass -->
 ```prismio
-fn fill(out: [Int]) {
+fn fill(inout out: [Int]) {
     out[0] = 1
     out[1] = 2
 }
 
 fn main() -> Int {
-    let values: Array<Int, 2>
+    let mut values: Array<Int, 2>
     fill(values)
     return values[0] + values[1] - 3
 }

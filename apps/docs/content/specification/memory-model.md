@@ -3,7 +3,7 @@ title: Memory and ownership model
 description: Formal draft rules for Prismio 0.1 moves, borrows, drops, Vec slices, collections, arrays, and AIF allocation tiers.
 status: experimental
 version: "0.1.0"
-lastUpdated: "2026-09-18"
+lastUpdated: "2026-09-24"
 tags: [specification, memory-model, ownership, aif]
 related: [language/ownership-and-borrowing, compiler/aif, specification/behavior]
 ---
@@ -66,7 +66,7 @@ An element that a Vec removes — through `pop`, `removeAt`, `truncate` or `clea
 memory is released when the Vec is released, not at the removal. A view of that element taken
 before the removal therefore stays readable for as long as the Vec lives.
 
-Slice construction, nesting, reads, and explicit `slice_set` writes are range checked. Overlapping
+Slice construction, nesting, reads, and writes through a Slice are range checked. Overlapping
 mutable slices are allowed within one task. This model promises memory safety, not a Rust-style
 no-aliasing guarantee.
 

@@ -25,7 +25,7 @@ compares no user-entered text should not build them.
 | bytes | 3 | `s.length`, in `std.string` |
 | scalars | 2 | `s.scalarCount()`, in `std.string` |
 | graphemes | 1 | `s.graphemeCount()`, here |
-| columns | 1 | `strDisplayWidth(s)`, here |
+| columns | 1 | `s.displayWidth()`, here |
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -37,7 +37,7 @@ fn main() -> Int {
     let cjk = "日本"
     println(cjk.length)
     println(cjk.scalarCount())
-    println(strDisplayWidth(cjk))
+    println(cjk.displayWidth())
     return 0
 }
 ```
@@ -57,10 +57,10 @@ whole subject of this module.
 | Function | Returns |
 | --- | --- |
 | `scalarWidth(code)` | `Int` — 0, 1 or 2 |
-| `strDisplayWidth(s)` | `Int` — the columns `s` occupies |
-| `strPadStartDisplay(s, columns, pad)` | `String` |
-| `strPadEndDisplay(s, columns, pad)` | `String` |
-| `strTruncateToWidth(s, columns)` | `String` — cut at a cluster boundary |
+| `s.displayWidth()` | `Int` — the columns `s` occupies |
+| `s.padStartDisplay(columns, pad)` | `String` |
+| `s.padEndDisplay(columns, pad)` | `String` |
+| `s.truncateToWidth(columns)` | `String` — cut at a cluster boundary |
 
 Width is East Asian Width, which is what terminal emulators, `wcwidth` and every
 table-drawing program agree on: a CJK ideograph is two columns, a combining mark
@@ -74,9 +74,9 @@ characters are one column wide. These count columns, for the ones that are not.
 
 | Function | Returns |
 | --- | --- |
-| `strGraphemeCount(s)` | `Int` |
-| `strGraphemes(s)` | `Vec<String>` |
-| `strGraphemeWidthAt(s, byteIndex)` | `Int` — bytes in the cluster there |
+| `s.graphemeCount()` | `Int` |
+| `s.graphemes()` | `Vec<String>` |
+| `s.graphemeWidthAt(byteIndex)` | `Int` — bytes in the cluster there |
 
 A flag is two scalars and one grapheme. A ZWJ family emoji can be seven scalars
 and one. A letter with a combining mark is two and one. Hangul jamo compose into
@@ -106,10 +106,10 @@ fn main() -> Int {
     let decomposed = "é"
 
     if ((composed == decomposed) == false) { println("different bytes") }
-    if (strEqualsNormalized(composed, decomposed)) { println("same text") }
+    if (composed.equalsNormalized(decomposed)) { println("same text") }
 
-    println(strNormalizeNfd(composed).scalarCount())
-    println(strNormalizeNfc(decomposed).scalarCount())
+    println(composed.normalizeNfd().scalarCount())
+    println(decomposed.normalizeNfc().scalarCount())
     return 0
 }
 ```
@@ -123,9 +123,9 @@ same text
 
 | Function | Returns |
 | --- | --- |
-| `strNormalizeNfc(s)` | `String` — composed; the form to store and compare in |
-| `strNormalizeNfd(s)` | `String` — decomposed |
-| `strEqualsNormalized(a, b)` | `Bool` |
+| `s.normalizeNfc()` | `String` — composed; the form to store and compare in |
+| `s.normalizeNfd()` | `String` — decomposed |
+| `a.equalsNormalized(b)` | `Bool` |
 
 Both forms are **canonical**: they never change what the text means. The
 compatibility forms NFKC and NFKD, which fold `ﬁ` into `fi`, are deliberately
