@@ -211,7 +211,7 @@ There is no buffering to select or flush: output reaches the descriptor on each 
 
 The 0.1 print functions do not expose a structured recoverable I/O result or a writer handle. A caller that must know whether every byte arrived cannot learn it from `print`.
 
-`Float` is the one value type still formatted in C, because `%g` has no source-level formatter yet; every other overload formats in Prismio.
+`Float` is the one value type still formatted in C, because its formatter parses candidates back with `strtod`; every other overload formats in Prismio. A Float prints with at most fifteen significant digits, so `println(0.1 + 0.2)` prints `0.3` — see [float text](/stdlib/strings#float-text).
 
 `std/io.psm` is currently a minimal output module. Formatted output, input streams, files, error objects, and pluggable writers are not part of the 0.1 standard library.
 

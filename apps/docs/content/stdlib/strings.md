@@ -386,36 +386,32 @@ and one past it does not.
 `parseFloat` is `strtod`, so it is correctly rounded, and it is **stricter than C**:
 the whole string must be a number, so `"1.5kg"` and `" 1.5"` are `None`.
 
-### Floats round-trip
+### Float text
 
 <!-- prismio-check: pass -->
 ```prismio
 import std.io
 import std.string
-import std.option
 
 fn main() -> Int {
-    let text = (1.0 / 3.0).toString()
-    println(text)
-
-    let back = optionOr(text.parseFloat(), 0.0)
-    if (back == 1.0 / 3.0) { println("same double") }
-
+    println(0.1 + 0.2)
+    println(1.0 / 3.0)
     println((1.0 / 3.0).toString(2))
+    println(2.5.toString(2))
     return 0
 }
 ```
 
 ```
-0.3333333333333333
-same double
+0.3
+0.333333333333333
 0.33
+2.50
 ```
 
-`strFromFloat` writes the shortest decimal that reads back as the same double, and
-`print(f)` writes exactly that text — a value on the console and the same value in
-a String cannot disagree. `v.toString(decimals)` is the presentation form
-for a column, and is not required to round-trip.
+A Float prints as the shortest decimal that reads back as the same number, with at most fifteen significant digits. Fifteen is what a double always holds exactly, so every literal prints as written and `0.1 + 0.2` prints `0.3`. The digits after that are rounding noise from binary arithmetic. A value that needs more than fifteen digits to be exact, such as `1.0 / 3.0`, prints its first fifteen, so the text is not a lossless copy of every Float. `print(f)` and `f.toString()` always agree.
+
+`v.toString(decimals)` is the presentation form for a column: a fixed number of decimals, trailing zeros kept.
 
 ## Interpolation
 

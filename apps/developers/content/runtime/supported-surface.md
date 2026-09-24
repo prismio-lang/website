@@ -61,8 +61,9 @@ arguments.
 the descriptor with libc's `write`, so `print`, `println`, `print_int`, `println_int`,
 `print_bool`, `println_bool`, `print_char`, `println_char` and the `prismio_rt_*` text wrappers
 were removed rather than left linked. A module that declared one by hand now fails to link naming
-it. What remains is `prismio_rt_print_float` and `prismio_rt_println_float`, because `%g` has no
-source-level formatter yet.
+it. What remains is `prismio_rt_print_float` and `prismio_rt_println_float`, because the float
+formatter (`prismio_format_double`: the shortest `%g` text that reads back, capped at `DBL_DIG`
+significant digits) searches with `strtod`, which has no source-level equivalent yet.
 
 This is the shape the boundary is meant to have: a capability the language cannot express stays in
 C, and everything above it moves into a standard module.
