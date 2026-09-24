@@ -3,7 +3,7 @@ title: Runtime platforms and packaging
 description: Platform abstraction, the packaged and project-local toolchain layouts, artifact discovery, and native targets.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-09"
+lastUpdated: "2026-09-24"
 tags: [runtime, platforms, packaging]
 related: [compiler/bootstrap, tooling/debugging-targets-and-build-tracing, start/development-setup]
 ---
@@ -21,8 +21,16 @@ threads, processes, paths, libraries, and object formats differ.
   lib/backend.a                   compiler-only; LLVM-facing backend
   lib/runtime.hash                the source hash those modules were built from
   stdlib/*.plib                   one compiled artifact per standard-library module
-  third_party/llvm-paths.json     the LLVM that produced them
+  bin/LLVM-C.dll                  Windows only; elsewhere LLVM is linked into bin/prismio
 ```
+
+**A prefix carries its own LLVM and needs none installed.** On macOS and Linux the compiler links
+the pinned LLVM's static archives, as prepared by `tools/setup_llvm.py`, and `otool -L` or `ldd`
+lists only system libraries. On Windows the release archive ships `LLVM-C.dll` rather than usable
+static archives, so `tools/package.py` and `tools/install.py` copy that DLL beside the compiler.
+Earlier prefixes carried `third_party/llvm-paths.json` instead. That file named the
+*build machine's* LLVM so that the prefix could run that machine's `clang`, which meant a package
+only worked on the machine that built it.
 
 Everything is located relative to the running executable — `find_in_lib_dir` searches
 `<exe>/../lib` then `<exe>/lib`, and `standardModulePath` reads `<exe>/../stdlib` — so a prefix
@@ -36,8 +44,9 @@ are not the criterion: a `.plib` contains bitcode too. See
 [Library artifacts](/runtime/library-artifacts) for both formats.
 
 The application runtime is distinct from the compiler backend. Ordinary programs need language and
-program support; a self-hosted compiler generation additionally links `backend.a` and the LLVM C
-API.
+program support; a self-hosted compiler generation additionally links `backend.a` and the pinned
+LLVM, which is why building a compiler (unlike building a program) still needs a checkout with
+`third_party/llvm` set up.
 
 ## The local toolchain
 
@@ -103,9 +112,28 @@ changes made after its host was built. That path also defines `PRISMIO_BOOTSTRAP
 how a one-generation compatibility symbol stays available to compilers without ever reaching
 packaged runtime bitcode.
 
-`native_clang_command` selects the installed compiler driver. `find_llvm_paths` discovers
-headers/libraries from packaged metadata or the configured LLVM installation.
-`target_clang_flags` translates the selected triple/sysroot. `compiler_set_sysroot` stores an
+`compile_ir_to_object` optimizes at `-O3` and emits the object in process through `ir_emit_object`
+(`llvm-api-backend.c`). It reproduces the old `clang -O3 -mllvm -enable-nontrivial-unswitch -c`
+command flag for flag, and the executables it produces are byte-identical to that command's for
+host, cross (`x86_64-apple-macos`) and `-g` builds. `PRISMIO_CODEGEN=clang` restores the clang
+route for comparing the two. It is a measurement switch, and it needs the pinned clang.
+
+`link_driver_command` picks who links the finished object: `PRISMIO_CC` if set, then the pinned
+clang when running inside a checkout that has one, then `cc` (`clang` for an explicit `--target`,
+since the driver has to accept `--target`). A Windows host build skips it and goes to
+`link_program_msvc`, which runs MSVC's `link.exe` directly with the arguments clang used to pass
+(`-out:`, `-defaultlib:libcmt -defaultlib:oldnames`, `-nologo`, and `-libpath:` for the VC tools and
+the SDK's `ucrt` and `um` directories). It finds the tools through `vswhere` and the SDK as the
+newest `Windows Kits\10\Lib\10.*` that has the architecture's `kernel32.lib` and `ucrt.lib`. A
+developer prompt's `VCToolsInstallDir` and `LIB` are used as they are. UMS inputs are recorded in
+both spellings: `-lfoo` becomes `foo.lib`, and `-L` becomes `/LIBPATH:`. Object files do not depend on
+which LLVM wrote them, so this is the one step that uses the system toolchain, the same way
+`rustc` hands its objects to `cc`. The system linker cannot be avoided anyway, because it comes
+with the C library and SDK the program links against.
+
+`native_clang_command` names the pinned clang, which is still used for compiling the runtime's C
+to bitcode during bootstrap and packaging. `find_llvm_paths` reads `PRISMIO_LLVM_DIR` or the
+checkout's `third_party/llvm-paths.json`. `target_clang_flags` translates the selected triple/sysroot. `compiler_set_sysroot` stores an
 explicit SDK root. `compiler_link_library`, `compiler_link_search`, `compiler_link_file`, and
 `compiler_link_framework` append validated UMS link inputs.
 

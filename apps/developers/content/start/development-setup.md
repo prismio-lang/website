@@ -1,38 +1,54 @@
 ---
 title: Development environment
-description: Prepare a Prismio compiler checkout with LLVM 23, platform tools, Python, and a known compiler generation.
+description: Prepare a Prismio compiler checkout with its pinned LLVM, platform tools, Python, and a known compiler generation.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-08"
+lastUpdated: "2026-09-24"
 tags: [setup, llvm, toolchain]
 related: [compiler/bootstrap, start/local-compiler-loop, tooling/debugging-targets-and-build-tracing]
 ---
 
-Compiler development requires LLVM 23, a C toolchain, Python for the test harness, and either an
+Compiler development requires the checkout's pinned LLVM, a C toolchain, Python for the test harness, and either an
 installed Prismio compiler or the committed bootstrap seed. Run setup commands from the compiler
 repository root: the bootstrap scripts resolve `src`, `runtime`, `bootstrap`, and
 `third_party/llvm-paths.json` relative to that checkout.
 
 ## Required tools
 
-- LLVM and Clang 23.x, including `llc` and the LLVM C development libraries.
-- A platform linker and SDK appropriate for the host.
+- The pinned LLVM, which `tools/setup_llvm.py` downloads into `third_party/llvm`. Do not install one.
+- A platform linker and SDK appropriate for the host: Xcode Command Line Tools on macOS, `cc` and
+  the C library development files on Linux, Visual Studio's C++ tools on Windows.
 - Python 3.8 or newer for tests, packaging, and support scripts.
 - Git and ordinary shell tooling.
 
-`tools/setup_llvm.py` is the authoritative LLVM locator. `--check` reports without changing the
-checkout; `--llvm-dir DIR` adopts an existing installation; `--force` downloads even if discovery
-succeeds; and `--version` selects the exact supported 22.x package. A successful setup validates
-the headers and link library and records their paths for `bootstrap.sh` and `bootstrap.ps1`.
+**The LLVM a compiler is built against belongs to the checkout, not to the machine.**
+`tools/setup_llvm.py` downloads LLVM 23.1.1, checks the archive against a SHA-256 recorded in the
+script, and prepares it under `third_party/llvm`. It does not look at Homebrew, apt or
+`llvm-config`. The download resumes after a stall or a dropped connection, and running the script
+again once setup has finished does nothing.
+
+The official macOS and Linux archives ship no shared LLVM library, and their static archives are
+ThinLTO bitcode. Setup therefore lowers the members the compiler uses to native objects once, which
+takes about 75 s on ten cores, and writes `third_party/llvm/link.rsp` naming them. Every compiler
+link after that is an ordinary static link with the system linker, so a compiler binary loads no
+LLVM at run time and a `brew upgrade llvm` cannot break it. On Windows, the archive's `LLVM-C.lib`
+is linked and `LLVM-C.dll` is copied beside the compiler.
+
+`--check` reports without changing the checkout; `--force` re-downloads and re-prepares;
+`--keep-all` keeps LLVM tools the build never runs, which setup normally prunes; and
+`--llvm-dir DIR` adopts an existing install. An adopted install is linked dynamically and is not
+pinned, so use it only as a deliberate opt-in. `PRISMIO_LLVM_DIR` does the same for a single
+command.
 
 ```bash
 python3 tools/setup_llvm.py --check
 python3 tools/setup_llvm.py
 ```
 
-Do not assume that a system `clang` and an arbitrary `llc` form a supported pair. The backend is
-compiled with `PRISMIO_LLVM_REAL_HEADERS`; the loaded C API and the tools consuming emitted IR must
-agree on the LLVM major.
+The pinned `third_party/llvm/bin/clang` is still used, but only to compile the runtime's C to bitcode
+during bootstrap and packaging, because that bitcode has to come from the same LLVM that reads it.
+Programs are optimized and emitted in process, and the object is linked by the system's `cc`. See
+[Runtime platforms and packaging](/runtime/platform-and-packaging).
 
 ## Choose the compiler explicitly
 
@@ -75,11 +91,12 @@ the language change.
 
 ## Platform notes
 
-On macOS, Apple Clang supplies the SDK-aware linker while Homebrew LLVM commonly supplies `llc`
-and libraries. On Linux, install the matching LLVM development packages. On Windows, use the
-repository PowerShell bootstrap and packaging paths rather than translating shell commands by hand.
+On macOS, Apple's `cc` and the SDK from the Command Line Tools link programs, and LLVM comes only
+from `third_party/llvm`. On Linux, the distribution's `cc` and C library development package are
+all the system has to provide. On Windows, use the repository PowerShell bootstrap and packaging
+paths rather than translating shell commands by hand.
 
-On macOS, debug builds can produce a `.dSYM`; on Linux, use the matching Clang/LLD development
-packages; on Windows, keep MSVC target and SDK selection consistent. Cross-target compilation also
+On macOS, debug builds can produce a `.dSYM`; on Windows, keep MSVC target and SDK selection
+consistent. Cross-target compilation also
 needs the target SDK via `--sysroot` and a matching `runtime-<triple>` package. LLVM target support
 alone does not provide a platform runtime.

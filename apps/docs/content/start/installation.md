@@ -3,7 +3,7 @@ title: Install the Prismio compiler
 description: Configure LLVM 23 and bootstrap a Prismio 0.1 compiler on Windows, macOS, or Linux.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-09-24"
 tags: [installation, bootstrap, llvm]
 related: [start/hello-world, compiler/bootstrap, compiler/targets]
 ---
@@ -15,10 +15,10 @@ This guide installs a local compiler without changing the language source. Keep 
 ## Requirements
 
 - Python 3.8 or newer
-- A C/LLVM toolchain compatible with LLVM 23 IR
 - Git and a shell; PowerShell scripts are supplied for Windows
+- The platform's C linker and libraries: Xcode Command Line Tools on macOS, `cc` and the C library development files on Linux, and Visual Studio or its Build Tools with the **Desktop development with C++** workload on Windows
 
-The repository pins the supported LLVM line to **23.1.1**. Apple Clang is not interchangeable with that LLVM IR version; on macOS, use the LLVM toolchain configured by the setup script.
+You do not install LLVM yourself. The repository pins it to **23.1.1**, and the setup script downloads that exact release into the checkout, checks it against a recorded SHA-256, and builds the compiler against it. An LLVM you already have, from Homebrew, apt or elsewhere, is not used.
 
 Before bootstrapping, check the prerequisites available on your path:
 
@@ -27,7 +27,7 @@ python3 --version
 git --version
 ```
 
-On Windows, use `python --version` in PowerShell if that is how Python is registered. The setup helper installs or locates the expected LLVM toolchain for the repository scripts; avoid manually substituting an older system LLVM.
+On Windows, use `python --version` in PowerShell if that is how Python is registered.
 
 ## Get the source
 
@@ -48,7 +48,7 @@ tools/bootstrap.sh --seed --out build/prismio
 ./build/prismio --version
 ```
 
-`tools/setup_llvm.py` prepares the pinned LLVM dependency. `tools/bootstrap.sh --seed` begins with the committed trusted seed and writes a self-hosted compiler to the requested output path.
+`tools/setup_llvm.py` downloads the pinned LLVM into `third_party/llvm` and prepares it. The archive is over a gigabyte, and it is downloaded once: running the script again finds the prepared copy and does nothing. `tools/bootstrap.sh --seed` begins with the committed trusted seed and writes a self-hosted compiler to the requested output path.
 
 The output path may be absolute or repository-relative. Keep generation binaries under `build/` while developing so they remain separate from source.
 
@@ -91,8 +91,11 @@ dist/Prismio/
   lib/backend.a                   linked only when building a compiler
   lib/runtime.hash                which sources those modules came from
   stdlib/*.plib                   what `import std.*` resolves to
-  third_party/llvm-paths.json     which LLVM produced them
 ```
+
+On Windows, `bin/` also holds `LLVM-C.dll`, the one LLVM library the compiler loads there.
+
+**The prefix needs no LLVM on the machine it runs on.** On macOS and Linux, LLVM is linked into the compiler itself. It optimizes your program and generates machine code without starting another process. The only thing it runs is the system's linker, which links the finished object against the C library: `cc` on macOS and Linux, and on Windows the `link.exe` from Visual Studio, which the compiler finds by itself. You do not need to open a developer prompt. Set `PRISMIO_CC` to use a different linker driver.
 
 The prefix moves as a unit — the compiler locates everything relative to its own executable, with no hardcoded installation path — so you can copy or rename `dist/Prismio` freely. What you cannot do is copy `bin/prismio` on its own; see [Toolchain layout](/compiler/toolchain-layout).
 
@@ -130,13 +133,13 @@ Running it from outside the repository is the stronger check: inside a checkout,
 
 ## Upgrade or switch versions
 
-Prismio 0.1 does not have an in-place update command. Check out the desired compiler revision, repeat LLVM setup when the pinned toolchain changes, and bootstrap a new output binary. Keep the old binary until the new generation passes `--version`, a self-host, and the regression tests relevant to your project.
+Prismio 0.1 does not have an in-place update command. Check out the desired compiler revision, rerun `tools/setup_llvm.py` (it only downloads when the pinned version has changed), and bootstrap a new output binary. Keep the old binary until the new generation passes `--version`, a self-host, and the regression tests relevant to your project.
 
 Documentation versions are designed to remain separately addressable. Always compare the page version with the compiler output before relying on experimental AIF behavior or ABI details.
 
 ## Troubleshooting
 
-If bootstrap cannot find LLVM, rerun the repository setup helper and use the paths it configures rather than the platform's default `clang`. If linking fails, confirm the target toolchain and runtime objects exist for your operating system. If a generation can compile applications but not the compiler, run the fixed-point workflow in [Bootstrapping](/compiler/bootstrap) to isolate the first divergent generation.
+If bootstrap cannot find LLVM, run `python3 tools/setup_llvm.py --check` to see what the checkout has recorded, then `python3 tools/setup_llvm.py` to finish the setup. An interrupted download resumes from where it stopped. If linking a program fails, the missing piece is almost always the system linker or C library, not LLVM: install the Xcode Command Line Tools on macOS, your distribution's C development package on Linux, or the Visual Studio C++ workload, which includes the Windows SDK, on Windows. If a generation can compile applications but not the compiler, run the fixed-point workflow in [Bootstrapping](/compiler/bootstrap) to isolate the first divergent generation.
 
 The current CI exercises Windows, macOS, and Linux. A platform being present in CI does not make every system linker or C library version interchangeable; include the exact command, compiler version, LLVM version, and host target in bug reports.
 

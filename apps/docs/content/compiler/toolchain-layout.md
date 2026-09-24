@@ -3,7 +3,7 @@ title: Toolchain layout
 description: What an installed Prismio toolchain contains, why a compiler is a directory rather than a file, and how to read a missing-module error.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-09"
+lastUpdated: "2026-09-24"
 tags: [installation, packaging, runtime, stdlib]
 related: [start/installation, compiler/overview, compiler/bootstrap, stdlib]
 ---
@@ -17,10 +17,16 @@ A Prismio compiler is a **layout, not a file**. The executable resolves everythi
   lib/backend.a                   linked only when building a compiler
   lib/runtime.hash                which sources those modules came from
   stdlib/*.plib                   what `import std.*` resolves to
-  third_party/llvm-paths.json     which LLVM produced them
+  bin/LLVM-C.dll                  Windows only
 ```
 
 There is no hardcoded installation prefix and no environment variable to set. Move, rename or copy the whole directory and it keeps working; take `bin/prismio` out on its own and it can no longer build anything.
+
+## Where LLVM is
+
+LLVM is inside the compiler, not next to it. On macOS and Linux, `bin/prismio` links the pinned LLVM 23.1.1 statically. It optimizes a program and generates its machine code in the same process, so the prefix needs no LLVM installed on the machine, and a `brew upgrade` or distribution update cannot change what it builds. Windows is the exception: the compiler loads LLVM from `LLVM-C.dll` in its own `bin/` directory.
+
+The one outside tool a build runs is the system's linker, and only for the last step: linking the finished object with the platform's C library. On macOS and Linux that is `cc`. On Windows it is Visual Studio's `link.exe`, found through `vswhere` together with the newest Windows SDK, so no developer prompt is needed. A cross build uses `clang`, because the driver has to accept `--target`. That is the same arrangement `rustc` uses. Set `PRISMIO_CC` to choose a different driver.
 
 ## Why the runtime is bitcode
 

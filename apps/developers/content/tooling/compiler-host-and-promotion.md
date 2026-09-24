@@ -12,6 +12,12 @@ The compiler repository names `.prismio/build/debug/prismio` as its optional pro
 lets compiler development use the generation produced by the checkout while retaining an installed
 compiler that can recover or bootstrap.
 
+The manifest spells the host without an extension so one `build.ums` serves every platform. On
+Windows the file is `.prismio/build/debug/prismio.exe`: `umsExecutablePath` appends `.exe` to the
+host path and to every executable and test target's output, as the single-file driver always has.
+An extension-less host cannot be started from `cmd.exe`, which is how the build invokes it to emit
+the local standard library.
+
 ## Routing
 
 The parent compiler locates `build.ums` and reads its stable host declaration. If the host is
