@@ -148,9 +148,50 @@ That is the whole of what `impl` does. In particular:
 - A method is callable by name without a receiver -- `sum(point)` works.
 - Two `impl` blocks for the same type are allowed, and so are methods of the same
   name on different types; they resolve as overloads.
-- A function written inside an `impl` block with no `self` parameter is an
-  associated function, which is to say an ordinary function that happens to be
-  written there. It is called by name: `origin()`, not `Point.origin()`.
+- A function written inside an `impl` block with no `self` parameter belongs
+  to the type. It is called `Point.origin()`, not `origin()` — see
+  [type-level functions](#type-level-functions).
+
+### Type-level functions
+
+A function in an `impl` block that takes no `self` builds or answers something about the type rather than a value of it. It is named for the type, so two types may each have a `new` or a `default` without colliding:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.string
+
+struct Config {
+    retries: Int,
+    name: String
+}
+
+impl Config {
+    fn default() -> Config {
+        return Config { retries: 3, name: "app" }
+    }
+
+    fn named(name: String) -> Config {
+        let mut c = Self.default()
+        c.name = name
+        return c
+    }
+}
+
+struct Box<T> { value: T }
+
+impl<T> Box<T> {
+    fn new(value: T) -> Box<T> { return Box<T> { value: value } }
+}
+
+fn main() -> Int {
+    let web = Config.named("web")
+    let n = Box.new(5)                // T inferred from the argument
+    let s = Box<String>.new("x")      // or written
+    return web.retries + n.value + s.value.length - 9
+}
+```
+
+`Self.name()` calls one from inside the block. `default` is allowed as the name, and `Config.default()` is then the type's own default. The `default` keyword on its own stays the compiler's zero value. A bare call, `named("web")`, is an unknown function, and the error names the type it belongs to.
 
 ### `self`
 

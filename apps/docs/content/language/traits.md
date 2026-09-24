@@ -98,7 +98,7 @@ impl From<Int> for String {
 }
 
 fn make<U: From<Int>>(value: Int) -> U {
-    return from(value)
+    return U.from(value)
 }
 
 fn main() -> Int {
@@ -109,6 +109,8 @@ fn main() -> Int {
 
 Trait arguments may themselves be applied types, as in `Convert<Vec<Int>>`.
 Every application must supply exactly the parameters declared by the trait.
+
+`from` has no `self`, so it belongs to the type: `impl From<Int> for String` gives `String.from(7)`, and generic code calls it through the type parameter, `U.from(value)`, which becomes `String.from(value)` when `U` is `String`. See [type-level functions](/language/methods#type-level-functions).
 
 ## Implementing a trait
 
@@ -557,6 +559,41 @@ module, because there is no prelude.
 | `std.iter` | `Iterator` | `for ... in` over your own type |
 | `std.copy` | `Copy` | a value that may be duplicated |
 | `std.key` | `Key` | what `Map` requires of a key |
+| `std.default` | `Default` | `T.default()`, a type's own starting value |
+
+### A type's own default
+
+The `default` keyword is the compiler's value for a type: zero, `false`, `""`, `[]`, and a struct of its fields' defaults. It never runs your code. When a type has a better starting value, it says so by implementing `Default`, and callers ask for it with `Config.default()`:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.string
+import std.default
+
+struct Config {
+    retries: Int,
+    name: String
+}
+
+impl Default for Config {
+    fn default() -> Config {
+        return Config { retries: 3, name: "app" }
+    }
+}
+
+fn fresh<T: Default>() -> T {
+    return T.default()
+}
+
+fn main() -> Int {
+    let zeros: Config = default       // retries 0, name ""
+    let own = Config.default()        // retries 3, name "app"
+    let viaGeneric = fresh<Config>()  // the same as Config.default()
+    return own.retries - viaGeneric.retries + zeros.retries
+}
+```
+
+The builtin number types, `Bool`, `Char` and `String` implement `Default` with the keyword's value, so `fresh<Int>()` is `0`. A type argument is not yet inferred from the type a call is expected to return, so a generic call like `fresh` is written `fresh<Config>()`.
 
 ### Equality and ordering
 

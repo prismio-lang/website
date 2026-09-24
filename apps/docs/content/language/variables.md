@@ -84,6 +84,8 @@ fn main() -> Int {
 
 It is resolved where a type is already known: a `let` with an annotation, a `return`, a struct field, or an assignment. It works inside generic code — `let x: T = default` is resolved separately for each type `T` is instantiated with.
 
+`default` never runs your code. A type with a better starting value than zeros gives itself a `default` function, `Config.default()`; see [a type's own default](/language/traits#a-types-own-default).
+
 **What has no default.** An enum does not: its value should be named, not guessed. Neither does a struct with a field that has none, a closure, a trait object, a channel, or an array whose length is not known. `default` also cannot be a function argument, because the overload is chosen from the argument types — bind it first:
 
 <!-- prismio-check: fail -->

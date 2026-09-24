@@ -8,7 +8,7 @@ tags: [standard-library, runtime, status]
 related: [stdlib/io, stdlib/strings, stdlib/vec, stdlib/map, stdlib/option, roadmap]
 ---
 
-Prismio ships sixteen standard-library modules: `std.io`, `std.string`, `std.fs`, `std.process`, `std.platform`, `std.vec`, `std.map`, `std.option`, `std.key`, `std.ord`, `std.copy`, `std.eq`, `std.iter`, `std.math`, `std.display` and [`std.term`](/stdlib/term), which colours terminal output.
+Prismio ships seventeen standard-library modules: `std.io`, `std.string`, `std.fs`, `std.process`, `std.platform`, `std.vec`, `std.map`, `std.option`, `std.key`, `std.ord`, `std.copy`, `std.eq`, `std.iter`, `std.math`, `std.display`, [`std.default`](/language/traits#a-types-own-default), which gives a type its own starting value, and [`std.term`](/stdlib/term), which colours terminal output.
 
 A packaged toolchain installs them as **compiled `stdlib/*.plib` artifacts**, not as `.psm` source. A PLIB carries the module's interface — which the frontend still parses, because generic bodies have to be instantiated against your concrete types — together with its compiled LLVM bitcode, which the driver merges into your program before optimization. The directory is **flattened**, so never derive a module's logical name from its path on disk: `std.map` is `stdlib/map.plib`.
 
