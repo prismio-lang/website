@@ -16,7 +16,7 @@ import std.option
 
 fn main() -> Int {
     let found = Option.Some(7)
-    let absent = Option<Int>.None
+    let absent: Option<Int> = Option.None
     return optionOr(found, 0) - optionOr(absent, 7)
 }
 ```
@@ -36,7 +36,7 @@ enum Option<T> {
 | `optionIsNone(o)` | Whether it is absent. |
 | `optionOr(o, fallback)` | The value, or `fallback`. |
 
-`Option.Some(x)` infers `T` from `x`. `Option<Int>.None` must name it, because nothing in a `None` says what it would have carried.
+`Option.Some(x)` infers `T` from `x`. A `None` carries nothing that says what it would have held, so it takes `T` from its context: an annotation, the variable it is assigned to, a return type, a field or a parameter. With no context at all, write it out: `Option<Int>.None`.
 
 ## Result
 
@@ -53,7 +53,7 @@ enum Result<T, E> {
 | `resultOr(r, fallback)` | The success value, or `fallback`. |
 | `resultErrOr(r, fallback)` | The error value, or `fallback`. |
 
-Both type arguments must be written at a construction site — `Result<Int, String>.Ok(v)` — because neither variant mentions both parameters.
+Neither variant mentions both parameters, so a construction takes them from its context, as `None` does: `return Result.Ok(v)` in a function declared `-> Result<Int, String>`. With no context, write them: `Result<Int, String>.Ok(v)`.
 
 ## Matching
 

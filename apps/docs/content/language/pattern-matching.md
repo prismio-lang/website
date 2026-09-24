@@ -106,6 +106,24 @@ Duplicate patterns are also not rejected in 0.1. The first matching arm wins; la
 
 Every arm body is a block with its own lexical scope. Bindings declared in one arm are unavailable in another arm or after the match. `return` exits the function, while `break` and `continue` apply only when the match appears inside a loop.
 
+A match that every value reaches — a payload enum with each variant covered, or any match with a `_` arm — ends the function when each of its arms does, the way an `if` with an `else` does. So it can be a function's last statement, and a statement after it is unreachable code, which is an error:
+
+<!-- prismio-check: pass -->
+```prismio
+fn sign(n: Int) -> Int {
+    match (n) {
+        0 => { return 0 }
+        _ => { return 1 }
+    }
+}
+
+fn main() -> Int {
+    return sign(0)
+}
+```
+
+An integer match without a `_` arm does not end the function, because a value no arm names falls through it.
+
 ## Invalid scrutinees
 
 <!-- prismio-check: fail -->
@@ -115,7 +133,6 @@ fn main() -> Int {
     match (text) {
         _ => { return 0 }
     }
-    return 1
 }
 ```
 
@@ -139,7 +156,6 @@ fn area(s: Shape) -> Int {
         Shape.Circle(r) => { return 3 * r * r }
         Shape.Rect(w, h) => { return w * h }
     }
-    return -1
 }
 
 fn main() -> Int {

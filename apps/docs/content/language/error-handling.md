@@ -19,8 +19,8 @@ import std.io
 import std.option
 
 fn half(n: Int) -> Result<Int, String> {
-    if (n % 2 != 0) { return Result<Int, String>.Err("odd") }
-    return Result<Int, String>.Ok(n / 2)
+    if (n % 2 != 0) { return Result.Err("odd") }
+    return Result.Ok(n / 2)
 }
 
 fn main() -> Int {
@@ -28,7 +28,6 @@ fn main() -> Int {
         Result.Ok(v) => { return v - 5 }
         Result.Err(e) => { println(e) return 1 }
     }
-    return 1
 }
 ```
 
@@ -52,7 +51,7 @@ There is no `?` operator. A caller that wants to forward an error writes the mat
 
 ```prismio
 match (half(n)) {
-    Result.Err(e) => { return Result<Int, String>.Err(e) }
+    Result.Err(e) => { return Result.Err(e) }
     Result.Ok(v) => { doubled = v * 2 }
 }
 ```
@@ -62,5 +61,5 @@ A propagation operator needs a defined interaction with ownership and with clean
 ## Limits in 0.1
 
 - **No `unwrap`.** `optionOr` and `resultOr` take a fallback. There is deliberately no unchecked accessor, since the point of the type is that the absent case is handled at the use site.
-- **Type arguments cannot always be inferred.** `Option.Some(5)` infers `T`, but `Result.Ok(5)` cannot infer `E` — nothing in the argument mentions it — so it must be written as `Result<Int, String>.Ok(5)`. The compiler says so by name.
+- **Type arguments come from the context when the value cannot supply them.** `Option.Some(5)` infers `T` from `5`. `Result.Ok(5)` cannot infer `E` from anything it carries, so it takes both from the annotation, return type, field or parameter it meets. With none of those, as in `let r = Result.Ok(5)`, write them out: `Result<Int, String>.Ok(5)`. The compiler says so by name.
 - `throw` is still reserved by the lexer and is not parsed.

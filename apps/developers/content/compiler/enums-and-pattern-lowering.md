@@ -32,7 +32,6 @@ fn sum(t: Tree) -> Int {
         Tree.Empty => { return 0 }
         Tree.Node(l, v, r) => { return sum(l) + v + sum(r) }
     }
-    return -1
 }
 
 fn main() -> Int {
@@ -150,7 +149,6 @@ fn area(s: Shape) -> Int {
         Shape.Circle(q) => { return q }
         Shape.Rect(w, h) => { return w * h }
     }
-    return -1
 }
 
 fn main() -> Int { return area(Shape.Circle(2)) }
@@ -218,6 +216,20 @@ Inference must agree across every occurrence of a type parameter — one
 payload cannot infer `T = Int` while another infers `T = String` for the same
 construction.
 
+When the payload cannot name a parameter (`Option.None`, `Result.Ok(5)` for
+`E`), the context can. `enumQualifyFromExpected`, called from `semaCheckValue`
+and `semaValueTypeAgainst`, rewrites a bare qualifier to the instantiation the
+expected type names (`Option` becomes `Option$Int`), which `enumConcreteName`
+accepts as it stands. That covers an annotation, an assignment, a `return`
+and a struct field. An argument is matched before any parameter type is
+chosen, so `semaArgMatchesType` asks the non-mutating `enumFitsExpected`, and
+`semaCheckValue` qualifies the argument once the overload is picked. Nothing
+may type such a node before then: `semaIsDynDispatch` skips a receiver that
+`enumIsBareGenericConstruction` recognises, since its probe would otherwise
+report the construction as uninferable. When a construction fails, both
+callers stop at its diagnostic rather than going on to read `Option` as a
+value, a module or a trait.
+
 ### Match checking
 
 `semaMatchPayloadArms` validates the scrutinee and analyzes every arm.
@@ -230,6 +242,13 @@ selected variant.
 finds a wildcard. `semaMatchCoversTag` tests coverage, while
 `semaTagCoveredBefore` and `semaCheckDuplicateArms` reject repeated or
 unreachable variant arms — the two failures demonstrated above.
+
+A match that passes the check, or that has a `_` arm, sets `i3` on the
+MATCH_STATEMENT (`semaMatchStatement` sets it for an integer match with a
+wildcard). `semaStmtDiverges` in `sema/flow.psm` reads it: a match with `i3` whose
+arms all diverge diverges, so it can end a value-returning function, and the
+unreachable-code check rejects a statement after it. The fallback `return`
+that the old analysis needed after such a match is now that error.
 
 ### LLVM lowering and teardown
 
