@@ -1,6 +1,6 @@
 ---
 title: AIF foreign-function contracts
-description: How extern declarations describe borrowed, consumed, produced, aliased, escaping, and released foreign storage — and why a contract that "fixes" the tier can still be the wrong one.
+description: How extern declarations describe borrowed, consumed, produced, aliased, escaping and released foreign storage — and why a contract that "fixes" the tier can be wrong.
 status: experimental
 version: "0.1.0"
 tags: [aif, ffi, ownership]

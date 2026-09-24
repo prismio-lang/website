@@ -1,6 +1,6 @@
 ---
 title: AIF layout selection
-description: How Prismio evaluates object and container layout using access evidence, field temperature, flatness, and conversion cost — and why the obvious hot/cold cut is sometimes the wrong one.
+description: How Prismio chooses object and container layout from access evidence, field temperature, flatness and conversion cost — and why the obvious hot/cold cut can be wrong.
 status: experimental
 version: "0.1.0"
 tags: [aif, layout, soa]

@@ -1,6 +1,6 @@
 ---
 title: Repository tour
-description: Where each decision lives in the Prismio compiler checkout — compiler, runtime, standard library, UMS build system, tests, and evidence — and how to find the owner of a behaviour from its output.
+description: Where each decision lives in the compiler checkout — compiler, runtime, std, UMS, tests, evidence — and how to find what owns a behaviour.
 status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-16"

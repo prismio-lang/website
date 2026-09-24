@@ -64,7 +64,7 @@
   },
   {
     "title": "AIF foreign-function contracts",
-    "description": "How extern declarations describe borrowed, consumed, produced, aliased, escaping, and released foreign storage — and why a contract that \"fixes\" the tier can still be the wrong one.",
+    "description": "How extern declarations describe borrowed, consumed, produced, aliased, escaping and released foreign storage — and why a contract that \"fixes\" the tier can be wrong.",
     "status": "experimental",
     "draft": false,
     "version": "0.1.0",
@@ -85,7 +85,7 @@
   },
   {
     "title": "AIF layout selection",
-    "description": "How Prismio evaluates object and container layout using access evidence, field temperature, flatness, and conversion cost — and why the obvious hot/cold cut is sometimes the wrong one.",
+    "description": "How Prismio chooses object and container layout from access evidence, field temperature, flatness and conversion cost — and why the obvious hot/cold cut can be wrong.",
     "status": "experimental",
     "draft": false,
     "version": "0.1.0",
@@ -415,7 +415,7 @@
   },
   {
     "title": "Compiler architecture",
-    "description": "The self-hosted Prismio 0.1 pipeline from source and imports through semantics, AIF, LLVM IR, and native linking — how to stop it at each stage, and which stage rejected your program.",
+    "description": "The self-hosted pipeline from source and imports through semantics, AIF, LLVM IR and linking — how to stop it at each stage, and which stage rejected your program.",
     "status": "stable",
     "draft": false,
     "version": "0.1.0",
@@ -459,7 +459,7 @@
   },
   {
     "title": "Compiler pipeline and driver",
-    "description": "How the Prismio driver carries source through imports, semantics, AIF, LLVM generation, object emission, and linking — and why a program can pass every earlier command and still be rejected at build.",
+    "description": "How the driver carries source through imports, semantics, AIF, LLVM, object emission and linking — and why a program can pass every earlier command and fail at build.",
     "status": "stable",
     "draft": false,
     "version": "0.1.0",
@@ -481,7 +481,7 @@
   },
   {
     "title": "Semantic analysis and types",
-    "description": "The semantic passes that resolve Prismio names, types, overloads, calls, fields, flow, and program validity — and why a rejection reports every mistake it can find rather than stopping at the first.",
+    "description": "The passes that resolve names, types, overloads, calls, fields and flow — and why a rejection reports every mistake it can find rather than stopping at the first.",
     "status": "stable",
     "draft": false,
     "version": "0.1.0",
@@ -528,7 +528,7 @@
   },
   {
     "title": "Traits, impl blocks, and dispatch",
-    "description": "How Prismio resolves a trait method at compile time when the receiver's type is known, and through a runtime table when it isn't — plus coherence, associated items, impl Trait, and trait objects.",
+    "description": "How a trait method resolves at compile time when the receiver's type is known, and through a runtime table when it isn't — plus coherence, impl Trait and trait objects.",
     "status": "stable",
     "draft": false,
     "version": "0.1.0",
@@ -688,7 +688,7 @@
   },
   {
     "title": "Extend the UMS manifest",
-    "description": "Carry a new build.ums capability through tokens, syntax, lowering, validation, planning, diagnostics, tests, and bootstrap compatibility, with the manifest errors you get wrong along the way.",
+    "description": "Carry a new build.ums capability through tokens, syntax, lowering, validation, planning, diagnostics, tests and bootstrap, with the manifest errors you will hit on the way.",
     "status": "stable",
     "draft": false,
     "version": "0.1.0",

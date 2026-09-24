@@ -1,6 +1,6 @@
 ---
 title: Compiler pipeline and driver
-description: How the Prismio driver carries source through imports, semantics, AIF, LLVM generation, object emission, and linking — and why a program can pass every earlier command and still be rejected at build.
+description: How the driver carries source through imports, semantics, AIF, LLVM, object emission and linking — and why a program can pass every earlier command and fail at build.
 status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-17"

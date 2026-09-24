@@ -1,6 +1,6 @@
 ---
 title: Extend the UMS manifest
-description: Carry a new build.ums capability through tokens, syntax, lowering, validation, planning, diagnostics, tests, and bootstrap compatibility, with the manifest errors you get wrong along the way.
+description: Carry a new build.ums capability through tokens, syntax, lowering, validation, planning, diagnostics, tests and bootstrap, with the manifest errors you will hit on the way.
 status: stable
 version: "0.1.0"
 tags: [cookbook, ums, build-system]
