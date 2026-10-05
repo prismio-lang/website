@@ -126,9 +126,9 @@ export default function Hero() {
                 <div className="lg:col-span-7 lg:pt-2">
                     <h1 className="max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.04em] text-white sm:text-6xl lg:text-[4rem]">
                         Serious performance.
-                    </h1>
-                    <h1 className="max-w-3xl mt-2 text-5xl font-semibold leading-[0.98] tracking-[-0.04em] text-white opacity-50 sm:text-6xl lg:text-[4rem]">
-                        Friendly design.
+                        <span className="block mt-2 opacity-50">
+                            Friendly design.
+                        </span>
                     </h1>
 
                     <p className="mt-8 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg sm:leading-8">

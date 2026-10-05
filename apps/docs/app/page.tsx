@@ -10,5 +10,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-    return <DocsHomePage config={docsConfig} docs={docs} />;
+    return <DocsHomePage config={docsConfig} docsCount={docs.length} />;
 }

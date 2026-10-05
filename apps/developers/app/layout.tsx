@@ -3,7 +3,6 @@ import "./globals.css";
 import "@fontsource-variable/inter";
 import "@fontsource-variable/jetbrains-mono";
 import { docsConfig } from "@/config/docs";
-import { docs } from "@/libs/velite";
 import {
     DocsRootLayout,
     docsViewport,
@@ -15,7 +14,7 @@ export const viewport: Viewport = docsViewport;
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
-        <DocsRootLayout config={docsConfig} docs={docs}>
+        <DocsRootLayout config={docsConfig}>
             {children}
         </DocsRootLayout>
     );

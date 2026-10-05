@@ -35,12 +35,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Graphify
-graphify-out/*
-!graphify-out/graph.json
-!graphify-out/GRAPH_REPORT.md
-!graphify-out/manifest.json
-!graphify-out/wiki/
-!graphify-out/obsidian/
-.graphify/
-.graphify_*.json
+

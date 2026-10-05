@@ -4,10 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileText, Search, X } from "lucide-react";
 import { emitter } from "@prismio/ui";
-import type { DocRecord, DocsSearchConfig } from "../../types";
+import type { DocRecord, DocSearchRecord, DocsSearchConfig } from "../../types";
 
 export interface DocsSearchModalProps {
-    docs: DocRecord[];
+    docs?: DocRecord[] | DocSearchRecord[];
     config: DocsSearchConfig;
 }
 
@@ -25,12 +25,41 @@ export function DocsSearchModal({ docs, config }: DocsSearchModalProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState("");
     const [activeIndex, setActiveIndex] = useState(0);
+    const [searchDocs, setSearchDocs] = useState<DocSearchRecord[]>(docs ?? []);
+    const [isLoading, setIsLoading] = useState(false);
 
     const {
         categories,
         placeholder = "Search documentation…",
-        emptyPrompt = `Search ${docs.length} versioned reference pages by title, concept, status, or keyword.`,
+        emptyPrompt = searchDocs.length > 0
+            ? `Search ${searchDocs.length} versioned reference pages by title, concept, status, or keyword.`
+            : "Search versioned reference pages by title, concept, status, or keyword.",
     } = config;
+
+    useEffect(() => {
+        if (docs && docs.length > 0) {
+            setSearchDocs(docs);
+        }
+    }, [docs]);
+
+    useEffect(() => {
+        if (isOpen && searchDocs.length === 0 && !isLoading) {
+            setIsLoading(true);
+            fetch("/search-index.json")
+                .then((res) => (res.ok ? res.json() : []))
+                .then((data: DocSearchRecord[]) => {
+                    if (Array.isArray(data) && data.length > 0) {
+                        setSearchDocs(data);
+                    }
+                })
+                .catch((err) => {
+                    console.error("Failed to load search index:", err);
+                })
+                .finally(() => {
+                    setIsLoading(false);
+                });
+        }
+    }, [isOpen, searchDocs.length, isLoading]);
 
     useEffect(() => {
         const open = () => {
@@ -65,12 +94,12 @@ export function DocsSearchModal({ docs, config }: DocsSearchModalProps) {
         if (!needle) return [];
         const terms = needle.split(/\s+/).filter(Boolean);
 
-        return docs
+        return searchDocs
             .map((doc) => {
-                const body = plainText(doc.raw);
+                const body = doc.raw ? plainText(doc.raw) : (doc.body ?? doc.description ?? "");
                 const title = doc.title.toLowerCase();
                 const description = doc.description.toLowerCase();
-                const tags = doc.tags.join(" ").toLowerCase();
+                const tags = (doc.tags ?? []).join(" ").toLowerCase();
                 const bodyLower = body.toLowerCase();
                 let score = 0;
 
@@ -109,7 +138,7 @@ export function DocsSearchModal({ docs, config }: DocsSearchModalProps) {
             .filter((result) => result.score > 0)
             .sort((a, b) => b.score - a.score || a.doc.title.localeCompare(b.doc.title))
             .slice(0, 10);
-    }, [docs, query]);
+    }, [searchDocs, query]);
 
     const navigate = useCallback(
         (slug: string) => {

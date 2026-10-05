@@ -13,6 +13,11 @@ export const siteConfig = {
   email: "saksham6975@gmail.com",
   github: "https://github.com/prismio-lang/prismio",
   githubOrg: "https://github.com/prismio-lang",
+  wikidata: "https://www.wikidata.org/wiki/Q141648085",
+  rosettaCode: "https://rosettacode.org/wiki/Category:Prismio",
+  homebrewTap: "https://github.com/prismio-lang/homebrew-tap",
+  jetbrainsPlugin: "https://plugins.jetbrains.com/plugin/34672-prismio/",
+  fossUnitedGrant: "https://fossunited.org/grants/prismio",
   releasesFeed: "https://github.com/prismio-lang/prismio/releases.atom",
   discord: DISCORD_INVITE_LINK,
 };

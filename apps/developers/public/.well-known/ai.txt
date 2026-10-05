@@ -1,0 +1,10 @@
+# AI crawler policy for https://developers.prismio.org
+# Prismio is open source; indexing, retrieval and citation are welcome.
+
+User-Agent: *
+Allow: /
+
+LLMs: https://developers.prismio.org/llms.txt
+LLMs-Full: https://developers.prismio.org/llms-full.txt
+Sitemap: https://developers.prismio.org/sitemap.xml
+Contact: saksham6975@gmail.com

@@ -60,6 +60,28 @@ export function DocsArticlePage({
             dateModified: doc.lastUpdated,
             version: doc.version,
             proficiencyLevel: "Developer",
+            inLanguage: "en",
+            author: {
+                "@type": "Person",
+                name: site.author,
+                url: site.authorURL,
+            },
+            publisher: {
+                "@type": "Organization",
+                "@id": "https://prismio.org/#organization",
+                name: "Prismio",
+                url: "https://prismio.org",
+                logo: "https://prismio.org/icons/prismio.png",
+            },
+            about: {
+                "@type": "SoftwareApplication",
+                "@id": "https://prismio.org/#software",
+                name: "Prismio",
+                sameAs: [
+                    "https://www.wikidata.org/wiki/Q141648085",
+                    "https://rosettacode.org/wiki/Category:Prismio",
+                ],
+            },
             isPartOf: { "@type": "WebSite", name: site.name, url: site.siteUrl },
         },
         {

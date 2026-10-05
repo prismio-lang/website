@@ -14,6 +14,18 @@ export interface DocRecord {
     code: string;
 }
 
+export interface DocSearchRecord {
+    title: string;
+    description: string;
+    status: DocStatus;
+    draft?: boolean;
+    version: string;
+    tags?: string[];
+    slug: string;
+    body?: string;
+    raw?: string;
+}
+
 export interface DocNavNode {
     label: string;
     href?: string;

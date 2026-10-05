@@ -11,12 +11,28 @@ import {
     Sparkles,
     Terminal,
 } from "lucide-react";
+import localFont from "next/font/local";
 import HeaderMain from "@/components/HeaderMain";
 import DiscordIcon from "@/components/icons/DiscordIcon";
 import GithubIcon from "@/components/icons/GithubIcon";
 import LinkedinIcon from "@/components/icons/LinkedinIcon";
 import FooterMain from "@prismio/ui/FooterMain";
 import {DISCORD_INVITE_LINK} from "@prismio/utils";
+
+const kalam = localFont({
+    src: [
+        { path: "../../fonts/Kalam-Regular.ttf", weight: "400", style: "normal" },
+        { path: "../../fonts/Kalam-Bold.ttf", weight: "700", style: "normal" },
+    ],
+    variable: "--font-kalam",
+    display: "swap",
+});
+
+const fraunces = localFont({
+    src: "../../fonts/Fraunces-Variable.ttf",
+    variable: "--font-fraunces",
+    display: "swap",
+});
 
 export const metadata = {
     title: "Saksham Jaiswal — Prismio Creator and Compiler Architect",
@@ -41,7 +57,7 @@ const PROFILE_LINKS = [
 export default function SakshamAuthorPage() {
     return (
         <div
-            className="relative min-h-screen bg-[#070709] text-white selection:bg-indigo-500/30 selection:text-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overflow-x-clip">
+            className={`relative min-h-screen bg-[#070709] text-white selection:bg-indigo-500/30 selection:text-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overflow-x-clip ${kalam.variable} ${fraunces.variable}`}>
             {/* Subtle Atmospheric Light — Restrained & Cinematic */}
             <div
                 className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[1100px] h-[600px] bg-[radial-gradient(ellipse_at_top,rgba(67,56,202,0.18),rgba(15,23,42,0.1),transparent_70%)] blur-3xl"/>

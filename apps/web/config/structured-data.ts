@@ -8,6 +8,9 @@ export const PRISMIO_ORG_ID =
 export const PRISMIO_WEBSITE_ID =
   "https://prismio.org/#website";
 
+export const PRISMIO_SOFTWARE_ID =
+  "https://prismio.org/#software";
+
 // Evaluated at build time; the site is statically rendered, so this is the deploy date.
 const BUILD_DATE = new Date().toISOString();
 
@@ -21,7 +24,7 @@ export const prismioStructuredData = {
       "@type": "Organization",
       "@id": PRISMIO_ORG_ID,
       "name": "Prismio",
-      "url": "https://prismio.org/",
+      "url": "https://prismio.org",
       "description":
         "Prismio is an open-source systems programming language that compiles to native machine code through LLVM.",
       "founder": {
@@ -29,8 +32,13 @@ export const prismioStructuredData = {
       },
       "logo": "https://prismio.org/icons/prismio.png",
       "sameAs": [
+        siteConfig.wikidata,
+        siteConfig.rosettaCode,
         siteConfig.github,
         siteConfig.githubOrg,
+        siteConfig.homebrewTap,
+        siteConfig.jetbrainsPlugin,
+        siteConfig.fossUnitedGrant,
         siteConfig.discord
       ]
     },
@@ -38,13 +46,41 @@ export const prismioStructuredData = {
       "@type": "WebSite",
       "@id": PRISMIO_WEBSITE_ID,
       "name": "Prismio",
-      "url": "https://prismio.org/",
+      "url": "https://prismio.org",
       "description": siteConfig.description,
       "inLanguage": "en",
       "publisher": {
         "@id": PRISMIO_ORG_ID
       },
       "dateModified": BUILD_DATE
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": PRISMIO_SOFTWARE_ID,
+      "name": "Prismio",
+      "applicationCategory": "DeveloperApplication",
+      "applicationSubCategory": "Compiler and Systems Programming Language",
+      "operatingSystem": "macOS, Linux, Windows",
+      "description": siteConfig.description,
+      "url": "https://prismio.org",
+      "downloadUrl": "https://prismio.org/install",
+      "license": "https://www.apache.org/licenses/LICENSE-2.0",
+      "softwareVersion": PRISMIO_VERSION,
+      "softwareRequirements": "LLVM 23, C toolchain",
+      "author": {
+        "@id": SAKSHAM_PERSON_ID
+      },
+      "publisher": {
+        "@id": PRISMIO_ORG_ID
+      },
+      "sameAs": [
+        siteConfig.wikidata,
+        siteConfig.rosettaCode,
+        siteConfig.github,
+        siteConfig.homebrewTap,
+        siteConfig.jetbrainsPlugin,
+        siteConfig.fossUnitedGrant
+      ]
     },
     {
       "@type": "SoftwareSourceCode",
@@ -57,14 +93,17 @@ export const prismioStructuredData = {
       "isPartOf": {
         "@id": PRISMIO_ORG_ID
       },
-      "license": "https://opensource.org/licenses/MIT"
+      "targetProduct": {
+        "@id": PRISMIO_SOFTWARE_ID
+      },
+      "license": "https://www.apache.org/licenses/LICENSE-2.0"
     },
     {
       "@type": "Person",
       "@id": SAKSHAM_PERSON_ID,
       "name": "Saksham Jaiswal",
       "url":
-        "https://prismio.org/team/saksham-jaiswal/",
+        "https://prismio.org/team/saksham-jaiswal",
       "jobTitle": "Creator & Lead Developer",
       "worksFor": {
         "@id": PRISMIO_ORG_ID

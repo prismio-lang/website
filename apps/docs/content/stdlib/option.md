@@ -109,7 +109,7 @@ The location printed is `expect`'s own line inside the standard library, not you
 
 `map` changes the value inside and leaves an absent one absent; `andThen` runs a step that can itself fail. Both take a [closure](/language/closures), and the result's type is whatever the closure returns — `given.map(|p: Int| p.toString())` is an `Option<String>` with nothing written to say so. That comes from the closure bound in their signatures:
 
-```text
+```prismio
 fn map<U, F: Fn(T) -> U>(self, f: F) -> Option<U>
 ```
 

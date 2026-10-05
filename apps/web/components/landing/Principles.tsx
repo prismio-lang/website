@@ -30,9 +30,9 @@ export default function Principles() {
                 <div className="lg:col-span-4">
                     <h2 id="language-heading" className="text-4xl font-semibold tracking-[-0.035em] text-white md:text-5xl">
                         High-level expression.
-                    </h2>
-                    <h2 className="text-4xl font-semibold tracking-[-0.035em] text-sky-300 md:text-5xl">
-                        Systems-level control.
+                        <span className="block text-sky-300">
+                            Systems-level control.
+                        </span>
                     </h2>
                     <p className="mt-6 max-w-md text-base leading-7 text-zinc-400">
                         Prismio combines modern static abstraction with explicit systems boundaries:

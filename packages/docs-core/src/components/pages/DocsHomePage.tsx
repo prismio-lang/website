@@ -5,7 +5,8 @@ import type { DocRecord, DocsAppConfig } from "../../types";
 
 export interface DocsHomePageProps {
     config: DocsAppConfig;
-    docs: DocRecord[];
+    docs?: DocRecord[];
+    docsCount?: number;
 }
 
 function StatusFact({ icon, value, detail }: { icon: React.ReactNode; value: string; detail: string }) {
@@ -26,8 +27,9 @@ const statusIcons = {
     Planned: <FileWarning size={17} />,
 };
 
-export function DocsHomePage({ config, docs }: DocsHomePageProps) {
+export function DocsHomePage({ config, docs, docsCount }: DocsHomePageProps) {
     const { site, home } = config;
+    const pageCount = docsCount ?? docs?.length ?? 0;
 
     const structuredData = {
         "@context": "https://schema.org",
@@ -35,10 +37,23 @@ export function DocsHomePage({ config, docs }: DocsHomePageProps) {
         name: site.name,
         url: site.siteUrl,
         description: site.description,
-        potentialAction: {
-            "@type": "SearchAction",
-            target: `${site.siteUrl}/?q={search_term_string}`,
-            "query-input": "required name=search_term_string",
+        inLanguage: "en",
+        publisher: {
+            "@type": "Organization",
+            "@id": "https://prismio.org/#organization",
+            name: "Prismio",
+            url: "https://prismio.org",
+        },
+        about: {
+            "@type": "SoftwareApplication",
+            "@id": "https://prismio.org/#software",
+            name: "Prismio",
+            applicationCategory: "DeveloperApplication",
+            url: "https://prismio.org",
+            sameAs: [
+                "https://www.wikidata.org/wiki/Q141648085",
+                "https://rosettacode.org/wiki/Category:Prismio",
+            ],
         },
     };
 
@@ -150,7 +165,7 @@ export function DocsHomePage({ config, docs }: DocsHomePageProps) {
                                 {home.reference.title}
                             </h2>
                         </div>
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400">{docs.length} versioned Markdown pages</p>
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400">{pageCount} versioned Markdown pages</p>
                     </div>
                     <div className="grid border-l border-t border-zinc-200 sm:grid-cols-2 dark:border-zinc-800">
                         {home.reference.items.map((item) => (

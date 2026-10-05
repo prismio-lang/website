@@ -13,12 +13,33 @@ export function generateDocsRootMetadata(siteConfig: DocsSiteConfig): Metadata {
         authors: [{ name: siteConfig.author, url: siteConfig.authorURL }],
         creator: siteConfig.author,
         alternates: { canonical: "/" },
+        icons: {
+            icon: [
+                { url: "/favicon.ico", sizes: "32x32" },
+                { url: "/icons/prismio.png", sizes: "512x512", type: "image/png" },
+            ],
+            apple: [{ url: "/icons/prismio.png", sizes: "180x180", type: "image/png" }],
+        },
         openGraph: {
             type: "website",
             url: "/",
             title: `${siteConfig.shortName} documentation`,
             description: siteConfig.description,
             siteName: siteConfig.name,
+            images: [
+                {
+                    url: "/icons/prismio.png",
+                    width: 512,
+                    height: 512,
+                    alt: `${siteConfig.name} logo`,
+                },
+            ],
+        },
+        twitter: {
+            card: "summary",
+            title: `${siteConfig.shortName} documentation`,
+            description: siteConfig.description,
+            images: ["/icons/prismio.png"],
         },
         robots: { index: true, follow: true },
     };
@@ -45,6 +66,20 @@ export function generateDocMetadata(
             siteName: siteConfig.name,
             modifiedTime: doc.lastUpdated,
             tags: doc.tags,
+            images: [
+                {
+                    url: "/icons/prismio.png",
+                    width: 512,
+                    height: 512,
+                    alt: `${doc.title} — ${siteConfig.name}`,
+                },
+            ],
+        },
+        twitter: {
+            card: "summary",
+            title: `${doc.title} | ${siteConfig.shortName} docs`,
+            description: doc.description,
+            images: ["/icons/prismio.png"],
         },
         other: {
             "prismio:version": doc.version,
@@ -80,14 +115,14 @@ export function generateDocsSitemap(
     ];
 }
 
-export function generateLlmsTxt(
+export function buildLlmsTxtBody(
     docs: DocRecord[],
     siteConfig: DocsSiteConfig,
     options: {
         summary: string;
         curatedLinks?: Array<{ title: string; href: string }>;
     }
-) {
+): string {
     const groups = docs.reduce<Record<string, DocRecord[]>>((acc, doc) => {
         const section = doc.slug.split("/")[0] ?? "general";
         acc[section] = acc[section] ?? [];
@@ -110,21 +145,14 @@ export function generateLlmsTxt(
         .map((link) => `- ${link.title}: ${link.href}`)
         .join("\n");
 
-    const body = `# ${siteConfig.name}\n\n> ${options.summary}\n\n- Current version: ${siteConfig.currentVersion}\n- Full Markdown corpus: ${siteConfig.siteUrl}/llms-full.txt\n${linksText ? linksText + "\n" : ""}\n${sections}\n`;
-
-    return new Response(body, {
-        headers: {
-            "Content-Type": "text/plain; charset=utf-8",
-            "Cache-Control": "public, max-age=3600",
-        },
-    });
+    return `# ${siteConfig.name}\n\n> ${options.summary}\n\n- Current version: ${siteConfig.currentVersion}\n- Full Markdown corpus: ${siteConfig.siteUrl}/llms-full.txt\n${linksText ? linksText + "\n" : ""}\n${sections}\n`;
 }
 
-export function generateLlmsFullTxt(
+export function buildLlmsFullTxtBody(
     docs: DocRecord[],
     siteConfig: DocsSiteConfig,
     headerNote: string
-) {
+): string {
     const records = docs
         .slice()
         .sort((a, b) => a.slug.localeCompare(b.slug))
@@ -143,8 +171,32 @@ export function generateLlmsFullTxt(
         )
         .join("\n\n---\n\n");
 
-    const body = `# Prismio ${siteConfig.currentVersion} ${headerNote}\n\n${records}\n`;
+    return `# Prismio ${siteConfig.currentVersion} ${headerNote}\n\n${records}\n`;
+}
 
+export function generateLlmsTxt(
+    docs: DocRecord[],
+    siteConfig: DocsSiteConfig,
+    options: {
+        summary: string;
+        curatedLinks?: Array<{ title: string; href: string }>;
+    }
+) {
+    const body = buildLlmsTxtBody(docs, siteConfig, options);
+    return new Response(body, {
+        headers: {
+            "Content-Type": "text/plain; charset=utf-8",
+            "Cache-Control": "public, max-age=3600",
+        },
+    });
+}
+
+export function generateLlmsFullTxt(
+    docs: DocRecord[],
+    siteConfig: DocsSiteConfig,
+    headerNote: string
+) {
+    const body = buildLlmsFullTxtBody(docs, siteConfig, headerNote);
     return new Response(body, {
         headers: {
             "Content-Type": "text/plain; charset=utf-8",

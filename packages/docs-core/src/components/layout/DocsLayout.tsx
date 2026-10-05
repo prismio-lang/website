@@ -1,6 +1,6 @@
 import React from "react";
 import type { Viewport } from "next";
-import type { DocRecord, DocsAppConfig } from "../../types";
+import type { DocRecord, DocSearchRecord, DocsAppConfig } from "../../types";
 import { ThemeProvider } from "../theme/ThemeProvider";
 import { DocsHeader } from "./DocsHeader";
 import { DocsNav } from "./DocsNav";
@@ -16,7 +16,7 @@ export const themeInitScript = `(function(){try{var t=localStorage.getItem("them
 
 export interface DocsLayoutProps {
     config: DocsAppConfig;
-    docs: DocRecord[];
+    docs?: DocRecord[] | DocSearchRecord[];
     children: React.ReactNode;
 }
 

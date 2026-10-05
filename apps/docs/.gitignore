@@ -35,15 +35,13 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Graphify
-graphify-out/*
-!graphify-out/graph.json
-!graphify-out/GRAPH_REPORT.md
-!graphify-out/manifest.json
-!graphify-out/wiki/
-!graphify-out/obsidian/
-.graphify/
-.graphify_*.json
 /dist/
 .vinext/
 .cloudflare/
+
+# Generated static assets
+public/search-index.json
+public/llms.txt
+public/llms-full.txt
+public/sitemap.xml
+public/robots.txt
