@@ -76,7 +76,7 @@ fn main() -> Int {
 }
 ```
 
-This `main` says `-> Int` and `return 0` out loud, which is the same program: both are optional on `main`, and a `main` that returns a number exits with it.
+This `main` says `-> Int` and `return 0` out loud, which is the same program. The two go together: a `main` with no return type exits with status 0 on its own, while one that writes `-> Int` must return its status on every path.
 
 `let` creates an immutable binding and the annotation fixes its type as `Int`. Exact overload resolution selects `println(value: Int)`.
 

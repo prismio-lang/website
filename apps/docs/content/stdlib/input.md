@@ -128,6 +128,7 @@ fn main() -> Int {
         return 1
     }
     println("title: " + expect(title))
+    return 0
 }
 ```
 
