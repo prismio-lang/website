@@ -1,5 +1,6 @@
 /* global process */
-import { writeFileSync, mkdirSync } from "node:fs";
+import { writeFileSync, mkdirSync, readdirSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -25,16 +26,34 @@ const siteConfig = {
 const PRISMIO_VERSION = "0.1.0";
 const LLVM_VERSION = "23";
 
+/** The day a page's source last changed in Git (YYYY-MM-DD), or null where there is no history to read. */
+function lastChanged(...sources) {
+    try {
+        const out = execFileSync("git", ["log", "-1", "--format=%cs", "--", ...sources.map((source) => join(rootDir, source))], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+        return out || null;
+    } catch {
+        return null;
+    }
+}
+
+const releaseFiles = readdirSync(join(rootDir, "content", "releases")).filter((file) => file.endsWith(".md"));
+const releaseDate = (file) => /^date:\s*"?([0-9-]+)"?/m.exec(readFileSync(join(rootDir, "content", "releases", file), "utf8"))?.[1] ?? null;
+const releaseDates = releaseFiles.map(releaseDate).filter(Boolean).sort();
+
+// lastmod is the day the page's own source last changed; a page without a date states none rather than today.
 const sitePages = [
-    { path: "/", priority: 1, changeFrequency: "weekly" },
-    { path: "/install", priority: 0.9, changeFrequency: "monthly" },
-    { path: "/benchmarks", priority: 0.8, changeFrequency: "weekly" },
-    { path: "/roadmap", priority: 0.8, changeFrequency: "weekly" },
-    { path: "/about", priority: 0.7, changeFrequency: "monthly" },
-    { path: "/community", priority: 0.6, changeFrequency: "monthly" },
-    { path: "/sponsors", priority: 0.5, changeFrequency: "monthly" },
-    { path: "/team", priority: 0.5, changeFrequency: "monthly" },
-    { path: "/team/saksham-jaiswal", priority: 0.4, changeFrequency: "monthly" },
+    { path: "/", priority: 1, changeFrequency: "weekly", lastmod: lastChanged("app/page.tsx", "components/landing", "config/faq.ts") },
+    { path: "/install", priority: 0.9, changeFrequency: "monthly", lastmod: lastChanged("app/install") },
+    { path: "/benchmarks", priority: 0.8, changeFrequency: "weekly", lastmod: lastChanged("app/benchmarks", "components/benchmarks", "data/results.json") },
+    { path: "/roadmap", priority: 0.8, changeFrequency: "weekly", lastmod: lastChanged("app/roadmap") },
+    { path: "/releases", priority: 0.7, changeFrequency: "monthly", lastmod: releaseDates.at(-1) ?? null },
+    // One page per release file in content/releases.
+    ...releaseFiles.map((file) => ({ path: `/releases/${file.slice(0, -3)}`, priority: 0.6, changeFrequency: "monthly", lastmod: lastChanged(`content/releases/${file}`) ?? releaseDate(file) })),
+    { path: "/about", priority: 0.7, changeFrequency: "monthly", lastmod: lastChanged("app/about") },
+    { path: "/community", priority: 0.6, changeFrequency: "monthly", lastmod: lastChanged("app/community") },
+    { path: "/sponsors", priority: 0.5, changeFrequency: "monthly", lastmod: lastChanged("app/sponsors") },
+    { path: "/team", priority: 0.5, changeFrequency: "monthly", lastmod: lastChanged("app/team/page.tsx") },
+    { path: "/team/saksham-jaiswal", priority: 0.4, changeFrequency: "monthly", lastmod: lastChanged("app/team/saksham-jaiswal") },
 ];
 
 const faqItems = [
@@ -81,6 +100,7 @@ Prismio ${PRISMIO_VERSION} is the first release, published 2026-10-02, and is pr
 - [Install](${siteConfig.url}/install): Install the compiler with a one-line script or build from source
 - [About](${siteConfig.url}/about): Architecture, AIF, LLVM backend, concurrency model and C interoperability
 - [Roadmap](${siteConfig.url}/roadmap): What is implemented and what is not yet
+- [Release notes](${siteConfig.url}/releases): What each version contains, its breaking changes and known limits
 - [Benchmarks](${siteConfig.url}/benchmarks): Measured toolchain and runtime results with methodology
 
 ## Documentation
@@ -212,10 +232,9 @@ Contact: ${siteConfig.email}
     console.log(`[static-assets] Generated public/ai/service.json (${(serviceJson.length / 1024).toFixed(2)} KB)`);
 
     // 6. Generate sitemap.xml
-    const today = new Date().toISOString().split("T")[0];
-    const sitemapEntries = sitePages.map(({ path, priority, changeFrequency }) => {
+    const sitemapEntries = sitePages.map(({ path, priority, changeFrequency, lastmod }) => {
         const url = path === "/" ? siteConfig.url : `${siteConfig.url}${path}`;
-        return `  <url>\n    <loc>${url}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${changeFrequency}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
+        return `  <url>\n    <loc>${url}</loc>\n    ${lastmod ? `<lastmod>${lastmod}</lastmod>\n    ` : ""}<changefreq>${changeFrequency}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
     });
     const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapEntries.join("\n")}\n</urlset>\n`;
     writeFileSync(join(publicDir, "sitemap.xml"), sitemapXml);
@@ -236,7 +255,7 @@ Contact: ${siteConfig.email}
         "CCBot",
     ];
     const crawlerLines = AI_CRAWLERS.map((c) => `User-agent: ${c}`).join("\n");
-    const robotsTxt = `User-agent: *\nAllow: /\nDisallow: /api/\n\n${crawlerLines}\nAllow: /\nDisallow: /api/\n\nSitemap: ${siteConfig.url}/sitemap.xml\nHost: ${siteConfig.url}\n`;
+    const robotsTxt = `User-agent: *\nAllow: /\nDisallow: /api/\n\n${crawlerLines}\nAllow: /\nDisallow: /api/\n\nSitemap: ${siteConfig.url}/sitemap.xml\n`;
     writeFileSync(join(publicDir, "robots.txt"), robotsTxt);
     console.log(`[static-assets] Generated public/robots.txt (${(robotsTxt.length / 1024).toFixed(2)} KB)`);
 } catch (error) {

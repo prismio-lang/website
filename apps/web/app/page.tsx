@@ -10,7 +10,7 @@ import CommunityNote from "@/components/landing/CommunityNote";
 import FAQ from "@/components/landing/FAQ";
 import CTA from "@/components/landing/CTA";
 import {JsonLd} from "@/components/json-ld";
-import {faqStructuredData} from "@/config/structured-data";
+import {faqStructuredData, prismioEntityData} from "@/config/structured-data";
 import FooterMain from "@prismio/ui/FooterMain";
 
 export default function LandingPage() {
@@ -18,6 +18,7 @@ export default function LandingPage() {
         <div className="relative min-h-screen bg-[#070709] text-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden selection:bg-indigo-500/30 selection:text-white">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-[52rem] bg-[radial-gradient(ellipse_at_70%_10%,rgba(67,56,202,0.16),transparent_52%)]"/>
 
+            <JsonLd data={prismioEntityData} />
             <JsonLd data={faqStructuredData} />
             <HeaderMain />
 

@@ -1,12 +1,21 @@
 import type { Metadata } from "next";
 import type { DocRecord, DocsSiteConfig } from "../types";
 
+/** The tail of every page title, and the title of the site's own pages: the two sites must read differently. */
+function titles(siteConfig: DocsSiteConfig) {
+    return {
+        suffix: siteConfig.titleSuffix ?? `${siteConfig.shortName} docs`,
+        home: siteConfig.titleDefault ?? `${siteConfig.shortName} documentation`,
+    };
+}
+
 export function generateDocsRootMetadata(siteConfig: DocsSiteConfig): Metadata {
+    const { suffix, home } = titles(siteConfig);
     return {
         metadataBase: new URL(siteConfig.siteUrl),
         title: {
-            default: `${siteConfig.shortName} documentation`,
-            template: `%s | ${siteConfig.shortName} docs`,
+            default: home,
+            template: `%s | ${suffix}`,
         },
         description: siteConfig.description,
         applicationName: siteConfig.name,
@@ -23,23 +32,17 @@ export function generateDocsRootMetadata(siteConfig: DocsSiteConfig): Metadata {
         openGraph: {
             type: "website",
             url: "/",
-            title: `${siteConfig.shortName} documentation`,
+            title: home,
             description: siteConfig.description,
             siteName: siteConfig.name,
             images: [
                 {
-                    url: "/icons/prismio.png",
-                    width: 512,
-                    height: 512,
+                    url: "/icons/og-card.jpg",
+                    width: 1200,
+                    height: 630,
                     alt: `${siteConfig.name} logo`,
                 },
             ],
-        },
-        twitter: {
-            card: "summary",
-            title: `${siteConfig.shortName} documentation`,
-            description: siteConfig.description,
-            images: ["/icons/prismio.png"],
         },
         robots: { index: true, follow: true },
     };
@@ -68,18 +71,12 @@ export function generateDocMetadata(
             tags: doc.tags,
             images: [
                 {
-                    url: "/icons/prismio.png",
-                    width: 512,
-                    height: 512,
+                    url: "/icons/og-card.jpg",
+                    width: 1200,
+                    height: 630,
                     alt: `${doc.title} — ${siteConfig.name}`,
                 },
             ],
-        },
-        twitter: {
-            card: "summary",
-            title: `${doc.title} | ${siteConfig.shortName} docs`,
-            description: doc.description,
-            images: ["/icons/prismio.png"],
         },
         other: {
             "prismio:version": doc.version,

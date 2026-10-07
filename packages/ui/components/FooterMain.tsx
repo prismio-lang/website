@@ -40,6 +40,7 @@ export default function FooterMain() {
                     <FooterLink href="/team">Team</FooterLink>
                     <FooterLink href="/benchmarks">Benchmarks</FooterLink>
                     <FooterLink href="/roadmap">Roadmap</FooterLink>
+                    <FooterLink href="/releases">Releases</FooterLink>
                     <FooterLink href="https://github.com/prismio-lang/prismio" external>GitHub</FooterLink>
                     <FooterLink href="https://github.com/prismio-lang/prismio/issues" external>Issues</FooterLink>
                     <FooterLink href="https://github.com/prismio-lang/prismio/blob/main/LICENSE" external>License</FooterLink>

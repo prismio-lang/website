@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The web sitemap reads each page's last change from Git.
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Content builds and audits
+        run: |
+          pnpm --filter docs build:content
+          pnpm --filter developers build:content
+          pnpm --filter docs audit:content
+          pnpm --filter developers audit:content
+      - run: pnpm check-types
+      - run: pnpm lint
+      - name: Static export builds
+        # The three Cloudflare sites: vinext static export, then the assets-only Build Output.
+        run: |
+          pnpm --filter web build:vinext
+          pnpm --filter docs build:vinext
+          pnpm --filter developers build:vinext
+      - name: No Twitter/X metadata in the built sites
+        run: "! grep -rIil twitter apps/web/dist/client apps/docs/dist/client apps/developers/dist/client"

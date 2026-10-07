@@ -11,12 +11,10 @@ export const PRISMIO_WEBSITE_ID =
 export const PRISMIO_SOFTWARE_ID =
   "https://prismio.org/#software";
 
-// Evaluated at build time; the site is statically rendered, so this is the deploy date.
-const BUILD_DATE = new Date().toISOString();
-
 export const SAKSHAM_PERSON_ID =
   "https://prismio.org/team/saksham-jaiswal/#person";
 
+/** The publisher and the site: on every page. */
 export const prismioStructuredData = {
   "@context": "https://schema.org",
   "@graph": [
@@ -51,9 +49,15 @@ export const prismioStructuredData = {
       "inLanguage": "en",
       "publisher": {
         "@id": PRISMIO_ORG_ID
-      },
-      "dateModified": BUILD_DATE
-    },
+      }
+    }
+  ]
+};
+
+/** The product, its source and its creator: on the home page, where they are described. */
+export const prismioEntityData = {
+  "@context": "https://schema.org",
+  "@graph": [
     {
       "@type": "SoftwareApplication",
       "@id": PRISMIO_SOFTWARE_ID,

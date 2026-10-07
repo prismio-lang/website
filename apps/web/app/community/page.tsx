@@ -6,13 +6,13 @@ import DiscordIcon from '@/components/icons/DiscordIcon';
 import GithubIcon from '@/components/icons/GithubIcon';
 import FooterMain from '@prismio/ui/FooterMain';
 import {DISCORD_INVITE_LINK} from '@prismio/utils';
+import {pageMetadata} from "@/lib/seo";
 
-export const metadata = {
+export const metadata = pageMetadata({
     title: 'Prismio Community — Contributors, Discord, and Open Source',
-    description:
-        'Where to ask questions, report bugs, and contribute to Prismio: the Discord server, GitHub issues, and the contributing guide.',
-    alternates: {canonical: "/community"},
-};
+    description: 'Where to ask questions, report bugs, and contribute to Prismio: the Discord server, GitHub issues, and the contributing guide.',
+    path: "/community",
+});
 
 const REPO = 'https://github.com/prismio-lang/prismio';
 const CARD = 'rounded-3xl border border-white/[0.08] bg-[#0c0c0e]/70 backdrop-blur-xl';

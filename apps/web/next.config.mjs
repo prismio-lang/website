@@ -1,30 +1,10 @@
 const nextConfig = {
+    // Static export: every page is built to HTML and served as a Workers Static Asset, so a page view invokes no
+    // Worker. Redirects and headers live in edge-rules.mjs; images cannot be optimised at run time.
+    output: 'export',
+    images: {unoptimized: true},
     transpilePackages: ['lucide-react'],
     pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
-    async redirects() {
-        return [
-            {
-                source: '/docs',
-                destination: 'https://docs.prismio.org',
-                permanent: true,
-            },
-            {
-                source: '/playground',
-                destination: 'https://play.prismio.org',
-                permanent: true,
-            },
-            {
-                source: '/packages',
-                destination: 'https://packages.prismio.org',
-                permanent: true,
-            },
-            {
-                source: '/developers',
-                destination: 'https://developers.prismio.org',
-                permanent: true,
-            },
-        ];
-    },
 }
 
 export default (nextConfig)

@@ -7,12 +7,13 @@ import GithubIcon from "@/components/icons/GithubIcon";
 import LinkedinIcon from "@/components/icons/LinkedinIcon";
 import FooterMain from "@prismio/ui/FooterMain";
 import {DISCORD_INVITE_LINK} from "@prismio/utils";
+import {pageMetadata} from "@/lib/seo";
 
-export const metadata = {
+export const metadata = pageMetadata({
     title: "Prismio Team — Language and Compiler Developers",
     description: "Prismio is built by its creator, Saksham Jaiswal. See what exists in 0.1, what doesn't yet, and how to contribute.",
-    alternates: {canonical: "/team"},
-};
+    path: "/team",
+});
 
 const AREAS = [
     {

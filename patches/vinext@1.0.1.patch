@@ -1,0 +1,32 @@
+diff --git a/dist/shims/metadata.js b/dist/shims/metadata.js
+index 64fd9a045ed51b2bbaabbb509221080483aca435..55f2a293ca740b93ade40fb8a976c797bfa3b1c7 100644
+--- a/dist/shims/metadata.js
++++ b/dist/shims/metadata.js
+@@ -183,26 +183,7 @@ function postProcessMetadata(merged) {
+ 		if (!og.description && result.description) og.description = result.description;
+ 		result.openGraph = og;
+ 	}
+-	if (result.openGraph) {
+-		const autoFill = {};
+-		const existingTwitter = result.twitter;
+-		const hasTwTitle = existingTwitter ? Boolean(existingTwitter.title) : false;
+-		const hasTwDescription = existingTwitter ? Boolean(existingTwitter.description) : false;
+-		const hasTwImages = existingTwitter ? Object.prototype.hasOwnProperty.call(existingTwitter, "images") && Boolean(existingTwitter.images) : false;
+-		if (!hasTwTitle) {
+-			if (result.openGraph.title) autoFill.title = result.openGraph.title;
+-			else if (resolvedTitle) autoFill.title = resolvedTitle;
+-		}
+-		if (!hasTwDescription) autoFill.description = result.openGraph.description || result.description || void 0;
+-		if (!hasTwImages && result.openGraph.images !== void 0) autoFill.images = result.openGraph.images;
+-		if (Object.keys(autoFill).length > 0) {
+-			if (existingTwitter) result.twitter = {
+-				...existingTwitter,
+-				...autoFill
+-			};
+-			else result.twitter = autoFill;
+-		}
+-	}
++	// Prismio patch: Twitter/X cards are not wanted anywhere, so openGraph is never copied into `twitter`.
+ 	if (result.twitter) {
+ 		const tw = { ...result.twitter };
+ 		if (!tw.title && resolvedTitle) tw.title = resolvedTitle;

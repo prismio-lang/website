@@ -18,27 +18,28 @@ import GithubIcon from "@/components/icons/GithubIcon";
 import LinkedinIcon from "@/components/icons/LinkedinIcon";
 import FooterMain from "@prismio/ui/FooterMain";
 import {DISCORD_INVITE_LINK} from "@prismio/utils";
+import {pageMetadata} from "@/lib/seo";
 
 const kalam = localFont({
     src: [
-        { path: "../../fonts/Kalam-Regular.ttf", weight: "400", style: "normal" },
-        { path: "../../fonts/Kalam-Bold.ttf", weight: "700", style: "normal" },
+        { path: "../../fonts/Kalam-Regular.woff", weight: "400", style: "normal" },
+        { path: "../../fonts/Kalam-Bold.woff", weight: "700", style: "normal" },
     ],
     variable: "--font-kalam",
     display: "swap",
 });
 
 const fraunces = localFont({
-    src: "../../fonts/Fraunces-Variable.ttf",
+    src: "../../fonts/Fraunces-Variable.woff",
     variable: "--font-fraunces",
     display: "swap",
 });
 
-export const metadata = {
+export const metadata = pageMetadata({
     title: "Saksham Jaiswal — Prismio Creator and Compiler Architect",
     description: "A note from Saksham Jaiswal on compiler architecture, the vision behind Prismio, and building a self-hosted systems language.",
-    alternates: {canonical: "/team/saksham-jaiswal"},
-};
+    path: "/team/saksham-jaiswal",
+});
 
 const LINKEDIN_URL = "https://www.linkedin.com/in/saksham6975";
 

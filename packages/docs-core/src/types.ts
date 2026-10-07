@@ -46,6 +46,10 @@ export interface Heading {
 export interface DocsSiteConfig {
     name: string;
     shortName: string;
+    /** Tail of every page title (`Closures | Prismio docs`). Defaults to `<shortName> docs`. */
+    titleSuffix?: string;
+    /** Title of the site's own front page. Defaults to `<shortName> documentation`. */
+    titleDefault?: string;
     description: string;
     currentVersion: string;
     author: string;
@@ -54,7 +58,6 @@ export interface DocsSiteConfig {
     siteUrl: string;
     links: {
         github: string;
-        twitter?: string;
     };
 }
 

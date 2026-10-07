@@ -12,7 +12,6 @@ export const docsConfig: DocsAppConfig = {
         siteUrl: "https://docs.prismio.org",
         links: {
             github: "https://github.com/prismio-lang/prismio",
-            twitter: "",
         },
     },
     brandTag: "docs",

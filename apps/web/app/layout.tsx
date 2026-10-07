@@ -50,15 +50,10 @@ export const metadata: Metadata = {
         description: siteConfig.description,
         locale: "en_US",
         images: [
+            {url: "/icons/og-card.jpg", width: 1200, height: 630, alt: "Prismio logo"},
             {url: "/icons/prismio.png", width: 512, height: 512, alt: "Prismio logo"},
             {url: "/icons/prismio-banner.png", width: 489, height: 121, alt: "Prismio logo and wordmark"},
         ],
-    },
-    twitter: {
-        card: "summary",
-        title: siteConfig.name,
-        description: siteConfig.description,
-        images: ["/icons/prismio.png"],
     },
     robots: {index: true, follow: true},
     keywords: [

@@ -28,6 +28,7 @@ export const sitePages = [
   { path: "/install", priority: 0.9, changeFrequency: "monthly" },
   { path: "/benchmarks", priority: 0.8, changeFrequency: "weekly" },
   { path: "/roadmap", priority: 0.8, changeFrequency: "weekly" },
+  { path: "/releases", priority: 0.7, changeFrequency: "monthly" },
   { path: "/about", priority: 0.7, changeFrequency: "monthly" },
   { path: "/community", priority: 0.6, changeFrequency: "monthly" },
   { path: "/sponsors", priority: 0.5, changeFrequency: "monthly" },

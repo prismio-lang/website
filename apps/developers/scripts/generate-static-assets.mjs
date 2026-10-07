@@ -101,13 +101,16 @@ try {
 
     // 3. Generate sitemap.xml
     const topPrioritySlugs = ["start", "compiler/overview"];
+    const lastmods = docs.filter((doc) => doc.lastUpdated).map((doc) => new Date(doc.lastUpdated).toISOString().split("T")[0]);
+    const newestLastmod = lastmods.sort().at(-1);
     const sitemapEntries = [
-        `  <url>\n    <loc>${site.siteUrl}</loc>\n    <lastmod>${new Date().toISOString().split("T")[0]}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>\n  </url>`,
+        // The front page changes when any page does: the newest page date, not the build date.
+        `  <url>\n    <loc>${site.siteUrl}</loc>\n    <lastmod>${newestLastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>\n  </url>`,
         ...docs.map((doc) => {
             const priority = topPrioritySlugs.includes(doc.slug) ? "0.9" : "0.7";
             const changefreq = doc.status === "planned" ? "monthly" : "weekly";
-            const lastmod = doc.lastUpdated ? new Date(doc.lastUpdated).toISOString().split("T")[0] : new Date().toISOString().split("T")[0];
-            return `  <url>\n    <loc>${site.siteUrl}/${doc.slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
+            const lastmod = doc.lastUpdated ? new Date(doc.lastUpdated).toISOString().split("T")[0] : null;
+            return `  <url>\n    <loc>${site.siteUrl}/${doc.slug}</loc>\n${lastmod ? `    <lastmod>${lastmod}</lastmod>\n` : ""}    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
         }),
     ];
     const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapEntries.join("\n")}\n</urlset>\n`;
@@ -115,7 +118,7 @@ try {
     console.log(`[static-assets] Generated public/sitemap.xml (${(sitemapXml.length / 1024).toFixed(2)} KB)`);
 
     // 4. Generate robots.txt
-    const robotsTxt = `User-agent: *\nAllow: /\n\nUser-agent: GPTBot\nUser-agent: OAI-SearchBot\nUser-agent: ChatGPT-User\nUser-agent: ClaudeBot\nUser-agent: Claude-User\nUser-agent: Claude-SearchBot\nUser-agent: PerplexityBot\nUser-agent: Perplexity-User\nUser-agent: Google-Extended\nUser-agent: Applebot-Extended\nUser-agent: CCBot\nAllow: /\n\nSitemap: ${site.siteUrl}/sitemap.xml\nHost: ${site.siteUrl}\n`;
+    const robotsTxt = `User-agent: *\nAllow: /\n\nUser-agent: GPTBot\nUser-agent: OAI-SearchBot\nUser-agent: ChatGPT-User\nUser-agent: ClaudeBot\nUser-agent: Claude-User\nUser-agent: Claude-SearchBot\nUser-agent: PerplexityBot\nUser-agent: Perplexity-User\nUser-agent: Google-Extended\nUser-agent: Applebot-Extended\nUser-agent: CCBot\nAllow: /\n\nSitemap: ${site.siteUrl}/sitemap.xml\n`;
     writeFileSync(join(publicDir, "robots.txt"), robotsTxt);
     console.log(`[static-assets] Generated public/robots.txt (${(robotsTxt.length / 1024).toFixed(2)} KB)`);
 

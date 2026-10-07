@@ -5,12 +5,13 @@ import HeaderMain from "@/components/HeaderMain";
 import FooterMain from "@prismio/ui/FooterMain";
 import {PRISMIO_VERSION} from "@prismio/utils";
 import {getBenchmarkDataset} from "@/lib/benchmarks";
+import {pageMetadata} from "@/lib/seo";
 
-export const metadata = {
+export const metadata = pageMetadata({
     title: "Prismio Roadmap — Compiler, Runtime, and Language Development",
     description: "What Prismio can do today, what is experimental, and what is not there yet. No dates, no promises.",
-    alternates: {canonical: "/roadmap"},
-};
+    path: "/roadmap",
+});
 
 const CARD = "rounded-3xl border border-white/[0.08] bg-[#0c0c0e]/70 backdrop-blur-xl";
 

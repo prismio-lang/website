@@ -4,6 +4,8 @@ export const docsConfig: DocsAppConfig = {
     site: {
         name: "Prismio Developers",
         shortName: "Prismio",
+        titleSuffix: "Prismio Developers",
+        titleDefault: "Prismio Developers",
         description: "Implementation reference for the self-hosted Prismio compiler, AIF, LLVM backend, runtime, and UMS.",
         currentVersion: "0.1.0",
         author: "Saksham Jaiswal",
@@ -12,7 +14,6 @@ export const docsConfig: DocsAppConfig = {
         siteUrl: "https://developers.prismio.org",
         links: {
             github: "https://github.com/prismio-lang/prismio",
-            twitter: "",
         },
     },
     brandTag: "Developers",

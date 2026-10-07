@@ -4,16 +4,17 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3000",
+    "dev": "pnpm build:releases && next dev --port 3000",
     "build": "pnpm build:content && next build",
-    "build:content": "node scripts/generate-static-assets.mjs",
+    "build:content": "node scripts/generate-static-assets.mjs && pnpm build:releases",
+    "build:releases": "node scripts/generate-releases.mjs",
     "start": "next start",
     "lint": "eslint --max-warnings 0",
-    "check-types": "next typegen && tsc --noEmit",
-    "dev:vinext": "vite dev --port 3000",
-    "build:vinext": "pnpm build:content && vite build",
+    "check-types": "pnpm build:releases && next typegen && tsc --noEmit",
+    "dev:vinext": "pnpm build:releases && vite dev --port 3000",
+    "build:vinext": "pnpm build:content && vite build && node ../../scripts/finalize-static-site.mjs",
     "start:vinext": "vite preview",
-    "deploy:vinext": "vinext-cloudflare deploy"
+    "deploy:vinext": "pnpm build:vinext && cf deploy --prebuilt"
   },
   "dependencies": {
     "@heroui/react": "3.1.0",
@@ -43,6 +44,7 @@
     "@vitejs/plugin-rsc": "^0.5.35",
     "cf": "1.0.0-beta.12",
     "eslint": "10.9.1",
+    "marked": "17.0.1",
     "tailwindcss": "^4.3.0",
     "typescript": "7.0.2",
     "vite": "8.3.0"

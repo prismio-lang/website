@@ -6,7 +6,9 @@ export default defineConfig({
     entrypoint: "vinext/server/fetch-handler",
     compatibilityDate: "2026-10-03",
     compatibilityFlags: ["nodejs_compat"],
-    assets: { notFoundHandling: "none", runWorkerFirst: ["/_vinext/static-cache/*"] },
+    // The site is a static export (see next.config.mjs): assets serve every page, `/install/` goes to `/install`,
+    // and a path with no asset gets 404.html. scripts/finalize-static-site.mjs swaps the Worker for a stub.
+    assets: { htmlHandling: "drop-trailing-slash", notFoundHandling: "404-page" },
     env: {
       ASSETS: bindings.assets(),
     },

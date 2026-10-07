@@ -3,12 +3,13 @@ import {Mail} from "lucide-react";
 import HeaderMain from "@/components/HeaderMain";
 import FooterMain from "@prismio/ui/FooterMain";
 import {siteConfig} from "@/config/site";
+import {pageMetadata} from "@/lib/seo";
 
-export const metadata = {
+export const metadata = pageMetadata({
     title: "Sponsors · Prismio",
     description: "Support Prismio by bank transfer. What the funding would pay for, how to sponsor, and how sponsors are credited.",
-    alternates: {canonical: "/sponsors"},
-};
+    path: "/sponsors",
+});
 
 const CARD = "rounded-3xl border border-white/[0.08] bg-[#0c0c0e]/70 backdrop-blur-xl";
 const FOCUS = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400";

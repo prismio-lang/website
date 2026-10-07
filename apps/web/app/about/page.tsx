@@ -5,12 +5,13 @@ import type {LucideIcon} from "lucide-react";
 import HeaderMain from "@/components/HeaderMain";
 import FooterMain from "@prismio/ui/FooterMain";
 import {PRISMIO_VERSION} from "@prismio/utils";
+import {pageMetadata} from "@/lib/seo";
 
-export const metadata = {
+export const metadata = pageMetadata({
     title: "About Prismio — LLVM, AIF, Ownership, and C Interoperability",
     description: "What Prismio is, how its compiler places allocations, what works in 0.1, what doesn't yet, and how the project is run.",
-    alternates: {canonical: "/about"},
-};
+    path: "/about",
+});
 
 const VITALS = [
     {label: "Version", value: PRISMIO_VERSION, tone: "text-indigo-300"},

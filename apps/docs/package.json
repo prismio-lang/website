@@ -14,9 +14,9 @@
     "lint": "eslint --max-warnings 0",
     "check-types": "next typegen && tsc --noEmit",
     "dev:vinext": "concurrently \"velite dev\" \"vite dev --port 3001\"",
-    "build:vinext": "pnpm build:content && vite build",
+    "build:vinext": "pnpm build:content && vite build && node ../../scripts/finalize-static-site.mjs",
     "start:vinext": "vite preview",
-    "deploy:vinext": "vinext-cloudflare deploy"
+    "deploy:vinext": "pnpm build:vinext && cf deploy --prebuilt"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",

@@ -44,3 +44,6 @@ yarn-error.log*
 .graphify/
 .graphify_*.json
 
+
+# Generated from apps/web/content/releases by scripts/generate-releases.mjs
+apps/web/lib/releases.generated.json

@@ -23,6 +23,7 @@ const NAV_LINKS: NavItem[] = [
     {label: "Docs", href: "https://docs.prismio.org", isExternal: true},
     {label: "Benchmarks", href: "/benchmarks"},
     {label: "Roadmap", href: "/roadmap"},
+    {label: "Releases", href: "/releases"},
     {label: "About", href: "/about"},
     {label: "Community", href: "/community"},
     {label: "Developers", href: "https://developers.prismio.org", isExternal: true},

@@ -1,7 +1,6 @@
 import { defineConfig, type Plugin } from "vite";
 import vinext from "vinext";
 import { cloudflare } from "@cloudflare/vite-plugin";
-import { staticAssetsAdapter } from "@vinext/cloudflare/cache/static-assets-adapter";
 import { execFileSync } from "node:child_process";
 import { join } from "node:path";
 
@@ -24,10 +23,7 @@ export default defineConfig({
   plugins: [
     staticWebAssetsPlugin(),
     // vinext auto-injects @mdx-js/rollup with plugins from next.config
-    vinext({
-      cache: { cdn: staticAssetsAdapter() },
-      prerender: { routes: "*" },
-    }),
+    vinext(),
     cloudflare({
       viteEnvironment: {
         name: "rsc",
