@@ -32,8 +32,8 @@ AIF analysis
   Sites    15 potential allocation site(s), not runtime allocation counts
 
 Storage plan
-  Stack                   1
-  Arena                   7
+  Stack                   2
+  Arena                   6
   Scoped heap             1
   Unique heap             4
   Shared heap             1
@@ -42,7 +42,7 @@ Storage plan
 
 Your code
 ID   location                 type            storage                           reason
-1    aif_tiers.psm:116:18     [String]        arena:auto                        lifetime fits the region
+1    aif_tiers.psm:116:18     [String]        stack                             fixed-length array; lives in the frame
 2    aif_tiers.psm:116:18     String          arena:auto                        lifetime fits the region
 3    aif_tiers.psm:116:40     String          arena:auto                        lifetime fits the region
 4    aif_tiers.psm:109:13     Tree            heap (cycle management unavailable) may participate in a cycle
