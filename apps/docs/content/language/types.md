@@ -27,7 +27,11 @@ Local types are inferred from initializers when no annotation is present. Infere
 | `Slice<T>` | Copyable, bounds-checked view into a `Vec<T>` |
 | `T?` | A `T` or `none`: a value for a scalar, a nullable pointer for a reference |
 
-`Int` and `I32` are two spellings of the same signed 32-bit type, so they mix freely and a diagnostic names either as `Int`. `I32` is there so the signed widths read `I8`, `I16`, `I32`, `I64` beside the unsigned ones. Integer arithmetic otherwise requires matching widths. Use an explicit cast for conversions:
+`Int` and `I32` are two spellings of the same signed 32-bit type, so they mix freely and a diagnostic names either as `Int`. `I32` is there so the signed widths read `I8`, `I16`, `I32`, `I64` beside the unsigned ones. Integer arithmetic otherwise requires matching widths.
+
+**Why `Int` is 32 bits.** It was measured rather than inherited. A 32-bit index costs nothing on the machines Prismio targets (the same loop with a 32-bit or 64-bit index ran in the same time), and making overflow undefined to help the optimiser made three real programs slightly *slower*. What a wider `Int` does cost is data: a step over records of eight integer fields ran 1.33 times slower with 64-bit fields, because twice the bytes per cache line is half the SIMD lanes. Reach for `I64` where the *value* needs it, not as a habit: sums of many numbers, byte or time counts, file sizes, identifiers, hashes and anything compared with a 64-bit value from C. A 32-bit `Int` wraps silently, so a total that can pass about two billion should be an `I64` from the start.
+
+Use an explicit cast for conversions:
 
 ```prismio
 let small: U8 = 200

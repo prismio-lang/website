@@ -644,7 +644,7 @@ builders use them only inside loops bounded by a carried `String` length.
 **`str_replace`, `str_clone`, `str_trim`, and `str_split` are absent from the
 contract tables.** They allocate on every path and appear in neither
 `aifFfiProduces` (`src/aif/contracts.psm`) nor `FFI_RETURNS_PRODUCE`
-(`aif/prototype/aif.py`). Nothing in `std.*` calls them, so no supported path is
+(`tools/aif_oracle/aif.py`). Nothing in `std.*` calls them, so no supported path is
 affected, but a hand-written `extern fn` for one still leaks unless it carries
 `produce(free)`. `run_oracle_vocabulary_test` cannot catch this class: it compares
 the two tables against each other, and both omit the same four names. It should

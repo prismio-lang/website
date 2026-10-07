@@ -127,7 +127,7 @@ true, not because a tier number went down.
 
 `extern`-declared `alias` has its own failure mode, on the other side: claiming a value aliases an
 argument when the compiler's escape analysis doesn't independently see that. `tests/extern_alias_escape.psm`
-is the regression test for a real one, fixed 2026-08-30 (`aif/evidence/RESULTS-extern-alias-escape.md`):
+is the regression test for a real one, fixed 2026-08-30:
 
 ```prismio
 extern fn prismio_expect(p: String borrow) -> String alias
@@ -207,8 +207,8 @@ its cost model report it under the `no-stack` blocker, since the reason a reader
 this site's storage is not this frame's.
 
 The oracle mirrors it as `ffi_arena_cannot_serve` over `FFI_ALLOCATES_THROUGH_ARENA_HINT` in
-`aif/prototype/aif.py`, and the suite's `oracle_vocabulary` check compares the two lists, so one
-cannot drift from the other. Of 228 programs in `tests/` and `aif/corpus/`, only
+`tools/aif_oracle/aif.py`, and the suite's `oracle_vocabulary` check compares the two lists, so one
+cannot drift from the other. Of 228 programs in `tests/` and the retired corpus, only
 `test_19_runtime_split` changed IR (its `join_path` went from 3 leaked to 2).
 
 **If you add a producer:** a C function that returns a block from `rt_base_alloc` or `malloc` needs
@@ -236,6 +236,24 @@ extern fn sqlite3_exec(db: Db borrow, sql: String borrow, cb: Callback, ctx: Ptr
 Application-facing system APIs should normally be wrapped in `std.*`, where the contract is written
 once rather than repeated at every call site. Raw `extern fn` remains appropriate for foreign code
 an application or compiler component brings itself.
+
+## What an opaque boundary costs
+
+The analysis is whole-program, and a body it cannot see behaves like a foreign function with no contract:
+what comes back has unknown provenance, so it is treated as shared. This was measured on a two-module
+program, a game importing an engine, where the game code contains no annotations or memory vocabulary.
+
+| engine is | sites in T0–T2 | T3 (shared) | sites |
+|---|---:|---:|---:|
+| visible (source or compiled IR with bodies) | 100% | 0 | 12 |
+| sealed (bodies invisible) | 75% | 4 | 16 |
+
+Sealing degraded **only the values that cross the boundary**. The twelve sites the game itself owns were
+T2 in both cases, and the four T3 sites were exactly what the engine's `world_create`, `world_transform` and
+`world_actor` returned. The loss is local and bounded, not a collapse, and it is what a written `produce`,
+`borrow` or `alias` contract buys back: the contract states the provenance the body would have shown.
+Library code that ships as `.plib` keeps its bodies, so the standard library is on the visible side of this
+table.
 
 ## Tests
 

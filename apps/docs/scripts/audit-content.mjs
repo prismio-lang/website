@@ -73,7 +73,7 @@ for (const record of records) {
 //
 // **Expansions are a hard rule; the other two are ratchets.** A wrong acronym
 // expansion has no backlog and never should: both glossaries once said
-// "Allocation Inference Framework" while the spec, aif/README.md and
+// "Allocation Inference Framework" while the spec, docs/aif/README.md and
 // src/aif/model.psm all said "Adaptive", and the surrounding prose was assured
 // enough that nobody checked. That is the failure this catches.
 //

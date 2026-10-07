@@ -211,7 +211,7 @@ let right = build(d - 1)
 return Expr.Op(d, left, right)
 ```
 
-`left` became part of the returned tree, which the tree's release frees, and the binding's scope drop freed it too: a double free on every tree built this way. `call_result_held` now also asks `vs_stored_in_recursive_field`, which walks the value through this frame's own `VAR` keys to such a field, so a value reaching one through a return or a parameter stays the question it was. No program in `tests/` or `aif/corpus/` changed IR, and `recursive_enum_bindings_probe.psm` reads 190/190/0.
+`left` became part of the returned tree, which the tree's release frees, and the binding's scope drop freed it too: a double free on every tree built this way. `call_result_held` now also asks `vs_stored_in_recursive_field`, which walks the value through this frame's own `VAR` keys to such a field, so a value reaching one through a return or a parameter stays the question it was. No program in `tests/` or the retired corpus changed IR, and `recursive_enum_bindings_probe.psm` reads 190/190/0.
 
 The same tree through `Node?` did not link. A `T?` slot's IR key is `ptr`, which carries no type, so its typed drop named `__aif_release_` — undefined. `noteOptionalDropType` (`src/ir/types.psm`) remembers the struct an optional binding's drop must name where the binding is marked droppable, and `irOwnedTemporaryDeclType` does the same for a temporary; `recursive_optional_probe.psm` pins it. All four probes run in the suite's `ownership_probes` check.
 

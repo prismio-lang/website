@@ -121,9 +121,9 @@ The allocation inference the compiler runs and the independent oracle it is chec
 
 | Compiler (Prismio) | Oracle (Python) |
 | --- | --- |
-| `aifCompilerBuiltinContract` (`src/aif/contracts.psm`) | `FFI_CONTRACTS` (`aif/prototype/aif.py`) |
-| `aifRuntimeContract` (`src/aif/contracts.psm`) | `FFI_CONTRACTS` (`aif/prototype/aif.py`) |
-| `aifFfiProduces` (`src/aif/contracts.psm`) | `FFI_RETURNS_PRODUCE` (`aif/prototype/aif.py`) |
+| `aifCompilerBuiltinContract` (`src/aif/contracts.psm`) | `FFI_CONTRACTS` (`tools/aif_oracle/aif.py`) |
+| `aifRuntimeContract` (`src/aif/contracts.psm`) | `FFI_CONTRACTS` (`tools/aif_oracle/aif.py`) |
+| `aifFfiProduces` (`src/aif/contracts.psm`) | `FFI_RETURNS_PRODUCE` (`tools/aif_oracle/aif.py`) |
 
 ### A Float operation: one table, not five
 
@@ -135,7 +135,7 @@ A numeric builtin normally touches five places: sema's return type and argument 
 | `src/ir/expr.psm` | `floatBuiltinSymbol(name)` — the LLVM intrinsic, or the libm name where LLVM has none |
 | `src/ir/module.psm` | `floatBuiltinOp(i)` enumerates every name into the guard-safe table |
 | `src/aif/contracts.psm` | every name is `AIF_FFI_BORROW` |
-| `aif/prototype/aif.py` | `F64_BUILTIN_ARITY` generates the oracle's entries |
+| `tools/aif_oracle/aif.py` | `F64_BUILTIN_ARITY` generates the oracle's entries |
 
 Adding `erf`, say, means adding one line to `floatBuiltinOp`, its name to the libm branch of `floatBuiltinSymbol`, one word to the oracle's tuple, and a method in `std/math.psm`. Because `src/` never imports `std.math`, the seed never compiles it, so a new operation needs no seed refresh.
 

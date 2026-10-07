@@ -48,7 +48,7 @@ tagged until three platforms have agreed on the exact commit that would be tagge
    `PATH`, and runs `tools/release_gate.py`: source lists, two successor generations, the IR fixpoint,
    reproduction by the candidate, the committed seed, the full suite, the AIF differential, the corpus, the
    `--verify` sweep, the environment-switch fallbacks, the JIT, cross-target behavior, and packaging with
-   toolchain separation. Record the run in `aif/evidence/`.
+   toolchain separation. Record the run in the release commit's message.
 3. **Push, then start CI by hand.** CI does not run on push. `gh workflow run ci.yml --ref main` starts it on
    `windows-latest`, `ubuntu-latest` (x86-64) and `macos-latest` (arm64): a three-generation bootstrap from the
    committed seed, the fixpoint, the suite, the AIF differential, the seed check (usable, target-neutral, and on

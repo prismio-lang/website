@@ -220,7 +220,7 @@ was missing for a field read and a match-arm binder in the worked example above.
 effects and answers the empty set. Falling through to the generic child walk handed the read the
 array's own value set — and an `Array<T, N>` field's value set is a view of its struct, so
 `sum = sum + t.cells[3]` in a loop lifted `t` into the function's arena, all 100,000 of them. The
-oracle (`aif/prototype/aif.py`) mirrors the rule. `test_164_array_fields` holds the arena to it in
+oracle (`tools/aif_oracle/aif.py`) mirrors the rule. `test_164_array_fields` holds the arena to it in
 `run_aif_verify_test`.
 
 Container stores are different: `aif_con_store(key, values, owners)` records both the field/element

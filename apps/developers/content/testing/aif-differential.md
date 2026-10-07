@@ -17,7 +17,7 @@ Nothing inside the compiler can check that decision against itself, because a wr
 So the analysis is written **twice**, deliberately:
 
 - `src/aif/` is the real one. It is written in Prismio, and it is what your builds use.
-- `aif/prototype/aif.py` is a second, independent implementation in Python, called **the oracle**. It shares no code with the first.
+- `tools/aif_oracle/aif.py` is a second, independent implementation in Python, called **the oracle**. It shares no code with the first.
 
 `tools/aif_differential.py` runs both over the same programs and compares what each concluded. Two implementations of the same rules make *different* mistakes, and this is what turns "different mistakes" into a failing test.
 
@@ -97,7 +97,7 @@ Both reports are parsed into dictionaries with the same keys, by separate regula
 
 **`--theta-fields` is passed on purpose.** The compiler knows the target's byte layout; the JSON AST the oracle reads does not. Field-count mode removes an information difference only one side could ever resolve, so the test measures the inference rules rather than a threshold the oracle cannot compute.
 
-**The corpus is curated, not just a glob.** `aif/corpus/*.psm` is supplemented with focused programs covering region numbering, owned collections, container edges, view provenance, joined and shared concurrency, runtime builtin contracts, bracketing obligations, and channel transfer. A fact domain no program reaches will agree perfectly while being completely broken.
+**The source list is curated, not just a glob.** The benchmark modules (`benchmarks/prismio/*.psm`, minus `suite.psm`) are supplemented with focused programs covering region numbering, owned collections, container edges, view provenance, joined and shared concurrency, runtime builtin contracts, bracketing obligations, and channel transfer. A fact domain no program reaches will agree perfectly while being completely broken.
 
 ## Adding a rule
 

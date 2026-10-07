@@ -176,6 +176,7 @@ export const docsConfig: DocsAppConfig = {
                 { label: "Run and extend benchmarks", href: "/performance/running-adding-and-reading-results" },
                 { label: "Telling a difference from noise", href: "/performance/telling-a-difference-from-noise" },
                 { label: "Performance investigations", href: "/performance/investigation-method" },
+                { label: "Decisions and rejected experiments", href: "/performance/decisions-and-rejected-experiments" },
             ],
         },
         {

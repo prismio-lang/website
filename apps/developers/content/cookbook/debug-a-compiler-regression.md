@@ -70,7 +70,7 @@ echo "check exit: $?"
 check exit: 0
 ```
 
-`dump-ast` shows why: it prints the same checked tree AIF and `aif/prototype/aif.py` (the independent oracle described in [the AIF differential](/testing/aif-differential)) consume, as JSON — one node per declaration, each carrying its file id, source position, and resolved type:
+`dump-ast` shows why: it prints the same checked tree AIF and `tools/aif_oracle/aif.py` (the independent oracle described in [the AIF differential](/testing/aif-differential)) consume, as JSON — one node per declaration, each carrying its file id, source position, and resolved type:
 
 ```bash
 $P dump-ast bare.psm

@@ -5,7 +5,7 @@ status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-08"
 tags: [performance, profiling, llvm]
-related: [performance/benchmark-contract, llvm/runtime-ir-and-optimization, aif/layout-selection]
+related: [performance/benchmark-contract, performance/decisions-and-rejected-experiments, llvm/runtime-ir-and-optimization, aif/layout-selection]
 ---
 
 Start with a reproducible workload and a correctness checksum. Capture the compiler executable,
@@ -47,10 +47,12 @@ an escape edge,” not “AIF is slow.” Change one mechanism, preserve the alg
 rerun interleaved samples. If testing a forced layout, use matching `--force-layout=<Type>:<hot>` on
 the report and build so the inspected candidate is the emitted candidate.
 
-Keep rejected results in `aif/evidence` or the relevant investigation record. Include the patch or
-flag, raw artifact paths, confidence limits or noise comparison, and the layer that disproved the
-hypothesis. A negative experiment prevents the same attractive idea from returning without new
-evidence.
+Record a rejected result as an entry in [Performance decisions and rejected
+experiments](/performance/decisions-and-rejected-experiments), with the numbers, the confidence limits or
+noise comparison, and the layer that disproved the hypothesis, and put the patch or flag and the raw
+samples in the commit message that reverts it. A negative experiment prevents the same attractive idea from
+returning without new evidence, and the first thing to do before starting a performance change is to read
+the entry for its area there.
 
 ## Accepting a change
 

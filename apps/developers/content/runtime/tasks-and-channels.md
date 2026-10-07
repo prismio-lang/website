@@ -81,8 +81,8 @@ thread would give that block two owners. `ir_copy_struct` refuses a split struct
 
 Measured on channel_pipeline's three stages (5M messages, 21 alternating runs, Apple Silicon):
 median 1.025 s boxed, **0.646 s** copied, 0.688 s for the C++ program, and the `--verify` ledger
-went from 2,000,001 allocations per 1M messages to 1. `aif/evidence/RESULTS-typed-channels.md` has
-the method, the dead ends (spin-then-park, mutex policy) and the numbers.
+went from 2,000,001 allocations per 1M messages to 1. [Performance decisions and rejected experiments](/performance/decisions-and-rejected-experiments) has
+the numbers, and the dead ends (spin-then-park, a single-producer ring).
 
 ### A refused message, and the pointer path's ledger
 
@@ -144,7 +144,7 @@ fn worker(jobs: Channel<Job>, results: Channel<Answer>) -> Int {
 
 A send blocks while the channel is full, and a receive blocks until a message arrives or the
 channel closes; that is the whole surface, and it is what keeps a worker pool alive across frames.
-`aif/evidence/RESULTS-v01-channels.md` records the original measurement; the maintained
+The original measurement is in that page too; the maintained
 concurrency workloads are `parallel_reduction` and `channel_pipeline` in
 `benchmarks/prismio/`.
 

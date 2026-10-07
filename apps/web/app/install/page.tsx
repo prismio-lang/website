@@ -57,7 +57,7 @@ function stepsFor(os: OS): Step[] {
         {
             title: 'Build the first compiler',
             note: 'Built from the committed LLVM IR seed, so a machine with no Prismio can start.',
-            commands: [win ? 'tools\\bootstrap.ps1 -Seed bootstrap\\prismio-seed.ll -Out build\\gen0' : 'tools/bootstrap.sh --seed --out build/gen0'],
+            commands: [win ? 'tools\\bootstrap.ps1 -Seed bootstrap\\prismio-seed-0.1.0.ll -Out build\\gen0' : 'tools/bootstrap.sh --seed --out build/gen0'],
         },
         {
             title: 'Rebuild it with itself',

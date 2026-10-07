@@ -21,7 +21,7 @@ same as being readable, and in September 2026 a measurement said so:
 - Terms were used before they were introduced — *transfer function*,
   *post-sema*, *sole-regime*, *theta-fields*.
 - Both glossaries expanded **AIF** as "Allocation Inference Framework" while the
-  spec, `aif/README.md` and `src/aif/model.psm` all say **Adaptive**. The one
+  spec, `docs/aif/README.md` and `src/aif/model.psm` all say **Adaptive**. The one
   page whose entire job is defining the acronym disagreed with the source, and
   the surrounding prose was so assured that nobody stopped to check.
 
@@ -176,7 +176,7 @@ From `apps/developers/content/testing/aif-differential.md`.
 **Before** — accurate, and unusable if you did not already know what AIF is:
 
 > AIF has two implementations that deliberately share no analysis code. The
-> production pass lives in `src/aif`; `aif/prototype/aif.py` is the independent
+> production pass lives in `src/aif`; `tools/aif_oracle/aif.py` is the independent
 > Python oracle. […] it detects a silently different transfer function by
 > comparing every maintained result and exclusion counter over the same
 > post-sema program.

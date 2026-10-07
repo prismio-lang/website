@@ -95,10 +95,8 @@ That is `semaErrorAt`, which every general semantic error goes through, so the c
 | `tools/` | Python scripts: the suite runner, AIF differential, release gate, packaging, seed refresh |
 | `bootstrap/` | The committed seed that builds the first compiler generation |
 | `benchmarks/` | Equivalent Prismio, C++, and Rust workloads plus result artifacts |
-| `aif/spec/` | Normative AIF (Adaptive Inference Framework) model documents |
-| `aif/prototype/` | The independent Python implementation of AIF, used as an oracle |
-| `aif/corpus/` | The programs the AIF differential runs over |
-| `aif/evidence/` | Experiments, rejected ideas, and measured decisions, one `RESULTS-*.md` per piece of work |
+| `docs/aif/` | The AIF (Adaptive Inference Framework) specification and design record: `spec/` is normative, `implementation/` holds the rationale and requirements |
+| `tools/aif_oracle/` | The independent Python implementation of AIF, used as an oracle by `tools/aif_differential.py` |
 
 Three documents are worth knowing before you change anything: `docs/KNOWN_ISSUES.md` (what is open), [the runtime surface](/runtime/supported-surface) (what a program can call, and who owns what it returns), and `CODE_STYLE.md` with its C counterpart `C_CODE_STYLE.md`.
 
@@ -113,7 +111,7 @@ what replaced them is:
 | What is left before v0.1.0 is published? | `RELEASE.md` at the root (the order, and what must be green first) and `docs/KNOWN_ISSUES.md`. There is no separate checklist file |
 | What is planned, and why that way? | `docs/*_PLAN.md` — `COLLECTION_METHODS_PLAN`, `MEMORY_PLAN`, `CHANNELS_PLAN`, `PERFORMANCE_PLAN` — and `docs/COLLECTIONS.md`, each split into what 0.1 needs and what comes later |
 | What is open, with enough to act on? | `docs/KNOWN_ISSUES.md` |
-| What was measured? | `aif/evidence/`, one `RESULTS-*.md` per piece of work |
+| What was measured, and what was tried and rejected? | The commit message that made the change, and [Performance decisions and rejected experiments](/performance/decisions-and-rejected-experiments). The older session records were removed on 2026-10-07 and are in Git history |
 | What changed, and why? | `git log`. Commit messages here carry their own evidence, and are usually better than any document summarising them |
 | What shipped, and how to ship it? | The docs site's release pages (`apps/*/content/releases/`), and `RELEASE.md` |
 

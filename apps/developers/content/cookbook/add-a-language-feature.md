@@ -128,7 +128,7 @@ A feature is not complete while `dump-ast`, `check`, a native build, and the rel
 
 ## Why new syntax lands in two steps
 
-`bootstrap/prismio-seed.ll` is committed LLVM IR: the compiler that exists before any compiler does, because a self-hosted compiler needs *something* to build its first generation from. That seed has to be able to parse everything under `src/`. If you teach the frontend a new construct and use it in `src/` in the same change, the seed can no longer parse the compiler's own source, and bootstrapping from scratch breaks — a failure mode nothing in `tests/` or `aif/corpus/` exercises, because both assume a working compiler already exists.
+`bootstrap/prismio-seed-0.1.0.ll` is committed LLVM IR: the compiler that exists before any compiler does, because a self-hosted compiler needs *something* to build its first generation from. That seed has to be able to parse everything under `src/`. If you teach the frontend a new construct and use it in `src/` in the same change, the seed can no longer parse the compiler's own source, and bootstrapping from scratch breaks — a failure mode nothing in `tests/` or `aif/corpus/` exercises, because both assume a working compiler already exists.
 
 Land it in two steps: teach the frontend, refresh the seed, *then* use the new syntax in `src/`.
 
@@ -137,7 +137,7 @@ Land it in two steps: teach the frontend, refresh the seed, *then* use the new s
 tools/refresh_seed.sh   # tools/refresh_seed.ps1 on Windows
 ```
 
-Separately, a behavior-preserving change (one that should alter nothing about what the compiler emits) must produce byte-identical output for every program in `tests/` and `aif/corpus/`. That is checked by building two generations and comparing them to a fixed point, running the full suite, and running the AIF differential:
+Separately, a behavior-preserving change (one that should alter nothing about what the compiler emits) must produce byte-identical output for every program in `tests/` and `benchmarks/prismio/`. That is checked by building two generations and comparing them to a fixed point, running the full suite, and running the AIF differential:
 
 ```bash
 tools/bootstrap.sh --seed --out build/gen0

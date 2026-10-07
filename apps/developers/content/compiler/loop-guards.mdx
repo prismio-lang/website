@@ -261,7 +261,7 @@ drops both the wrap check and the overlap check.
   send the loop to its checked copy, so a mark could cost more than it saves.
 - **Multiplies are never marked**, and neither is anything outside a proved
   index, so trip counts keep their wrapping arithmetic. §9 of
-  `aif/evidence/RESULTS-int-width.md` measured what marking a trip-count
+  the `Int` width decision (see [Performance decisions and rejected experiments](/performance/decisions-and-rejected-experiments)) measured what marking a trip-count
   multiply costs: `dead_code_elimination` lost a closed-form fold.
 
 The difference-bound tier already did this for the indices it proves: each

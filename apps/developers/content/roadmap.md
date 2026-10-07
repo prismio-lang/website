@@ -54,8 +54,7 @@ its symbol closure synchronized with every operation codegen can emit.
 
 Each accepted optimization needs four artifacts: a source-level correctness regression, an AIF or
 IR assertion proving the mechanism, raw interleaved benchmark samples above A/A noise, and
-self-hosting fixed-point agreement. Rejected candidates remain in `aif/evidence` with their measured
-failure mode.
+self-hosting fixed-point agreement. Rejected candidates are recorded, with their measured failure mode, in [Performance decisions and rejected experiments](/performance/decisions-and-rejected-experiments).
 
 ## Unsupported surface
 
