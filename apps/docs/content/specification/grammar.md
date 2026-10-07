@@ -19,7 +19,9 @@ declaration    = importDecl | letDecl | functionDecl | externDecl
                | structDecl | enumDecl ;
 importDecl     = "import" qualifiedName ("." "*")? ("as" identifier)?
                | "import" "{" importEntry ("," importEntry)* ","? "}" "from" qualifiedName
-               | "import" "*" "from" qualifiedName ;
+               | "import" "*" "from" qualifiedName
+               | "from" qualifiedName "import" "{" importEntry ("," importEntry)* ","? "}"
+               | "from" qualifiedName "import" "*" ;
 importEntry    = identifier ("as" identifier)? ;
 functionDecl   = "fn" identifier typeParams? "(" parameters? ")" returnType? block ;
 typeParams     = "<" identifier ("," identifier)* ">" ;
@@ -129,7 +131,7 @@ memberSuffix   = "." identifier ;
 
 Calls, indexing, and member selection bind most tightly through primary-expression suffix parsing. Prefix unary operators recurse, so repeated forms such as `!!flag` and `--value` parse when semantically valid. `as` casts form a postfix chain.
 
-Binary precedence from low to high is `or`; `and`; equality; ordering; bitwise OR; bitwise XOR; bitwise AND; shifts; addition/subtraction; multiplication/division/remainder.
+Binary precedence from low to high is `or`; `and`; equality; ordering; none-coalescing `??` (right-associative); bitwise OR; bitwise XOR; bitwise AND; shifts; addition/subtraction; multiplication/division/remainder.
 
 ## Literals and aggregates
 

@@ -209,7 +209,7 @@ instantiates once.
   may also appear in bounds such as `U: From<Int>`.
 - **No variance, no specialization, no partial instantiation.**
 - Type parameters are solved independently of one another; there is no unification across parameters, apart from a closure bound's result being solved from the closure.
-- **An unsized array cannot be a type argument.** `Vec<[Int]>`, a parameter or field of type `Box<[Int]>`, and a function returning `Option<[Int]>` are refused, and so is a generic function that puts its own `T` into a type when `T` is an array (`fn wrap<T>(x: T) -> Option<T>` called with an array). Without a length, an array is a view of elements in the frame that declared it, and a container carrying it out of that function would read a dead frame. The diagnostic says what to use instead:
+- **An unsized array cannot be a type argument.** `Vec<[Int]>`, a parameter or field of type `Box<[Int]>`, and a function returning `Result<[Int], String>` are refused, and so is a generic function that puts its own `T` into a type when `T` is an array (`fn wrap<T>(x: T) -> Result<T, String>` called with an array). Without a length, an array is a view of elements in the frame that declared it, and a container carrying it out of that function would read a dead frame. The diagnostic says what to use instead:
 
   ```text
   error[P4001]: an array cannot be a type argument

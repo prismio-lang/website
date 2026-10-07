@@ -331,7 +331,7 @@ A Slice is not a C buffer. An `extern fn` taking or returning `Slice<T>` is reje
 Indices are `Int`.
 
 - **A Slice checks every access** and stops the program on an out-of-range index.
-- **A Vec does not.** `values[i]` outside `[0, length)` answers the element type's zero. Check `values.length` first, or use `values.get(i)`, which answers `Option.None` for a missing element.
+- **A Vec does not.** `values[i]` outside `[0, length)` answers the element type's zero. Check `values.length` first, or use `values.get(i)`, which answers `none` for a missing element.
 
 `for x in values` visits each element in order and borrows the Vec, which stays usable afterwards. `for (i, x) in values` gives the index as well, and a range over `0..<values.length` works when only the index matters. [Control flow](/language/control-flow#collections-for-x-in-items) covers every collection `for` accepts.
 

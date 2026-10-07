@@ -38,7 +38,7 @@ Do not run `prismio build`, or edit `src/`, while the suite is running: one of i
 Name generation outputs explicitly for bootstrap and fixed-point checks. A stale
 compiler on `PATH` can make those failures look nondeterministic.
 
-The sequence starts from the committed seed, builds `gen0`, then asks each
+The sequence starts from the release seed (downloaded, checked against a pinned SHA-256 and cached), builds `gen0`, then asks each
 generation to compile the same source into `gen1` and `gen2`. The test command
 exercises `gen2` explicitly, never a globally installed compiler.
 
@@ -93,7 +93,7 @@ checks also run.
 
 ## Establish a fixed point
 
-A fixed point requires the relevant outputs of `gen1` and `gen2` to agree. CI, which a maintainer starts by hand rather than on every push, performs generation builds, runs positive and negative language tests, compares AIF results against its oracle, and checks that the committed seed remains target-neutral on Windows, macOS, and Linux (and, on Linux, that it is current).
+A fixed point requires the relevant outputs of `gen1` and `gen2` to agree. CI, which a maintainer starts by hand rather than on every push, performs generation builds, runs positive and negative language tests, compares AIF results against its oracle, and checks that the pinned seed remains target-neutral on Windows, macOS, and Linux.
 
 Compare canonicalized outputs appropriate to the repository workflow rather than assuming native executable bytes are reproducible across linkers. A semantic or IR-level divergence can identify the stage where a compiler change begins compiling itself differently.
 
@@ -140,7 +140,7 @@ Allocation inference has its own oracle-backed behavior. When changing escape, a
 
 ## Cross-platform checks
 
-The native support matrix includes Windows, macOS, and Linux. Keep source and committed seed material target-neutral. A change that accidentally embeds a host path, object format, pointer width, or platform symbol can bootstrap successfully on one machine and fail elsewhere.
+The native support matrix includes Windows, macOS, and Linux. Keep source and seed material target-neutral. A change that accidentally embeds a host path, object format, pointer width, or platform symbol can bootstrap successfully on one machine and fail elsewhere.
 
 WebAssembly support is experimental and should be validated separately from native fixed-point expectations.
 

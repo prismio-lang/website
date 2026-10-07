@@ -128,9 +128,9 @@ A feature is not complete while `dump-ast`, `check`, a native build, and the rel
 
 ## Why new syntax lands in two steps
 
-`bootstrap/prismio-seed-0.1.0.ll` is committed LLVM IR: the compiler that exists before any compiler does, because a self-hosted compiler needs *something* to build its first generation from. That seed has to be able to parse everything under `src/`. If you teach the frontend a new construct and use it in `src/` in the same change, the seed can no longer parse the compiler's own source, and bootstrapping from scratch breaks — a failure mode nothing in `tests/` or `aif/corpus/` exercises, because both assume a working compiler already exists.
+The bootstrap seed is LLVM IR, published as a release asset and pinned in `bootstrap/seed.json`: the compiler that exists before any compiler does, because a self-hosted compiler needs *something* to build its first generation from. That seed has to be able to parse everything under `src/`. If you teach the frontend a new construct and use it in `src/` in the same change, the seed can no longer parse the compiler's own source, and bootstrapping from scratch breaks — a failure mode nothing in `tests/` or `aif/corpus/` exercises, because both assume a working compiler already exists.
 
-Land it in two steps: teach the frontend, refresh the seed, *then* use the new syntax in `src/`.
+Land it in two steps: teach the frontend, cut and publish a seed (`tools/refresh_seed.sh`) and commit the new pin, *then* use the new syntax in `src/`.
 
 ```bash
 # after the frontend change is in place, before anything in src/ uses it:

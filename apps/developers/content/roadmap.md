@@ -20,7 +20,7 @@ does not assign release dates.
   DataView, native tasks, and blocking typed channels.
 - AIF storage plans, explanations, manifests, runtime verification, and an independent oracle.
 - A standard library a command-line program can be written with: standard input, files and line
-  readers, the environment, clocks, math, `StringBuilder`, and `Map`/`Option`/`Result` methods
+  readers, the environment, clocks, math, `StringBuilder`, and `Map` and `Result` methods, and the functions over `T?`
   (done 2026-09-25).
 - A 78-workload cross-language benchmark catalog with 63 implemented workloads.
 

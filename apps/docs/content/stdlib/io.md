@@ -196,13 +196,12 @@ For application-specific rich formatting, write typed helper functions or use a 
 
 ## Printing your own types
 
-`print`, `println`, `eprint` and `eprintln` also accept any value with an `impl Display`, once `std.display` is imported. That covers a type of your own, an `Option<T>` (its value, or `none`) and a `String?`:
+`print`, `println`, `eprint` and `eprintln` also accept any value with an `impl Display`, once `std.display` is imported. That covers a type of your own and an optional such as a `String?` (its value, or `none`):
 
 <!-- prismio-check: pass -->
 ```prismio
 import std.display
 import std.io
-import std.option
 
 struct Version {
     major: Int,
@@ -215,18 +214,17 @@ impl Display for Version {
     }
 }
 
-fn main() -> Int {
+fn main() {
     let version = Version { major: 1, minor: 4 }
-    let missing: Option<String> = Option<String>.None
+    let missing: String? = none
     println(version)                  // 1.4
     println("built:", missing)        // built: none
-    return 0
 }
 ```
 
 The overloads for the built-in types in the table above are exact matches and win over these, so importing `std.display` changes nothing for a program that only prints numbers and strings. They are in `std.display` and not here because `std.io` is imported by every printing program, and a generic `print` in it would carry `std.display` and `std.string` into all of them.
 
-When a value cannot be printed, the error lists the argument types it was given and, for an optional, says how to take the value out (`unwrapOr`, `expect`).
+When a value cannot be printed, the error lists the argument types it was given and, for an optional, says how to take the value out (`??`, `unwrapOr`, `expect`).
 
 The old chunked names such as `println_int`, `print_bool` and `print_char` are not public Prismio functions, and as of 0.1 they no longer exist as runtime symbols either — a program that declared one by hand will fail to link naming it. Use the overload set directly.
 
@@ -254,5 +252,5 @@ The 0.1 print functions do not expose a structured recoverable I/O result or a w
 
 Input lives in its own modules, so a program that only prints carries none of it:
 
-- **Standard input** is [`std.input`](/stdlib/input): `for line in stdin.lines()`, `stdin.readLine()` and `stdin.readAll()`.
+- **Standard input** is [`std.input`](/stdlib/input): `for line in inputLines()`, `readLine()` and `readAll()`.
 - **Files** are [`std.fs`](/stdlib/filesystem): `readFile`, `writeFile`, `appendFile`, and `readLines` for a file read a line at a time.

@@ -161,7 +161,7 @@ enum Shape {
 }
 ```
 
-An enum with any payload variant compiles to a tagged struct rather than an integer, which makes its values owned and move-only — including the variants that carry nothing. Take them apart with [variant patterns](/language/pattern-matching). See [Option and Result](/stdlib/option) for the representation and its costs.
+An enum with any payload variant compiles to a tagged struct rather than an integer, which makes its values owned and move-only — including the variants that carry nothing. Take them apart with [variant patterns](/language/pattern-matching). See [`Result`](/stdlib/option#result) for the representation and its costs.
 
 Discriminant assignments and methods are still not implemented. A fieldless enum is entirely unaffected by any of this and keeps its integer ordinals.
 

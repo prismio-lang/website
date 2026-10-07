@@ -30,7 +30,10 @@ This page distinguishes shipped compiler behavior from intent. It does not assig
 | A `Never` return type for a function that always fails | Coming Soon |
 | Growing text in a struct field (`StringBuilder`) | Implemented |
 | `Map` removal and methods (`m.get`, `m.remove`, `m[k]`, …) | Implemented |
-| `Option`/`Result` methods (`unwrapOr`, `expect`, `map`, `andThen`, …) | Implemented |
+| Optional and `Result` methods (`unwrapOr`, `expect`, `map`, `andThen`, …) | Implemented |
+| None-coalescing `a ?? b` | Implemented |
+| `from std import {io, vec}`, the import group with the directory first | Implemented |
+| `fn main()` with no return type and no `return 0` | Implemented |
 | Module qualifiers (`std.string.trim(x)`) | Implemented (calls only, by full import path) |
 | Visibility: `public`, `private`, `internal` | Implemented (`fn` and `extern fn`; `public` is the default) |
 | Selective imports (`import m.name`) | Implemented |
@@ -52,7 +55,7 @@ This page distinguishes shipped compiler behavior from intent. It does not assig
 | Labelled loops: `outer@ for …`, `break@outer`, `continue@outer` | Implemented |
 | Descending ranges (`10..0` counts down) | Implemented |
 | `break` with a value, `if`/`match` as expressions | Coming Soon |
-| Payload enums, `Option` and `Result` | Implemented |
+| Payload enums and `Result` | Implemented |
 | Scalar optionals (`Int?`, `Float?`, an enum's `T?`) by value, in containers | Implemented |
 | Conversions: `as T?` that answer `none`, `as String`, text read at compile time | Implemented |
 | An enum as its own type, exhaustive `match` over its variants | Implemented |

@@ -197,7 +197,7 @@ A project can build its own compiler and have `prismio` use it; see [a project's
 
 | Code | | Message | What to do |
 |---|---|---|---|
-| `P1034` | error | `prismio bootstrap` has been removed | Build the compiler from its checkout with `prismio build`; its `build.ums` names the C sources. With no compiler at all, `tools/bootstrap.sh --seed` builds one from the committed seed |
+| `P1034` | error | `prismio bootstrap` has been removed | Build the compiler from its checkout with `prismio build`; its `build.ums` names the C sources. With no compiler at all, `tools/bootstrap.sh --seed` builds one from the release seed it fetches |
 | `P1051` | error | the project-local compiler cannot replace itself without its global parent | Run `prismio build` through the installed compiler, not through the project's own |
 | `P1052` | warning | the configured project host is not runnable | The file at `toolchain.host` will not start, so the global compiler serves the command. Rebuild it with `prismio build` |
 | `P1053` | error | the compiler candidate did not build; the active local compiler was kept | The new compiler failed to build. The previous one still works |

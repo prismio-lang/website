@@ -3,12 +3,12 @@ title: Standard input
 description: The std.input module — reading what is piped into a program a line at a time, one line on demand, or all at once.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-10-02"
-tags: [standard-library, input, stdin, io, lines]
+lastUpdated: "2026-10-07"
+tags: [standard-library, input, io, lines, readLine]
 related: [stdlib/io, stdlib/filesystem, stdlib/option, cookbook/cli-arguments]
 ---
 
-`import std.input`. A program that reads what is piped into it — a filter, a line counter, a tool that takes a list on stdin — reads it through the `stdin` value this module declares.
+`import std.input`. A program that reads what is piped into it — a filter, a line counter, a tool that takes a list on stdin — reads it with plain functions: `readLine()`, `readInt()`, `inputLines()`. There is no `stdin` to name first, since a process has one.
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -18,11 +18,11 @@ import std.io
 import std.string
 
 // Counts the lines, words and bytes of whatever is piped in.
-fn main() -> Int {
+fn main() {
     let mut lines = 0
     let mut words = 0
     let mut bytes = 0
-    for line in stdin.lines() {
+    for line in inputLines() {
         lines = lines + 1
         bytes = bytes + line.length
         for word in line.split(' ') {
@@ -30,7 +30,6 @@ fn main() -> Int {
         }
     }
     println("${lines} lines, ${words} words, ${bytes} bytes")
-    return 0
 }
 ```
 
@@ -45,15 +44,17 @@ The input has four lines. The empty third line is a line, and the last one count
 
 | Call | Returns | Use it for |
 | --- | --- | --- |
-| `stdin.lines()` | an iterator of `String`, for `for line in` | every line, in order — the usual case |
-| `stdin.readLine()` | `Option<String>`: the next line, or `None` at the end of input | one line on demand: a header, a prompt's answer |
-| `stdin.readLineOr(fallback)` | `String`: the next line, or `fallback` at the end of input | a line you can do without checking for the end |
-| `stdin.prompt(text)` | `Option<String>`: `text` is written first, then a line is read | asking a question |
-| `stdin.readInt()`, `stdin.readFloat()` | `Int?`, `Float?`: the next line as a number | a count or a measurement on a line of its own |
-| `stdin.readLines()` | `Vec<String>`: every line not yet read | input you want all of, at once, as lines |
-| `stdin.readWords()` | `Vec<String>`: the rest of the input split at spaces, tabs and line ends | a list of tokens, however they are laid out |
-| `stdin.readAll()` | `String`: everything not yet read, terminators included | input that is one document rather than lines |
-| `stdin.isAtEnd` | `Bool`: whether there is no line left | a loop that reads a line at a time |
+| `inputLines()` | an iterator of `String`, for `for line in` | every line, in order — the usual case |
+| `readLine()` | `String?`: the next line, or `none` at the end of input | one line on demand: a header, a prompt's answer |
+| `readLineOr(fallback)` | `String`: the next line, or `fallback` at the end of input | a line you can do without checking for the end |
+| `prompt(text)` | `String?`: `text` is written first, then a line is read | asking a question |
+| `readInt()`, `readFloat()` | `Int?`, `Float?`: the next line as a number | a count or a measurement on a line of its own |
+| `readLines()` | `Vec<String>`: every line not yet read | input you want all of, at once, as lines |
+| `readWords()` | `Vec<String>`: the rest of the input split at spaces, tabs and line ends | a list of tokens, however they are laid out |
+| `readAll()` | `String`: everything not yet read, terminators included | input that is one document rather than lines |
+| `atEndOfInput()` | `Bool`: whether there is no line left | a loop that reads a line at a time |
+
+There is no `stdin` value to call them on: a process has one standard input, so each is a function of its own. `stdin.lines()` from 0.1 is `inputLines()` now, and `stdin.isAtEnd` is `atEndOfInput()`.
 
 **A line never carries its terminator.** `\n` and `\r\n` both end a line, and neither is part of it. A last line with no terminator is still a line, so `"a\nb"` and `"a\nb\n"` are the same two lines, and an empty input has none.
 
@@ -61,7 +62,7 @@ The input has four lines. The empty third line is a line, and the last one count
 
 ### An optional line prints, and has a fallback
 
-`readLine` and `prompt` answer `Option<String>`, because the input may have ended. With [`std.display`](/stdlib/io#printing-your-own-types) imported, an `Option` prints as its value, or as `none`, so the usual first look at a line needs no `match`:
+`readLine` and `prompt` answer a `String?`, because the input may have ended. With [`std.display`](/stdlib/io#printing-your-own-types) imported, an optional prints as its value, or as `none`, so the usual first look at a line needs no test:
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -70,11 +71,10 @@ import std.input
 import std.io
 
 // The first line is a title; everything after it is the body.
-fn main() -> Int {
-    let header = stdin.readLine()
+fn main() {
+    let header = readLine()
     println("Your message:", header)
-    println("body:", stdin.readAll().length, "bytes")
-    return 0
+    println("body:", readAll().length, "bytes")
 }
 ```
 
@@ -87,7 +87,7 @@ Your message: none
 body: 0 bytes
 ```
 
-When the program should not go on without a line, ask for the value or the fallback instead of matching:
+When the program should not go on without a line, ask for the value or the fallback instead of testing:
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -98,12 +98,11 @@ import std.option
 import std.string
 
 // Reads a name and an age, each on a line of its own.
-fn main() -> Int {
-    let name = stdin.readLineOr("stranger")
-    let age = stdin.readInt()
+fn main() {
+    let name = readLineOr("stranger")
+    let age = readInt() ?? 0
     println("hello, ${name}")
-    println("next year:", age.unwrapOr(0) + 1)
-    return 0
+    println("next year:", age + 1)
 }
 ```
 
@@ -113,7 +112,7 @@ hello, Ada
 next year: 37
 ```
 
-`readInt` is `None` at the end of input and also when the line is not a number (spaces around it are ignored); the line is consumed either way. A `match` on the `Option` remains the way to take the two cases apart:
+`readInt` is `none` at the end of input and also when the line is not a number (spaces around it are ignored); the line is consumed either way. `??` gives it a default, and a comparison with `none` takes the two cases apart:
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -123,18 +122,16 @@ import std.option
 import std.string
 
 fn main() -> Int {
-    match (stdin.readLine()) {
-        Option.Some(title) => { println("title: " + title) }
-        Option.None => {
-            eprintln("no input")
-            return 1
-        }
+    let title = readLine()
+    if (title == none) {
+        eprintln("no input")
+        return 1
     }
-    return 0
+    println("title: " + expect(title))
 }
 ```
 
-In a loop, prefer `lines()` to calling `readLine()` repeatedly: each `Option<String>` is an allocation of its own, and the iterator hands the line over bare.
+In a loop, prefer `inputLines()` to calling `readLine()` repeatedly: each `String?` is a test and an unwrap, and the iterator hands the line over bare.
 
 ## How fast
 
@@ -144,13 +141,13 @@ Every line is released when the loop moves on: the counting example above measur
 
 ## Why it is its own module
 
-`std.io` is imported by every program that prints. If `stdin` lived there, every printing program would carry it into its debug information and link, and carry `std.option`'s allocation sites into its ownership analysis. A program that reads its input asks for that by importing `std.input`; one that only prints does not pay for it.
+`std.io` is imported by every program that prints. If the reads lived there, every printing program would carry them into its debug information and link, and carry `std.option`'s allocation sites into its ownership analysis. A program that reads its input asks for that by importing `std.input`; one that only prints does not pay for it.
 
 ## Limits
 
 - **Text only.** A line is a `String`, and text after a NUL byte in a line is not part of it. There is no byte-oriented read.
 - **One reader at a time.** The buffer is not locked. Reading standard input from two tasks at once is undefined.
-- **The descriptor directly bypasses the buffer.** `Stream { descriptor: 0 }.readAll()` from [`std.process`](/stdlib/process) reads descriptor 0 itself and skips whatever `stdin` has already buffered. Use one or the other.
+- **The descriptor directly bypasses the buffer.** `Stream { descriptor: 0 }.readAll()` from [`std.process`](/stdlib/process) reads descriptor 0 itself and skips whatever these reads have already buffered. Use one or the other.
 - No line editing. `prompt(text)` writes the text and reads a line; nothing edits it.
 
 To read a *file* a line at a time, use [`readLines`](/stdlib/filesystem#reading-a-file-a-line-at-a-time) from `std.fs`, which uses the same reader.

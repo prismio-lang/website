@@ -121,7 +121,7 @@ A `struct` declaration introduces a nominal, move-only aggregate. Field names an
 
 An `enum` declaration introduces a named set of variants. A **fieldless** enum is copyable and lowers to integer ordinals, but it is its own type: a variant has the enum's type, `c as Int` names the ordinal, and `n as Color?` is the checked way back.
 
-A variant may instead carry values, and an enum may be generic. An enum with any payload variant compiles to a tagged struct rather than an integer, which makes its values nominal and move-only — including the variants that carry nothing. See [enums](/language/enums) and [Option and Result](/stdlib/option). Explicit discriminants are not supported.
+A variant may instead carry values, and an enum may be generic. An enum with any payload variant compiles to a tagged struct rather than an integer, which makes its values nominal and move-only — including the variants that carry nothing. See [enums](/language/enums) and [`Result`](/stdlib/option#result). Explicit discriminants are not supported.
 
 ```prismio
 struct User { id: U64, active: Bool }
@@ -150,7 +150,7 @@ a Slice escapes. See [arrays, vectors, and slices](/language/arrays-and-lists).
 
 ## Optional types
 
-`T?` adds `none` to a reference-shaped type: structs, strings, vectors, and raw pointers. It is not accepted for scalar numbers, `Bool`, `Char`, enums, or arrays.
+`T?` adds `none` to a type: any number, `Bool`, `Char`, a fieldless enum, a struct, a `String`, a `Vec` or a raw pointer. It is not accepted for arrays. A number's `T?` is a value, copied and never allocated; a reference's is a pointer that is null for `none`. See [optionals](/language/optionals).
 
 ```prismio
 struct Entry { value: Int }
@@ -160,7 +160,7 @@ fn missing() -> Entry? {
 }
 ```
 
-Use `expect(value)` to obtain the underlying non-optional value after a runtime presence check. Comparing with `none` does not automatically narrow the type.
+Use `expect(value)` to obtain the underlying non-optional value after a runtime presence check, or `value ?? fallback` to supply one when it is `none`. Comparing with `none` does not automatically narrow the type.
 
 ## Cast behavior
 

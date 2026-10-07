@@ -78,7 +78,6 @@ fn main() -> Int {
 | `Vec<T>` | `[]` |
 | `Array<T, N>` | `N` defaults of `T` (up to 64 elements, or any length of numbers in a `let`) |
 | `T?` | `none` |
-| `Option<T>` | `Option<T>.None` |
 | `Map<K, V>` | an empty map |
 | a struct | the struct with every field set to its field type's default |
 

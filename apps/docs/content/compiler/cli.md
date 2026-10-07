@@ -75,7 +75,7 @@ prismio run components/main.psm
 prismio run components/main.psm -- --port 8080
 ```
 
-There is no `bootstrap` command. The Prismio compiler is built from its repository's `build.ums`, which names its C sources like any other project's, and `tools/bootstrap.sh` (`tools/bootstrap.ps1` on Windows) builds one from the committed seed on a machine with no Prismio at all.
+There is no `bootstrap` command. The Prismio compiler is built from its repository's `build.ums`, which names its C sources like any other project's, and `tools/bootstrap.sh` (`tools/bootstrap.ps1` on Windows) builds one from the release seed, which it fetches and checks first, on a machine with no Prismio at all.
 
 ## Inspection commands
 

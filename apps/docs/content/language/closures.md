@@ -164,9 +164,9 @@ fn main() -> Int {
 **The result type is solved from the closure.** A type parameter that appears only in the result,
 such as `U` above, has no argument to be read from, so the compiler takes it from what the closure
 returns. `describe` returns an `Int` for one closure and a `String` for another, and nothing at the
-call names either. This is how [`Option.map`](/stdlib/option#map-and-andthen-take-a-closure) is
-written. It works through a generic result too: `andThen`'s bound is `Fn(T) -> Option<U>`, and `U`
-is found inside the `Option` the closure returns.
+call names either. This is how a [`T?`'s `map`](/stdlib/option#map-and-andthen-take-a-closure) is
+written. It works through a generic result too: `andThen`'s bound is `Fn(T) -> U?`, and `U`
+is found inside the optional the closure returns.
 
 **A closure that does not fit is refused, and both signatures are named:**
 

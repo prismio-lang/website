@@ -341,7 +341,12 @@ enums, traits, implementations, associated items, and workloads.
 
 Expression parsing is precedence climbing. `parseExpression(p, precedence)`
 parses a unary or primary expression and repeatedly consumes binary operators
-whose `getOperatorPrecedence` is high enough. `parsePostfix` and
+whose `getOperatorPrecedence` is high enough. From the bottom: `or`, `and`, `== !=`,
+`< <= > >=`, `??`, `|`, `^`, `&`, `<< >>`, `+ -`, `* / %`. `??` is the one operator that
+associates to the right (`parseExpression` passes its own precedence, not one more, for the
+right operand), and it sits above comparison and below the bitwise operators, as Swift's does.
+The scanner reads it as one `ARITHMETIC_OPERATOR` token in `Lexer.coalesce`, ahead of the
+separator check that makes a lone `?` the optional suffix. `parsePostfix` and
 `parseSuffixes` then attach calls, indexing, member access, generic arguments,
 casts, option handling, and slices to the base node. `foldNegativeLiteral`
 keeps the most-negative signed literal representable instead of requiring an
@@ -375,7 +380,18 @@ The loop productions carry the most shape:
 chained on `next`, exactly the nodes the entries would have been as separate lines.
 `parseModule` splices the chain into the declarations. A leading `*` is `import * from std`,
 the same node `import std.*` builds. `from` is contextual: an identifier with that
-spelling, only after a group or a `*`.
+spelling, after a group or a `*`, and as the first word of a declaration.
+
+**The directory first.** `from std import {io, string}` and `from std import *` are the
+same two statements with the order reversed. `atFromImport` (`src/parse/decl.psm`) recognises
+a top-level identifier `from` followed by a module name -- nothing else can begin a
+declaration with an identifier, so no program that already names something `from` changes
+meaning -- and `parseFromImportStatement` reads the directory (`parseImportDirectory`, shared
+with `import ... from`), the keyword `import`, and then either a group
+(`parseImportGroupEntries` and `qualifyImportGroup`, shared with the other order) or `*`.
+Both orders therefore build the same `IMPORT_STATEMENT` nodes and nothing downstream can
+tell them apart. `from std import io` is refused by name, since it would be a third spelling
+of `import std.io` (`tests/neg_260_from_import_single.psm`; `test_264` is the accepted half).
 
 A group entry names a file, never a declaration, and the parser cannot tell the two
 apart, so it marks each entry with `i2 = 1`. `refuseGroupDeclaration` in

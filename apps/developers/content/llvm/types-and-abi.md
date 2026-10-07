@@ -196,7 +196,7 @@ number literal.
 
 ## Optional and enum encoding
 
-Reference-shaped optionals use a null pointer. A scalar's `T?` is `{ i1, K }` by value (key
+Reference-shaped optionals use a null pointer, and `T?` is the only optional there is (std has no `Option<T>` enum). A scalar's `T?` is `{ i1, K }` by value (key
 `opt:K`), which `type_from_key` builds as a literal struct so every `Int?` in a module is one
 uniqued type; its zero is `none`. Payload enums use a generated aggregate containing
 a tag and payload storage. When an enum can reserve one pointer pattern, `ir_enum_reserve_null`,

@@ -77,6 +77,6 @@ The reference compiler reports version `0.1.0`. Self-hosted does not mean compil
 
 ## Trust and fixed points
 
-A committed target-neutral seed breaks the initial self-hosting cycle. The seed builds a new compiler generation, which builds the next. Fixed-point comparison detects when successive generations disagree about the compiler source.
+A target-neutral seed, published as a release asset, breaks the initial self-hosting cycle. The seed builds a new compiler generation, which builds the next. Fixed-point comparison detects when successive generations disagree about the compiler source.
 
 CI combines that check with positive/negative programs, AIF oracle tests, generated-symbol checks, and multi-platform builds. See [bootstrapping](/compiler/bootstrap) for the exact operational model.

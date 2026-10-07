@@ -57,7 +57,7 @@ For `x as T?`, which answers `none` instead of failing:
 
 Optionality preserves the ownership category of an underlying owned value. Constructing an optional from a move-only struct transfers it into the optional owner. `expect` checks presence but does not introduce general first-class references.
 
-Optional arrays, `T??`, optional chaining, and coalescing are absent. [`Option<T>`](/stdlib/option) is a library type over payload-carrying enum variants.
+Optional arrays, `T??` and optional chaining are absent. `a ?? b`, with `a` a `T?`, is `a` when it has a value and `b` otherwise: its type is `T` when `b` is a `T`, and `T?` when `b` is a `T?`; `b` is evaluated only when `a` is `none`. There is no `Option<T>` beside `T?`; [`Result<T, E>`](/stdlib/option#result) is the library type for a failure that has a reason.
 
 ## Functions and overloads
 

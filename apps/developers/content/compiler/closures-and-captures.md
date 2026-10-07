@@ -174,7 +174,7 @@ capture-free cases, and scalar and move-only captures.
 **A closure bound checks the generated `call` against a signature.** A type parameter bounded by
 `Fn(A, B) -> R` accepts only a closure whose lowered `call` takes exactly `A, B` and returns `R`,
 and a type parameter that appears only in `R` is solved from that `call`'s return type — which is
-how `Option.map` knows its `U`. The parsing, checking and solving are in the generics pass; see
+how a `T?`'s `map` knows its `U`. The parsing, checking and solving are in the generics pass; see
 [closure bounds](/compiler/generics-and-monomorphization#instantiation-functions). The closure
 itself is lowered exactly as before: the bound adds a check and a solution, and no code.
 

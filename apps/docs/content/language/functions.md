@@ -259,7 +259,7 @@ callers' fast path the wrong way.
 
 ## Entry point
 
-An executable uses a top-level `main` function. The common portable form is `fn main() -> Int`, where the returned integer becomes the process exit status. The 0.1 compiler does not document command-line argument parameters on `main`; obtain environment or argument data through supported runtime or FFI functions instead of copying signatures from C, Rust, or older drafts.
+An executable uses a top-level `main` function, and it can be written two ways: `fn main()` and `fn main() -> Int`. The returned integer becomes the process exit status, and **reaching the closing brace is `return 0`**, as in C++. A `main` with no return type exits with status 0, a bare `return` in it is `return 0`, and any other return type is refused (`main` returns an `Int`, the exit status, or nothing). The 0.1 compiler does not document command-line argument parameters on `main`; obtain environment or argument data through supported runtime or FFI functions instead of copying signatures from C, Rust, or older drafts.
 
 ## Not implemented
 

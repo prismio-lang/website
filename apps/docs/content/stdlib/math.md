@@ -250,7 +250,7 @@ This prints 5, 2 and 9.
 | --- | --- | --- |
 | Random numbers (`std.random`) | seeded generators, ranges, shuffles | a small xorshift or PCG in your own module — about ten lines |
 | 32-bit floats | an `F32` type and its functions | `Float`; convert at the boundary with C |
-| Checked and saturating integer arithmetic | `checkedAdd`, `saturatingMul`, overflow as `Option` | compare against `Int.MAX` before the operation, or compute in `I64` |
+| Checked and saturating integer arithmetic | `checkedAdd`, `saturatingMul`, overflow as a `T?` | compare against `Int.MAX` before the operation, or compute in `I64` |
 | Bit counting and rotation | `countOnes`, `leadingZeros`, `trailingZeros`, `rotateLeft` | a loop over `(x >> i) & 1`; `extern fn` to a C builtin wrapper |
 | `Float` bit access | `toBits`, `fromBits`, `nextUp` | not expressible without them |
 | Special functions | `erf`, `gamma`, Bessel functions | `extern fn erf(x: Float) -> Float` from the C library |

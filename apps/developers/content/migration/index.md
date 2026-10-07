@@ -23,8 +23,8 @@ and assumptions that newer compiler work has since implemented differently.
 - Replace hand-written generic or trait workarounds where the current implementation now supports
   generics, impl blocks, traits, associated items, trait objects, or `impl Trait`.
 - Recheck closure captures because current closures capture by value.
-- Recheck enum and optional layouts; payload enums, `Option`, `Result`, and null-variant
-  optimizations now have compiler support.
+- Recheck enum and optional layouts; payload enums, `Result`, optionals (`T?`) and null-variant
+  optimizations now have compiler support. `Option<T>` is gone: `T?` is the optional.
 - Move project configuration into `build.ums` and declare native link inputs explicitly.
 - Replace direct calls into internal runtime symbols with supported `std.*` wrappers where one exists.
 

@@ -99,7 +99,7 @@ Floating operations use `LLVMBuildFAdd`, `LLVMBuildFSub`, `LLVMBuildFMul`,
 `LLVMBuildFCmp` with the predicate selected by the `ir_icmp_*` or `ir_fcmp_*` wrapper. Float
 `==` and the orderings are *ordered* (`oeq`, `olt`, …) and `!=` is **unordered** (`une`), so
 a NaN operand makes `!=` true and everything else false, as IEEE 754 requires. `ir_fcmp_one`
-is still defined because the committed seed calls it; nothing current emits it.
+is still defined because the pinned seed calls it; nothing current emits it.
 
 Conversions use `LLVMBuildZExt`, `LLVMBuildSExt`, `LLVMBuildTrunc`,
 `LLVMBuildSIToFP`, `LLVMBuildUIToFP`, `LLVMBuildIntToPtr`, `LLVMBuildPtrToInt`, and

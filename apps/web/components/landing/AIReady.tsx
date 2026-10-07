@@ -130,7 +130,7 @@ export default function AIReady() {
                                 <h3 className="font-semibold">Self-hosted by design</h3>
                             </div>
                             <p className="mt-4 text-sm leading-6 text-zinc-400">
-                                A committed seed builds the first local generation. Later generations
+                                A release seed builds the first local generation. Later generations
                                 compile themselves, and the build checks that the compiler reproduces its own output.
                             </p>
                         </article>

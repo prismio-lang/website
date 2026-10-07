@@ -16,7 +16,7 @@ Use it for compiler/language development and controlled experiments. Pin the com
 
 ## Is the compiler really written in Prismio?
 
-Yes. A committed LLVM IR seed breaks the initial bootstrapping cycle; subsequent generations compile the Prismio compiler source.
+Yes. A target-neutral LLVM IR seed, published as a release asset and fetched by the bootstrap script, breaks the initial bootstrapping cycle; subsequent generations compile the Prismio compiler source.
 
 The repository checks multiple generations and fixed points. Self-hosting proves the language/compiler can express and rebuild itself; it does not prove the compiler is bug-free.
 
@@ -78,7 +78,7 @@ Yes. [Generics](/language/generics) — functions, structs, and enums take type 
 
 ## How are errors represented in programs?
 
-As values. There are no exceptions, `try`, `catch` or propagation operator: a function that can fail returns `Result<T, E>`, and one whose answer may be absent returns `Option<T>` — ordinary generic enums from `std.option`, matched like any other. See [error handling](/language/error-handling).
+As values. There are no exceptions, `try`, `catch` or propagation operator: a function that can fail returns `Result<T, E>`, and one whose answer may be absent returns an optional, `T?` — which `??`, `expect` and a comparison with `none` read. `Result` is an ordinary generic enum from `std.option`, matched like any other. See [error handling](/language/error-handling).
 
 ## Are documentation error IDs compiler codes?
 

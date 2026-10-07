@@ -88,10 +88,6 @@ const TYPE_DOCS: Record<string, { title: string; desc: string }> = {
         title: 'Map<K, V>',
         desc: 'Standard library associative hash map collection.',
     },
-    'Option': {
-        title: 'Option<T>',
-        desc: 'Sum type representing either a value (`Some(T)`) or nothing (`None`).',
-    },
     'Result': {
         title: 'Result<T, E>',
         desc: 'Error-handling sum type representing success (`Ok(T)`) or failure (`Err(E)`).',

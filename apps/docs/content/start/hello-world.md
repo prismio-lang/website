@@ -3,7 +3,7 @@ title: Hello, Prismio
 description: Compile and run a minimal Prismio 0.1 program.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-08-12"
+lastUpdated: "2026-10-07"
 tags: [getting-started, hello-world, run]
 related: [start/build-and-run, language/functions, stdlib/io]
 ---
@@ -14,20 +14,19 @@ A Prismio executable starts in a top-level function named `main`. Function bodie
 ```prismio
 import std.io
 
-fn main() -> Int {
+fn main() {
     println("Hello, Prismio!")
-    return 0
 }
 ```
 
 Save the exact program as `hello.psm`. The `.psm` extension identifies Prismio source.
 
-The four lines inside the example establish several core rules:
+The few lines in the example establish several core rules:
 
-- `fn main() -> Int` declares the process entry point and an integer exit status.
+- `fn main()` declares the process entry point.
 - `{` and `}` delimit the function body.
 - `println` selects the `String` overload from the auto-loaded source standard library.
-- `return 0` reports successful completion to the operating system.
+- Reaching the closing brace reports successful completion to the operating system: the exit status is 0. A program that wants another status writes `fn main() -> Int` and returns it, as the next example does.
 
 Save the file as `hello.psm`, then run it directly:
 
@@ -77,13 +76,15 @@ fn main() -> Int {
 }
 ```
 
+This `main` says `-> Int` and `return 0` out loud, which is the same program: both are optional on `main`, and a `main` that returns a number exits with it.
+
 `let` creates an immutable binding and the annotation fixes its type as `Int`. Exact overload resolution selects `println(value: Int)`.
 
 ## Common first errors
 
 - Adding semicolons produces unsupported punctuation in statement positions.
 - Writing top-level calls is invalid; executable statements belong inside a function.
-- Omitting `return` from an `Int`-returning path fails definite-return analysis.
+- Omitting `return` from an `Int`-returning function other than `main` fails definite-return analysis. `main` alone may end without one: it returns 0.
 - Integer output has exact overloads for every built-in signed and unsigned width; arithmetic and assignment still do not widen integers implicitly.
 - Copying a command-line signature from another language may fail because 0.1 documents `main()` without argument parameters.
 

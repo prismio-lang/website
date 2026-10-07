@@ -188,10 +188,10 @@ region freed nothing at its exit, and the site had been taken off the drop list 
 was supposed to reclaim it: one leak per call, with no violation to flag it. The bracketed path, which
 places a callee's sites in its caller's region, did not check at all.
 
-Standard input found it. `for line in stdin.lines()` put a region around every iteration that
+Standard input found it. `for line in inputLines()` put a region around every iteration that
 served nothing:
 
-| `for line in stdin.lines()` | Ledger | 3M lines |
+| `for line in inputLines()` | Ledger | 3M lines |
 | --- | --- | --- |
 | before | `6 allocated, 3 released, 3 leaked` | 277 ms |
 | after | `6 allocated, 6 released, 0 leaked` | 134 ms |

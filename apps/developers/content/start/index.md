@@ -137,7 +137,7 @@ Every section uses these. Deeper pages expand their own acronyms again, because 
 | Term | Meaning |
 | --- | --- |
 | **Generation** | One build of the compiler. `build/gen1` is built by the seed, `gen2` by `gen1`, and so on. |
-| **Seed** | Committed, target-neutral LLVM IR under `bootstrap/`. It builds the first generation without needing an existing Prismio compiler, which is what breaks the self-hosting cycle. |
+| **Seed** | Target-neutral LLVM IR: a release asset pinned by `bootstrap/seed.json` and fetched into `bootstrap/` (untracked). It builds the first generation without needing an existing Prismio compiler, which is what breaks the self-hosting cycle. |
 | **Project host** | The compiler at `.prismio/build/debug/prismio`, which `prismio build` in the checkout replaces. It moves every time you build, so evidence names a generation instead. |
 | **Fixed point** | Two successive generations built from the same source produce the same output. It is how a self-hosted compiler checks that it still compiles itself correctly. |
 | **Sema** | Semantic analysis: name resolution, types, overloads, generics, traits, and ownership. It runs after parsing and before anything is generated. |

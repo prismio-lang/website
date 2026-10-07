@@ -84,7 +84,7 @@ A literal needs its elements to implement `Copy` (every scalar, `String`, and an
 |---|---|
 | `v[i]` | the element at `i` |
 | `v.first` / `v.last` | the element at either end |
-| `v.get(i)` | `Option.Some(element)`, or `Option.None` when `i` is outside `[0, length)` |
+| `v.get(i)` | the element as a `T?`, or `none` when `i` is outside `[0, length)` |
 | `for x in v` | each element in order |
 | `v[a..<b]`, `v[a..b]` | a [slice](/language/arrays-and-lists#slices) of the range — `..<` stops before `b`, `..` includes it |
 
@@ -101,8 +101,8 @@ Requires `T: Eq` (from `std.eq`, which covers every scalar and `String`).
 | `v.countOf(x)` | how many elements equal `x` |
 | `v.binarySearch(x)` | the position of `x` in a **sorted** Vec, or `-1`; requires `T: Ord` |
 | `v.isSorted()` | whether the elements are in order; requires `T: Ord` |
-| `v.min()` / `v.max()` | the smallest or largest element as an `Option`, `Option.None` when empty; requires `T: Ord`, `T: Copy` |
-| `v.find(keep)` | the first element `keep` accepts, as an `Option` |
+| `v.min()` / `v.max()` | the smallest or largest element as a `T?`, `none` when empty; requires `T: Ord`, `T: Copy` |
+| `v.find(keep)` | the first element `keep` accepts, as a `T?` |
 | `v.indexWhere(keep)` | the position of the first element `keep` accepts, or `-1` |
 | `v.startsWith(other)` / `v.endsWith(other)` | whether the Vec begins or ends with the elements of `other`, in order |
 
@@ -119,14 +119,14 @@ Everything in this table changes the Vec, so the Vec has to be one the code may 
 | `v[i] = x` / `v.set(i, x)` | replaces the element at `i` |
 | `v.swap(i, j)` | exchanges two elements |
 | `v.replace(i, x)` | replaces the element at `i` and releases the one it displaced at once; boxed struct elements only, on a local Vec nothing has read an element of yet |
-| `v.pop()` | removes the last element: `Option.Some(it)`, or `Option.None` when empty |
+| `v.pop()` | removes the last element and answers it as a `T?`, or `none` when empty |
 | `v.removeAt(i)` | removes the element at `i` and returns it; everything after moves down |
 | `v.truncate(n)` | keeps the first `n` elements |
 | `v.clear()` | removes every element |
 | `v.reserve(n)` | makes room for `n` elements in total |
 | `v.extend(other)` | appends a copy of every element of `other` |
 | `v.reverse()` | reverses the order in place |
-| `v.removeFirst()` | removes the first element: `Option.Some(it)`, or `Option.None` when empty |
+| `v.removeFirst()` | removes the first element and answers it as a `T?`, or `none` when empty |
 | `v.swapRemove(i)` | removes the element at `i` and returns it, by moving the last element into its place: constant time, order not kept |
 | `v.retain(keep)` | keeps the elements `keep` accepts, in order |
 | `v.dedup()` | removes each element equal to the one before it; sort first to remove every repeat |
@@ -150,9 +150,10 @@ fn main() -> Int {
     println(next)                  // fetch
 
     let finished = queue.pop()
-    match (finished) {
-        Option.Some(task) => { println(task) }   // ship
-        Option.None => { println("nothing left") }
+    if (finished == none) {
+        println("nothing left")
+    } else {
+        println(expect(finished))      // ship
     }
 
     queue.truncate(1)

@@ -172,7 +172,7 @@ The reference compiler reports version `0.1.0`. Self-hosted does not mean compil
 
 ## Trust and fixed points
 
-A self-hosted compiler needs a compiler to build it. A committed, target-neutral **seed** — LLVM IR under `bootstrap/` — breaks that cycle. The seed builds a first compiler **generation**, which builds the next. Fixed-point comparison detects when successive generations disagree about the compiler source.
+A self-hosted compiler needs a compiler to build it. A target-neutral **seed** — LLVM IR, published as a release asset and fetched into `bootstrap/` — breaks that cycle. The seed builds a first compiler **generation**, which builds the next. Fixed-point comparison detects when successive generations disagree about the compiler source.
 
 CI combines that check with positive and negative programs, AIF oracle tests, generated-symbol checks, and multi-platform builds. See [bootstrapping](/compiler/bootstrap) for the exact operational model.
 

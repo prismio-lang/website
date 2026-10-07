@@ -93,7 +93,7 @@ That is `semaErrorAt`, which every general semantic error goes through, so the c
 | `ums/` | Manifest parser, model, resolver, build plan, and commands for the Unified Manifest System |
 | `tests/` | Positive, negative, ownership, AIF, IR, and toolchain regressions |
 | `tools/` | Python scripts: the suite runner, AIF differential, release gate, packaging, seed refresh |
-| `bootstrap/` | The committed seed that builds the first compiler generation |
+| `bootstrap/` | The pin for the release seed (`seed.json`); the seed that builds the first compiler generation is fetched here |
 | `benchmarks/` | Equivalent Prismio, C++, and Rust workloads plus result artifacts |
 | `docs/aif/` | The AIF (Adaptive Inference Framework) specification and design record: `spec/` is normative, `implementation/` holds the rationale and requirements |
 | `tools/aif_oracle/` | The independent Python implementation of AIF, used as an oracle by `tools/aif_differential.py` |

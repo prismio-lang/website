@@ -30,12 +30,12 @@ fn main() -> Int {
     }
 
     let info = metadata("logs/app.log")
-    match (info) {
-        Option.Some(m) => {
-            println(m.size)              // 14
-            println(m.isFile)            // true
-        }
-        Option.None => { println("missing") }
+    if (info == none) {
+        println("missing")
+    } else {
+        let m = expect(info)
+        println(m.size)                  // 14
+        println(m.isFile)                // true
     }
 
     println(removeDirectory("logs/old")) // false: it still holds notes.txt
@@ -71,13 +71,13 @@ You cannot: the runtime's raw entry points (`read_file`, `join_path` and the oth
 |---|---|
 | `fileExists(path)` | `Bool` |
 | `readFile(path)` | the whole file as text |
-| `tryReadFile(path)` | `Option<String>` |
+| `tryReadFile(path)` | `String?` |
 | `writeFile(path, content)` | `Bool` — true when the write succeeded |
 | `appendFile(path, content)` | `Bool` — adds `content` to the end, creating the file if it is absent |
 | `rename(from, to)` | `Bool` — moves the file, **replacing** one already at `to` |
 | `deleteFile(path)` | `Bool` — true when the file is gone afterwards |
 | `readLines(path)` | the file's lines, for `for line in` — see [below](#reading-a-file-a-line-at-a-time) |
-| `tryReadLines(path)` | `Option` of the same; `None` when the file cannot be opened |
+| `tryReadLines(path)` | an optional of the same; `none` when the file cannot be opened |
 | `listModules(directory)` | `Vec<String>` — the `.psm` files, sorted, without the suffix |
 
 `readFile` cannot distinguish an unreadable file from an empty one: both come back as the empty string. `tryReadFile` can, and it does it by asking `fileExists` first rather than by inspecting the result, because the result cannot answer.
@@ -128,7 +128,7 @@ Binding the result is not required: `println(readFile(path))` releases the file'
 
 ## What a path is
 
-`metadata(path)` answers `Option<Metadata>`: `None` when nothing is at `path` or it cannot be examined, and otherwise a struct of four fields.
+`metadata(path)` answers a `Metadata?`: `none` when nothing is at `path` or it cannot be examined, and otherwise a struct of four fields.
 
 | Field | Type | Meaning |
 | --- | --- | --- |
@@ -139,7 +139,7 @@ Binding the result is not required: `println(readFile(path))` releases the file'
 
 A symbolic link answers for what it points at. A path that is neither a directory nor a regular file, such as a device or a socket, has both flags false. `unixTime().minus(m.modified).asSeconds` is how old the file is.
 
-**Bind the result with `let` before matching it**, as the example at the top does. `match (metadata(path)) { ... }` compiles, but leaks the `Option` on every call: ten calls measure `30 allocated, 20 released, 10 leaked` under `--verify`, and the bound form releases all 30. The same holds for any `Option` or `Result` matched straight off a call.
+**Bind the result with `let` before reading it**, as the example at the top does. A `Result` matched straight off a call (`match (parse(path)) { ... }`) compiles, but leaks on every call; the bound form releases it.
 
 ## Reading a file a line at a time
 
@@ -168,7 +168,7 @@ fn main() -> Int {
     println(count)                       // ran to the end, so it closed itself
 
     let missing = tryReadLines("nope.csv")
-    println(missing.isNone)              // true
+    println(missing == none)             // true
     return 0
 }
 ```
@@ -198,6 +198,6 @@ Lines follow the same rules as [standard input](/stdlib/input): `\n` and `\r\n` 
 | Permissions, owners, and symbolic links as links | not available; `metadata` follows a link |
 | Reading bytes rather than text, and seeking | `readFile` for text; foreign code for binary formats |
 | Path helpers: file name, extension, parent, normalising | `directoryOf` and `joinPath`, and `String` methods for the rest |
-| A path type distinct from `String`, and a structured error | `Bool` and `Option` results; check `fileExists` or `metadata` for the reason |
+| A path type distinct from `String`, and a structured error | `Bool` and optional results; check `fileExists` or `metadata` for the reason |
 
 A future API must also settle path encoding, error representation, and sandbox behaviour before those are documented as implemented.

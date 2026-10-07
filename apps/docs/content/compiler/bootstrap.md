@@ -8,7 +8,7 @@ tags: [compiler, bootstrap, self-hosting, reproducibility]
 related: [start/installation, guides/compiler-development, specification/conformance]
 ---
 
-Self-hosting creates a cycle: Prismio source needs a Prismio compiler. The repository breaks it with committed, target-neutral LLVM IR for a seed compiler.
+Self-hosting creates a cycle: Prismio source needs a Prismio compiler. The project breaks it with target-neutral LLVM IR for a seed compiler. The seed is a release asset (`prismio-seed-<version>.ll`), not a tracked file: `bootstrap/seed.json` pins its version and SHA-256, `tools/fetch_seed.py` downloads and checks it, and `--seed` runs that for you.
 
 The seed is a trust anchor, not the preferred everyday implementation. Its job is to reconstruct a current compiler whose later generations can be checked against one another.
 
@@ -22,7 +22,7 @@ tools/bootstrap.sh --compiler build/gen1 --out build/gen2
 
 Conceptually:
 
-- the committed seed material produces `gen0` for the host;
+- the pinned release seed produces `gen0` for the host;
 - `gen0` compiles the current Prismio compiler source into `gen1`;
 - `gen1` compiles the same source into `gen2`; and
 - fixed-point checks compare the relevant `gen1` and `gen2` outputs.
@@ -37,7 +37,7 @@ The scripts also coordinate the pinned LLVM line and platform-specific executabl
 
 The compiler is not only Prismio code. Its runtime and its LLVM backend bridge are C, and a change to either has to reach the next generation. This repository's `build.ums` lists those files as `native` sources of its `prismio` target, so `prismio build` compiles them from the working tree on every build (through a cache keyed by their content) and links them into the new compiler. Nothing about them is built into the compiler doing the building. An older generation, the installed compiler and the project's own host all produce a compiler with the current C, and `tools/bootstrap.sh` does the same when no compiler exists yet.
 
-Two things are still true. The frontend source must be parseable by the compiler doing the build, which is what the committed seed is kept able to do. And the programs a compiler builds link the runtime library installed beside it, so a runtime edit needs that library re-emitted: a compiler with a source tree beside it refuses to build with a library made from different runtime sources (`P1004`) rather than link a stale one.
+Two things are still true. The frontend source must be parseable by the compiler doing the build, which is what the pinned seed has to stay able to do. And the programs a compiler builds link the runtime library installed beside it, so a runtime edit needs that library re-emitted: a compiler with a source tree beside it refuses to build with a library made from different runtime sources (`P1004`) rather than link a stale one.
 
 ## Fixed-point meaning
 
@@ -63,7 +63,7 @@ Do not update the trusted seed merely to make a divergence disappear. Seed updat
 
 ## Platform neutrality
 
-Committed seed IR must not embed a host target triple or other machine-specific assumptions. Host LLVM/Clang supplies native lowering when the seed is instantiated. CI checks Windows, macOS, and Linux workflows so portability failures surface before a seed is trusted.
+Seed IR must not embed a host target triple or other machine-specific assumptions. Host LLVM/Clang supplies native lowering when the seed is instantiated. CI checks Windows, macOS, and Linux workflows so portability failures surface before a seed is trusted.
 
 ## Reproducibility record
 

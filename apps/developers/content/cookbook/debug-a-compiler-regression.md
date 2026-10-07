@@ -311,6 +311,6 @@ This is a description, not a recipe to run casually: building a second full gene
 
 ## If you are changing the compiler to fix what you found
 
-For self-hosting regressions, build `gen1` and `gen2` from the same candidate and compare normalized IR through the release gate. A generation difference that stabilizes can be an intentional compiler change; a difference that keeps moving is a bootstrap defect. Do not refresh the committed seed to hide either case.
+For self-hosting regressions, build `gen1` and `gen2` from the same candidate and compare normalized IR through the release gate. A generation difference that stabilizes can be an intentional compiler change; a difference that keeps moving is a bootstrap defect. Do not cut a new seed to hide either case.
 
 **Never make a compiler/oracle disagreement go away without establishing which side was wrong.** An agreement on a wrong answer is worse than a failure: `list_set`'s stored-value index was off by one in both implementations identically, and the agreement hid it for a full release cycle.

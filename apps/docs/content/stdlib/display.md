@@ -1,14 +1,14 @@
 ---
 title: Display and printing
-description: The std.display module -- the Display trait that gives a type its text, and print, println, eprint and eprintln for every type that has it, Option and String? included.
+description: The std.display module -- the Display trait that gives a type its text, and print, println, eprint and eprintln for every type that has it, optionals included.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-10-02"
-tags: [standard-library, display, print, trait, option]
+lastUpdated: "2026-10-07"
+tags: [standard-library, display, print, trait, optional]
 related: [stdlib/io, stdlib/option, stdlib/term, language/traits]
 ---
 
-`import std.display`. `Display` is the trait for a value's text, and importing the module makes `print`, `println`, `eprint` and `eprintln` accept **anything that implements it**: your own types, `Option<T>`, and a `String?`, as well as the numbers, strings, `Bool` and `Char` that [`std.io`](/stdlib/io) already prints.
+`import std.display`. `Display` is the trait for a value's text, and importing the module makes `print`, `println`, `eprint` and `eprintln` accept **anything that implements it**: your own types, a `String?` or an `Int?` and the other optionals, as well as the numbers, strings, `Bool` and `Char` that [`std.io`](/stdlib/io) already prints.
 
 ```text
 trait Display {
@@ -51,7 +51,7 @@ The multi-argument form goes through the same overloads, and a type that is not 
 
 ## Printing an optional
 
-`Option<T>`, where `T` is printable, shows its value, or `none`. So does a scalar `T?` such as `Int?`, and a `String?`:
+An optional shows its value, or `none`. That is every scalar `T?` such as an `Int?`, and a `String?`:
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -61,8 +61,8 @@ import std.option
 import std.string
 
 fn main() -> Int {
-    let found: Option<String> = Option<String>.Some("ada")
-    let missing: Option<String> = Option<String>.None
+    let found: String? = "ada"
+    let missing: String? = none
     let age: Int? = 36
     let nickname: String? = none
 
@@ -70,12 +70,11 @@ fn main() -> Int {
     println("name:", missing)  // name: none
     println("age:", age)       // age: 36
     println("nickname:", nickname)  // nickname: none
-    println(Option<Int>.Some(7))    // 7
     return 0
 }
 ```
 
-That is what `stdin.readLine()` returns, so `println(stdin.readLine())` works and shows `none` at the end of input. To use the value rather than print it, take it out first: `unwrapOr(fallback)`, `expect(x)`, or a `match`; see [Option and Result](/stdlib/option).
+That is what `readLine()` returns, so `println(readLine())` works and shows `none` at the end of input. To use the value rather than print it, take it out first: `x ?? fallback`, `expect(x)`, or a comparison with `none`; see [Optionals](/language/optionals).
 
 ## What implements `Display`
 
@@ -87,7 +86,6 @@ That is what `stdin.readLine()` returns, so `println(stdin.readLine())` works an
 | `Char` | the character |
 | `String` | itself |
 | `Int?`, `Float?`, `Char?` and the other scalar optionals, and `String?` | the value, or `none` |
-| `Option<T>` for a printable `T` | the value, or `none` |
 
 The overloads for the built-in types in `std.io` are exact matches and win over these, so importing `std.display` changes nothing for a program that only prints numbers and strings. They live here and not in `std.io` because every printing program imports `std.io`, and a generic `print` there would carry `std.display` and `std.string` into all of them.
 

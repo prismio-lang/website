@@ -44,13 +44,13 @@ may hand back a view of it:
 |---|---|
 | `println(text.trim())` | correct |
 | `println(text.split(',').length)` | correct — the Vec is released after `length` is read |
-| `println(optionOr(text.stripPrefix("x"), "none"))` | correct — the Option lives to the end of the block |
+| `println(text.stripPrefix("x") ?? "none")` | correct — the optional lives to the end of the block |
 | `x.trim().toUpper()` | correct — both results are released |
 
 Two shapes still leak, and binding the value with `let` fixes both:
 
 - a temporary evaluated *after* another call in the same expression, when the
-  callee may hand back a view of it: `n = a.size() + optionOr(f(), d).length`
+  callee may hand back a view of it: `n = a.size() + pick(f(), d).length`, where `pick` returns one of its arguments
   (moving `f()` ahead of `a.size()` could reorder their effects, so the compiler
   does not);
 - a view of a temporary that is kept — pushed into a Vec or assigned to a
@@ -200,7 +200,7 @@ remains available when only the index is wanted.
 |---|---|---|
 | `s.charAt(i)` | `Char` — NUL out of range | no |
 | `s.byteAt(i)` | `Int` — no upper-bound check, use inside an established bound | no |
-| `s.get(i)` | `Option<Char>` — `None` out of range | no |
+| `s.get(i)` | `Char?` — `none` out of range | no |
 | `s.clone()` | `String` | **yes** |
 | `s.chars()` | `Vec<Char>` | **yes** |
 | `s.bytes()` | `Vec<Int>` | **yes** |
@@ -228,7 +228,7 @@ None of these allocate.
 | `s.indexOf(needle)` | `Int` — first index, or `-1` |
 | `s.indexOf(needle, from)` | `Int` — first index at or after `from`, or `-1` |
 | `s.lastIndexOf(needle)` | `Int` — last index, or `-1` |
-| `s.find(needle)` | `Option<Int>` — the same search without the sentinel |
+| `s.find(needle)` | `Int?` — the same search without the sentinel |
 | `s.count(needle)` | `Int` — non-overlapping occurrences |
 | `s.matchesAt(needle, at)` | `Bool` — whether `needle` occurs exactly at `at` |
 
@@ -252,10 +252,9 @@ fn main() -> Int {
 }
 ```
 
-`indexOf` and `find` are the same search. The sentinel form is cheaper — an
-`Option` with a payload is a tagged struct and an allocation — so `-1` is the
-default and `find` is there for callers who would rather be made to handle the
-absent case.
+`indexOf` and `find` are the same search. `-1` is the sentinel form and the
+default, and `find` is there for callers who would rather be made to handle the
+absent case: `s.find(needle) ?? -1` is `s.indexOf(needle)`.
 
 ## Producing new strings
 
@@ -277,7 +276,7 @@ Every method here allocates and returns an owned `String`. Bind the result.
 | `s.replaceFirst(old, new)` | the first occurrence |
 | `s.insert(at, other)` | `at` past the end appends |
 | `s.removeRange(start, length)` | clamped |
-| `s.stripPrefix(p)`, `s.stripSuffix(p)` | `Option<String>` — `None` when absent |
+| `s.stripPrefix(p)`, `s.stripSuffix(p)` | `String?` — `none` when absent |
 
 `substring` takes a length and `slice` takes an end. Both exist because reading a
 range as a length is the mistake the pair is meant to prevent: `s[a..<b]` and

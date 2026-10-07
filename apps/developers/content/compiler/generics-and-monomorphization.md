@@ -94,9 +94,9 @@ specialization.
 
 Ordinary overloads mangle the same way, just without a struct prefix —
 `pick(a: Int, b: Int)` and `pick(a: String, b: String)` become
-`pick__Int_Int` and `pick__String_String`, and `optionOr<T>(o: Option<T>,
-fallback: T)` instantiated at `T = Int` becomes
-`optionOr$Int__Struct_Option$Int_Int`.
+`pick__Int_Int` and `pick__String_String`, and `optionCoalesce<T>(a: T?,
+b: T)` instantiated at `T = Int` becomes
+`optionCoalesce$Int__Opt_Int_Int`.
 
 ## What failure looks like
 
@@ -171,7 +171,7 @@ an ordinary concrete declaration — nothing downstream needs to know it was
 generated.
 
 Names use `monoSeparator()` — `$`, confirmed above in
-`optionOr$Int__Struct_Option$Int_Int` and `singleton$Struct_Flat__...` — plus
+`optionCoalesce$Int__Opt_Int_Int` and `singleton$Struct_Flat__...` — plus
 a complete encoding of the applied arguments. `monoMangledName` produces that
 identity; `semaMangleType` produces the linkage fragments for resolved types
 that go into it. `monoSeparatorCount` and `monoArgsTooDeep` guard against
@@ -185,13 +185,13 @@ that must know a generic exists *before* writing a call to it asks `monoHasTempl
 kind)` instead, and `monoHasTemplateOfArity(module, name, count)` when the parameter count matters.
 Two rewrites learned this in 0.1.0:
 
-- **`semaPropertyRewrite`** turns `o.isSome` into a call. A property declared on
-  `impl<T> Option<T>` is a template, so the rewrite used to see no function and read the property
-  as a field ("struct `Option$Int` has no field"). It now falls back to `monoHasTemplate`, and when
+- **`semaPropertyRewrite`** turns `r.isOk` into a call. A property declared on
+  `impl<T, E> Result<T, E>` is a template, so the rewrite used to see no function and read the property
+  as a field ("struct `Result$Int$String` has no field"). It now falls back to `monoHasTemplate`, and when
   no template of the name takes only its receiver — `monoHasTemplateOfArity(module, name, 1)` —
   it reports ``"`unwrapOr` is a method, not a property"`` itself rather than letting the rewritten
   call fail as "unknown function". The concrete case still reaches `semaCheckPropertySpelling`
-  through overload resolution, and both name `isSome` rather than its instantiation `isSome$Int`
+  through overload resolution, and both name `isOk` rather than its instantiation `isOk$Int$String`
   (`tests/neg_194_generic_property_spelling.psm`).
 - **`semaShadowsStandardLibrary`** decides whether a program's own declaration shadows a
   standard-library function of the same name and parameter types, by mangling each same-named
@@ -256,7 +256,7 @@ accepts such a closure and a bound `F: Fn(A) -> R` never does
 - `monoSolveFromCallables` solves what the arguments left open. A type parameter that appears only
   in a bound's result — `U` in `F: Fn(T) -> U` — has no argument to be read from, so it is matched
   structurally against the closure's lowered `call` return type. Matching is structural, so
-  `andThen`'s `Fn(T) -> Option<U>` finds `U` inside the `Option` the closure returns. It repeats
+  `andThen`'s `Fn(T) -> U?` finds `U` inside the optional the closure returns. It repeats
   until nothing more is solved, because one answer can be what another bound's result is written in.
 - `monoCheckCallableBound` checks the closure against the substituted bound: the same parameter
   types and the same result, or ``this closure is `Fn(String) -> String`, and `map` needs
@@ -265,14 +265,24 @@ accepts such a closure and a bound `F: Fn(A) -> R` never does
 
 It works in a `where` clause and as `impl Fn(...)` on a parameter. The syntax landed in two steps,
 as new syntax must: the frontend first, then a seed refresh, and only then `std/option.psm`'s
-`map`, `andThen` and `mapErr`. `tests/test_192_callable_bounds.psm` covers the language half.
+`Result.map`, `Result.andThen` and `Result.mapErr`. `tests/test_192_callable_bounds.psm` covers the language half.
+
+**A `T?` parameter is solved from an optional, and only from one.** `monoMatchParam` reads `v: T?`
+against `Int?` as `T = Int`, not `T = Int?`; against a bare `none` it says nothing; and against a
+bare value, which a call would wrap into the optional, it also says nothing. That last rule is
+what lets `std/option.psm` declare `map<T, U, F: Fn(T) -> U>(o: T?, f: F) -> U?` without capturing
+every `a.map(f)` in the program: a template is resolved before overload resolution, so one that
+accepted any receiver would shadow a type's own `map` (`tests/test_192_callable_bounds.psm`).
+`unwrapOr` on a scalar's `T?` is the compiler's own, answered by `semaCheckBuiltinCall`, and
+`semaIsScalarUnwrapOr` keeps the template from being resolved first, so a program that never
+imported `std.option` still has it.
 
 **An array is not a type argument of a type.** `monoArgsHoldArray` runs where a written type with
 type arguments is resolved (`semaAnnotationInner` in `src/sema/types.psm`) and refuses an unsized
 array among them: a `[T]` without a length is a pointer to elements in the declaring frame, and a
 `Box<[Int]>` built from a local and returned read that dead frame. Because it runs on annotations,
 it also catches a generic function whose `T` is an array when the instantiated body writes
-`Option<T>` (`tests/neg_199_array_inferred_type_argument.psm`); a generic function's own `T` may
+`Result<T, String>` (`tests/neg_199_array_inferred_type_argument.psm`); a generic function's own `T` may
 still be an array, since `id<T>(x: T) -> T` hands the view back to the frame that owns it
 (`test_163`). It does not see a type named only in expression position: `Box<[Int]> { value: a }`
 used within the declaring function compiles, which is sound because nothing carries it out, but

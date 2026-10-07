@@ -40,19 +40,17 @@ tagged until three platforms have agreed on the exact commit that would be tagge
 | `prismio bench` | the cross-language benchmarks |
 
 1. **Refresh what is generated from the tree, first.** `prismio build` twice, so the host is a fixpoint of
-   this `src/`; `tools/refresh_seed.sh --compiler .prismio/build/debug/prismio` (`.ps1` on Windows);
-   `graphify update .`. CI only checks that the committed seed can parse `src/`, so a stale seed passes while
-   describing an older compiler (the 0.1.0 seed was about 7,500 lines behind). The refresh belongs in the
-   commit that gets tested: a refresh after the gate makes a new commit the gate has not seen.
+   this `src/`; `graphify update .`. The refresh belongs in the commit that gets tested: a refresh after the
+   gate makes a new commit the gate has not seen. The seed is not part of it: it is a release asset pinned by
+   `bootstrap/seed.json`, and a new one is cut after the tag (step 5).
 2. **`prismio gate`.** It lints, packages the host the way a user installs it, puts the pinned LLVM first on
    `PATH`, and runs `tools/release_gate.py`: source lists, two successor generations, the IR fixpoint,
-   reproduction by the candidate, the committed seed, the full suite, the AIF differential, the corpus, the
+   reproduction by the candidate, the pinned release seed, the full suite, the AIF differential, the corpus, the
    `--verify` sweep, the environment-switch fallbacks, the JIT, cross-target behavior, and packaging with
    toolchain separation. Record the run in the release commit's message.
 3. **Push, then start CI by hand.** CI does not run on push. `gh workflow run ci.yml --ref main` starts it on
    `windows-latest`, `ubuntu-latest` (x86-64) and `macos-latest` (arm64): a three-generation bootstrap from the
-   committed seed, the fixpoint, the suite, the AIF differential, the seed check (usable, target-neutral, and on
-   Linux current), packaging, separation, a smoke test of the packaged toolchain outside the checkout, and
+   pinned release seed, the fixpoint, the suite, the AIF differential, the seed check (target-neutral), packaging, separation, a smoke test of the packaged toolchain outside the checkout, and
    `tools/release.py` on the runner, whose archive and checksum are uploaded as the `release-<OS>-<arch>`
    artifact. All three must be green **on the exact commit you pushed**.
 4. **Artifacts.** `prismio release` builds the archive for the host (`.tar.gz`, or `.zip` on Windows) and
@@ -67,7 +65,7 @@ In commands, from the compiler checkout:
 
 ```bash
 prismio build && prismio build                                   # the host is a fixpoint of this src/
-tools/refresh_seed.sh --compiler .prismio/build/debug/prismio     # then: graphify update .
+graphify update .                                                # AST only; the seed is cut after the tag
 prismio gate                                                     # green on this exact commit
 git push origin main                                             # needs the owner's go-ahead
 gh workflow run ci.yml --ref main                                # CI does not run on push

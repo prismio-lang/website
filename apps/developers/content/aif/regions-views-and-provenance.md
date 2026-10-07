@@ -234,30 +234,35 @@ A match binder is a view of the enum it was read out of (the worked example abov
 shape free memory twice:
 
 ```prismio
-fn errOf(r: Result<Int, String>) -> Option<String> {
+enum Found<T> {
+    Missing,
+    Present(T)
+}
+
+fn errOf(r: Result<Int, String>) -> Found<String> {
     match (r) {
-        Result.Err(e) => { return Option<String>.Some(e) }
-        Result.Ok(v) => { return Option<String>.None }
+        Result.Err(e) => { return Found<String>.Present(e) }
+        Result.Ok(v) => { return Found<String>.Missing }
     }
 }
 ```
 
-`Option<String>.Some(e)` stores a value that still belongs to `r`, and an enum's release always frees
+`Found<String>.Present(e)` stores a value that still belongs to `r`, and an enum's release always frees
 its payload; binding one out does not stop that. The sites alone cannot tell: they are the
 payload's sites, and `r`'s own payload field lists them too, so **both fields agreed they were the
 release point**, and the payload was freed once by each enum. Two changes in
 `runtime/aif_support.c` close it, and each needs the other.
 
 - **`field_release_of` declines a field that may hold a view of an enum's payload**
-  (`field_holds_enum_view`). The new `Option` does not free `e`; the `Result` stays its one owner.
+  (`field_holds_enum_view`). The new `Found` does not free `e`; the `Result` stays its one owner.
   A payload enum is a `$tag` struct by the time AIF sees it (`site_is_enum` looks for that field).
-- **`fn_may_return_view_of_param` looks through the returned object's fields.** `errOf` returns an
-  `Option` of its own, a fresh object, but that object *holds* a view of `r`. The caller used to
-  free its argument at scope exit while that `Option` lived: `let h = parse(t); return errOf(h)`
+- **`fn_may_return_view_of_param` looks through the returned object's fields.** `errOf` returns a
+  `Found` of its own, a fresh object, but that object *holds* a view of `r`. The caller used to
+  free its argument at scope exit while that `Found` lived: `let h = parse(t); return errOf(h)`
   handed back a payload already freed. `fn_return_holds_view_of_param` walks every field of every
-  object the return may reach, since a struct can hold the `Option`, and asks whether any of them
+  object the return may reach, since a struct can hold the `Found`, and asks whether any of them
   views an enum the parameter points to. When one does, the caller keeps `h` alive, which leaks it
-  rather than freeing it early.
+  rather than freeing it early. `tests/binder_rewrap_probe.psm` is the same shape through a `String?`, where the optional is the payload's own pointer.
 
 **Enums only.** A *struct* whose field value is read out and kept elsewhere is not released with
 that field (the rule behind "a field value read out and returned leaks"), so there the holder is the

@@ -118,7 +118,7 @@ A literal is sized once, for exactly its entries, so building it never grows the
 | `Map<K, V>.withCapacity(n)` | an empty map with room for `n` entries before it grows |
 | `m.length`, `m.isEmpty` | `Int`, `Bool`; [properties](/language/methods#properties) |
 | `m.has(key)` | `Bool` |
-| `m.get(key)` | [`Option<V>`](/stdlib/option): the value, or `None` |
+| `m.get(key)` | `V?`: the value, or `none` — [`??`](/language/optionals#none-coalescing) gives it a default |
 | `m.getOr(key, fallback)` | the value, or `fallback` when the key is absent |
 | `m[key]` | the value; **stops the program** with `panic: key not in map` when the key is absent |
 | `m.set(key, value)` | `Bool`: inserts or overwrites, and answers `true` if the key was already present |

@@ -327,4 +327,4 @@ This conservative restriction prevents a path that succeeds once and becomes a u
 | **A `break` that carries a value** out of a `loop` | assign into a `let mut` declared before the loop, then `break` |
 | **`for` over a `[T]` parameter**, whose length is not known | pass the length and write `for i in 0..<n` |
 | **`(key, value)` from an `Iterator`** | return a struct from `next()` and read its fields |
-| **`defer`**, exceptions, and conditional binding syntax (`if let`) | release explicitly on each path; use `Option` with `match` |
+| **`defer`**, exceptions, and conditional binding syntax (`if let`) | release explicitly on each path; compare an optional with `none` and read it with `expect` |

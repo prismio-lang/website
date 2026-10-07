@@ -65,7 +65,7 @@ starts -- `run`'s, a project command's step, a forwarded host -- is started thro
 There is no `bootstrap` command. The compiler is an ordinary UMS target whose `native` block lists
 its backend and runtime sources, so `prismio build` in the checkout builds one, and nothing
 installed knows which files make one. `tools/bootstrap.sh` / `tools/bootstrap.ps1` remain the independent path, including from
-the committed seed. A named generation run from the checkout (`build/gen2 build`) builds and
+the release seed. A named generation run from the checkout (`build/gen2 build`) builds and
 promotes the project host with that generation.
 
 ## Inspection commands

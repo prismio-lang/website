@@ -3,12 +3,12 @@ title: Operators and casts
 description: Prismio 0.1 arithmetic, comparison, logical, bitwise, shift, unary, assignment, and cast operators.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-30"
+lastUpdated: "2026-10-07"
 tags: [operators, precedence, casts, bitwise]
 related: [language/types, specification/evaluation, errors/integer-width-mismatch]
 ---
 
-Operators form expressions from typed operands. Prismio provides arithmetic `+ - * / %`, comparison `== != < <= > >=`, short-circuit logic `and or`, bitwise `& | ^`, shifts `<< >>`, and unary `! - ~`. Explicit casts use `expression as Type`. `String` has its own set — see [String operators](#string-operators) below.
+Operators form expressions from typed operands. Prismio provides arithmetic `+ - * / %`, comparison `== != < <= > >=`, short-circuit logic `and or`, none-coalescing `??`, bitwise `& | ^`, shifts `<< >>`, and unary `! - ~`. Explicit casts use `expression as Type`. `String` has its own set — see [String operators](#string-operators) below.
 
 Operators are statically checked. Prismio generally requires matching operand types and does not insert C-style integer promotions or integer-to-float conversions.
 
@@ -59,6 +59,26 @@ if (index >= 0 and index < limit) {
 
 Prismio uses the words `and` and `or`, not `&&` and `||`.
 
+## None-coalescing
+
+`a ?? b` is `a` when the [optional](/language/optionals) `a` has a value, and `b` when it is `none`. `b` is evaluated only in that case.
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+import std.option
+
+fn main() {
+    let found: Int? = none
+    let other: Int? = 4
+    println(found ?? 10)           // 10
+    println(found ?? other ?? 10)  // 4
+    println(other ?? 10 + 1)       // 4: `+` binds tighter than `??`
+}
+```
+
+The result is a `T` when `b` is a `T`, and a `T?` when `b` is one. `??` needs `import std.option`, because it is a call to `optionCoalesce` in that module, and its left side must be an optional: `5 ?? 6` is refused.
+
 ## Bitwise operators and shifts
 
 `&`, `|`, `^`, and unary `~` operate on compatible integers. `<<` and `>>` shift an integer value. Right shift is arithmetic for signed types and logical for unsigned types.
@@ -94,18 +114,19 @@ From lowest to highest, binary precedence is:
 2. `and`
 3. `== !=`
 4. `< <= > >=`
-5. `|`
-6. `^`
-7. `&`
-8. `<< >>`
-9. `+ -`
-10. `* / %`
+5. `??`
+6. `|`
+7. `^`
+8. `&`
+9. `<< >>`
+10. `+ -`
+11. `* / %`
 
 Unlike C, Prismio deliberately binds bitwise operators more tightly than equality, so `flags & mask != 0` groups as `(flags & mask) != 0`. Right shift is arithmetic for signed values and logical for unsigned values.
 
 Unary operators and casts bind more tightly than the binary levels above, and a unary operator binds inside a cast: `-x as T` is `(-x) as T`. Parentheses are recommended whenever a mixed bitwise, comparison, and logical expression would otherwise require the reader to recall the complete table.
 
-Operators at the same precedence normally group left-to-right. Do not use associativity to hide numerically significant grouping, especially for subtraction, division, shifts, or floating-point expressions.
+Operators at the same precedence normally group left-to-right; `??` is the exception and groups right-to-left, so `a ?? b ?? c` tries `a`, then `b`, then `c`. Do not use associativity to hide numerically significant grouping, especially for subtraction, division, shifts, or floating-point expressions.
 
 ## Casts
 

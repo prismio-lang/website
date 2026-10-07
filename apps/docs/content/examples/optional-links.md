@@ -48,4 +48,4 @@ The comparison with `none` does not itself narrow `node.next`; the explicit `exp
 - Reading `tail` after it has moved into `head.next` is use after move.
 - Optional chaining and `if let` syntax are not part of 0.1.
 
-Use this shape for linked optional ownership when a reference may be absent: `T?` costs nothing, because absence is the null pointer. For a scalar or a type parameter, where there is no spare representation, use [`Option<T>`](/stdlib/option) instead.
+Use this shape for linked optional ownership when a reference may be absent: `T?` costs nothing, because absence is the null pointer. A number's `T?` is a present flag beside the value, which costs nothing either, so a link, a lookup result and a parsed number are all the same `T?`.

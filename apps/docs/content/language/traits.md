@@ -636,9 +636,8 @@ The loop desugars to exactly the protocol: `while (hasNext(it)) { let x = next(i
 
 **`next` takes `inout self`**, so an iterator must be a `mut` binding — advancing
 is a mutation and the trait says so. The protocol is `hasNext`/`next` rather than
-`next() -> Option<Item>` because a payload enum is not yet a tagged union, and the
-conventional spelling would put a value per element in the innermost part of every
-loop.
+`next() -> Item?`: the conventional spelling would test and unwrap an optional per
+element in the innermost part of every loop, and this pair needs neither.
 
 `Countdown` has no backing collection, which is the point: this protocol covers
 streams and generators, not just things that could be indexed.

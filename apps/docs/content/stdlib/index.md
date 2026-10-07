@@ -3,7 +3,7 @@ title: Standard library status
 description: Prismio's shipped source standard library and the modules still planned.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-27"
+lastUpdated: "2026-10-07"
 tags: [standard-library, runtime, status]
 related: [stdlib/io, stdlib/display, stdlib/input, stdlib/strings, stdlib/math, stdlib/time, stdlib/filesystem, stdlib/vec, stdlib/map, stdlib/option, roadmap]
 ---
@@ -13,8 +13,8 @@ Prismio ships twenty standard-library modules:
 | Module | Covers |
 | --- | --- |
 | [`std.io`](/stdlib/io) | `print`, `println`, `eprint`, `eprintln` |
-| [`std.display`](/stdlib/display) | the `Display` trait; `print` and `println` for any type that has it, `Option` included |
-| [`std.input`](/stdlib/input) | standard input: `stdin.lines()`, `stdin.readLine()`, `stdin.readLineOr()`, `stdin.readInt()`, `stdin.readLines()` and more |
+| [`std.display`](/stdlib/display) | the `Display` trait; `print` and `println` for any type that has it, optionals included |
+| [`std.input`](/stdlib/input) | standard input: `inputLines()`, `readLine()`, `readLineOr()`, `readInt()`, `readLines()` and more |
 | [`std.string`](/stdlib/strings) | `String` and `Char` methods, parsing, formatting, `StringBuilder`, and the `String` operators |
 | [`std.unicode`](/stdlib/unicode) | grapheme clusters, terminal width, normalization |
 | [`std.fs`](/stdlib/filesystem) | files, directories, paths, `readLines`, `metadata` |
@@ -24,7 +24,7 @@ Prismio ships twenty standard-library modules:
 | [`std.math`](/stdlib/math) | Float and integer math, and every numeric type's limits |
 | [`std.vec`](/stdlib/vec) | `Vec<T>`'s library methods and the Vec literal |
 | [`std.map`](/stdlib/map) | `Map<K, V>` |
-| [`std.option`](/stdlib/option) | `Option<T>`, `Result<T, E>` and their methods |
+| [`std.option`](/stdlib/option) | the functions that read a `T?` (`unwrapOr`, `expect`, `map`, `andThen`, `okOr`, and the call behind `??`), `Result<T, E>` and its methods |
 | [`std.term`](/stdlib/term) | terminal colours and styles |
 | `std.key`, `std.ord`, `std.copy`, `std.eq`, `std.iter`, `std.display`, [`std.default`](/language/traits#a-types-own-default) | the `Key`, `Ord`, `Copy`, `Eq`, `Iterator`, `Display` and `Default` traits |
 

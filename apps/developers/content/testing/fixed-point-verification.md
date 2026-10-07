@@ -11,7 +11,7 @@ related: [compiler/bootstrap, tooling/compiler-host-and-promotion, runtime/platf
 A self-hosted compiler can reproduce the same bug across generations. Fixed-point agreement is a
 determinism and bootstrap check, not a proof of semantic correctness.
 
-The committed target-neutral seed builds an initial native compiler. That generation compiles the
+The target-neutral release seed builds an initial native compiler. That generation compiles the
 current source into the next, which compiles it again. Relevant emitted compiler IR is compared
 between successive generations.
 
@@ -25,7 +25,7 @@ Generate compiler IR with both later generations and compare the normalized arti
 can come from nondeterministic iteration, unstable symbol identity, uninitialized state, target
 metadata, or a genuine compiler semantic difference.
 
-Seed agreement asks a separate question: can the committed bootstrap material still reach the
+Seed agreement asks a separate question: can the pinned bootstrap seed still reach the
 current source and expected generation? Refreshing the seed requires a trusted deterministic
 compiler and should never be used to hide unexplained divergence.
 
@@ -44,9 +44,10 @@ compiler built by generation one emits the same compiler representation as the c
 generation two. `check_rc_reproduces` additionally asks the release candidate to reproduce the
 generation-one IR, preventing a separately built candidate from escaping the cycle.
 
-`check_seed` verifies the committed bootstrap seed remains capable of producing the candidate.
-Refreshing that seed is an explicit operation through `tools/refresh_seed.sh` or PowerShell; it
-must follow reviewed source/runtime changes and a successful fixed point.
+`check_seed` fetches the pinned seed the way a new machine does and verifies it remains capable of
+producing the candidate. Cutting a new seed is an explicit operation through `tools/refresh_seed.sh` or
+PowerShell; it must follow reviewed source/runtime changes and a successful fixed point, and the
+result is published as a release asset and pinned in `bootstrap/seed.json`.
 
 ## Other release-gate functions
 

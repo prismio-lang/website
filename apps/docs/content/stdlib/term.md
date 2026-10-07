@@ -49,7 +49,7 @@ Here both halves are bold, and each keeps its own colour.
 
 ## Styling anything printable
 
-Every style also works on a value that is not a `String`, as long as it has a `Display` (a number, a `Bool`, a `Char`, an `Option`, a type of your own with an `impl Display`). The value is shown first and the text is styled:
+Every style also works on a value that is not a `String`, as long as it has a `Display` (a number, a `Bool`, a `Char`, an optional, a type of your own with an `impl Display`). The value is shown first and the text is styled:
 
 <!-- prismio-check: pass -->
 ```prismio

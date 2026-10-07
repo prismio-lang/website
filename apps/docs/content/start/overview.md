@@ -66,7 +66,7 @@ The Adaptive Inference Framework can select an implementation tier and exposes e
 
 ## Not implemented
 
-User-written lifetime syntax, exceptions, macros, `async`/`await`, and a package *registry* are not implemented. Generics, payload-carrying enum variants, `Option`/`Result`, method-call syntax, `impl` blocks, generic traits with structural arguments and multiple bounds per type parameter, closures and closure bounds, slices, module namespacing and visibility, tasks, blocking typed channels, and the UMS package manifest all are. The pages for what remains missing are retained as roadmap contracts and are visibly marked **Coming Soon**.
+User-written lifetime syntax, exceptions, macros, `async`/`await`, and a package *registry* are not implemented. Generics, payload-carrying enum variants, optionals (`T?`) and `Result`, method-call syntax, `impl` blocks, generic traits with structural arguments and multiple bounds per type parameter, closures and closure bounds, slices, module namespacing and visibility, tasks, blocking typed channels, and the UMS package manifest all are. The pages for what remains missing are retained as roadmap contracts and are visibly marked **Coming Soon**.
 
 The twenty standard modules — `std.io`, `std.input`, `std.string`, `std.fs`, `std.process`, `std.time`, `std.math`, `std.vec`, `std.map`, `std.option` and the rest — are ordinary importable modules; `std.io` is an import rather than a prelude, so a program that names no I/O carries none. See [Standard library status](/stdlib) before assuming a module exists.
 

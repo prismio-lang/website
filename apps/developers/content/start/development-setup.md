@@ -9,7 +9,7 @@ related: [compiler/bootstrap, start/local-compiler-loop, tooling/debugging-targe
 ---
 
 Compiler development requires the checkout's pinned LLVM, a C toolchain, Python for the test harness, and either an
-installed Prismio compiler or the committed bootstrap seed. Run setup commands from the compiler
+installed Prismio compiler or the release bootstrap seed (fetched for you). Run setup commands from the compiler
 repository root: the bootstrap scripts resolve `src`, `runtime`, `bootstrap`, and
 `third_party/llvm-paths.json` relative to that checkout.
 
@@ -58,7 +58,7 @@ The test runner honors `PRISMIO` before `PATH`. Point it at the generation you i
 PRISMIO=$PWD/.prismio/build/debug/prismio python3 tests/test_runner.py
 ```
 
-If no installed compiler is available, build the first generation from the committed IR seed, then
+If no installed compiler is available, build the first generation from the release IR seed (fetched and checked on first use), then
 build two self-hosted generations:
 
 ```bash
@@ -67,7 +67,7 @@ tools/bootstrap.sh --compiler build/gen0 --out build/gen1
 tools/bootstrap.sh --compiler build/gen1 --out build/gen2
 ```
 
-Windows uses `tools/bootstrap.ps1` with `-Seed` or `-Compiler` and `-Out`. Once a compiler exists, `build.ums` declares the repository's own commands: `prismio build`, `prismio suite`, `prismio verify`, `prismio gate` and `prismio release` (see [how a release is cut](/releases)). The compiler links three LLVM backends, AArch64, X86 and WebAssembly; they are listed in `runtime/prismio_llvm.h` and `tools/setup_llvm.py`, and `tools/check_source_lists.py` fails if the two disagree. The committed seed has to stay current with `src/` (`tools/refresh_seed.sh`), because CI only checks that it can still parse it. The shell and PowerShell
+Windows uses `tools/bootstrap.ps1` with `-Out`, plus `-Compiler` to build from an existing generation (without it the seed is fetched and used; `-Seed <path>` names another). Once a compiler exists, `build.ums` declares the repository's own commands: `prismio build`, `prismio suite`, `prismio verify`, `prismio gate` and `prismio release` (see [how a release is cut](/releases)). The compiler links three LLVM backends, AArch64, X86 and WebAssembly; they are listed in `runtime/prismio_llvm.h` and `tools/setup_llvm.py`, and `tools/check_source_lists.py` fails if the two disagree. The pinned release seed (`bootstrap/seed.json`) only has to be able to parse `src/`; a newer one is cut with `tools/refresh_seed.sh` and published with a release. The shell and PowerShell
 scripts compile the LLVM bridge and runtime support, consume the same source inventory, use a
 content-keyed object cache, link into a temporary path, and install the completed compiler
 atomically. `PRISMIO_LLVM_DIR` overrides recorded LLVM discovery. `PRISMIO_OBJ_CACHE=0` disables

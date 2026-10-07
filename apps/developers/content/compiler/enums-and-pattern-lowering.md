@@ -216,10 +216,10 @@ Inference must agree across every occurrence of a type parameter — one
 payload cannot infer `T = Int` while another infers `T = String` for the same
 construction.
 
-When the payload cannot name a parameter (`Option.None`, `Result.Ok(5)` for
+When the payload cannot name a parameter (`Result.Ok(5)` for
 `E`), the context can. `enumQualifyFromExpected`, called from `semaCheckValue`
 and `semaValueTypeAgainst`, rewrites a bare qualifier to the instantiation the
-expected type names (`Option` becomes `Option$Int`), which `enumConcreteName`
+expected type names (`Result` becomes `Result$Int$String`), which `enumConcreteName`
 accepts as it stands. That covers an annotation, an assignment, a `return`
 and a struct field. An argument is matched before any parameter type is
 chosen, so `semaArgMatchesType` asks the non-mutating `enumFitsExpected`, and
@@ -227,7 +227,7 @@ chosen, so `semaArgMatchesType` asks the non-mutating `enumFitsExpected`, and
 may type such a node before then: `semaIsDynDispatch` skips a receiver that
 `enumIsBareGenericConstruction` recognises, since its probe would otherwise
 report the construction as uninferable. When a construction fails, both
-callers stop at its diagnostic rather than going on to read `Option` as a
+callers stop at its diagnostic rather than going on to read `Result` as a
 value, a module or a trait.
 
 ### Match checking

@@ -30,7 +30,7 @@ reviewed before running an untrusted checkout.
 | `extern fn` | Contract syntax and static propagation | Whether the C body obeys the declaration |
 | LLVM bridge | Numeric handle/type checks implemented by the wrapper | LLVM defects and unchecked wrapper misuse |
 | UMS project | Typed manifest validation and planned arguments | Executables, scripts, and linked files it invokes |
-| Bootstrap | Successive-generation and seed checks | Trustworthiness of the committed seed/toolchain |
+| Bootstrap | Successive-generation and seed checks | Trustworthiness of the pinned seed/toolchain (the seed is checked against its SHA-256) |
 | Packaged runtime | Source hash and separation checks | Tampering after packaging or an unverified distributor |
 
 `semaCheckExternContracts()` validates `borrow`, `retain`, `retain_in(k)`, `consume`, `out`,

@@ -3,7 +3,7 @@ title: Modules and imports
 description: Resolve Prismio 0.1 dotted file imports, wildcard imports, cycles, and declaration names.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-24"
+lastUpdated: "2026-10-07"
 tags: [modules, imports, name-resolution]
 related: [guides/modules, specification/name-resolution, package-manager]
 ---
@@ -190,23 +190,44 @@ fn main() -> Int {
 
 Each entry is exactly the import its own line would be, so `import {io, string, vec} from std` is `import std.io`, `import std.string` and `import std.vec`. An entry can carry its own [alias](#import-aliases): `import {decode, encode as enc} from protocol`.
 
+### The directory first
+
+A group can also start with `from`, which puts the directory before the names it holds:
+
+<!-- prismio-check: pass -->
+```prismio
+from std import {io, string, vec}
+
+fn main() {
+    let mut words: Vec<String> = ["  b ", "a"]
+    words.sort()
+    println(words[1].trim())
+}
+```
+
+`from std import {io, string, vec}` and `import {io, string, vec} from std` are the same statement: both give the same imports, entries take an `as` alias in either, and the two orders can be mixed in one file. `from <directory> import *` is likewise `import * from <directory>`. Only the grouped and the wildcard forms exist, since `from std import io` would be a third spelling of `import std.io`:
+
+```text
+error[P3201]: a `from` import names its modules in a group, or all of them: `from std import {io, string}` or `from std import *`
+```
+
 An entry names a **file**, never a declaration. `import std.string.trim` already selects a name, and braces that selected files in one place and declarations in another would be one spelling for two jobs:
 
 <!-- prismio-check: fail -->
 ```prismio
-import {Option} from std.option
+import {Result} from std.option
 
 fn main() -> Int { return 0 }
 ```
 
 ```text
-error[P1072]: an import group names modules, and `std.option.Option` is a declaration inside `std.option`
-  note: select a declaration with its own import: `import std.option.Option`
+error[P1072]: an import group names modules, and `std.option.Result` is a declaration inside `std.option`
+  note: select a declaration with its own import: `import std.option.Result`
 ```
 
 The entries are siblings, so a dotted entry is rejected too; a nested directory is its own group. So are an empty group, `as` after the directory (an alias names one module, so it goes on an entry), and the path-first spelling `import std.{io, string}`, which the error rewrites for you.
 
-`from` is only special in this position. A variable or function named `from` elsewhere means what it always did.
+`from` is only special in these positions. A variable or function named `from` elsewhere means what it always did.
 
 ## Wildcard imports
 

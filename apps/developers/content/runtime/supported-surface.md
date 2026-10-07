@@ -148,7 +148,7 @@ leaks or violations.
 | Module | Covers |
 | --- | --- |
 | `std.io` | `print` / `println` overloads, several values in one call, and `eprint` / `eprintln` for stderr |
-| `std.input` | Standard input: `stdin.lines()`, `stdin.readLine()`, `stdin.readAll()` |
+| `std.input` | Standard input as plain functions: `inputLines()`, `readLine()`, `readLineOr()`, `readInt()`, `readFloat()`, `readLines()`, `readWords()`, `readAll()`, `prompt()`, `atEndOfInput()` |
 | `std.time` | `Instant.now()` and `elapsed()` on the monotonic clock, `Duration`, `unixTime()`, `sleep(duration)` |
 | `std.string` | Strings, characters, parsing, `StringBuilder`, **and the `String` operators** |
 | `std.unicode` | Terminal width and grapheme clusters; separate so programs that never lay out a column do not carry its 17 KB of tables |
@@ -156,7 +156,7 @@ leaks or violations.
 | `std.process` | Arguments, environment variables (`process.env`, `setEnv`, `removeEnv`), `process.pid`, subprocesses |
 | `std.platform` | The target's operating system, architecture, and ABI environment, answered at compile time |
 | `std.map` | `Map<K, V>`: `get`, `set`, `has`, `remove`, `clear`, `m[k]`, `length`, `keys()`, `values()`, `keyAt` / `valueAt` |
-| `std.option` | `Option<T>`, `Result<T, E>`, and their `map`, `andThen`, `mapErr`, `unwrapOr`, `expect`, `okOr` family |
+| `std.option` | Generic functions over `T?` (`unwrapOr`, `expect` with a message, `okOr`, `map`, `andThen`, and `optionCoalesce`, which `a ?? b` is), and `Result<T, E>` with its `map`, `andThen`, `mapErr`, `unwrapOr`, `expect`, `ok`, `err` family |
 | `std.vec` | `Vec<T>`'s library methods (`get`, `contains`, `indexOf`, `lastIndexOf`, `countOf`, `min`, `max`, `find`, `indexWhere`, `fold`, `forEach`, `pop`, `removeAt`, `removeFirst`, `swapRemove`, `extend`, `retain`, `dedup`, `fill`, `reverse`, `clone`, `sort`, `sortBy`, `sorted`, `reversed`, `take`, `skip`, `concat`, `startsWith`, `endsWith`, `filter`, `binarySearch`), the same reads and in-place changes over an `Array<T, N>` (the length passed beside it, which the compiler supplies for a call) and over a `Slice<T>`, `toVec`, **the Vec literal** `[a, b, c]`, `Vec<T>.withCapacity(n)`, and `Vec<T>.filled(n, x)` (a scalar `T` needs no import; any other goes through `vecFilled`) |
 | `std.math` | Float `sqrt`, rounding, `pow`, logarithms, trigonometry, IEEE constants; integer `pow`, `gcd`, `floorMod`, `isqrt`; each numeric type's `MAX` / `MIN`, lowered through the `__builtin_f64_*` family |
 | `std.term` | Terminal colour and text styles as `String` methods, and `colorEnabled()` |
@@ -262,7 +262,7 @@ memory never released. Leaks cost bytes; violations corrupt.
 
 ```prismio
 println(text.trim())                                // released after println
-let tail = optionOr(s.stripPrefix("Hello, "), "!")  // the Option lives to the block's end
+let tail = s.stripPrefix("Hello, ") ?? "!"          // the optional lives to the block's end
 ```
 
 An owned result passed straight into a parameter is released once the call
@@ -270,8 +270,8 @@ returns. Until 2026-09-25 it was not: a value nothing names was a value nothing
 freed, and `strJoin(strSplit(s, ','), "-")` leaked its Vec.
 
 Where the callee may hand back the argument, or a view of it, releasing after the
-call would free what the result still points at. `optionOr` returns the `String`
-*inside* the `Option` it was handed. That temporary is given a hidden binding
+call would free what the result still points at. `unwrapOr` and `??` return the
+`String` the `String?` it was handed holds. That temporary is given a hidden binding
 instead (`irHoistBorrowedTemporaries` in `src/ir/expr.psm`) and released with the
 block, under the same guards as a `let`: if its view is returned, assigned
 outward, or kept by a container, it is kept alive and leaks rather than being
@@ -285,8 +285,7 @@ View provenance finds those views. A reference-shaped value read out of a
 container (a `Vec` element, a struct field, a payload bound by a match arm) is
 recorded as a *view* of that container, and `aif_fn_may_return_view_of_param` is
 what code generation asks before releasing an argument-position temporary. A
-scalar read is a copy and carries no view, so an `Option<Int>` is released
-normally.
+scalar read is a copy and carries no view, so an `Int?` is never a block to release.
 
 Both halves were once missing, and the result was a dangling read rather than a
 leak: the temporary was freed between the call and the use of its result, and the
@@ -468,7 +467,7 @@ correctly rounded `strtod`.
 | `write_file` `make_directory` `directory_exists` | `writeFile` `makeDirectory` `directoryExists` | `borrow`; → `Bool` |
 | `fs_list_begin` `fs_list_name` `fs_list_end` | `listDirectory` → `Vec<String>` | `borrow`; `fs_list_name` → `produce(free)`; one listing at a time per process |
 | `fs_append_file` `fs_rename` `fs_remove_directory` | `appendFile` `rename` `removeDirectory` | `bytes` for the appended text; → `Bool` |
-| `fs_metadata` | `metadata` → `Option<Metadata>` | `borrow`; `MetadataOut` written through its pointer |
+| `fs_metadata` | `metadata` → `Metadata?` | `borrow`; `MetadataOut` written through its pointer |
 | `fs_lines_open` `fs_lines_has_line` `fs_lines_take_line` `fs_lines_close` | `readLines` `tryReadLines` → `FileLines`, `FileLines.close` | An `Int` handle (slot and generation; −1 when the file cannot be opened); the reader closes itself at end of file; `fs_lines_take_line` → `produce(free)` |
 | `proc_spawn_begin` `proc_spawn_arg` `proc_spawn_run` | `Process.spawn`, `Process.run` | `borrow`; `SpawnOut` written through its pointer |
 | `proc_exec` | `Process.exec` | Returns only on failure, then −1 |
@@ -478,7 +477,7 @@ correctly rounded `strtod`.
 | `proc_env_has` `proc_env_get` | `process.env` | `borrow`; `proc_env_get` → `produce(free)`, `""` for unset (never a literal) |
 | `proc_env_set` `proc_env_remove` `proc_pid` | `process.setEnv` `removeEnv` `pid` | `borrow`; → `Int` |
 | `time_monotonic_nanos` `time_unix_nanos` `time_sleep_nanos` | `Instant.now()` `unixTime()` `sleep` | → `I64` nanoseconds; POSIX `clock_gettime` / `nanosleep`, Windows `QueryPerformanceCounter` / `GetSystemTimePreciseAsFileTime` / `Sleep` |
-| `io_stdin_has_line` `io_stdin_take_line` `io_stdin_read_all` | `stdin.lines()` `stdin.readLine()` `stdin.readAll()` | The last two → `produce(free)`, `""` at end of input (never a literal) |
+| `io_stdin_has_line` `io_stdin_take_line` `io_stdin_read_all` | `inputLines()` `readLine()` `readAll()` | The last two → `produce(free)`, `""` at end of input (never a literal) |
 
 The `Int` returns are normalized because the raw conventions disagree:
 `file_exists` returns 1 for yes, while `delete_file` returns **0** for success.

@@ -42,7 +42,7 @@ related: [compiler/overview, aif/overview, llvm/overview]
 
 **nominal type** — A type whose identity comes from its declaration name. Structs/enums with identical contents remain different types.
 
-**optional** — `T?`, a present-or-`none` form limited to reference-shaped types in 0.1. Optionality does not remove ownership.
+**optional** — `T?`, a `T` or `none`. A scalar's is a `{ i1, T }` value (present flag first); a reference's is the pointer, null for `none`; `typeIsValueOptional` tells them apart. Optionality does not remove ownership. There is no `Option<T>`.
 
 **ownership** — Responsibility for a move-only value's valid use and eventual management action at a program point.
 
@@ -50,7 +50,7 @@ related: [compiler/overview, aif/overview, llvm/overview]
 
 **region** — A lexical allocation scope, optionally constrained by a byte budget.
 
-**seed compiler** — Committed target-neutral LLVM IR used to break the initial self-hosting cycle.
+**seed compiler** — Target-neutral LLVM IR, published with each release and fetched on demand, used to break the initial self-hosting cycle.
 
 **sink parameter** — A parameter that consumes a move-only argument.
 
