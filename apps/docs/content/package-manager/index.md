@@ -194,6 +194,8 @@ A Prismio function calls the C one through an `extern fn` declaration. [Calling 
 | `link { file("x.a") }` | an exact object or library file |
 | `link { framework("Security") }` | a framework (macOS only) |
 | `link { responseFile("link.rsp") }` | linker arguments from a file |
+| `link { script("kernel.ld") }` | a linker script (`-T`), freestanding targets |
+| `link { arg("-z") }` | one linker argument, as written |
 
 A response file is how a manifest uses flags another tool computed, such as
 `pkg-config` output, without writing one machine's paths into `build.ums`.
@@ -202,6 +204,8 @@ Two target properties go with native code. `runtime = "none"` leaves out the
 Prismio runtime the toolchain installs, for a program whose C provides every
 runtime function itself. `exportDynamic = true` makes the executable's own
 symbols visible to code it loads while running.
+
+A target with no operating system under it adds `freestanding = true`, `triple = "aarch64-unknown-none-elf"`, `features = "-neon,-fp-armv8"`, `codeModel = "kernel"` and `noRedZone = true`; each is optional, and `triple` also builds a hosted cross target. See [freestanding programs](/guides/freestanding).
 
 The Prismio compiler is built exactly this way. Its repository's `build.ums`
 lists the compiler's C runtime and backend as `native` sources, declares

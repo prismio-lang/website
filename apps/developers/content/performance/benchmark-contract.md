@@ -5,13 +5,19 @@ status: stable
 version: "0.1.0"
 lastUpdated: "2026-10-01"
 tags: [benchmarks, performance, methodology]
-related: [performance/telling-a-difference-from-noise, performance/running-adding-and-reading-results, performance/investigation-method, testing/overview]
+related: [performance/freestanding-benchmarks, performance/telling-a-difference-from-noise, performance/running-adding-and-reading-results, performance/investigation-method, testing/overview]
 ---
 
-`benchmarks/benchmarks.json` is the maintained catalog: 78 workloads, of which 62 have Prismio,
-C++, and Rust arms and 16 are explicitly unsupported by Prismio. `benchmarks/run.py` is the only
-timing harness used for checked-in results. Together they define the benchmark contract; an
-individual language dispatcher is not allowed to redefine it.
+There are two suites, run by one harness. This page is the contract of the **hosted** suite,
+`benchmarks/hosted/`: Prismio, C++ and Rust on the host operating system, timed. The other,
+`benchmarks/freestanding/`, is Prismio, C and Rust on bare-metal AArch64 under QEMU, counted in
+guest instructions; it keeps the equivalence rule below and replaces the sampling rules, and has
+its own page, [The freestanding benchmark suite](/performance/freestanding-benchmarks).
+
+`benchmarks/hosted/benchmarks.json` is the maintained hosted catalog: 78 workloads, of which 62
+have Prismio, C++, and Rust arms and 16 are explicitly unsupported by Prismio. `benchmarks/run.py`
+is the only timing harness used for checked-in results. Together they define the benchmark
+contract; an individual language dispatcher is not allowed to redefine it.
 
 The three implemented arms must express the same algorithm, not merely return the same checksum.
 Input construction, timed boundaries, iteration counts, and observable work should be equivalent.
@@ -47,7 +53,7 @@ or include fixture creation in only one timed interval.
 
 When Prismio lacks the ordinary capability being measured, the catalog record uses
 `status: "unsupported"` and names the missing feature. `main()` copies that record into the result
-without executing any language arm. The separate `UNSUPPORTED.md` explains the absence.
+without executing any language arm. The separate `benchmarks/hosted/UNSUPPORTED.md` explains the absence.
 A benchmark-private deque, regex engine, async runtime, or JSON parser would measure a substitute
 rather than the supported language surface.
 

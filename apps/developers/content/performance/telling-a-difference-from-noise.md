@@ -50,7 +50,9 @@ These are the recorded samples, in microseconds, five runs each:
 | `large_buffer_copy` | 6686 6704 6760 6793 7055 | 5678 5700 5735 5747 5769 |
 
 `large_buffer_copy` is a smooth cloud: every Prismio run is slower than every C++ run, so the
-difference is real. `edit_distance` is two clusters (about 570 µs and about 720 µs) in **both**
+difference is real. (It was, and it has since been closed: the copy loop now compiles to a `memcpy`
+LLVM can delete repeats of, as [Control flow](/llvm/control-flow) describes. The samples are kept
+because they show what a real difference looks like.) `edit_distance` is two clusters (about 570 µs and about 720 µs) in **both**
 languages. The medians differ because Prismio's runs happened to fall three-in-five in the fast
 cluster and C++'s four-in-five in the slow one, while the fastest runs, 566 and 587, are within 4%
 of each other. The code takes the same time in each mode; which mode a process lands in is not

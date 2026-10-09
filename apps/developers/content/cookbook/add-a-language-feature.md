@@ -137,7 +137,7 @@ Land it in two steps: teach the frontend, cut and publish a seed (`tools/refresh
 tools/refresh_seed.sh   # tools/refresh_seed.ps1 on Windows
 ```
 
-Separately, a behavior-preserving change (one that should alter nothing about what the compiler emits) must produce byte-identical output for every program in `tests/` and `benchmarks/prismio/`. That is checked by building two generations and comparing them to a fixed point, running the full suite, and running the AIF differential:
+Separately, a behavior-preserving change (one that should alter nothing about what the compiler emits) must produce byte-identical output for every program in `tests/` and `benchmarks/hosted/prismio/`. That is checked by building two generations and comparing them to a fixed point, running the full suite, and running the AIF differential:
 
 ```bash
 tools/bootstrap.sh --seed --out build/gen0

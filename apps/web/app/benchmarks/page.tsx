@@ -7,17 +7,20 @@ import BenchmarkMatrix from '@/components/benchmarks/BenchmarkMatrix';
 import UnsupportedCatalog from '@/components/benchmarks/UnsupportedCatalog';
 import BenchmarkMethodology from '@/components/benchmarks/BenchmarkMethodology';
 import ToolchainMetrics from '@/components/benchmarks/ToolchainMetrics';
-import { getBenchmarkDataset } from '@/lib/benchmarks';
+import SuiteTabs from '@/components/benchmarks/SuiteTabs';
+import FreestandingPanel from '@/components/benchmarks/FreestandingPanel';
+import { getBenchmarkDataset, getFreestandingDataset } from '@/lib/benchmarks';
 import {pageMetadata} from "@/lib/seo";
 
 export const metadata = pageMetadata({
-    title: 'Prismio Benchmarks — C++ and Rust Performance Comparison',
-    description: 'Reproducible Prismio compiler and runtime benchmarks compared with C++ and Rust using identical workloads, multi-run medians, and checksum verification.',
+    title: 'Prismio Benchmarks — C++, C and Rust Performance Comparison',
+    description: 'Reproducible Prismio compiler and runtime benchmarks compared with C++ and Rust on the operating system, and with C and Rust on bare metal with none, using identical workloads and checksum verification.',
     path: "/benchmarks",
 });
 
 export default function BenchmarksPage() {
     const data = getBenchmarkDataset();
+    const freestanding = getFreestandingDataset();
     const { stats, categories, benchmarks, unsupported } = data;
 
     const comparisonCount = stats.implemented - stats.eliminated;
@@ -39,7 +42,11 @@ export default function BenchmarksPage() {
 
             <HeaderMain />
 
-            <main className="relative z-10 mx-auto max-w-[92rem] px-3 sm:px-5 lg:px-8 pb-28 pt-16 md:pt-24 space-y-20">
+            <main className="relative z-10 mx-auto max-w-[92rem] px-3 sm:px-5 lg:px-8 pb-28 pt-12 md:pt-16">
+                <SuiteTabs
+                    freestanding={freestanding ? <FreestandingPanel data={freestanding} /> : null}
+                    hosted={
+                        <>
                 {/* Hero / Header Section */}
                 <section className="grid gap-10 border-b border-white/[0.09] pb-16 lg:grid-cols-12 lg:gap-16">
                     <div className="lg:col-span-8">
@@ -304,6 +311,9 @@ export default function BenchmarksPage() {
                         </div>
                     </div>
                 </section>
+                        </>
+                    }
+                />
             </main>
 
             <FooterMain />

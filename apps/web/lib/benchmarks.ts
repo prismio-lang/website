@@ -393,8 +393,18 @@ export function formatSpeedup(ratio: number, _status?: 'faster' | 'slower' | 'pa
     return `${ratio.toFixed(2)}× (${sign}%)`;
 }
 
+/**
+ * `results.json` holds one report per suite under `suites` (schema 4). A file from before
+ * the suites were split is the hosted report itself, so both shapes are read.
+ */
+const resultsRoot = rawResults as unknown as {
+    suites?: {hosted?: unknown; freestanding?: unknown};
+};
+const hostedReport = (resultsRoot.suites?.hosted ?? rawResults) as unknown;
+const freestandingReport = (resultsRoot.suites?.freestanding ?? null) as RawFreestandingReport | null;
+
 export function getBenchmarkDataset(): BenchmarkDataset {
-    const data = rawResults as unknown as {
+    const data = hostedReport as unknown as {
         generated_at: string;
         runs: number;
         build_commands: Record<string, string>;
@@ -705,5 +715,242 @@ export function getBenchmarkDataset(): BenchmarkDataset {
         unsupported,
         eliminations,
         featured,
+    };
+}
+
+
+// --------------------------------------------------------------------------------------
+// The freestanding suite: Prismio, C and Rust on bare-metal AArch64 with no operating
+// system, counted in guest instructions under QEMU (benchmarks/freestanding/suite.py).
+// The count is exact, so none of the hosted machinery -- samples, spread, a noise
+// model -- applies: a verdict is a fixed tolerance on the ratio.
+// --------------------------------------------------------------------------------------
+
+interface RawFreestandingLanguage {
+    ticks: number;
+    instructions: number;
+    instructions_samples?: number[];
+}
+
+interface RawFreestandingItem {
+    name: string;
+    category: string;
+    profile?: string;
+    description?: string;
+    result: number;
+    languages: Record<'prismio' | 'c' | 'rust', RawFreestandingLanguage>;
+    verdict?: {c?: RawVerdict; rust?: RawVerdict};
+}
+
+interface RawFreestandingReport {
+    generated_at: string;
+    runs: number;
+    deterministic: boolean;
+    parity: number;
+    target: string;
+    machine: string;
+    tick_instructions: number;
+    scale?: number;
+    environment?: RawEnvironment & {toolchains?: Record<string, unknown>};
+    build_commands: Record<string, string[]>;
+    compile_ns: Record<string, number>;
+    images: Record<string, {text: number; file: number; rodata: number; data: number; bss: number}>;
+    harness_text_bytes: number;
+    benchmarks: RawFreestandingItem[];
+}
+
+export type FreestandingStatus = 'faster' | 'slower' | 'parity';
+
+export interface FreestandingItem {
+    name: string;
+    category: string;
+    categoryLabel: string;
+    profile: string;
+    description: string;
+    result: number;
+    prismio: number;
+    c: number;
+    rust: number;
+    prismioFormatted: string;
+    cFormatted: string;
+    rustFormatted: string;
+    vsCRatio: number;
+    vsRustRatio: number;
+    vsCStatus: FreestandingStatus;
+    vsRustStatus: FreestandingStatus;
+    vsCLabel: string;
+    vsRustLabel: string;
+    outcome: 'prismio-win' | 'prismio-loss' | 'parity';
+}
+
+export interface FreestandingDataset {
+    formattedDate: string;
+    runs: number;
+    deterministic: boolean;
+    target: string;
+    machine: string;
+    tickInstructions: number;
+    parityPct: number;
+    environment: {qemu?: string; clang?: string; rustc?: string; lld?: string; prismio?: string; prismioProfile?: string};
+    benchmarks: FreestandingItem[];
+    categories: {key: string; label: string; count: number; vsCGeomean: number; vsRustGeomean: number}[];
+    stats: {
+        count: number;
+        cGeomean: number;
+        rustGeomean: number;
+        cDeltaPct: number;
+        rustDeltaPct: number;
+        winsVsC: number;
+        parityVsC: number;
+        lossesVsC: number;
+        winsVsRust: number;
+        parityVsRust: number;
+        lossesVsRust: number;
+    };
+    compile: Record<'prismio' | 'c' | 'rust', ToolchainMetric>;
+    codeBytes: Record<'prismio' | 'c' | 'rust', number>;
+    harnessBytes: number;
+}
+
+const FREESTANDING_CATEGORY_LABELS: Record<string, string> = {
+    algorithms: 'Algorithms',
+    compute: 'Compute',
+    memory: 'Memory',
+    hardware: 'Hardware',
+};
+
+export function formatInstructions(count: number): string {
+    if (count >= 1e9) return `${(count / 1e9).toFixed(2)} G`;
+    if (count >= 1e6) return `${(count / 1e6).toFixed(2)} M`;
+    if (count >= 1e3) return `${(count / 1e3).toFixed(1)} K`;
+    return `${count}`;
+}
+
+/** The freestanding report, or null when `results.json` has none (the suite was skipped). */
+export function getFreestandingDataset(): FreestandingDataset | null {
+    const data = freestandingReport;
+    if (!data || !Array.isArray(data.benchmarks) || data.benchmarks.length === 0) return null;
+
+    const verdictFor = (item: RawFreestandingItem, who: 'c' | 'rust'): RawVerdict['outcome'] => {
+        const recorded = item.verdict?.[who]?.outcome;
+        if (recorded) return recorded;
+        const ratio = item.languages.prismio.instructions / Math.max(item.languages[who].instructions, 1);
+        const parity = data.parity ?? 0.02;
+        return ratio <= 1 - parity ? 'win' : ratio >= 1 + parity ? 'loss' : 'parity';
+    };
+
+    const items: FreestandingItem[] = data.benchmarks.map((raw) => {
+        const prismio = raw.languages.prismio.instructions;
+        const c = raw.languages.c.instructions;
+        const rust = raw.languages.rust.instructions;
+        const vsCRatio = prismio / Math.max(c, 1);
+        const vsRustRatio = prismio / Math.max(rust, 1);
+        const vsCStatus = PILL_STATUS[verdictFor(raw, 'c')];
+        const vsRustStatus = PILL_STATUS[verdictFor(raw, 'rust')];
+        let outcome: FreestandingItem['outcome'] = 'parity';
+        if (vsCStatus === 'slower' || vsRustStatus === 'slower') outcome = 'prismio-loss';
+        else if (vsCStatus === 'faster' || vsRustStatus === 'faster') outcome = 'prismio-win';
+        return {
+            name: raw.name,
+            category: raw.category,
+            categoryLabel: FREESTANDING_CATEGORY_LABELS[raw.category] || raw.category,
+            profile: raw.profile || 'cpu',
+            description: raw.description || '',
+            result: raw.result,
+            prismio,
+            c,
+            rust,
+            prismioFormatted: formatInstructions(prismio),
+            cFormatted: formatInstructions(c),
+            rustFormatted: formatInstructions(rust),
+            vsCRatio,
+            vsRustRatio,
+            vsCStatus,
+            vsRustStatus,
+            vsCLabel: formatSpeedup(vsCRatio),
+            vsRustLabel: formatSpeedup(vsRustRatio),
+            outcome,
+        };
+    });
+
+    const count = (key: 'vsCStatus' | 'vsRustStatus', status: FreestandingStatus) =>
+        items.filter((item) => item[key] === status).length;
+    const cGeomean = calculateGeomean(items.map((item) => item.vsCRatio));
+    const rustGeomean = calculateGeomean(items.map((item) => item.vsRustRatio));
+
+    const categories = Object.keys(FREESTANDING_CATEGORY_LABELS)
+        .map((key) => {
+            const inCategory = items.filter((item) => item.category === key);
+            return {
+                key,
+                label: FREESTANDING_CATEGORY_LABELS[key] as string,
+                count: inCategory.length,
+                vsCGeomean: calculateGeomean(inCategory.map((item) => item.vsCRatio)),
+                vsRustGeomean: calculateGeomean(inCategory.map((item) => item.vsRustRatio)),
+            };
+        })
+        .filter((category) => category.count > 0);
+
+    const metric = (raw: number, formatted: string): ToolchainMetric => ({raw, formatted});
+    const compile = {
+        prismio: metric(data.compile_ns.prismio ?? 0, formatDuration(data.compile_ns.prismio ?? 0)),
+        c: metric(data.compile_ns.c ?? 0, formatDuration(data.compile_ns.c ?? 0)),
+        rust: metric(data.compile_ns.rust ?? 0, formatDuration(data.compile_ns.rust ?? 0)),
+    };
+    const codeBytes = {
+        prismio: data.images.prismio?.text ?? 0,
+        c: data.images.c?.text ?? 0,
+        rust: data.images.rust?.text ?? 0,
+    };
+
+    const tools = data.environment?.toolchains as Record<string, unknown> | undefined;
+    const asText = (value: unknown) => (typeof value === 'string' ? value : undefined);
+    const prismioTool = tools?.prismio as {version?: string; profile?: string} | undefined;
+
+    let formattedDate = 'Recent run';
+    try {
+        formattedDate = new Date(data.generated_at).toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
+    } catch {
+        // keep the fallback
+    }
+
+    return {
+        formattedDate,
+        runs: data.runs,
+        deterministic: data.deterministic,
+        target: data.target,
+        machine: data.machine,
+        tickInstructions: data.tick_instructions,
+        parityPct: (data.parity ?? 0.02) * 100,
+        environment: {
+            qemu: asText(tools?.qemu),
+            clang: asText(tools?.clang),
+            rustc: asText(tools?.rustc),
+            lld: asText(tools?.lld),
+            prismio: prismioTool?.version,
+            prismioProfile: prismioTool?.profile,
+        },
+        benchmarks: items,
+        categories,
+        stats: {
+            count: items.length,
+            cGeomean,
+            rustGeomean,
+            cDeltaPct: (1 - cGeomean) * 100,
+            rustDeltaPct: (1 - rustGeomean) * 100,
+            winsVsC: count('vsCStatus', 'faster'),
+            parityVsC: count('vsCStatus', 'parity'),
+            lossesVsC: count('vsCStatus', 'slower'),
+            winsVsRust: count('vsRustStatus', 'faster'),
+            parityVsRust: count('vsRustStatus', 'parity'),
+            lossesVsRust: count('vsRustStatus', 'slower'),
+        },
+        compile,
+        codeBytes,
+        harnessBytes: data.harness_text_bytes,
     };
 }

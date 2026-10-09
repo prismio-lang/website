@@ -110,6 +110,7 @@ The tables give each code's severity, the message it prints (with `x` standing f
 | `P1070` | error | `as` names a module, and `x` is not one | `as` renames a whole module. Drop it from a selective import, or alias the module the declaration comes from |
 | `P1071` | error | `x` is already the name of a module, so it cannot also be an alias | `x.f(y)` would mean two things. Pick an alias no module in the project has |
 | `P1072` | error | an import group names modules, and `x` is a declaration inside `y` | A `{ ... }` group lists modules. Import a single declaration with its own `import y.x` |
+| `P1094` | error | `std.x` cannot be imported by a `--freestanding` program | The module needs an operating system or a C library: std.io, std.display, std.input, std.fs, std.process, std.time, std.term or std.math. The rest of `std` is available; see [Freestanding programs](/guides/freestanding) |
 
 ### Building and running one file
 
@@ -133,6 +134,12 @@ The tables give each code's severity, the message it prints (with `x` standing f
 | `P1026` | error | unknown argument `x` | `prismio check` takes `--diagnostic-format=json`, `--overlay` and `--module` |
 | `P1027` | error | missing source file | `prismio dump-ast` needs a file |
 | `P1028` | error | missing source file | `prismio aif` needs a file |
+| `P1090` | error | `--link-arg`, `--native`, `--native-flag`, `--target-features` or `--code-model` requires a value | Each of the five takes the argument after it |
+| `P1091` | error | could not record the linker argument `x` | `--link-arg` ran out of memory storing it |
+| `P1092` | error | the target feature string is too long, or this compiler has no code generation | `--target-features` takes at most 511 characters, and needs a compiler built with LLVM's C headers |
+| `P1093` | error | unknown code model `x` | `--code-model` takes `small`, `kernel`, `medium` or `large` |
+| `P1095` | error | could not record the native source `x` | `--native` ran out of memory storing it |
+| `P1096` | error | could not record the native flag `x` | `--native-flag` ran out of memory storing it |
 | `P1029` | error | `--force-layout=` takes `<Type>:<hot-field-count>` | Write it as `--force-layout=Particle:8` |
 | `P1030` | error | `--budget=` must be at least 1 round | Give a positive round count |
 | `P1031` | error | `--target` requires an LLVM target triple | `prismio aif --target` needs one, for example `wasm32-unknown-unknown` |

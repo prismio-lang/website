@@ -415,6 +415,32 @@ seed's ordinals do not move, and it never survives sema.
 with explicit type arguments on `child3`. Sema decides that `Name` is a type
 (`semaTypeCall`).
 
+**Declaration modifiers.** `export`, `naked`, `section("...")` and `align(n)` before `fn`, and
+`repr(C)` and `packed` before `struct`, are contextual words, matched as identifiers the way `cold` and the
+visibility markers are. `atFnModifiers` and `atStructModifiers` claim one only when the next token continues
+a declaration (`fn`, `struct`, another modifier, or `(` for the three that take one), so a variable called
+`export` keeps compiling, and `visibilityLevel` looks through them so `public export fn` parses. The struct
+markers set bits in `STRUCT_DECL.i1` (`nodeMarkReprC`, `nodeMarkPacked`). The function ones do not touch the
+node: `FUNCTION.i1` already holds one state at a time (inline, property, cold), and a field on every node
+would cost the whole compiler for a handful of boot-stub declarations. They go into a table in
+`ast/fn_attrs.psm`, one record per line keyed by the position of the `fn` keyword (`file:line:col`), which
+is unique per declaration and survives the copy a generic instantiation makes; `generateFunction` reads it
+once per function and calls `ir_function_export`, `ir_function_naked`, `ir_function_section` and
+`ir_function_align`. `export` is an LLVM alias beside the function, not a rename, because every call inside
+the program already names the mangled symbol. A new modifier is: a word in `isFnModifierWord`, a case in
+`parseModifiedFunctionDecl`, a bit or field in the table, and a backend call. Add it to the IntelliJ plugin's
+`PrismioWords` and `SignatureParser` in the same change.
+
+**Hardware builtins.** `src/common/mem_builtins.psm` is the one table for `__builtin_mem_*`,
+`__builtin_asm*`, `__builtin_port_*` and `__builtin_ptr_addr`/`addr_ptr`, read by four places that must agree:
+sema types and checks a call (`semaCheckMemBuiltin` in `sema/builtins.psm`), codegen emits it
+(`generateMemBuiltin`, over `ir_mem_load`, `ir_mem_store`, `ir_mem_rmw`, `ir_mem_cmpxchg`, `ir_mem_fence`
+and `ir_asm_call`), `aif/contracts.psm` describes it as reading its arguments and keeping nothing, and
+`tools/aif_oracle/aif.py` keeps its own copy of that last half. A name one of them misses fails quietly: AIF
+stops bracketing the caller. None needs a seed refresh while `src/` does not call it. The LLVM calls they
+use (`LLVMBuildAtomicRMW`, `LLVMGetInlineAsm` and the rest) are declared in `runtime/prismio_llvm.h` too, for
+the builds that use the hand-kept header.
+
 A slice's end is normalised by `parseSliceEnd`: `a[x..y]` is stored as the exclusive bound
 `y + 1`, so sema and codegen only ever see the half-open form they always handled.
 Parsing a construct into a generic expression statement and repairing it later

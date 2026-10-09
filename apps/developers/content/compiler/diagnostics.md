@@ -158,14 +158,14 @@ examples from the lexer and parser specifically.
 
 ### Where each `P10xx` code is produced
 
-Every driver and project code is a call to `diag_error_code` or `diag_warning_code` (or the `_at_` forms that carry a source position), so this is the map from a code to the file to open. The highest code issued is `P1089`; allocate the next number, and never reuse one. `P1009`, `P1035`, `P1038`, `P1057`, `P1060`, `P1063` and `P1074` are not issued today and stay unused.
+Every driver and project code is a call to `diag_error_code` or `diag_warning_code` (or the `_at_` forms that carry a source position), so this is the map from a code to the file to open. The highest code issued is `P1096`; allocate the next number, and never reuse one. `P1009`, `P1035`, `P1038`, `P1057`, `P1060`, `P1063` and `P1074` are not issued today and stay unused.
 
 | File | Codes |
 |---|---|
-| `src/driver/imports.psm` | `P1001`, `P1002`, `P1068`–`P1072` |
+| `src/driver/imports.psm` | `P1001`, `P1002`, `P1068`–`P1072`, `P1094` |
 | `src/driver/compile.psm` | `P1003`–`P1005`, `P1008`, `P1010`–`P1012`, `P1075` |
 | `src/driver/workload.psm` | `P1006`, `P1007` |
-| `src/main.psm` | `P1024`–`P1034`, `P1036`, `P1037`, `P1039`–`P1050`, `P1073`, `P1076`, `P1079` |
+| `src/main.psm` | `P1024`–`P1034`, `P1036`, `P1037`, `P1039`–`P1050`, `P1073`, `P1076`, `P1079`, `P1090`–`P1093`, `P1095`, `P1096` |
 | `src/project/ums_cli.psm` | `P1013`–`P1023`, `P1058`, `P1078`, `P1080`–`P1082`, `P1084`–`P1088` |
 | `src/project/commands.psm` | `P1059`, `P1061`, `P1062`, `P1089` |
 | `src/project/host.psm` | `P1051`–`P1056`, `P1064`–`P1067`, `P1077`, `P1083` |

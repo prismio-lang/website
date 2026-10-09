@@ -3,7 +3,7 @@ title: Loop guards and container access
 description: How Prismio proves a container's representation and index range once per loop, versions the loop on that proof, and emits unchecked access inside it.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-25"
+lastUpdated: "2026-10-08"
 tags: [compiler, loops, containers, codegen, performance, vectorization]
 related: [compiler/aif-internals, compiler/string-representation, llvm/control-flow, runtime/collection-representations]
 ---
@@ -267,6 +267,185 @@ drops both the wrap check and the overlap check.
 The difference-bound tier already did this for the indices it proves: each
 term it interprets folds its own no-wrap facts and is marked by `relCommit`.
 
+## Loops over sized arrays
+
+A fixed `Array<T, N>` is indexed with no check at all, so its loops have nothing for a guard
+to remove. They are versioned anyway when the guard holds something LLVM cannot work out for
+itself. A loop with no list guard runs the same analysis over its sized-array accesses
+(`arrays` in `src/ir/ranges.psm`), with the type's `N` as the length. The guard then holds the
+facts that keep every access in `[0, N)` over the counters' whole range, and the proved copy
+marks the arithmetic those facts make safe.
+
+The freestanding knapsack is the case it exists for:
+
+```prismio
+let mut c = 1500
+while (c >= w) {
+    best[c] = max(best[c], best[c - w] + v)
+    c = c - 1
+}
+```
+
+`c` runs over `[w, 1500]`, so `best[c - w]` in `[0, 1501)` puts **`w >= 0`** in the guard. From
+that one fact LLVM proves the loop cannot wrap and adds the `nsw` itself. It also sees that every
+read trails the store, and interleaves four iterations at a time: with NEON off, as the suite
+builds, that is `ldp`/`stp` pairs rather than a vector loop. Instructions executed, aarch64
+freestanding:
+
+| knapsack | instructions | vs C |
+| --- | ---: | ---: |
+| before | 5,690,512 | 1.11× |
+| guard on `w >= 0` | **3,139,600** | **0.61×** |
+| C, with `if (w < 0) __builtin_unreachable();` added | 3,139,120 | |
+
+C's undefined overflow never supplied this fact: C reaches 3.14M only when the fact is written
+into its source, with or without `-fwrapv`. The guard the obvious argument suggests is
+`w != Int.MIN`, which only keeps `c - 1` from wrapping. It measured **6,259,472**, worse than no
+guard: `c` widened to 64 bits, with `c - w` still computed in 32, costs a truncation and an
+extension per access.
+
+Two rules keep the duplicated code small:
+
+- **Innermost loops only.** Versioning an outer loop copies every loop inside it, for facts about
+  the outer loop's own accesses. Knapsack's item loop got a second copy of the capacity loop and
+  nothing for it.
+- **Only when the proof marks arithmetic.** An array access drops no check, so
+  `for i in 0..<n { a[i] }` would gain a second copy for the fact `n <= N` alone.
+
+A `[T]` parameter has no length the preheader can read, so it is left to the facts below.
+
+## Facts an unchecked access implies
+
+An element of a fixed array or of a `[T]` view is addressed without a check, and the language
+requires every index to be in range (*Bounds and storage* in the specification's undefined
+behaviour page). So an access that ran says its index was in `[0, len)`. Every length fits
+`Int`, so the index was at most `Int.MAX - 1`. The fact holds until the name is assigned or
+bound again: a scalar cannot be passed `inout` and closures capture by value, so only an
+assignment in the same function changes a local `Int`.
+
+The subscripts that give a fact are a name, `name + k` and `name - k`, for a literal `k`. A
+`name + k` that wrapped is negative, so an access that ran rules the wrap out. A `name - k` that
+wrapped is in `[Int.MAX - k + 1, Int.MAX]`, so its fact is taken only when the last index plus
+`k` stays at or below `Int.MAX`. That holds for any fixed array of a practical length. A view's
+indices reach `Int.MAX - 1`, so a view's `a[i - 2]` could have run with `i` at `Int.MIN + 1`, and
+it gives no fact on `i`. `viewBelow` in `test_270_array_nowrap.psm` checks that.
+
+`src/ir/nowrap.psm` walks each function that has a loop, before its body is generated. It
+marks two kinds of `+`/`-` `nsw`, in every copy of every loop:
+
+- **Bounded.** The facts bound every operand, and the exact result is inside `Int`. Nothing is
+  assumed. Quicksort's scan `while (a[i] < p) { i = i + 1 }` adds 1 to an `i` the access left at
+  most `Int.MAX - 1`. That scan has no bound a guard could use, because it stops on the data.
+- **A subscript with a non-negative left operand.** In `best[c - w]` after `best[c]`, `c - w` with
+  `c >= 0` can only wrap upwards, to a negative value. A wrapped result is therefore out of range,
+  and the access that is its only use is undefined anyway. Only the subscript is marked this way,
+  never its operands.
+
+Facts flow forward in evaluation order:
+
+- **Code that may not run keeps its facts.** Facts from the right side of `and`, `or` and `??`
+  stay inside it.
+- **Branches meet.** An `if` joins the facts of its two branches.
+- **Loop heads forget.** A loop head keeps only the facts on names the loop never assigns.
+- **A `Vec` gives no facts.** Its out-of-range read answers zero, and the program goes on.
+
+**An update is marked only when its loop's subscripts are.** The same widening that made
+`w != Int.MIN` a loss applies here. `nsw` on `c = c - 1` with `c - w` unmarked measured 6.26M,
+against 5.69M with neither. So the pass walks twice. The first walk records every counter that
+some subscript in a loop combines without a mark. The second walk marks, and leaves those
+counters' updates in those loops plain.
+
+| freestanding, instructions | before | after | C |
+| --- | ---: | ---: | ---: |
+| `quicksort` | 11,304,368 | **9,991,296** | 10,096,384 |
+| `knapsack`, these marks alone | 5,690,512 | 5,122,720 | 5,122,624 |
+
+## Counted loops
+
+A `while` whose condition bounds a counter, and whose body ends by stepping it, bounds the counter
+in the body too. That takes three things:
+
+- **A bound.** One `and` conjunct of the condition is `i < e`, `i <= e`, `i > e` or `i >= e`, where
+  `e` is a literal or a name the loop does not assign.
+- **A step.** The body's last statement is `i = i + c` or `i = i - c` for a literal `c`, towards
+  the bound.
+- **Nothing else.** No other statement in the loop assigns or binds `i`.
+
+Every check of the condition that gets past the bounding conjunct has `i` on the bound's side, and
+nothing moves `i` before the last statement. So the step cannot wrap, as long as the bound plus `c`
+fits `Int`, and `i` stays between where it entered and the bound. The fact holds from the bounding
+conjunct on. A conjunct ahead of it also runs on the last check, when `i` is already past the bound:
+
+<!-- prismio-check: pass -->
+```prismio
+fn note(inout v: [Int], x: Int) -> Bool {
+    v[0] = x
+    return true
+}
+
+fn last(start: Int) -> Int {
+    let mut seen: Array<Int, 1>
+    let limit = 999999999 + 999999999 + 147483649
+    let mut i = start
+    while (note(seen, 1 + i) and i < limit) {
+        i = i + 1
+    }
+    return seen[0]
+}
+
+fn main() -> Int {
+    if (last(2147483645) == 0 - 2147483647 - 1) { return 0 }
+    return 1
+}
+```
+
+`i` is in `[start, Int.MAX - 1]` in the body, but `1 + i` in the first conjunct runs once more with
+`i` at `Int.MAX`, and wraps; it is not marked.
+
+The walk also counts the loop. With a fact on `i` where the loop starts, it runs at most
+`(bound - start) / c + 1` times, unless the body holds a `continue`, which skips the step. The
+count is what bounds the contents of an array, below.
+
+## What a local array holds
+
+Edit distance keeps two rows of costs, and each new cost is one more than a neighbour or equal to
+one:
+
+```prismio
+cur[j] = __builtin_min(__builtin_min(prev[j] + 1, cur[j - 1] + 1), prev[j - 1] + cost)
+```
+
+C's compiler turns `min(a + 1, b + 1)` into `min(a, b) + 1`, one add fewer per cell, because C's
+overflow is undefined. For Prismio it may only if neither add can wrap, which depends on what the
+rows hold, not on any index. `src/ir/contents.psm` keeps a bound on the elements of a local
+`Array<Int, N>`:
+
+- **Which arrays.** Nothing but a subscript names the array, in its function and outside any
+  closure, and its name is bound once there. A view, an `inout` argument, a copy or a `for x in`
+  could write it where the walk does not look.
+- **One lifetime.** The bound holds from the declaration, which zero-fills or initialises the array
+  each time it runs, to the end of its block. Arrays declared in one block are a family and share
+  the bound, because a store into one reads the others.
+- **A form per store.** A stored value is a concrete interval from literals and facts, or relative
+  to the family's bound `[L, M]` through the elements it reads: `prev[j] + 1` is at most `M + 1`.
+  Sums, `__builtin_min` and `__builtin_max` combine forms. Anything else, or a sum of two elements,
+  leaves the family without a bound.
+- **Growth.** `L` holds if no store can go below it. `M` grows by at most the relative part of each
+  store, so over one lifetime it stays at or below the largest initial or concrete value, plus that
+  part times the store's executions. The counted loops between the declaration and the store bound
+  the executions.
+
+The benchmark's rows start at zero and receive 600 x 600 stores of at most `M + 1` per lifetime, so
+the elements stay in `[0, 360600]` and all three adds are marked. An array that fails, because a
+store's value has no form, takes with it only the arrays whose stores read it.
+
+| freestanding, instructions | before | after | C |
+| --- | ---: | ---: | ---: |
+| `edit_distance` | 5,900,624 | **5,540,624** | 5,596,832 |
+
+[Wrapping integers and tight loops](/performance/wrapping-integers-and-tight-loops) has the
+investigation: the shapes behind the gap, every alternative measured and the prior art.
+
 ## Measurements
 
 `knapsack`, a 1-D DP over `Vec<Int>` with 576,000 inner iterations, against C++
@@ -316,6 +495,16 @@ with its own soundness argument:
 - Any loop calling a function that can reach a block-moving primitive, an
   unknown `extern fn`, or a `spawn`.
 - Struct elements in the write path, whose setter can run a user releaser.
+- A sized array in a loop that also has a list guard. The guard serves the lists, and a fact about
+  an array that failed at run time would cost the lists their unchecked copy.
+- Access facts from a `Vec`, whose read is total, and from a `Slice`, whose check traps and so
+  would supply them. Slices are not done yet.
+- Heapsort's `while (root * 2 + 1 <= end)`. `root = pick` is no counter, and proving the multiply
+  needs `root >= 0` carried through the loop plus a guard on `start` and `end`. An emulation
+  measured 3.2% on a row already inside the parity band; see `docs/KNOWN_ISSUES.md`.
+- Counted `for` and `loop` forms, and a counter stepped anywhere but the body's last statement.
+- Array contents through a sum of two elements (`t[i] + t[i]` doubles, and no form describes it), a
+  cast, a call other than `__builtin_min` and `__builtin_max`, or a store that can lower the bound.
 
 ## Implementation map
 
@@ -324,6 +513,10 @@ with its own soundness argument:
 | Representation guard | `generateLoopFlatGuard` in `src/ir/expr.psm` |
 | Range proofs, per access | `src/ir/ranges.psm` (delta tier), `src/ir/relations.psm` and `src/ir/dbm.psm` (difference bounds) |
 | `nsw` on proved index arithmetic | `rangeMarkIndex` in `src/ir/ranges.psm`, `relCommit` in `src/ir/relations.psm`; emitted by `irAccessProved` in `src/ir/expr.psm` |
+| Sized-array guards | `servesAccess`, `rangeServesArrays` and the `arrays` field in `src/ir/ranges.psm`; requested by `generateWhile` and `generateForDirection` in `src/ir/stmt.psm` |
+| Access facts | `src/ir/nowrap.psm`, run from `generateFunction` in `src/ir/module.psm`; marks in `ir_nowrap_mark` (`runtime/ir_symbols.c`); emitted by `nowrapImplied` in `generateBinary` |
+| Counted loops | `src/ir/counters.psm`; applied from the bounding conjunct on by `nowrapCondition` in `src/ir/nowrap.psm` |
+| Array contents | `src/ir/contents.psm`; the forms are evaluated by `nowrapForm` in `src/ir/nowrap.psm` |
 | Which calls decline a loop | `irFlatGuardCount` in `src/ir/expr.psm` |
 | Effect analysis and fixed point | `irBodyMovesNoBlock` and the sweep in `src/ir/module.psm` |
 | Guard-safe function table | `ir_mark_guard_safe_fn`, `ir_is_guard_safe_fn` in `runtime/ir_symbols.c` |
@@ -331,7 +524,7 @@ with its own soundness argument:
 | min/max/abs intrinsics | `src/sema/builtins.psm`, `src/ir/expr.psm`, `std/math.psm` |
 | Float math builtins | `src/common/float_builtins.psm` (the table), marked safe in `src/ir/module.psm` |
 | Failure builtins (`panic`, `assert`, …) | marked safe in `src/ir/module.psm`; `irFlatGuardCount` counts only an `assert`'s condition, since the rest runs on the way out of the process |
-| Tests | `tests/test_119_loop_range_guard.psm`, `test_120_min_max_abs.psm`, `test_121_guard_effect_analysis.psm`, `test_169_loop_range_proofs.psm`, `test_179_proved_index_nsw.psm` (with `proved_index_nsw` in `test_runner.py`) |
+| Tests | `tests/test_119_loop_range_guard.psm`, `test_120_min_max_abs.psm`, `test_121_guard_effect_analysis.psm`, `test_169_loop_range_proofs.psm`, `test_179_proved_index_nsw.psm` (with `proved_index_nsw` in `test_runner.py`), `test_270_array_nowrap.psm` (with `array_nowrap`), `test_271_array_contents.psm` (with `array_contents`) |
 
 ## Debugging a guard change
 

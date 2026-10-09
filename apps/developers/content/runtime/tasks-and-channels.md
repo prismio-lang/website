@@ -146,7 +146,7 @@ A send blocks while the channel is full, and a receive blocks until a message ar
 channel closes; that is the whole surface, and it is what keeps a worker pool alive across frames.
 The original measurement is in that page too; the maintained
 concurrency workloads are `parallel_reduction` and `channel_pipeline` in
-`benchmarks/prismio/`.
+`benchmarks/hosted/prismio/`.
 
 ## Channels
 

@@ -163,6 +163,8 @@ prismio bench
 cd ../website/apps/docs && PRISMIO_INTERNAL_HOSTED=1 PRISMIO=../../../prismio/build/dist/bin/prismio node scripts/verify-doc-examples.mjs
 ```
 
+`prismio bench` runs both benchmark suites: the hosted one (time, against C++ and Rust) and the freestanding one (guest instructions under QEMU, against C and Rust; see [freestanding benchmarks](/guides/freestanding-benchmarks)). `--suite hosted` keeps a run to the first, which is the one to repeat when a change might move timings, since it is sensitive to machine load.
+
 Allocation-inference changes should additionally run the AIF oracle
 differential. Include the exact seed generation and host toolchain in any
 failure report.

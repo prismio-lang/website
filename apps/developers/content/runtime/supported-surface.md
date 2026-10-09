@@ -573,7 +573,7 @@ container the analysis already understands.
 `print_bool` / `println_bool` / `print_char` / `println_char` family underneath
 them. `std.io` reaches the descriptor itself, so nothing declared them any more,
 and a program that declared one by hand now fails to link naming the symbol.
-`benchmarks/prismio/common.psm` was the one in-tree case: it prints without
+`benchmarks/hosted/prismio/common.psm` was the one in-tree case: it prints without
 importing `std.io` on purpose, and now declares the console write the same way
 `std/io.psm` does.
 

@@ -89,6 +89,10 @@ application protocol, but changes must update the oracle and differential fixtur
 | `--target <triple>` | Select an LLVM target triple and target data layout |
 | `--sysroot <path>` | Pass a target SDK to the native link step |
 | `--jit` | Run through ORC JIT; valid only with `run` and not with `--target` |
+| `--freestanding` | No installed runtime, C library or startup files; static, linked by lld. See [the freestanding profile](/runtime/platform-and-packaging#the-freestanding-profile) |
+| `--native <file>`, `--native-flag <flag>` | A source the toolchain's clang compiles and links, and a flag for that compile (repeatable) |
+| `--link-arg <arg>` | One linker argument (repeatable, in order) |
+| `--target-features <list>`, `--code-model <model>`, `--no-red-zone` | Code generation settings a kernel needs |
 
 `-O0` through `-O3` control the in-process LLVM module pass pipeline. Native object generation uses
 the build driver's current Clang policy; `-g` deliberately changes the program object step to

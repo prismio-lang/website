@@ -67,8 +67,9 @@ Prismio 0.1 includes:
 - nullable reference-shaped values;
 - `if`, `while`, `loop`, integer ranges, and statement-form `match`;
 - move tracking for strings, lists, and structs, with default borrows, `sink`, `inout`, and `drop`;
-- dotted and wildcard imports relative to the entry file; and
-- experimental allocation-inference annotations and regions.
+- dotted and wildcard imports relative to the entry file;
+- experimental allocation-inference annotations and regions; and
+- experimental [low-level programming](/language/low-level): volatile and atomic memory access, inline assembly, `export`, `naked` and `section` on functions, and `repr(C)` and `packed` structs, for programs with no operating system under them.
 
 The language does not silently promote numeric operands. It does not insert implicit clones for move-only values. Those two choices explain many diagnostics: use an explicit `as` cast for a numeric conversion, and make ownership transfer explicit in a function signature with `sink`.
 

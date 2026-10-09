@@ -403,9 +403,18 @@ called `list_push_inline_scalar` per element where the equivalent `while` stored
 made `large_buffer_copy` 1.80x of C++ instead of 1.20x. `tests/test_216_for_push_guard.psm` builds
 every list with exactly the room its loop needs or one element less, and runs under
 `tools/sanitizer_smoke.py`, so a count one too low is a heap-buffer-overflow rather than a pass.
-The zero-fill and whole-buffer-copy paths are still `while`-only. A `for` fill and copy measured
-at parity with them anyway (2,000,000 elements: zero fill 117 µs both ways, copy 241 µs as a `for`
-against 257 µs as a `while`), so neither has been extended.
+The zero-fill path is still `while`-only: a `for` fill measured at parity with it (2,000,000
+elements, 117 µs both ways). The whole-buffer copy covers both: `generateForBufferCopy` hands a
+range `for` counting up to an excluded end, whose body is the copy alone, to the same guard and
+transfer as the `while`. One copy as a loop is at parity with one `memcpy` (241 µs against 257 µs),
+which is why it was left out at first; what the loop cannot do is be *deleted*. The transfer is an
+`llvm.memcpy` behind a `separate_storage` assume, and the guard tests the two `data` pointers
+before it, so LLVM knows the blocks are separate allocations and removes a copy that the next
+identical one overwrites unread. `large_buffer_copy` repeats one copy eight times; C++ and Rust
+keep one, and so does Prismio now (1.16× of C++ to 1.00×). The guard reads the lengths with
+header-tagged loads rather than `list_len` calls, because an inlined call is an untagged load the
+`memcpy` may clobber, and re-testing the guard after every round kept all eight.
+`tests/repeated_copy_probe.psm` checks for exactly one `memcpy`.
 
 Every transformation keeps a correct fallback edge. It must not change source semantics when the
 runtime guard is false. See the dedicated loop-guards article for the proof conditions and

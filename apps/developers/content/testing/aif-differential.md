@@ -97,7 +97,7 @@ Both reports are parsed into dictionaries with the same keys, by separate regula
 
 **`--theta-fields` is passed on purpose.** The compiler knows the target's byte layout; the JSON AST the oracle reads does not. Field-count mode removes an information difference only one side could ever resolve, so the test measures the inference rules rather than a threshold the oracle cannot compute.
 
-**The source list is curated, not just a glob.** The benchmark modules (`benchmarks/prismio/*.psm`, minus `suite.psm`) are supplemented with focused programs covering region numbering, owned collections, container edges, view provenance, joined and shared concurrency, runtime builtin contracts, bracketing obligations, and channel transfer. A fact domain no program reaches will agree perfectly while being completely broken.
+**The source list is curated, not just a glob.** The benchmark modules (`benchmarks/hosted/prismio/*.psm`, minus `suite.psm`) are supplemented with focused programs covering region numbering, owned collections, container edges, view provenance, joined and shared concurrency, runtime builtin contracts, bracketing obligations, and channel transfer. A fact domain no program reaches will agree perfectly while being completely broken.
 
 ## Adding a rule
 

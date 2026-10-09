@@ -4,7 +4,7 @@ description: Boundaries where Prismio 0.1 rejects code, checks at runtime, or do
 status: stable
 draft: true
 version: "0.1.0"
-lastUpdated: "2026-09-25"
+lastUpdated: "2026-10-08"
 tags: [specification, undefined-behavior, portability, safety]
 related: [specification/memory-model, compiler/targets, language/ffi]
 ---
@@ -47,7 +47,17 @@ Portable code validates divisors, shift ranges, and numeric input before perform
 
 ## Bounds and storage
 
-Array and list indices must be kept within their valid ranges. The specification does not promise that every invalid access traps in one stable way. Returning local arrays is statically rejected to prevent a known stack escape, but this does not turn every raw pointer or foreign buffer operation into checked access.
+Each indexed collection has its own out-of-range rule:
+
+| Indexing | Index outside `[0, length)` |
+| --- | --- |
+| `Array<T, N>` and a `[T]` view | **undefined behaviour** |
+| `Slice<T>` | stops the program with a bounds error |
+| `Vec<T>` | answers the element type's zero |
+
+A fixed array and a `[T]` view are indexed with no check, and the compiler relies on every index being in range. After an access to `a[i]`, it treats `i` as having been in `[0, length)`, and it marks arithmetic on `i` as unable to wrap where that follows. An out-of-range index is therefore not just a stray read or write: it can change what arithmetic before or after it in the same function computes. Check an index that may be out of range against the length before using it.
+
+Returning local arrays is statically rejected to prevent a known stack escape, but this does not turn every raw pointer or foreign buffer operation into checked access.
 
 Annotation-only local storage can be parsed/allocated by the current compiler without complete definite-initialization tracking. Programs must not read such a binding before an explicit assignment; its raw contents are unspecified. Initializing at declaration is the portable pattern.
 

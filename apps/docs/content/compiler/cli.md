@@ -103,6 +103,22 @@ There is no `bootstrap` command. The Prismio compiler is built from its reposito
 
 WebAssembly changes target layout/pointer width but does not provide complete browser or WASI packaging.
 
+## Freestanding options
+
+For a program with no operating system under it. See [freestanding programs](/guides/freestanding).
+
+| Option | Effect |
+| --- | --- |
+| `--freestanding` | Link no installed runtime, C library or startup files; static image; lld |
+| `--native <file>` | Compile a C or assembly file with the toolchain's clang and link it (repeatable) |
+| `--native-flag <flag>` | One flag for every `--native` compile (repeatable) |
+| `--link-arg <arg>` | One linker argument, such as `-T` and then a script (repeatable, in order) |
+| `--target-features <list>` | LLVM feature string for code generation, such as `-neon,-fp-armv8` |
+| `--code-model <model>` | `small`, `kernel`, `medium` or `large` |
+| `--no-red-zone` | Mark every function `noredzone` |
+
+`--freestanding` is for a bare-metal `--target` such as `aarch64-unknown-none-elf` or `i686-unknown-none-elf`, and needs `ld.lld` on `PATH`. It admits `import std.option`, `std.platform` and `std.iter` and no other `std` module (`P1094`).
+
 ## AIF options
 
 | Option | Effect |
@@ -116,6 +132,27 @@ WebAssembly changes target layout/pointer width but does not provide complete br
 | `--copyable-collections` | Select copyable collection analysis mode |
 
 Unknown commands and malformed flags exit nonzero. The default AIF report is an interactive interface and may evolve; use `aif --manifest` when automation needs the stable line-oriented protocol.
+
+## Benchmarks
+
+`prismio bench` is a command of the Prismio source repository's own `build.ums`, not a built-in: it runs `benchmarks/run.py` against the compiler that checkout builds, so it exists only inside a checkout. Every argument after `bench` goes to the runner.
+
+```bash
+prismio bench
+prismio bench --suite hosted --runs 9
+prismio bench --suite freestanding --only fibonacci --scale 4
+```
+
+| Option | Effect |
+| --- | --- |
+| `--suite hosted\|freestanding\|all` | Which suite to run; the default is both. The freestanding suite is skipped, with a note naming the missing tool, when `clang`, `ld.lld`, `qemu-system-aarch64` or `rustc` with `rust-src` is not installed |
+| `--runs N` | Timing samples per hosted arm. The freestanding suite counts instructions exactly, so it boots each arm at most three times to confirm the count repeats |
+| `--only NAME` | Run one workload (repeatable); a name is checked against both suites |
+| `--scale N` | Multiply the size of every freestanding workload by `N` (default 1); the hosted workloads have fixed inputs |
+| `--output FILE` | Where the JSON goes; the HTML report is written beside it |
+| `--list` | Print the catalog and exit |
+
+The **hosted** suite compares Prismio with C++ and Rust on the host operating system and reports time. The **freestanding** suite compares Prismio with C and Rust on bare-metal AArch64 under QEMU and reports guest instructions; see [freestanding benchmarks](/guides/freestanding-benchmarks). Both land in one `results.json` and one report, in tabs.
 
 ## Exit behavior
 

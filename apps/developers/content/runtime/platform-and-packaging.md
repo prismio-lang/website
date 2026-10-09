@@ -103,6 +103,38 @@ settled behavior.
 Packaging checks should verify runtime/backend separation, artifact discovery, hashes, executable
 behavior, and absence of repository-only path assumptions.
 
+## The freestanding profile
+
+`--freestanding` (`docs/FREESTANDING_PLAN.md` in the compiler repository is the design record) builds
+a program for a machine with nothing under it. It is a handful of switches over the same pipeline, not a
+second one, and each switch is in one place:
+
+| Switch | Where | Effect |
+|---|---|---|
+| `g_freestanding` | `build_driver.c`, set by `compiler_set_freestanding` | `merge_libraries_into_program` merges no `lang_runtime` or `program_support` bitcode, so `find_runtime_bitcode` and its per-triple `lib/runtime/<triple>/` requirement are never reached |
+| the link command | `link_program_object` | `-nostdlib -static -fuse-ld=lld`; no `-lm`, `-lpthread` or `-dead_strip`; the program's `--link-arg`s follow |
+| native C flags | `compile_native_sources` | `-ffreestanding -fno-pic -fno-stack-protector` before the target's own flags |
+| object code | `llvm-api-backend.c`, `object_reloc_mode` | static relocation, `--target-features` as the target machine's feature string, `--code-model`, and a `noredzone` attribute on every defined function for `--no-red-zone` |
+| C-string arguments | `str_cstr_for_call` | no heap branch: a view too long for the scratch buffer is `unreachable`, because the only strings a freestanding program has are literals and they never take it. Without this an unoptimised or `-g` build named `str_clone_n` and `rt_free` |
+| `std` imports | `refuseHostedImport`, `src/driver/imports.psm` | every `std.*` module but the ones `freestandingSafeModule` lists is `P1094`, at the import, so it fires whether `std` is compiled from source or read from a `.plib` |
+| failure core | `add_freestanding_panic_core` | `runtime/freestanding/panic.c` is added as a native source unless the program supplies one named `panic.c`; found in `lib/runtime/freestanding/` of an installed toolchain, or in a checkout's `runtime/freestanding/` |
+
+The file is outside `runtime/*.c` on purpose. `tools/check_source_lists.py` counts every `runtime/*.c`
+as a compiler source that `build.ums` and both bootstrap scripts must list, and this one is not part of
+the compiler.
+
+**Packaging.** `tools/package.py --freestanding-target <triple>` (repeatable) adds a `.plib` section for
+that triple to each module in `FREESTANDING_STD` and nothing to the others, and copies the failure core to
+`lib/runtime/freestanding/panic.c`. No sysroot is needed, because the triple has no C library to compile
+against. `tools/check_source_lists.py` fails when `FREESTANDING_STD` and `freestandingSafeModule` disagree.
+The dev-loop toolchain that `prismio build` leaves beside the project host does not carry the failure core
+or any bare-metal section yet; a build from a checkout finds both in the checkout.
+
+**The manifest.** `ums_cli.psm`'s `configureUmsTargetLink` sets and clears everything a bare-metal target
+changes (`compiler_set_freestanding`, `ir_set_freestanding`, `ir_set_no_red_zone`, `ir_set_target_features`,
+`ir_set_code_model`, and `targetSelect` for the triple), because a project may build a kernel and a host
+tool in one compiler process.
+
 ## Build-driver responsibilities
 
 `compiler_default_exe_path` derives a native output name from the source and host platform.

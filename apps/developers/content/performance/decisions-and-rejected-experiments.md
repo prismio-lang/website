@@ -3,7 +3,7 @@ title: Performance decisions and rejected experiments
 description: What was tried to make Prismio faster or smaller, what each attempt measured, and why the obvious alternative lost, so a contributor does not re-derive a negative result.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-10-07"
+lastUpdated: "2026-10-08"
 tags: [performance, decisions, benchmarks, llvm, runtime]
 related: [performance/investigation-method, performance/telling-a-difference-from-noise, runtime/collection-representations, llvm/runtime-ir-and-optimization]
 ---
@@ -29,8 +29,8 @@ here:
 
 | question | result |
 |---|---|
-| Does a 32-bit index cost a sign-extend per access? | No. The same loop with an `i32` index, an `i32` index with `nsw`, and an `i64` index ran 0.226, 0.225 and 0.225 ms (stride) and 0.529, 0.526 and 0.526 ms (saxpy). AArch64 emits no `sxtw` in the loop and x86-64 one `movslq`, in setup. |
-| Would making overflow undefined (`nsw`) help? | No. Adding `nsw` to every `add`/`sub`/`mul i32` in three real programs made all three *slower*: 1.014×, 1.006×, 1.005×. |
+| Does a 32-bit index cost a sign-extend per access? | No. The same loop with an `i32` index, an `i32` index with `nsw`, and an `i64` index ran 0.226, 0.225 and 0.225 ms (stride) and 0.529, 0.526 and 0.526 ms (saxpy). AArch64 emits no `sxtw` in the loop and x86-64 one `movslq`, in setup. That holds for a counted loop. A loop that stops on the data, like quicksort's scans, pays one per access until something proves its counter cannot wrap (below). |
+| Would making overflow undefined (`nsw`) help? | Not in time. Adding `nsw` to every `add`/`sub`/`mul i32` in three real programs made all three *slower*: 1.014×, 1.006×, 1.005×. Over the 62 hosted workloads it moved the geomean by 0.9986×, inside noise. Counting instructions on the freestanding suite found four tight integer loops where it did matter, by 2–12%, and the compiler now recovers three of them without it: see [Overflow stays defined; loops get the facts instead](#overflow-stays-defined-loops-get-the-facts-instead). |
 | What does a wider `Int` cost? | 1.33× on a struct-field step over 20,000 eight-field records (27.15 ms with `Int`, 36.11 ms with `I64`), and 1.76×–2.15× in a C control. Twice the bytes per cache line is half the SIMD lanes. |
 
 So `Int` stays 32-bit and wraps; `I8`, `I16`, `I64` and the unsigned widths exist for data that needs
@@ -202,6 +202,60 @@ whole addressable gap is the push, about 1.0 ms. Two levers priced at zero: forc
 true and dropping every bounds check (10.760 to 10.785 ms), and an unsigned accumulator, which is *slower*
 (14.630 ms against 10.053) because a divisor near 2³⁰ needs a 33-bit magic constant. Do not spend a session
 on this benchmark's container.
+
+### Overflow stays defined; loops get the facts instead
+
+Decided 2026-10-08. On the freestanding suite, which counts instructions exactly, the whole remaining
+gap to C was C's undefined signed overflow: `quicksort` and `knapsack` were 11–12% behind,
+`edit_distance` 5% and `heapsort` 2%. Making every signed `+ - *` `nsw` recovers all four, and it was
+rejected as a language change, because the hosted suite shows no gain from it. What was built instead
+gives LLVM the *facts* it was missing, and changes what no program means:
+
+| | before | after | C |
+|---|---:|---:|---:|
+| `quicksort`: an unchecked access leaves its index in `[0, Int.MAX - 1]`, so the scan's `i + 1` cannot wrap | 11,304,368 | 9,991,296 | 10,096,384 |
+| `knapsack`: the loop is versioned on `w >= 0`, read off `best[c - w]` | 5,690,512 | 3,139,600 | 5,122,624 |
+| `edit_distance`: the rows are local arrays whose elements stay in `[0, 360600]`, so `min(a + 1, b + 1)` is `min(a, b) + 1` | 5,900,624 | 5,540,624 | 5,596,832 |
+
+The obvious guard, `w != Int.MIN`, which keeps `c - 1` from wrapping, measured 6,259,472, **worse than
+no guard**: `c` widened to 64 bits with `c - w` still computed in 32 costs a truncation and an extension
+per access. And C's knapsack fell by 39% once the fact was written into it (`if (w < 0)
+__builtin_unreachable();`), under `-fwrapv` too, so undefined overflow had never been what supplied
+it. `edit_distance` needed a bound on what its arrays hold, which the counted loops around their
+stores supply. `heapsort` (a recurrence in a loop condition, 1.02×) is the one row still behind and is
+open in `docs/KNOWN_ISSUES.md`. The other routes measured, among them `freeze`
+semantics, `mustprogress` and `llvm.assume`, are in [Wrapping integers and tight
+loops](/performance/wrapping-integers-and-tight-loops), with the prior art.
+
+### A bit test is split from its partner branch again on AArch64
+
+Decided 2026-10-08. `ring_buffer` was level with C and 1.18× Rust on the freestanding suite, and the
+three arms are the same program. Rust's IR, optimised by its own LLVM 22 and then compiled by
+LLVM 23's `llc`, reproduced Prismio's and C's count exactly. So the difference was neither frontend:
+LLVM 23's AArch64 backend gained a cost model (`aarch64-br-merging-*`) that lowers a branch on two
+conditions as one branch on both, computed together. It merged even here:
+
+| `if (((s >> 8) & 1) == 0 and head != tail)` | per iteration |
+|---|---|
+| merged (LLVM 23 default) | `ubfx; cmp; csinc; tbnz`, always 4 |
+| split (LLVM 22, rustc) | `tbnz`, then `cmp; b.eq` only when the bit is clear |
+
+`-aarch64-br-merging-cbz-tbnz-bias` already exists to favour splitting when one condition is a single
+compare-and-branch. Raising it from 6 to 8 splits this shape, and of the settings that did (8, 12,
+`ccmp-bias=0`, `base-cost=0` and never merging), it is the narrowest. The compiler passes it to LLVM
+by default (`ensure_codegen_initialized` in `runtime/llvm-api-backend.c`):
+
+| | before | after |
+|---|---:|---:|
+| `ring_buffer`, freestanding instructions | 4,429,696 | **3,753,472** (Rust's count; C 4,429,312) |
+| other freestanding rows | | unchanged |
+| hosted functions changed | | 11 of 140 |
+| hosted time, geomean over 52 workloads | | 0.999 (identical-binary control 1.001) |
+| compiling the compiler, cycles | | +0.1%, inside its spread |
+
+The hosted timing is the one that decides it. Merging exists because on real cores one branch
+can beat two, and an instruction count cannot see that. Interleaved against an identical copy on the
+M5, the change is neutral, so the fewer instructions are kept. `PRISMIO_LLVM_ARGS` overrides it.
 
 ## Layout
 

@@ -189,6 +189,11 @@ The name is a string, unique among targets (`UMS2105`), and follows the name rul
 | `entry` | string path | required | The source file the target is built from, relative to `build.ums`. Must exist (`UMS2309`, `UMS2310`) |
 | `runtime` | `"installed"` or `"none"` | `"installed"` | `"installed"` merges the Prismio runtime the toolchain ships into the program. `"none"` is for a target whose native sources define every runtime symbol themselves, as the compiler's own do (`UMS2114`) |
 | `exportDynamic` | `true` or `false` | `false` | make the executable's own symbols visible to code it loads while running, such as a JIT-compiled module (`UMS2115`) |
+| `freestanding` | `true` or `false` | `false` | build with no operating system under the program: the installed runtime, the C library, startup files, `-lm` and `-lpthread` are not linked, and the image is static (`UMS2115`) |
+| `triple` | string | the host | the LLVM target triple, such as `aarch64-unknown-none-elf`. Selected for this target and reset to the host after it (`P1097` when LLVM does not know it) |
+| `features` | string | none | an LLVM feature list for code generation, such as `-neon,-fp-armv8` |
+| `codeModel` | `"small"`, `"kernel"`, `"medium"` or `"large"` | the target's | the code model (`UMS2116`) |
+| `noRedZone` | `true` or `false` | `false` | mark every function `noredzone` (`UMS2115`) |
 | `native { }` | block | none | C sources this target compiles and links. At most once (`UMS2110`) |
 | `link { }` | block | none | linker inputs, in order. At most once (`UMS2110`) |
 
@@ -206,7 +211,7 @@ Any other key is `UMS2101`, and each key or block may appear once (`UMS2102`).
 
 Objects are cached by content, along with every header clang reports reading. See [Calling C from Prismio](https://docs.prismio.org/guides/calling-c) for what invalidates an entry, and [runtime platforms and packaging](/runtime/platform-and-packaging) for the driver side.
 
-**`link { }`** takes no arguments (`UMS2107`) and holds calls that each take **exactly one** string (`UMS2109`). A name other than these five is `UMS2108`.
+**`link { }`** takes no arguments (`UMS2107`) and holds calls that each take **exactly one** string (`UMS2109`). A name other than these seven is `UMS2108`.
 
 | Call | Meaning | Checked when the manifest loads |
 |---|---|---|
@@ -215,6 +220,8 @@ Objects are cached by content, along with every header clang reports reading. Se
 | `file("x.a")` | an exact object or library, relative to the project root | not empty |
 | `framework("Security")` | a Mach-O framework. Ignored on other targets | not empty |
 | `responseFile("link.rsp")` | linker arguments from a file another tool wrote | must exist (`UMS2326`) |
+| `script("kernel.ld")` | a linker script: `-T <path>`, the path relative to the project root | not empty |
+| `arg("-z")` | one linker argument, as written, in the order declared | not empty |
 
 `search` and `file` are not checked for existence when the manifest loads, so a missing one is reported by the linker.
 
@@ -306,21 +313,22 @@ Loading collects every diagnostic it can before printing any, so one run reports
 
 | Code | Message | What to do |
 |---|---|---|
-| `UMS2101` | unknown target property 'x'; expected entry, runtime, exportDynamic, native or link | Use one of those five |
-| `UMS2102` | target entry, runtime or exportDynamic is declared more than once | Keep one |
+| `UMS2101` | unknown target property 'x'; expected entry, runtime, exportDynamic, freestanding, triple, features, codeModel, noRedZone, native or link | Use one of those |
+| `UMS2102` | a target property (entry, runtime, exportDynamic, freestanding, triple, features, codeModel or noRedZone) is declared more than once | Keep one |
 | `UMS2103` | unknown target kind 'x' | The kinds are `executable`, `library` and `test` |
 | `UMS2104` | X requires exactly one string name | Write `executable("name") { ... }` |
 | `UMS2105` | target 'x' is declared more than once | Target names are unique |
 | `UMS2106` | targets contains executable(...), library(...) or test(...) declarations | Move other statements out of `targets` |
 | `UMS2107` | link takes no arguments | Write `link { ... }` |
-| `UMS2108` | unknown link declaration 'x'; expected library, search, file, framework or responseFile | Use one of those five |
+| `UMS2108` | unknown link declaration 'x'; expected library, search, file, framework, responseFile, script or arg | Use one of those seven |
 | `UMS2109` | X requires exactly one string argument | A link call takes one string. Repeat the call for another |
 | `UMS2110` | target link or native is declared more than once | Merge the blocks |
 | `UMS2111` | native takes no arguments | Write `native { ... }` |
 | `UMS2112` | unknown native declaration 'x'; expected source, include, define, flag or responseFile | Use one of those five |
 | `UMS2113` | X requires at least one string argument, or X takes strings | Give each `native` call one or more string literals |
 | `UMS2114` | target runtime is "installed" or "none", not "x" | Use one of the two |
-| `UMS2115` | target exportDynamic must be true or false | Write `true` or `false`, unquoted |
+| `UMS2115` | target exportDynamic, freestanding or noRedZone must be true or false | Write `true` or `false`, unquoted |
+| `UMS2116` | target codeModel is small, kernel, medium or large, not "x" | Use one of the four |
 | `UMS2307` | at least one build target is required | Declare a target in `targets` |
 | `UMS2308` | invalid target name 'x' | A name starts with a letter, digit or `_` and holds letters, digits, `.`, `_` and `-` |
 | `UMS2309` | target 'x' requires an entry source | Add `entry = "src/main.psm"` |

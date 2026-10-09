@@ -5,11 +5,16 @@ status: stable
 version: "0.1.0"
 lastUpdated: "2026-10-01"
 tags: [benchmarks, harness, results]
-related: [performance/benchmark-contract, performance/investigation-method, performance/telling-a-difference-from-noise, roadmap]
+related: [performance/freestanding-benchmarks, performance/benchmark-contract, performance/investigation-method, performance/telling-a-difference-from-noise, roadmap]
 ---
 
-The suite lives under `benchmarks/`. `benchmarks.json` is the catalog; `run.py` builds the three
-dispatchers, validates results, samples workloads, and writes JSON plus an HTML rendering.
+The suites live under `benchmarks/`: `hosted/` (Prismio, C++ and Rust, timed) and `freestanding/`
+(Prismio, C and Rust on bare metal under QEMU, counted in instructions; see
+[The freestanding benchmark suite](/performance/freestanding-benchmarks)). Each has a
+`benchmarks.json` catalog. `run.py` builds the three dispatchers of the hosted suite, validates
+results, samples workloads, loads `freestanding/suite.py` for the other suite, and writes one JSON
+file plus an HTML rendering with a tab per suite. The rest of this page is the hosted suite unless
+it says otherwise.
 
 ## Command surface
 
@@ -17,7 +22,15 @@ dispatchers, validates results, samples workloads, and writes JSON plus an HTML 
 prismio bench --runs 9
 prismio bench --only binary_trees --runs 15
 python3 benchmarks/run.py --list
+prismio bench --suite hosted --runs 9
+prismio bench --suite freestanding --only fibonacci --scale 4
 ```
+
+`--suite hosted|freestanding|all` (default `all`) chooses what runs; the freestanding suite is skipped
+with a note when its tools (`clang`, a linker, `qemu-system-aarch64`, `rustc` with `rust-src`) are
+missing. `--scale N` multiplies the size of every freestanding workload and `--runs` bounds how many
+times each freestanding arm is booted (at most three, since the count is exact). `--output` writes
+the combined file, and running one suite leaves the other's report in it as it was.
 
 `prismio bench` measures the project compiler, and refuses to run if `src/`, `std/` or `runtime/` is newer than it (`--allow-stale-compiler` overrides). Every arm is rebuilt and timed on every run, with CPU time beside wall time; `--reuse-reference-builds` brings back the cached C++ and Rust builds for a quick run-time-only check. The C++ arm uses LTO when the machine's linker can (it falls back to none, and the report records the command). Called directly, `benchmarks/run.py` takes `--compiler` or `PRISMIO`, and `--compiler` overrides `PRISMIO`. `--llvm-bin` chooses the LLVM/Clang directory. `--only` is
 repeatable and `select_benchmarks()` rejects unknown names. `--skip-build` requires all three suite
@@ -37,7 +50,9 @@ cause.
 
 ## Reading JSON
 
-The result file records `schema_version` (now `3`), `generated_at`, `runs`, `build_commands`,
+The result file's own `schema_version` is `4`: it holds `generated_at`, `artifacts` and a `suites`
+object with one report per suite (`hosted`, `freestanding`), and each report keeps the schema it was
+written with. The hosted report, described here, is at `suites.hosted` and is schema `3`. It records `schema_version`, `generated_at`, `runs`, `build_commands`,
 `compile_ns`, `binary_bytes`, `parity`, `noise_model`, `environment`, `benchmarks`, and `artifacts`.
 `environment` is probed on every run and holds the processor, core count, memory, OS, power state,
 target triple, the toolchain versions (Prismio with the profile it was built in, clang, rustc, LLVM)
@@ -66,8 +81,9 @@ their reason and no fabricated `languages` object.
 
 Add the catalog record, implement the same algorithm in the Prismio, C++, and Rust category modules,
 wire each suite dispatcher, choose a deterministic integer checksum, and document the timed boundary.
-The Prismio category files live under `benchmarks/prismio`, the C++ implementation is split across
-the files in `CPP_SOURCES`, and Rust lives under `benchmarks/rust`. The string name in all three
+The Prismio category files live under `benchmarks/hosted/prismio`, the C++ implementation is split
+across the files in `CPP_SOURCES` under `benchmarks/hosted/cpp`, and Rust lives under
+`benchmarks/hosted/rust`. The string name in all three
 dispatchers must exactly match the manifest `name`.
 
 Before a long run, use `--only <name> --runs 1`. Deliberately perturb one arm's checksum and confirm
@@ -76,7 +92,7 @@ when the workload writes data. Finally run several samples and inspect both the 
 generated `report.html`.
 
 If Prismio cannot express the intended standard operation, add a complete unsupported record to
-`UNSUPPORTED.md`. State the missing language or library feature and why a local substitute would
+`benchmarks/hosted/UNSUPPORTED.md`. State the missing language or library feature and why a local substitute would
 invalidate comparison.
 
 Review the generated result diff before committing. A changed checksum, build command, workload

@@ -16,6 +16,8 @@ Guides connect multiple reference rules into a maintainable workflow. They assum
 - [Organize source with modules](/guides/modules) explains entry-rooted dotted imports, wildcard imports, flattened names, and project layout.
 - [Calling C from Prismio](/guides/calling-c) compiles your own C into a program with a `native` block, calls it through `extern fn`, and shows when the build recompiles it.
 - [Call C with ownership contracts](/guides/ffi) covers exact ABI declarations, borrow/consume/retain contracts, and wrapper design.
+- [Freestanding programs](/guides/freestanding) builds a program with no operating system under it, boots it under QEMU, and lists what it cannot use yet.
+- [Freestanding benchmarks](/guides/freestanding-benchmarks) measures Prismio against C and Rust on that machine in exact guest instructions, and explains how to read the table.
 - [Choose memory intent with AIF](/guides/memory-and-aif) starts from stable ownership, inspects allocation evidence, and adds experimental constraints only when measured.
 
 ## Compiler development

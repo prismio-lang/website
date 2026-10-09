@@ -5,7 +5,7 @@ status: stable
 version: "0.1.0"
 lastUpdated: "2026-10-02"
 tags: [compiler, targets, windows, macos, linux, wasm]
-related: [start/installation, compiler/cli, roadmap]
+related: [start/installation, compiler/cli, guides/freestanding, roadmap]
 ---
 
 The Prismio compiler and bootstrap pipeline are continuously exercised on:
@@ -30,6 +30,10 @@ It does not imply:
 - identical linker flags and executable suffixes.
 
 The host LLVM/Clang toolchain performs native object generation and linking. Platform support means the compiler suite runs in CI; it does not yet guarantee a long-term binary ABI, stable distribution channel, cross-compilation SDK, or identical availability of every foreign library.
+
+## Bare metal
+
+A target triple whose operating system is `none`, such as `aarch64-unknown-none-elf` or `i686-unknown-none-elf`, builds a program for a machine with nothing under it. Pass `--freestanding`; the installed runtime and the C library are not linked, and the image is static, linked by lld. AArch64 and 32-bit x86 are exercised in the test suite, which boots a kernel for each under QEMU. x86_64 generates code but is not booted, and RISC-V is not among the backends the compiler links. See [freestanding programs](/guides/freestanding).
 
 ## Oldest supported systems
 

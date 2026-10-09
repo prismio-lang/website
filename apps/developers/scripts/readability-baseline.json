@@ -2,7 +2,6 @@
   "_comment": "Readability backlog for DOC_STYLE.md rules 1 and 2. This list may only shrink: fix a page, remove its entry. The audit fails if a listed page has been fixed.",
   "opensWithIdentifier": [
     "llvm/llvm-c-bridge",
-    "performance/benchmark-contract",
     "runtime/platform-and-packaging",
     "runtime/tasks-and-channels"
   ],

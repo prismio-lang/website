@@ -3,7 +3,7 @@ title: Arrays, vectors, and slices
 description: Fixed stack arrays, the growable Vec<T>, and bounds-checked slices in Prismio 0.1 — which to choose, how each is owned, and how to view part of one.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-24"
+lastUpdated: "2026-10-08"
 tags: [arrays, vec, slices, collections, indexing]
 related: [language/types, language/ownership-and-borrowing, stdlib/vec]
 ---
@@ -224,7 +224,7 @@ fn main() -> Int { return 0 }
 
 A length is written in three places only: a local `let`, a return type and a struct field. A parameter takes `[T]` and gets its length from each call; a type argument (`Vec<Array<Int, 4>>`), an optional, an `extern` signature and a module-level `let` cannot carry one.
 
-The language does not yet promise a portable bounds-check trap for every array index. Keep indices in range and do not rely on backend behavior for memory safety.
+Indexing an `Array<T, N>` or a `[T]` view is not checked, and an index outside `[0, length)` is [undefined behaviour](/specification/behavior#bounds-and-storage). The compiler relies on it: it treats an index that was used as in range, and optimises the arithmetic around it on that basis. Keep indices in range, and check one that may not be against the length first.
 
 ## Vec
 

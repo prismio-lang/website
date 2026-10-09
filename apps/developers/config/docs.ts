@@ -175,9 +175,11 @@ export const docsConfig: DocsAppConfig = {
                 { label: "AIF differential testing", href: "/testing/aif-differential" },
                 { label: "Benchmark contract", href: "/performance/benchmark-contract" },
                 { label: "Run and extend benchmarks", href: "/performance/running-adding-and-reading-results" },
+                { label: "Freestanding benchmarks", href: "/performance/freestanding-benchmarks" },
                 { label: "Telling a difference from noise", href: "/performance/telling-a-difference-from-noise" },
                 { label: "Performance investigations", href: "/performance/investigation-method" },
                 { label: "Decisions and rejected experiments", href: "/performance/decisions-and-rejected-experiments" },
+                { label: "Wrapping integers and tight loops", href: "/performance/wrapping-integers-and-tight-loops" },
             ],
         },
         {
