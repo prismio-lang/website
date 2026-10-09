@@ -5,7 +5,7 @@ status: experimental
 version: "0.2.0"
 lastUpdated: "2026-10-09"
 tags: [standard-library, memory, buffer, bytes, allocation, arena, manual-memory, binary-formats]
-related: [stdlib, language/low-level, language/ownership-and-borrowing, guides/memory-and-aif, stdlib/vec]
+related: [stdlib, guides/freestanding, language/low-level, language/ownership-and-borrowing, guides/memory-and-aif, stdlib/vec]
 ---
 
 `import std.mem`. Read and write binary data, allocate memory you free yourself, and carve short-lived scratch memory out of one block.
@@ -263,8 +263,65 @@ fn main() -> Int {
 }
 ```
 
+## In a freestanding program
+
+A [`--freestanding`](/guides/freestanding) program, such as a kernel, can import `std.mem`, and with it `std.vec`, `std.map` and `std.string`. The build then compiles Prismio's runtime for the program's own target, with no C library under it. The memory comes from the program: it defines three functions, and every `Vec`, `String`, `Buffer` and `alloc` goes through them.
+
+| Function | Answers |
+| --- | --- |
+| `prismio_alloc(size: Usize) -> Ptr` | a block of at least `size` bytes, aligned to 16; never null |
+| `prismio_realloc(p: Ptr, size: Usize) -> Ptr` | `p`'s contents in a block of `size` bytes; `p` may be null |
+| `prismio_free(p: Ptr)` | nothing; the block is the allocator's again |
+
+They are `export fn`s in Prismio, or C functions linked with the program. A program that never allocates defines none of them: the default stops the machine through `prismio_panic_hook` and says which function to write.
+
+```prismio
+import std.mem
+
+// A bump allocator over RAM nothing else uses. Blocks are never reused; each
+// carries its size in the eight bytes before it, for realloc.
+let HEAP_BASE: Usize = 0x44000000
+let mut heapTop: Usize
+
+export fn prismio_alloc(size: Usize) -> Ptr {
+    if (heapTop == 0) { heapTop = HEAP_BASE }
+    let block = heapTop + 16
+    (block - 8).storeU64(size as U64)
+    heapTop = block + ((size + 15) & ~(15 as Usize))
+    return __builtin_addr_ptr(block)
+}
+
+export fn prismio_realloc(p: Ptr, size: Usize) -> Ptr {
+    let fresh = prismio_alloc(size)
+    let old = __builtin_ptr_addr(p)
+    if (old != 0) {
+        let oldSize = (old - 8).loadU64() as Usize
+        let mut count = oldSize
+        if (size < count) { count = size }
+        copy(__builtin_ptr_addr(fresh), old, count)
+    }
+    return fresh
+}
+
+export fn prismio_free(p: Ptr) {}
+
+fn main() -> Int {
+    let mut squares: Vec<Int> = []
+    for i in 0..<100 { squares.push(i * i) }
+    let mut header = Buffer(8)
+    header.writeU32BE(0, 0x7F454C46)
+    return squares.length + (header[0] as Int)
+}
+```
+
+What changes without an operating system:
+
+- **A runtime error stops the machine through `prismio_panic_hook`**, with `kind` `"runtime error"` and the message's text as `detail`. The numbers in it are not filled in: `%d byte(s) at offset %d are out of range for a Buffer of %d`.
+- **Float text is not available.** `toString` on a `Float` and `parseFloat` use the C library's formatter and parser; a kernel that calls one fails to link, and the error names the function.
+- **One core.** The runtime takes no locks. A kernel that uses `Vec` from several cores at once needs its own.
+- **What is not used costs nothing.** A program that imports none of these modules links no runtime and no C library functions at all.
+
 ## Not available yet
 
 - **`sizeOf<T>()` and `alignOf<T>()`.** Asking a type for its size needs layout information the language does not expose yet, so a struct cannot be placed in an `Arena` by type. Allocate a size you know.
 - **Typed pointers.** An address is a `Usize`, and there is no `Ptr<T>` that knows what it points at.
-- **Freestanding programs.** `std.mem` needs the hosted runtime's allocator, so a `--freestanding` program cannot import it. The [`__builtin_mem_*`](/language/low-level) family works there.
