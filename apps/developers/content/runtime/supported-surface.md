@@ -489,7 +489,7 @@ correctly rounded `strtod`.
 | `io_stdin_has_line` `io_stdin_take_line` `io_stdin_read_all` | `inputLines()` `readLine()` `readAll()` | The last two → `produce(free)`, `""` at end of input (never a literal) |
 | `mem_alloc` `mem_alloc_zeroed` `mem_realloc` `mem_free` | `alloc` `allocZeroed` `realloc` `free` | `Usize` in and out, so no contract: the address is a number Prismio never releases. On `rt_base_alloc`/`rt_free`, so `--verify` counts them; never 0, exhaustion exits |
 | `mem_copy` `mem_fill` `mem_compare` | `copy` `fill` `compare` | `memmove`, `memset`, `memcmp` (normalised to −1/0/1) |
-| `mem_bytes_data` `mem_bytes_load` `mem_bytes_store` `mem_bytes_load_f64` `mem_bytes_store_f64` | `b.address`, `b[i]`, `b.readU32LE` … `b.writeFloatBE` | `borrow` on the `Vec<U8>`; curated, so a read is one bounds check and one unaligned load |
+| `mem_bytes_data` `mem_bytes_address` | `b.address`, and the checked address behind `b[i]` and `b.readU32LE` … `b.writeFloatBE` | `borrow` on the `Vec<U8>`; curated. The access itself is `__builtin_mem_uload`/`ustore`, unaligned and tagged as byte storage so a store does not make LLVM reload the header; big-endian is `__builtin_swap_bytes`, a Float `__builtin_float_bits` |
 | `mem_bytes_resize` `mem_bytes_fill` `mem_bytes_copy` `mem_bytes_equal` `mem_bytes_index_of` `mem_bytes_write_text` | `resize` `clear` `append` `fill` `copyFrom` `slice` `==` `indexOf` `fromString` | `borrow` on each `Vec<U8>`, which the writers write through; `bytes` for the String |
 | `mem_bytes_text` | `b.toString()` | `produce(free)`; stops at the first zero byte |
 
