@@ -209,6 +209,7 @@ export const docsConfig: DocsAppConfig = {
                 { label: "Math", href: "/stdlib/math" },
                 { label: "Vec", href: "/stdlib/vec" },
                 { label: "Map", href: "/stdlib/map" },
+                { label: "Memory and buffers", href: "/stdlib/mem" },
                 { label: "Option and Result", href: "/stdlib/option" },
                 { label: "Filesystem", href: "/stdlib/filesystem" },
                 { label: "Process and arguments", href: "/stdlib/process" },

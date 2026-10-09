@@ -3,7 +3,7 @@ title: Lexical structure
 description: Prismio 0.1 identifiers, comments, literals, punctuation, and reserved words.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-27"
+lastUpdated: "2026-10-09"
 tags: [lexer, comments, literals, keywords]
 related: [specification/grammar, language/operators, language/types]
 ---
@@ -22,6 +22,31 @@ fn main() -> Int {
     return 0
 }
 ```
+
+**A `(` or `[` at the start of a line starts a new statement.** It never calls or indexes whatever the line before ended with, so a statement may begin with a parenthesised expression:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+import std.mem
+import std.string
+
+fn main() -> Int {
+    let block = alloc(16)
+    block.storeU32(1)
+    (block + 4).storeU32(2)      // its own statement, not a call of the line above
+    println((block + 4).loadU32())
+    free(block)
+
+    let shout = "  hi  "
+        .trim()                  // a `.` does continue the line before
+        .toUpper()
+    println(shout)
+    return 0
+}
+```
+
+A call's own arguments may still wrap onto later lines, because their `(` is on the line with the name.
 
 ## Whitespace and comments
 

@@ -3,7 +3,7 @@ title: Methods and impl blocks
 description: Method call syntax and concrete or generic impl blocks in Prismio -- x.f(a) is f(x, a), and an impl block is where the free function is written.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-25"
+lastUpdated: "2026-10-09"
 tags: [methods, impl, receiver, self, overloads]
 related: [language/functions, language/traits, language/structs]
 ---
@@ -375,6 +375,41 @@ fn main() -> Int {
 be generic too, as in `impl<T: Scored> Display for Box<T>`; their applicability,
 bounds, and overlap are checked structurally. The trait itself cannot take type
 arguments yet. See [traits](/language/traits).
+
+## Indexing: `at` and `set`
+
+A struct can be indexed like a `Vec` by giving it two methods:
+
+| You write | It calls |
+| --- | --- |
+| `x[i]` | `x.at(i)` |
+| `x[i] = v` | `x.set(i, v)` |
+
+`set` changes the value, so it takes `inout self`, and the struct has to be in a `let mut`. A struct with an `at` and no `set` can be read by index but not assigned to: `x[i] = v` is an error that says to write a `set`. The index can be any type the method takes, which is how `m["key"]` reads a [`Map`](/stdlib/map). A generic struct's `set` is not reached this way yet, so a `Map` is still written with `m.set(key, value)`.
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+struct Grid {
+    width: Int,
+    cells: Vec<Int>
+}
+
+impl Grid {
+    fn at(self, index: Int) -> Int { return self.cells[index] }
+    fn set(inout self, index: Int, value: Int) { self.cells[index] = value }
+}
+
+fn main() -> Int {
+    let mut grid = Grid { width: 3, cells: Vec<Int>.filled(9, 0) }
+    grid[4] = 7
+    println(grid[4])   // 7
+    return 0
+}
+```
+
+`std.mem`'s [`Buffer`](/stdlib/mem) uses exactly this for `b[i]` and `b[i] = x`.
 
 ## Standard-library methods
 

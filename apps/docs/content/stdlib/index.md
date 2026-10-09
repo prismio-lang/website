@@ -3,12 +3,12 @@ title: Standard library status
 description: Prismio's shipped source standard library and the modules still planned.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-10-07"
+lastUpdated: "2026-10-09"
 tags: [standard-library, runtime, status]
-related: [stdlib/io, stdlib/display, stdlib/input, stdlib/strings, stdlib/math, stdlib/time, stdlib/filesystem, stdlib/vec, stdlib/map, stdlib/option, roadmap]
+related: [stdlib/io, stdlib/display, stdlib/input, stdlib/strings, stdlib/math, stdlib/time, stdlib/filesystem, stdlib/vec, stdlib/map, stdlib/mem, stdlib/option, roadmap]
 ---
 
-Prismio ships twenty standard-library modules:
+Prismio ships twenty-one standard-library modules:
 
 | Module | Covers |
 | --- | --- |
@@ -24,6 +24,7 @@ Prismio ships twenty standard-library modules:
 | [`std.math`](/stdlib/math) | Float and integer math, and every numeric type's limits |
 | [`std.vec`](/stdlib/vec) | `Vec<T>`'s library methods and the Vec literal |
 | [`std.map`](/stdlib/map) | `Map<K, V>` |
+| [`std.mem`](/stdlib/mem) | `Buffer`, a byte buffer with typed reads and writes; `alloc`, `realloc` and `free`; `Arena` |
 | [`std.option`](/stdlib/option) | the functions that read a `T?` (`unwrapOr`, `expect`, `map`, `andThen`, `okOr`, and the call behind `??`), `Result<T, E>` and its methods |
 | [`std.term`](/stdlib/term) | terminal colours and styles |
 | `std.key`, `std.ord`, `std.copy`, `std.eq`, `std.iter`, `std.display`, [`std.default`](/language/traits#a-types-own-default) | the `Key`, `Ord`, `Copy`, `Eq`, `Iterator`, `Display` and `Default` traits |

@@ -3,7 +3,7 @@ title: Builtins, standard modules, and foreign code
 description: "What a Prismio program can call, where each operation lives, who owns what it returns, and how contributors decide between compiler lowering, a standard module, and C."
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-26"
+lastUpdated: "2026-10-09"
 tags: [runtime, stdlib, ffi, ownership]
 related: [runtime/overview, runtime/tasks-and-channels, aif/ffi-contracts, compiler/string-representation, cookbook/add-a-runtime-or-stdlib-api]
 ---
@@ -158,6 +158,7 @@ leaks or violations.
 | `std.map` | `Map<K, V>`: `get`, `set`, `has`, `remove`, `clear`, `m[k]`, `length`, `keys()`, `values()`, `keyAt` / `valueAt` |
 | `std.option` | Generic functions over `T?` (`unwrapOr`, `expect` with a message, `okOr`, `map`, `andThen`, and `optionCoalesce`, which `a ?? b` is), and `Result<T, E>` with its `map`, `andThen`, `mapErr`, `unwrapOr`, `expect`, `ok`, `err` family |
 | `std.vec` | `Vec<T>`'s library methods (`get`, `contains`, `indexOf`, `lastIndexOf`, `countOf`, `min`, `max`, `find`, `indexWhere`, `fold`, `forEach`, `pop`, `removeAt`, `removeFirst`, `swapRemove`, `extend`, `retain`, `dedup`, `fill`, `reverse`, `clone`, `sort`, `sortBy`, `sorted`, `reversed`, `take`, `skip`, `concat`, `startsWith`, `endsWith`, `filter`, `binarySearch`), the same reads and in-place changes over an `Array<T, N>` (the length passed beside it, which the compiler supplies for a call) and over a `Slice<T>`, `toVec`, **the Vec literal** `[a, b, c]`, `Vec<T>.withCapacity(n)`, and `Vec<T>.filled(n, x)` (a scalar `T` needs no import; any other goes through `vecFilled`) |
+| `std.mem` | `Buffer` (a byte `Vec<U8>` with bounds-checked typed reads and writes, `b[i]`, `fill`, `copyFrom`, `slice`, `resize`, `append`, `indexOf`, `toString`, `==`), manual memory on `Usize` addresses (`alloc`, `allocZeroed`, `realloc`, `free`, `copy`, `fill`, `compare`, `loadU8..U64`, `storeU8..U64`), and `Arena` |
 | `std.math` | Float `sqrt`, rounding, `pow`, logarithms, trigonometry, IEEE constants; integer `pow`, `gcd`, `floorMod`, `isqrt`; each numeric type's `MAX` / `MIN`, lowered through the `__builtin_f64_*` family |
 | `std.term` | Terminal colour and text styles as `String` methods, and `colorEnabled()` |
 | `std.key`, `std.ord`, `std.copy`, `std.eq`, `std.display`, `std.iter`, `std.default` | The `Key`, `Ord`, `Copy`, `Eq`, `Display`, `Iterator`, and `Default` bounds, including `==` on a struct and `for … in` over a user type |
@@ -340,6 +341,14 @@ pointer into memory it does not own (`cli_arg` was one, returning a slot of
 `argv`) is `alias`; declaring it `produce(free)` hands that memory to the
 deallocator.
 
+**`borrow` is about ownership, not about writing.** The backend turns it into LLVM's
+`readonly` on a `String` argument only, where it is the property that lets a
+loop's materialised string be hoisted. A container borrowed by a C function may be
+written through: `std.mem`'s `mem_bytes_store` and `mem_bytes_resize` do exactly
+that to a `Vec<U8>`. Extending `readonly` to every borrowed pointer would let
+LLVM keep a length or a data pointer across those calls, and
+`tests/test_274_std_mem.psm` resizes inside a loop to catch it.
+
 `bytes` is the one contract about **marshalling rather than ownership**. A
 `String` view has no terminator of its own, so under every other contract the
 boundary hands the callee a NUL-terminated *copy* of a view. `bytes` says the
@@ -478,6 +487,11 @@ correctly rounded `strtod`.
 | `proc_env_set` `proc_env_remove` `proc_pid` | `process.setEnv` `removeEnv` `pid` | `borrow`; → `Int` |
 | `time_monotonic_nanos` `time_unix_nanos` `time_sleep_nanos` | `Instant.now()` `unixTime()` `sleep` | → `I64` nanoseconds; POSIX `clock_gettime` / `nanosleep`, Windows `QueryPerformanceCounter` / `GetSystemTimePreciseAsFileTime` / `Sleep` |
 | `io_stdin_has_line` `io_stdin_take_line` `io_stdin_read_all` | `inputLines()` `readLine()` `readAll()` | The last two → `produce(free)`, `""` at end of input (never a literal) |
+| `mem_alloc` `mem_alloc_zeroed` `mem_realloc` `mem_free` | `alloc` `allocZeroed` `realloc` `free` | `Usize` in and out, so no contract: the address is a number Prismio never releases. On `rt_base_alloc`/`rt_free`, so `--verify` counts them; never 0, exhaustion exits |
+| `mem_copy` `mem_fill` `mem_compare` | `copy` `fill` `compare` | `memmove`, `memset`, `memcmp` (normalised to −1/0/1) |
+| `mem_bytes_data` `mem_bytes_load` `mem_bytes_store` `mem_bytes_load_f64` `mem_bytes_store_f64` | `b.address`, `b[i]`, `b.readU32LE` … `b.writeFloatBE` | `borrow` on the `Vec<U8>`; curated, so a read is one bounds check and one unaligned load |
+| `mem_bytes_resize` `mem_bytes_fill` `mem_bytes_copy` `mem_bytes_equal` `mem_bytes_index_of` `mem_bytes_write_text` | `resize` `clear` `append` `fill` `copyFrom` `slice` `==` `indexOf` `fromString` | `borrow` on each `Vec<U8>`, which the writers write through; `bytes` for the String |
+| `mem_bytes_text` | `b.toString()` | `produce(free)`; stops at the first zero byte |
 
 The `Int` returns are normalized because the raw conventions disagree:
 `file_exists` returns 1 for yes, while `delete_file` returns **0** for success.
@@ -488,7 +502,8 @@ Two adjacent functions in which 0 means opposite things belong behind a wrapper.
 module.
 
 **The argument vector crosses one element at a time.** No `Vec<T>` crosses the
-FFI boundary, and joining argv with a separator is wrong because an argument may
+FFI boundary except `std.mem`'s `Vec<U8>`, which is a byte block the C side reads
+and writes in place and never keeps, and joining argv with a separator is wrong because an argument may
 contain any byte. `Process.spawn` calls `proc_spawn_begin`, then `proc_spawn_arg`
 per argument, then `proc_spawn_run`, the shape `ir_call_begin` / `ir_call_arg`
 has in `src/ir/bridge.psm`, with the same limit of one spawn under construction
