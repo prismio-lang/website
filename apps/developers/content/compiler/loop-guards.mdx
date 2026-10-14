@@ -460,6 +460,41 @@ store's value has no form, takes with it only the arrays whose stores read it.
 [Wrapping integers and tight loops](/performance/wrapping-integers-and-tight-loops) has the
 investigation: the shapes behind the gap, every alternative measured and the prior art.
 
+## Remainders by a literal
+
+A checksum loop ends every iteration with a remainder that depends on the last one:
+
+```prismio
+for i in 0..<n {
+    let value = i % 997
+    checksum = (checksum + value) % 1000000007
+}
+```
+
+LLVM emits each `%` as a multiply by a magic constant — `smull; asr; add; msub`, about eleven
+cycles — and the chain through `checksum` serialises them. It cannot do better, because it does not
+track the range of a value carried around a loop. The access-facts walk can, and
+`src/ir/residues.psm` adds what it needs:
+
+- **A remainder's range.** `x % m` for a literal `m >= 1` lies in `[-(m - 1), m - 1]` with the
+  dividend's sign, whatever `x` was, and no wider than a bounded dividend allows.
+- **What a loop keeps.** A name every assignment in a loop sets to a remainder by a literal, which
+  entered the loop inside that range, is inside it at every head: no assignment can leave it, so no
+  induction over the body is needed. Other names assigned in the loop are still forgotten.
+- **One step.** On a dividend in `(-2m, 2m)` the signed remainder is `x - m` from `m` up, `x + m`
+  from `-m` down, and `x` in between. The walk records which of four forms the dividend's interval
+  allows — the dividend itself in `(-m, m)`, the subtract in `(-m, 2m)`, the add in `(-2m, m)`, both
+  in `(-2m, 2m)` — and `generateBinary` emits compares and selects instead of `srem`. Neither the
+  add nor the subtract is `nsw`; the arm a select discards may wrap.
+
+A range runs either way at run time (`0..<n` counts down when `n` is negative), so `value` above is
+only known to lie in `(-997, 997)`, and `checksum + value` needs both steps. That is still the loop
+in 4.06 ms rather than 9.67 (`vector_growth`, 4M iterations); a dividend known non-negative takes
+one step, 3.04 ms in the C model of the same loop. A divisor up to `Int.MAX` is read, but a dividend
+whose range does not fit `Int` keeps its remainder, so `% 2147483647` on a sum stays `srem`.
+
+`PRISMIO_NOWRAP=0` turns the forms off with the `nsw` marks: they come from the same facts.
+
 ## Square bounds and stride tiling
 
 A sieve's outer loop is bounded by a square, `while (p * p <= n)`. The range guard folds the facts
@@ -540,6 +575,7 @@ with its own soundness argument:
 | Access facts | `src/ir/nowrap.psm`, run from `generateFunction` in `src/ir/module.psm`; marks in `ir_nowrap_mark` (`runtime/ir_symbols.c`); emitted by `nowrapImplied` in `generateBinary` |
 | Counted loops | `src/ir/counters.psm`; applied from the bounding conjunct on by `nowrapCondition` in `src/ir/nowrap.psm` |
 | Array contents | `src/ir/contents.psm`; the forms are evaluated by `nowrapForm` in `src/ir/nowrap.psm` |
+| Remainders by a literal | `src/ir/residues.psm`; ranges in `nowrapRemainder`, loop heads in `nowrapKeepResidues`, forms marked by `nowrapMarkRemainder` (`ir_rem_form_mark` in `runtime/ir_symbols.c`) and emitted by `reducedRemainder` in `src/ir/expr.psm` |
 | Square bounds, stride tiling | [Stride tiling and square bounds](/compiler/stride-tiling#testing-and-debugging) |
 | Which calls decline a loop | `irFlatGuardCount` in `src/ir/expr.psm` |
 | Effect analysis and fixed point | `irBodyMovesNoBlock` and the sweep in `src/ir/module.psm` |
@@ -548,7 +584,7 @@ with its own soundness argument:
 | min/max/abs intrinsics | `src/sema/builtins.psm`, `src/ir/expr.psm`, `std/math.psm` |
 | Float math builtins | `src/common/float_builtins.psm` (the table), marked safe in `src/ir/module.psm` |
 | Failure builtins (`panic`, `assert`, …) | marked safe in `src/ir/module.psm`; `irFlatGuardCount` counts only an `assert`'s condition, since the rest runs on the way out of the process |
-| Tests | `tests/test_119_loop_range_guard.psm`, `test_120_min_max_abs.psm`, `test_121_guard_effect_analysis.psm`, `test_169_loop_range_proofs.psm`, `test_179_proved_index_nsw.psm` (with `proved_index_nsw` in `test_runner.py`), `test_270_array_nowrap.psm` (with `array_nowrap`), `test_271_array_contents.psm` (with `array_contents`), `test_286_stride_tiling.psm` (with `stride_tiling`) |
+| Tests | `tests/test_119_loop_range_guard.psm`, `test_120_min_max_abs.psm`, `test_121_guard_effect_analysis.psm`, `test_169_loop_range_proofs.psm`, `test_179_proved_index_nsw.psm` (with `proved_index_nsw` in `test_runner.py`), `test_270_array_nowrap.psm` (with `array_nowrap`), `test_271_array_contents.psm` (with `array_contents`), `test_286_stride_tiling.psm` (with `stride_tiling`), `test_288_remainder_steps.psm` (with `remainder_steps_codegen`) |
 
 ## Debugging a guard change
 

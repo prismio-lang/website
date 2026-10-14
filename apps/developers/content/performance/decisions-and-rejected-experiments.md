@@ -193,15 +193,38 @@ assignments and **declines initialisers**, which costs nothing anywhere else. A 
 extern signature with a raw `Ptr` keeps scalar tags, because a distinct base would turn Prismio's explicit
 type-punning escape hatch into C strict aliasing.
 
-### `vector_growth` is 93% one modulo chain
+### `vector_growth` is one modulo chain and, until 0.2.0, a call per push
 
 The loop is a push plus `checksum = (checksum + value) % 1000000007`, four million times. Written in C and
 ablated, the modulo alone is 9.128 ms in Prismio and 9.174 ms in C of a 10.8 ms benchmark: a loop-carried
-`smull; asr; add; msub` chain of about eleven cycles per iteration, identical in all three languages. The
-whole addressable gap is the push, about 1.0 ms. Two levers priced at zero: forcing the representation test
-true and dropping every bounds check (10.760 to 10.785 ms), and an unsigned accumulator, which is *slower*
-(14.630 ms against 10.053) because a divisor near 2³⁰ needs a 33-bit magic constant. Do not spend a session
-on this benchmark's container.
+`smull; asr; add; msub` chain of about eleven cycles per iteration, identical in all three languages. An
+unsigned accumulator is *slower* (14.630 ms against 10.053), because a divisor near 2³⁰ needs a 33-bit magic
+constant.
+
+The push half was misread here before. Forcing the representation test true and dropping every bounds
+check measured nothing (10.760 to 10.785 ms) because neither was the cost: **every push was an out-of-line
+call to `list_push_inline_scalar_slow`.** A counted loop reserves its fill's final size before the first
+iteration, but only when the push was the whole body; this body has three statements, so nothing was
+reserved, the empty list failed the capacity guard, and the loop ran its unguarded copy. With the
+reservation extended to any body whose pushes are statements of the body itself, and lowered to one exact
+`list_reserve` instead of a doubling loop, the benchmark goes from 11.34 to 9.63 ms (0.85×, minima of 15
+interleaved pairs) and peak RSS from 34.7 to 17.1 MB. `transient_allocation` moves 0.593 to 0.395 ms on the
+same change: its fills were reserved before, but by ~20 doublings of an empty block.
+
+**Rejected: a virtual-memory slab for growing vectors.** Reserving a 4 GiB `mmap` window per growing `Vec`,
+so the base never moves and growth never copies, was priced in a C model of this loop before any of it was
+built (one shot per process, minimum of nine): copy-growth 10.8 ms, `realloc` doubling 9.93, exact
+reservation 9.74, the window 9.71, no store at all 9.10. Its ceiling is about 2% over `realloc` and nothing
+over a reservation the compiler can already make from the trip count; the register-resident base it
+promises is what the guarded loop already emits. It would also not port: a Windows `MEM_RESERVE` range does
+not commit on first touch, and wasm32 and freestanding builds have no `mmap`.
+
+The modulo is now one step too. `checksum` stays inside a remainder's range and so does `value`, so
+their sum lies in `(-2M, 2M)`, where the remainder is a conditional add or subtract (see
+[Remainders by a literal](/compiler/loop-guards#remainders-by-a-literal)): 9.67 to 4.06 ms, minima of
+21 interleaved pairs, and 0.46× of C++ and 0.50× of Rust in the suite. Not one-sided: a range may
+count down, so `value` is only known to lie in `(-997, 997)`. The one-sided form, where a sign is
+known, measured 3.04 ms in C.
 
 ### Overflow stays defined; loops get the facts instead
 

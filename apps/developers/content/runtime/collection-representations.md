@@ -93,7 +93,10 @@ handshake that makes that migration self-repairing.
 | `list_set` | Replaces a boxed element and applies the configured old-element release |
 | `list_set_exclusive` | Uses the proven exclusive-owner path without shared replacement behavior |
 
-`list_inline_grow` reallocates byte-strided storage. `list_push_grow` grows pointer storage.
+`list_inline_grow` reallocates byte-strided storage. `list_push_grow` grows pointer storage. Both
+double the capacity, and for a heap list (no arena, no arena hint active) both do it with
+`rt_base_realloc`, so the allocator may extend or remap the block instead of copying it; an
+arena-backed list allocates a new block in its arena and copies.
 `list_copy_elem` and `scalar_store` centralize copying so the same width/alignment rule is used
 by append and replacement.
 
@@ -106,6 +109,14 @@ by append and replacement.
 | `list_insert`, `list_insert_inline`, `list_insert_inline_scalar`, `list_insert_str` | `v.insert(i, x)` | the matching push, then the new last element is moved down to `i`; the index is checked before the push, so a bad one exits without taking the value |
 | `list_truncate(l, n, now)` | `v.truncate(n)`, `v.clear()`, `v.pop()` | discards slots `[n, len)` from the top; `n < 0` empties |
 | `list_remove_at(l, i, now)` | `v.removeAt(i)` | discards slot `i` and shifts the tail down; out of range is a `runtime error:` and exit 1, not a no-op |
+
+**A counted fill reserves its final size once.** Before a counted loop whose body pushes a scalar
+to an empty flat list as a statement of its own (not inside an `if`), with no `break`, `continue` or
+`return` anywhere in the body, codegen calls `list_reserve(l, k * trip)` for the `k` such pushes
+(`irPrepareFills` in `src/ir/expr.psm`, `ir_list_prepare_fill` in `llvm-api-backend.c`). Pushes in
+an arm can only add to that count, so the reservation never exceeds what the loop appends; whether
+the body then skips its capacity checks is still the push guard's decision, made against the upper
+bound. A populated list, a fill under 64 elements and a boxed list keep the ordinary path.
 
 **A removed element that owns memory is parked, not released.** `list_discard_slot` moves the
 owned pointer — a boxed element, or the heap block of a non-inline, non-view `String` pair — onto
