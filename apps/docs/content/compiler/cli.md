@@ -90,14 +90,19 @@ There is no `bootstrap` command. The Prismio compiler is built from its reposito
 | Option | Effect |
 | --- | --- |
 | `-o <path>` | Select output path; `.ll` emits LLVM IR only |
-| `-O0` … `-O3` | Select requested optimization level |
-| `-g` | Emit debug info; the program object is built at `-O0` |
+| `-O0` … `-O3` | How much the program is optimised; `-O3` by default, `-O0` with `-g` |
+| `-Os`, `-Oz` | Optimise for size; `-Oz` is smaller still and usually slower |
+| `-g` | Emit debug info; the program object is built at `-O0` unless an `-O` flag says otherwise |
 | `--overflow-checks` | Trap on signed and unsigned integer overflow in your code |
 | `--verify` | Instrument and check allocation/free behavior |
 | `--debug` | Use conservative analysis and extra debugging behavior |
 | `--target wasm32` | Emit a WebAssembly-targeted module (experimental) |
 
-`-O0` through `-O3` are accepted front-end optimization requests. In 0.1, the object-generation driver also has current Clang optimization behavior, so a flag should not be interpreted as a frozen end-to-end pipeline contract. Record the complete compiler version and command in benchmarks.
+`-O0` through `-O3` set the level the whole program, standard library included, is optimised and compiled at. With no flag a build is `-O3`, or `-O0` with `-g`; `-g -O2` gives an optimised program you can still step through. `-O0` builds fastest: the hosted benchmark program builds in 0.30 s at `-O0` and 0.86 s at `-O3`.
+
+`-Os` and `-Oz` trade speed for size. On the same program the code is 36% smaller at `-Os` and 55% smaller at `-Oz`, which also outlines repeated instruction sequences into shared ones. Neither is a default, because both make the program slower.
+
+With `-o file.ll`, the flag applies to the IR written. Record the complete compiler version and command in benchmarks.
 
 `--verify` adds supported allocation/free lifecycle instrumentation. It can change performance and is intended for testing. `--debug` selects conservative analysis/debug behavior; it is not a promise of an integrated source debugger.
 

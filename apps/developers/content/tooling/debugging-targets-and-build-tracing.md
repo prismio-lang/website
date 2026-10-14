@@ -73,9 +73,16 @@ The link is `ld` run directly. `cc -###` is asked once what it would run, and th
 in `$TMPDIR/prismio-link-cache` with the object and output as markers; each absolute path in it,
 and `/var/db/xcode_select_link`, is recorded by identity, so an Xcode update or an `xcode-select`
 switch sends the next build back to the driver. The trace says which path a build took:
-`link (ld)` or `link (driver)`. A target with native objects, link arguments or exports, a
-freestanding target and every non-Mach-O target always take the driver. `PRISMIO_LINK_CACHE=0`
-forces the driver, for an A/B; the two produce byte-identical executables.
+`link (ld)` or `link (driver)`. A program split into codegen partitions takes `ld` too: the cached
+line names the first object once, and the build puts the other partitions back after it, last
+first, which is the order the driver had them (the hosted benchmark program links in 17 ms, was
+30 through the driver). A target with native objects, link arguments or exports, a freestanding
+target and every non-Mach-O target always take the driver. `PRISMIO_LINK_CACHE=0` forces the
+driver, for an A/B; the two produce byte-identical executables.
+
+Mach-O programs are linked with `-fixup_chains`. At the deployment floor ld64 otherwise binds
+lazily, and `__la_symbol_ptr`, `__stub_helper` and `__dyld_private` give `__DATA` file contents and
+so a whole 16 KiB page: hello is 33,952 bytes with chained fixups and was 50,504.
 
 `PRISMIO_PRUNE=0` keeps every imported standard-library function through the ownership analysis and
 IR generation instead of dropping the ones the program cannot call (`src/driver/prune.psm`). The two

@@ -134,15 +134,40 @@ half will quietly stop inlining.
 
 ### Parallel machine code
 
-After the whole program is optimized **as one module**, it is split into up to eight partitions
+After the whole program is simplified **as one module**, it is split into up to eight partitions
 (heaviest function first onto the lightest partition, about 5,000 instructions each at least) and
-each is lowered on its own thread, in its own `LLVMContext`, from one shared bitcode image. This is
-LLVM's own LTO split, and the order is the point: every inlining and IPO decision has already been
-made on the whole program, so unlike rustc's codegen units nothing is given up for the
-parallelism. A local referenced across a partition boundary becomes a hidden global of the same
+each is optimised and lowered on its own thread, in its own `LLVMContext`, from one shared bitcode
+image. `default<O3>` runs in two halves (`prismio_llvm_run_default_half` in
+`runtime/llvm_bridge.cpp`, built exactly as LLVM's `buildPerModuleDefaultPipeline`): the module
+simplification pipeline -- the CGSCC inliner and the function simplification it drives -- on the
+whole program, then the module optimisation pipeline -- loop rotation, vectorisation, unrolling and
+their cleanups, one function at a time -- in each partition. Every inlining and IPO decision has
+been made on the whole program, so unlike rustc's codegen units nothing that crosses functions is
+given up for the parallelism. On the compiler's own build the pipeline and machine code take
+3.63 s, against 4.30 s with the second half on one thread.
+
+The split is not byte-identical to one `default<O3>`. Analyses the first half leaves cached --
+InstCombine's last-run tracking among them -- cannot cross into another thread's context, so the
+second half recomputes them and InstCombine runs where it would have been skipped. It was measured
+rather than assumed: 47 hosted workloads at ten times their size, geomean 0.995 against 1.000 for
+an identical-binary control, every result equal. A program too small to partition (counted after
+`globaldce`, before optimisation) keeps the single pipeline and its exact output, and
+`PRISMIO_SPLIT_PIPELINE=0` turns the split off. Windows has no bridge yet and runs it whole. A local referenced across a partition boundary becomes a hidden global of the same
 name; constants are copied into each partition that reads them. Machine code for the compiler
-itself went from 2.1 s to 0.66 s. A `-g` build, or a module with aliases, ifuncs or inline
-assembly, is emitted whole.
+itself went from 2.1 s to 0.66 s. A module with aliases, ifuncs or inline assembly is emitted
+whole.
+
+Each partition loads the shared bitcode **lazily** and materialises only the bodies it owns; the
+rest become declarations unread (`prismio_llvm_drop_body` in `runtime/llvm_bridge.cpp`). Every
+partition used to parse the whole module and delete seven-eighths of it, ~170 ms per partition on
+the compiler's own build before any code was emitted. With lazy loading, machine code for the
+compiler takes 608 ms (was 754). Windows has no bridge yet and parses whole.
+
+A `-g` or `-O0` build is partitioned too. Each partition keeps the compile unit and the
+subprograms of what it emits, so the program has one compile unit per partition, all named for
+the source, as an LTO-partitioned link does; `dwarfdump --verify` is clean and lldb resolves
+breakpoints, locals and globals exactly as in a one-partition build. The compiler's `-g` build
+spends 216 ms in machine code (was 512 on one thread).
 
 `delete_function_body` turns a body another partition owns into a declaration. It must erase
 every instruction before deleting any block: a branch in a later block still names an earlier
@@ -156,6 +181,7 @@ the freed memory was rarely reused in time; with eight it corrupted other partit
 | `PRISMIO_BUILD_TRACE=1` | Stage timings, including `parse merged IR`, `IR pipeline`, `machine code` and the partition count |
 | `PRISMIO_CODEGEN_THREADS=n` | Exactly `n` partitions regardless of size; `1` emits the module whole |
 | `PRISMIO_CODEGEN_VERIFY=1` | Verify each partition's module before lowering it |
+| `PRISMIO_SPLIT_PIPELINE=0` | Run `default<O3>` whole on one thread instead of splitting its second half into the partitions |
 | `PRISMIO_SAVE_IR=<file>` | Write the merged module the pipeline is about to run on, for timing `opt`/`llc` offline |
 
 On Mach-O the link passes `-dead_strip`, so unreferenced functions in native objects go too;

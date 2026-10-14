@@ -81,8 +81,9 @@ application protocol, but changes must update the oracle and differential fixtur
 | Option | Effect |
 | --- | --- |
 | `-o <path>` | Select output path; `.ll` emits LLVM IR only |
-| `-O0` … `-O3` | Select requested optimization level |
-| `-g` | Emit DWARF and lower the program object at `-O0` for inspectable locals |
+| `-O0` … `-O3` | The level the program's object step runs at; `-O3` by default, `-O0` with `-g` |
+| `-Os`, `-Oz` | Size levels: `optsize` (and `minsize` for `-Oz`) on every function, LLVM's O2 pipeline |
+| `-g` | Emit DWARF and lower the program object at `-O0` for inspectable locals, unless an `-O` flag is given |
 | `--verify` | Instrument and check allocation/free behavior |
 | `--debug` | Use conservative analysis and extra debugging behavior |
 | `--overflow-checks` | Emit checked integer arithmetic where implemented |
@@ -94,10 +95,18 @@ application protocol, but changes must update the oracle and differential fixtur
 | `--link-arg <arg>` | One linker argument (repeatable, in order) |
 | `--target-features <list>`, `--code-model <model>`, `--no-red-zone` | Code generation settings a kernel needs |
 
-`-O0` through `-O3` control the in-process LLVM module pass pipeline. Native object generation uses
-the build driver's current Clang policy; `-g` deliberately changes the program object step to
-`-O0`. Record the complete compiler version and command in benchmarks rather than treating the
-front-end flag as a frozen whole-toolchain recipe.
+The flag is read by `program_opt_level` in `runtime/build_driver.c` and becomes the level
+`ir_emit_object` runs `default<O<n>>` and the machine-code generator at (`None`, `Less`,
+`Default`, `Aggressive`, as clang maps them) over the merged program. With no flag it is 3, or 0
+for `-g`. LLVM 23 has no `Os` or `Oz` pipeline, so `-Os` and `-Oz` mark every function `optsize`
+(`-Oz` also `minsize`, which turns on AArch64's machine outliner) and run O2; `-Oz` leaves the loop
+vectorizer off, as clang does. `-o x.ll` applies the level to the program's own module as it is
+written (`ir_write_output_file`), and `run --jit` to the merged module before ORC compiles it.
+
+Until 2026-10-14 the flag ran a second pipeline over the frontend's module, and the object step
+ignored it: `-O0` was a fully optimised build and `-O3` optimised twice (0.86 s with no flag,
+1.15 s at `-O3`, on the hosted benchmark program). Record the complete compiler version and
+command in benchmarks.
 
 `--verify` adds supported allocation/free lifecycle instrumentation. It can change performance and is intended for testing. `--debug` selects conservative analysis/debug behavior; it is not a promise of an integrated source debugger.
 
