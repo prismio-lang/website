@@ -5,7 +5,7 @@ status: stable
 version: "0.1.0"
 lastUpdated: "2026-10-09"
 tags: [standard-library, runtime, status]
-related: [stdlib/io, stdlib/display, stdlib/input, stdlib/strings, stdlib/math, stdlib/time, stdlib/filesystem, stdlib/vec, stdlib/map, stdlib/mem, stdlib/option, roadmap]
+related: [stdlib/io, stdlib/display, stdlib/input, stdlib/strings, stdlib/math, stdlib/time, stdlib/filesystem, stdlib/vec, stdlib/map, stdlib/mem, stdlib/raw, stdlib/option, roadmap]
 ---
 
 Prismio ships twenty-one standard-library modules:
@@ -25,6 +25,8 @@ Prismio ships twenty-one standard-library modules:
 | [`std.vec`](/stdlib/vec) | `Vec<T>`'s library methods and the Vec literal |
 | [`std.map`](/stdlib/map) | `Map<K, V>` |
 | [`std.mem`](/stdlib/mem) | `Buffer`, a byte buffer with typed reads and writes; `alloc`, `realloc` and `free`; `Arena` |
+| [`std.raw`](/stdlib/raw) | volatile and atomic access to an address, a memory barrier, unaligned access, byte order, a Float's bits; no C runtime |
+| [`std.port`](/stdlib/port), [`std.asm`](/stdlib/asm) | x86 port I/O, and inline assembly written where it runs |
 | [`std.option`](/stdlib/option) | the functions that read a `T?` (`unwrapOr`, `expect`, `map`, `andThen`, `okOr`, and the call behind `??`), `Result<T, E>` and its methods |
 | [`std.term`](/stdlib/term) | terminal colours and styles |
 | `std.key`, `std.ord`, `std.copy`, `std.eq`, `std.iter`, `std.display`, [`std.default`](/language/traits#a-types-own-default) | the `Key`, `Ord`, `Copy`, `Eq`, `Iterator`, `Display` and `Default` traits |

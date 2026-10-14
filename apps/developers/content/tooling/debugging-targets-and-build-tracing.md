@@ -18,6 +18,8 @@ Choose the inspection boundary that can still reproduce the failure.
 | Did runtime ownership match the plan? | `prismio build --verify` |
 | Is generated IR valid? | Emit `.ll` and use LLVM verification |
 | Which native build stage is slow? | `PRISMIO_BUILD_TRACE=1` (then `PRISMIO_SAVE_IR=<file>` to time `opt`/`llc` on the exact module) |
+| Which frontend phase is slow? | `PRISMIO_PHASE_TIMES=1` |
+| What does unused standard library still cost? | `PRISMIO_PRUNE=0` turns off unreachable-function pruning, for an A/B |
 | Is a parallel-codegen partition malformed? | `PRISMIO_CODEGEN_VERIFY=1`, or `PRISMIO_CODEGEN_THREADS=1` to emit whole |
 | Do source-level debugger views match? | Build with `-g`, then use LLDB or GDB |
 
@@ -58,6 +60,27 @@ IR triple/layout, object generation, runtime bitcode availability for the triple
 timestamps, and `build_trace_stage(name, start)` reports the elapsed stage. Instrumented stages
 include runtime discovery/curation, IR-to-object compilation, cache lookup, native runtime objects,
 linking, debug-symbol output, publish, and execution.
+
+`PRISMIO_PHASE_TIMES=1` times the frontend the same way, one line per phase on stderr
+(`diag_phase_time` in `runtime/diagnostics.c`), keyed on the names the progress line already
+carries: parsing, resolving imports, checking types, analysing ownership, generating IR. It costs a
+`getenv` per phase. Read it beside `PRISMIO_BUILD_TRACE=1`: on a program that prints one line the
+frontend is about 3 ms of a 36 ms build, the runtime and library bitcode merge 7 ms (1.6 ms
+less on macOS and Linux, where only the definitions a program reaches are read and linked), optimisation
+and machine code 6 ms, and the link 15 ms.
+
+The link is `ld` run directly. `cc -###` is asked once what it would run, and the answer is kept
+in `$TMPDIR/prismio-link-cache` with the object and output as markers; each absolute path in it,
+and `/var/db/xcode_select_link`, is recorded by identity, so an Xcode update or an `xcode-select`
+switch sends the next build back to the driver. The trace says which path a build took:
+`link (ld)` or `link (driver)`. A target with native objects, link arguments or exports, a
+freestanding target and every non-Mach-O target always take the driver. `PRISMIO_LINK_CACHE=0`
+forces the driver, for an A/B; the two produce byte-identical executables.
+
+`PRISMIO_PRUNE=0` keeps every imported standard-library function through the ownership analysis and
+IR generation instead of dropping the ones the program cannot call (`src/driver/prune.psm`). The two
+must emit the same machine code for anything the program does call; the switch exists to measure
+what the unused ones cost and to A/B a change to reachability.
 
 Object-cache tracing is separate. `object_cache_trace` reports the computed key and hit/miss
 decision; `object_cache_disabled` forces a real rebuild. A suspicious performance or correctness

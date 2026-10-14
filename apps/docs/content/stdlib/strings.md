@@ -397,8 +397,10 @@ does not say is the defect the optional exists to prevent, and overflow is that
 defect by another route. The same holds at the edges: `I64`'s most negative value parses,
 and one past it does not.
 
-`parseFloat` is `strtod`, so it is correctly rounded, and it is **stricter than C**:
-the whole string must be a number, so `"1.5kg"` and `" 1.5"` are `none`.
+`parseFloat` is correctly rounded, reads what `strtod` reads (decimal, hexadecimal such
+as `0x1p-3`, `inf`, `nan`), and is **stricter than C**: the whole string must be a
+number, so `"1.5kg"` and `" 1.5"` are `none`. It is Prismio, not the C library, so it
+also works in a [freestanding program](/guides/freestanding).
 
 ### Float text
 

@@ -3,7 +3,7 @@ title: Loop guards and container access
 description: How Prismio proves a container's representation and index range once per loop, versions the loop on that proof, and emits unchecked access inside it.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-10-08"
+lastUpdated: "2026-10-14"
 tags: [compiler, loops, containers, codegen, performance, vectorization]
 related: [compiler/aif-internals, compiler/string-representation, llvm/control-flow, runtime/collection-representations]
 ---
@@ -157,16 +157,29 @@ irPrimitiveIsSettled    list_get, list_set, list_len, rc_retain, ...
 
 A module pass then runs a **greatest fixed point** over the call graph. Every
 function with a body starts assumed settled; each sweep takes that away from any
-function reaching a block-moving primitive, an unknown `extern fn`, or a `spawn`.
+function reaching a block-moving primitive, an unknown `extern fn`, a `spawn` or
+`join`, or a trait-object call (`DYN_CALL`), which runs whichever impl the vtable
+holds. The loop analyses refuse those three node kinds directly too
+(`irIsUnjudgedCall`): until they did, a `dyn` method that pushed to the list a
+loop was reading left the guarded copy reading a freed element block.
 Sweeps repeat until nothing changes, which terminates because a verdict only ever
 moves one way and the module is finite.
 
 Starting optimistic is what admits recursion: a function that calls only itself
 moves no block, and a pessimistic start would wait on itself forever.
 
-The table is keyed by **source name**, because the guard sees a spelling at the
-call site rather than a resolved symbol. Overloading therefore means one unsafe
-overload poisons the name for all of them.
+Each function is judged under **its own symbol**, and a call reads the verdict of
+the function sema resolved it to (`CALL_EXPR.s2`, the name codegen calls). The
+table also keeps a verdict per **source name**, safe only when every function
+carrying the name is, and a call falls back to it when it has no resolved symbol.
+Keying by name alone made one unsafe overload poison every call spelled the same
+way: `Buffer.eq` calls an extern, so in any program importing `std.mem` every
+`Map` probe -- whose `eq` is an Int comparison -- lost its guard, and one closure
+that pushes took the guard from every closure call.
+
+Only functions the program can reach are judged at all: the standard-library
+functions it cannot call are dropped after type checking (`src/driver/prune.psm`),
+so a dead overload can no longer decide how a live call compiles.
 
 ### Why not inlining
 
@@ -376,7 +389,8 @@ nothing moves `i` before the last statement. So the step cannot wrap, as long as
 fits `Int`, and `i` stays between where it entered and the bound. The fact holds from the bounding
 conjunct on. A conjunct ahead of it also runs on the last check, when `i` is already past the bound:
 
-<!-- prismio-check: pass -->
+[//]: # (<!-- prismio-check: pass -->)
+
 ```prismio
 fn note(inout v: [Int], x: Int) -> Bool {
     v[0] = x
@@ -445,6 +459,15 @@ store's value has no form, takes with it only the arrays whose stores read it.
 
 [Wrapping integers and tight loops](/performance/wrapping-integers-and-tight-loops) has the
 investigation: the shapes behind the gap, every alternative measured and the prior art.
+
+## Square bounds and stride tiling
+
+A sieve's outer loop is bounded by a square, `while (p * p <= n)`. The range guard folds the facts
+that keep the square exact, so the conjunct bounds `p`: that proves `prime[p]` and makes
+`p = p + 1` `nsw`, which is what lets LLVM count and interleave the inner loop. A nest that stores
+one value at a stride is also run one cache-sized window at a time, as a hand-written segmented
+sieve is. Both, with why reordering the stores is legal and what was measured, are on
+[Stride tiling and square bounds](/compiler/stride-tiling).
 
 ## Measurements
 
@@ -517,6 +540,7 @@ with its own soundness argument:
 | Access facts | `src/ir/nowrap.psm`, run from `generateFunction` in `src/ir/module.psm`; marks in `ir_nowrap_mark` (`runtime/ir_symbols.c`); emitted by `nowrapImplied` in `generateBinary` |
 | Counted loops | `src/ir/counters.psm`; applied from the bounding conjunct on by `nowrapCondition` in `src/ir/nowrap.psm` |
 | Array contents | `src/ir/contents.psm`; the forms are evaluated by `nowrapForm` in `src/ir/nowrap.psm` |
+| Square bounds, stride tiling | [Stride tiling and square bounds](/compiler/stride-tiling#testing-and-debugging) |
 | Which calls decline a loop | `irFlatGuardCount` in `src/ir/expr.psm` |
 | Effect analysis and fixed point | `irBodyMovesNoBlock` and the sweep in `src/ir/module.psm` |
 | Guard-safe function table | `ir_mark_guard_safe_fn`, `ir_is_guard_safe_fn` in `runtime/ir_symbols.c` |
@@ -524,7 +548,7 @@ with its own soundness argument:
 | min/max/abs intrinsics | `src/sema/builtins.psm`, `src/ir/expr.psm`, `std/math.psm` |
 | Float math builtins | `src/common/float_builtins.psm` (the table), marked safe in `src/ir/module.psm` |
 | Failure builtins (`panic`, `assert`, …) | marked safe in `src/ir/module.psm`; `irFlatGuardCount` counts only an `assert`'s condition, since the rest runs on the way out of the process |
-| Tests | `tests/test_119_loop_range_guard.psm`, `test_120_min_max_abs.psm`, `test_121_guard_effect_analysis.psm`, `test_169_loop_range_proofs.psm`, `test_179_proved_index_nsw.psm` (with `proved_index_nsw` in `test_runner.py`), `test_270_array_nowrap.psm` (with `array_nowrap`), `test_271_array_contents.psm` (with `array_contents`) |
+| Tests | `tests/test_119_loop_range_guard.psm`, `test_120_min_max_abs.psm`, `test_121_guard_effect_analysis.psm`, `test_169_loop_range_proofs.psm`, `test_179_proved_index_nsw.psm` (with `proved_index_nsw` in `test_runner.py`), `test_270_array_nowrap.psm` (with `array_nowrap`), `test_271_array_contents.psm` (with `array_contents`), `test_286_stride_tiling.psm` (with `stride_tiling`) |
 
 ## Debugging a guard change
 

@@ -63,7 +63,7 @@ fn log_ready() {
 }
 ```
 
-For a value-returning function, `return expression` must match the declared return type. Prismio does not use a final expression as an implicit return.
+For a value-returning function, `return expression` must match the declared return type. A function body does not use its final expression as an implicit return, and the error for one that ends in an expression points at it and says to write `return`. A [closure](/language/closures#block-bodies) is the one place a final expression is the value.
 
 <!-- prismio-check: fail -->
 ```prismio
@@ -261,9 +261,34 @@ callers' fast path the wrong way.
 
 An executable uses a top-level `main` function, and it can be written two ways: `fn main()` and `fn main() -> Int`. The returned integer becomes the process exit status. A `main` with no return type exits with status 0: **reaching the closing brace is `return 0`, and so is a bare `return`**. Writing `-> Int` says the status is yours, so that `main` is held to the rule every `-> Int` function has: each path must `return` a number, and falling off the end or a bare `return` is an error. Any other return type is refused (`main` returns an `Int`, the exit status, or nothing). The 0.1 compiler does not document command-line argument parameters on `main`; obtain environment or argument data through supported runtime or FFI functions instead of copying signatures from C, Rust, or older drafts.
 
+## Nested functions
+
+A `fn` may be written inside another function's body. It is an ordinary function that sits where it is used: private, visible in the block that declares it, callable before its declaration and from itself, and it **captures nothing**. A name from the enclosing function is unknown inside it, as it would be anywhere else; use a [closure](/language/closures) to capture.
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+fn total(n: Int) -> Int {
+    fn square(x: Int) -> Int { return x * x }
+    fn sumTo(k: Int) -> Int {
+        if k <= 0 { return 0 }
+        return square(k) + sumTo(k - 1)
+    }
+    return sumTo(n)
+}
+
+fn main() -> Int {
+    println(total(3))     // 14
+    return 0
+}
+```
+
+Two functions may each declare a `helper`, a method may declare one, and a nested function may declare its own. The compiler names each `outer$inner`, so none can collide with a name a program wrote.
+
 ## Not implemented
 
-Named functions cannot currently be nested, define optional/default arguments,
+Named functions cannot currently define optional/default arguments,
 accept source-level variadics, or use expression bodies. Functions may declare
 [type parameters](/language/generics) with one or more [trait bounds](/language/traits).
 Closures provide anonymous capturing callables, and method-call syntax plus `impl`

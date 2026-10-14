@@ -43,7 +43,7 @@ prismio aif main.psm --why=1
 prismio aif main.psm --manifest
 ```
 
-The default report groups potential allocation sites into application and imported source, translates tiers into storage mechanisms such as stack, arena, or unique heap, and assigns short numeric IDs. A site is a source location, not a runtime allocation count. `--why=<ID>` explains one numbered decision; stable manifest symbols remain accepted for compiler tooling.
+The default report groups potential allocation sites into application and imported source, translates tiers into storage mechanisms such as stack, arena, or unique heap, and assigns short numeric IDs. A site is a source location, not a runtime allocation count. Imported sites are the ones your program can reach: a standard-library function nothing in your program calls is dropped before the analysis runs, so importing `std.string` to use one function does not list the whole module. `--why=<ID>` explains one numbered decision; stable manifest symbols remain accepted for compiler tooling.
 
 `--summary` gives the detailed program-level tier distribution. `--manifest` emits the stable line-oriented compiler/CI record, including mangled symbols, tier, thread affinity, placement, layout, origin, and source position. Use `--manifest`, rather than parsing the interactive report, in automation.
 

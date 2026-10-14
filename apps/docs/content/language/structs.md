@@ -40,6 +40,22 @@ The declaration introduces `Request` into the program's type namespace. Field or
 
 Fields may contain scalars, enums, fixed-length arrays, vectors, strings, other structs, and permitted optional types. An array field is written `Array<T, N>` and stored inside the struct — see [returning and storing arrays](/language/arrays-and-lists#returning-and-storing-arrays). A directly recursive stored field has no finite layout; model recursive links with an optional reference-shaped struct field, as shown on the [optional values](/language/optionals) page.
 
+## Visibility
+
+A struct and each of its fields carry a visibility marker, written before the name, with the levels a [function](/language/modules#visibility) has: `public` is everywhere, `internal` the declaring package, `private` the declaring file. **A struct is `internal` unless marked, and a field is `private` unless marked**, so a type is a closed box until its author opens it.
+
+```prismio
+public struct Point {
+    public x: Int,
+    internal tag: Int,
+    secret: Int
+}
+```
+
+`Point` is nameable from any file, `x` is readable and writable from any file, `tag` from files in the same package, and `secret` only from the file that declares `Point`. Reading or writing a field you cannot see, or naming a struct you cannot see, is a compile error that says which level stops you and what to write. A word is a marker only when a name follows it, so a field called `public` still reads as one.
+
+A struct literal sets every field, the written ones and the ones left to their defaults, so it is written only where all of them are visible. A struct with a hidden field is built by a function its own file provides, as `Buffer` is built by `Buffer(16)`.
+
 ## Construction
 
 A struct literal names its type and provides field initializers:
@@ -127,7 +143,7 @@ When a struct contains another move-only value, constructing the outer struct tr
   inherent or for a trait, and an `impl` may be generic. There is no dedicated
   constructor declaration: write an associated `new` that returns the struct, and
   `Point(3, 4)` calls it — see [calling a type](/language/methods#calling-a-type-calls-its-new).
-- A field has no visibility of its own; `public`, `private` and `internal` apply to functions and methods, not to types or their fields. See [visibility](/language/modules#visibility).
+- Visibility applies to a struct and its fields, not to an enum yet. See [visibility](#visibility).
 - Structs may be [generic](/language/generics); there are no field defaults. A literal that omits a field is accepted, and the omitted field is zero-initialised — a null pointer, a zero number, zeroed array elements, or a recursively zeroed inline struct.
 - A generic struct cannot hold an `Array<T, N>` field yet.
 - There is no update syntax that copies unspecified fields.

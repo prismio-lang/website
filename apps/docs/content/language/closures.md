@@ -55,7 +55,7 @@ A closure's body may answer nothing: `|x: Int| println(x)` is a closure whose `c
 `|x: Int| x + 1`, not `|x| x + 1`. Inferring a closure parameter means solving it from the callee's
 signature at the call site, which is a separate feature; the syntax does not change when it arrives.
 
-The body is an **expression**, not a block. `|a: Int, b: Int| a * b + 1` is one closure.
+The body is an **expression** or a [block](#block-bodies). `|a: Int, b: Int| a * b + 1` is one closure.
 
 `||` is a closure with no parameters:
 
@@ -180,10 +180,34 @@ The parameter types must match exactly, as for any call, and so must the result.
 its result: `F: Fn(Int)` alone is a parse error, because a closure always returns a value and the
 bound has to say which.
 
+## Block bodies
+
+A closure whose work takes statements has a block for a body, and **the block's last expression is its value**. This is the one place a final expression answers; a function body returns only through `return`.
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+fn run<F>(f: F, x: Int) -> Int {
+    return f(x)
+}
+
+fn main() -> Int {
+    let base = 100
+    let result = run(|x: Int| {
+        let doubled = x * 2
+        doubled + base
+    }, 5)
+    println(result)       // 110
+    return 0
+}
+```
+
+A block body may declare locals, loop and `return` early, and a `let` that reuses the name of an outer local shadows it rather than capturing it. A closure whose block ends in a statement, such as a call to `println`, answers nothing. A map literal as a closure's whole body must be parenthesised, since a `{` after the parameters now opens a block.
+
 ## Not in 0.1
 
 - Inferred parameter types, even against a closure bound: `|x| x + 1` is a parse error; write `|x: Int| x + 1`.
-- Block bodies (`|x: Int| { ... }`).
 - Storing a closure in a struct, a list, or a global.
 - Returning a closure from a function.
 - Borrowing captures, and a `move` keyword to opt out of them.

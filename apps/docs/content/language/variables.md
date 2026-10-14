@@ -48,6 +48,55 @@ An annotation without an initializer is accepted by the current compiler and all
 
 ## Default values
 
+A local may be declared with a type and no value, and given one later. There is no implicit default, so the compiler allows a **read only where every path that reaches it has assigned the variable**:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+fn grade(score: Int) -> String {
+    let label: String
+    if score > 90 {
+        label = "A"
+    } else {
+        label = "B"
+    }
+    return label
+}
+
+fn main() -> Int {
+    println(grade(95))
+    return 0
+}
+```
+
+A read the compiler cannot prove follows an assignment is an error:
+
+<!-- prismio-check: fail -->
+```prismio
+import std.io
+
+fn main() -> Int {
+    let count: Int
+    let ready = true
+    if ready { count = 1 }
+    println(count)
+    return 0
+}
+```
+
+The compiler reports ``count` may be used before it is assigned`: the `if` has no `else`, so the read can be reached without the assignment. Assign on every path, or write `let count: Int = default` for the type's default.
+
+How paths are counted:
+
+- **Branches join.** After an `if`/`else if`/`else` or a `match`, a variable is assigned only if every branch assigned it. A `match` has to cover every variant, or end in `_`, to count.
+- **A path that does not continue contributes nothing.** A branch that ends in `return`, `break`, `continue`, `panic` or `exit` has no later read to worry about, so `if ok { v = x } else { return 0 }` leaves `v` assigned.
+- **A loop that may not run assigns nothing afterwards.** A `while` or `for` body's assignments do not count after the loop. A `loop` ends only at a `break`, so an assignment before every `break` does count.
+- **An immutable `let` takes one assignment.** `let r: Int` then `r = 1` is fine; a second assignment, or one a loop could repeat, is an error that suggests `let mut`. `let mut` may be assigned as often as you like.
+- **A field is not the struct.** Assigning `p.x` of an unassigned struct is a read of `p`; assign the whole value.
+
+An array, a `Vec` and a `Map` declared without a value keep their usual empty or zeroed start.
+
 `default` is the value of whatever type its context expects:
 
 <!-- prismio-check: pass -->
@@ -192,7 +241,7 @@ Shadowing creates a new binding; it does not mutate or revive an old one. Owners
 
 ## Global bindings
 
-`let` declarations may appear at the top level. Global initializers must be static literal values supported by the compiler; arbitrary function calls and runtime expressions cannot initialize a global.
+`let` declarations may appear at the top level. Global initializers must be static values the compiler can compute: a literal, or for an integer global arithmetic on other constants (`let CELLS: Usize = N * N`). A function call or a runtime expression cannot initialize a global.
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -232,6 +281,10 @@ fn main() -> Int {
 ```
 
 The array must be `let`, not `let mut`; an element must itself be a literal (a call, a variable or a `Bool` is refused); and, like any array whose length is known, binding it to a `let mut` makes a writable copy.
+
+A global may carry a visibility marker, with the levels a function has: `public let LIMIT: Int = 8` is readable from any file that imports it, `internal` from its package, and `private` only from the file that declares it. A global with no marker stays open to every file.
+
+An integer global that is not `mut` is a constant, which is what an array's length may be built from: `let N: Usize = 4`, then `Array<Int, N * N>`. See [arrays](/language/arrays-and-lists#constant-lengths).
 
 Globals share the flattened program namespace after imports are resolved. A mutable global can be assigned by a function. Prefer passing state explicitly where practical: global mutation makes ownership, initialization order, and foreign integration harder to reason about.
 

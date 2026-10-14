@@ -72,7 +72,7 @@ There are 20, in four categories:
 | Memory | `pointer_chase`, `ring_buffer`, `mem_copy` |
 | Hardware | `atomic_counter`, `spinlock`, `volatile_registers` |
 
-The last category is what only freestanding code does: atomics and volatile access to raw addresses. Prismio writes them with the `__builtin_mem_*` functions from [low-level programming](/language/low-level); C uses `__atomic_*` and volatile pointers, and Rust uses `read_volatile` and its atomics. Everything is integer arithmetic.
+The last category is what only freestanding code does: atomics and volatile access to raw addresses. Prismio writes them with the `atomic…` and `volatile…` functions of [`std.raw`](/stdlib/raw), described in [low-level programming](/language/low-level); C uses `__atomic_*` and volatile pointers, and Rust uses `read_volatile` and its atomics. Everything is integer arithmetic.
 
 ## Results
 

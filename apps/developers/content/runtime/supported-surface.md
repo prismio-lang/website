@@ -445,16 +445,23 @@ points, so its declaration needs no contract. On Windows it also turns on
 asking before styling is what gets colour in a legacy console. The styling
 itself is Prismio.
 
-**Float text is C because its search is.** `prismio_format_double` writes the
-shortest decimal that `strtod` reads back as the same double, with at most
-`DBL_DIG` (fifteen) significant digits, found by asking for one digit and
-widening until it matches or reaches fifteen. `str_from_double` is that text as a
-`String` the caller owns. Every literal therefore prints as written and
-`0.1 + 0.2` prints `0.3`; a value that needs sixteen or seventeen digits to
-round-trip (`1.0 / 3.0`) prints fifteen. `strFromFloat`, `print(f)`, and
-`Display for Float` all go through the one function, so none can disagree.
-`str_double_valid` and `str_double_value` are the other direction, through
-correctly rounded `strtod`.
+**Float text is Prismio, and the C copy is for the console.** `std/float_text.psm`
+writes the shortest decimal that reads back as the same double, with at most
+`DBL_DIG` (fifteen) significant digits, and reads decimal, hexadecimal, `inf` and
+`nan` text back correctly rounded. It does both with exact decimal arithmetic
+(a double's expansion has at most 767 digits; the module holds 800), so it needs no
+C library and a `--freestanding` program can use it. Every literal prints as written
+and `0.1 + 0.2` prints `0.3`; a value that needs sixteen or seventeen digits to
+round-trip (`1.0 / 3.0`) prints fifteen. `toString`, `toString(places)`,
+`parseFloat`, `as String` and `as Float?` go through it.
+
+`prismio_format_double` and the four `prismio_rt_*print*_float` functions in
+`runtime/lang_runtime.c` are still what `print(f)` and `println(f)` call, because
+`std.io` imports nothing and importing `std.float_text` there adds thirty-five
+functions to every program that prints. They print the same text: the two were
+compared on 1.1 million bit patterns. `str_from_double`, `str_from_double_fixed`,
+`str_double_valid` and `str_double_value` are no longer called by `std`; they stay
+until a seed that does not reference them is published.
 
 ### Wrapped symbols, and the supported API in front of each
 

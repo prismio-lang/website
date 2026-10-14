@@ -61,7 +61,7 @@ ID   location                 type            storage                           
 Two things about that output surprise people:
 
 - **"Sites" are places in the source, not runtime allocations.** One site inside a loop is still one site.
-- **Imported modules are analysed too**, even when nothing calls them. A program that imports `std.string` reports its sites as well, which is why the count looks large for a small program.
+- **Imported modules are analysed as far as the program reaches into them.** A standard-library function the program can call is analysed and its sites are listed, whether or not it runs; one it cannot call is dropped after type checking (`src/driver/prune.psm`) and never reaches the analysis. A program that prints one `Int` lists the one site in `std.io`'s formatter, not the hundred in the modules it imports.
 
 ## Ask why
 

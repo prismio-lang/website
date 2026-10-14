@@ -29,35 +29,37 @@ error[P1094]: `std.io` cannot be imported by a `--freestanding` program
 
 ## A kernel written entirely in Prismio
 
+The hardware access in it comes from three modules that call nothing in the C runtime, so a kernel may import them and stay free of C: `import std.raw` for volatile access and addresses, `import std.asm` for assembly and `import std.port` for x86 port I/O. `import std.mem` is for plain loads and stores and for memory a program allocates, and it brings the runtime in, so a kernel that wants none leaves it out.
+
 This one runs on QEMU's 64-bit Arm `virt` board. There is no C file in it. The entry point is a `naked` function in the section the linker script starts the image with, the serial port is a volatile store to the UART's data register, the exit is a semihosting call, and the failure hook is an `export`ed function:
 
 ```prismio
 // QEMU `virt`'s PL011 UART.
 fn put(c: U8) {
-    __builtin_mem_vstore_u32(0x09000000, c as U32)
+    volatileStoreU32(0x09000000, c as U32)
 }
 
 // A C string: bytes at an address, up to a zero.
 fn puts(text: Ptr) {
-    let mut at = __builtin_ptr_addr(text)
-    let mut byte = __builtin_mem_load_u8(at)
+    let mut at = addressOf(text)
+    let mut byte = loadU8(at)
     while (byte != 0) {
         put(byte)
         at = at + 1
-        byte = __builtin_mem_load_u8(at)
+        byte = loadU8(at)
     }
 }
 
 // ARM semihosting SYS_EXIT: QEMU's exit status becomes the program's.
 fn halt(status: Int) {
-    __builtin_mem_store_u64(0x42000000, 0x20026)
-    __builtin_mem_store_u64(0x42000008, status as U64)
-    __builtin_asm("mov x0, #0x18\nmovz x1, #0x4200, lsl #16\nhlt #0xf000")
+    storeU64(0x42000000, 0x20026)
+    storeU64(0x42000008, status as U64)
+    asm("mov x0, #0x18\nmovz x1, #0x4200, lsl #16\nhlt #0xf000")
     while (true) {}
 }
 
 export naked section(".text.boot") fn _start() {
-    __builtin_asm("ldr x0, =__stack_top\nmov sp, x0\nbl main\n1: wfi\nb 1b")
+    asm("ldr x0, =__stack_top\nmov sp, x0\nbl main\n1: wfi\nb 1b")
 }
 
 // The one function the failure core asks of a program.
@@ -147,19 +149,19 @@ x86 differs in two ways that matter. The serial port and the exit device are por
 
 ```prismio
 export naked section(".note.Xen") align(4) fn pvh_note() {
-    __builtin_asm(".align 4\n.long 4\n.long 4\n.long 18\n.asciz \"Xen\"\n.long _start")
+    asm(".align 4\n.long 4\n.long 4\n.long 18\n.asciz \"Xen\"\n.long _start")
 }
 
 export naked section(".text.boot") fn _start() {
-    __builtin_asm("movl $$__stack_top, %esp\ncall main\n1: hlt\njmp 1b")
+    asm("movl $$__stack_top, %esp\ncall main\n1: hlt\njmp 1b")
 }
 
 fn put(c: U8) {
-    __builtin_port_out_u8(0x3F8, c)
+    portOutU8(0x3F8, c)
 }
 
 fn halt(status: U8) {
-    __builtin_port_out_u8(0xF4, status)
+    portOutU8(0xF4, status)
     while (true) {}
 }
 ```
@@ -243,7 +245,7 @@ python3 tools/package.py --compiler <compiler> --out <dir> \
 
 - Declare a `static` data object with a section and an alignment, such as a page table or a descriptor table: a `repr(C)` struct has its layout, but a module-level `let` cannot be placed. A function body is the only place assembly can emit data.
 - Take an address of a local or a field. Addresses come from numbers and `Ptr` parameters.
-- Define an interrupt handler with the platform's interrupt calling convention. A `naked` function with `__builtin_asm` can do it by hand.
+- Define an interrupt handler with the platform's interrupt calling convention. A `naked` function with `asm` can do it by hand.
 - Run on x86_64 under QEMU with `-kernel`: the flags and code generation are there, but QEMU does not load a 64-bit x86 ELF directly, so that needs a 32-bit stub that enters long mode.
 - Format or parse a `Float` as text: the runtime's formatter is the C library's.
 - RISC-V. The backend links AArch64, x86 and WebAssembly.

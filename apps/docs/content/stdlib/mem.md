@@ -5,7 +5,7 @@ status: experimental
 version: "0.2.0"
 lastUpdated: "2026-10-09"
 tags: [standard-library, memory, buffer, bytes, allocation, arena, manual-memory, binary-formats]
-related: [stdlib, guides/freestanding, language/low-level, language/ownership-and-borrowing, guides/memory-and-aif, stdlib/vec]
+related: [stdlib, stdlib/raw, guides/freestanding, language/low-level, language/ownership-and-borrowing, guides/memory-and-aif, stdlib/vec]
 ---
 
 `import std.mem`. Read and write binary data, allocate memory you free yourself, and carve short-lived scratch memory out of one block.
@@ -191,7 +191,7 @@ Sizes and addresses are `Usize`. **An allocation never returns `0`.** A program 
 | `a.loadU8()`, `a.loadU16()`, `a.loadU32()`, `a.loadU64()` | the value at `a` |
 | `a.storeU8(v)`, `a.storeU16(v)`, `a.storeU32(v)`, `a.storeU64(v)` | writes `v` at `a` |
 
-These are the [`__builtin_mem_*`](/language/low-level#memory-through-an-address) loads and stores under a method name, so the same rule applies: **the address must be a multiple of the width.** A `Buffer`'s typed reads have no such rule.
+These are the plain loads and stores of [low-level programming](/language/low-level#memory-through-an-address) under a method name, so the same rule applies: **the address must be a multiple of the width.** A `Buffer`'s typed reads have no such rule.
 
 Address arithmetic is ordinary `Usize` arithmetic: `(block + 8).loadU32()` reads the four bytes at offset 8.
 
@@ -288,17 +288,17 @@ export fn prismio_alloc(size: Usize) -> Ptr {
     let block = heapTop + 16
     (block - 8).storeU64(size as U64)
     heapTop = block + ((size + 15) & ~(15 as Usize))
-    return __builtin_addr_ptr(block)
+    return pointerAt(block)
 }
 
 export fn prismio_realloc(p: Ptr, size: Usize) -> Ptr {
     let fresh = prismio_alloc(size)
-    let old = __builtin_ptr_addr(p)
+    let old = addressOf(p)
     if (old != 0) {
         let oldSize = (old - 8).loadU64() as Usize
         let mut count = oldSize
         if (size < count) { count = size }
-        copy(__builtin_ptr_addr(fresh), old, count)
+        copy(addressOf(fresh), old, count)
     }
     return fresh
 }
@@ -317,7 +317,7 @@ fn main() -> Int {
 What changes without an operating system:
 
 - **A runtime error stops the machine through `prismio_panic_hook`**, with `kind` `"runtime error"` and the message's text as `detail`. The numbers in it are not filled in: `%d byte(s) at offset %d are out of range for a Buffer of %d`.
-- **Float text is not available.** `toString` on a `Float` and `parseFloat` use the C library's formatter and parser; a kernel that calls one fails to link, and the error names the function.
+- **Float text works.** `toString`, `toString(places)` and `parseFloat` are Prismio, so a kernel can call them. They use the FPU's arithmetic, so the program has to be built with it on; the C library is not involved.
 - **One core.** The runtime takes no locks. A kernel that uses `Vec` from several cores at once needs its own.
 - **What is not used costs nothing.** A program that imports none of these modules links no runtime and no C library functions at all.
 

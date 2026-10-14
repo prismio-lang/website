@@ -1,6 +1,6 @@
 ---
-title: Private or internal function
-description: Fix Prismio calls that reach a private or internal function from outside the file or package that declares it.
+title: Private or internal declaration
+description: Fix Prismio uses of a function, global, struct or struct field from outside the file or package that declares it.
 status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-24"
@@ -10,7 +10,7 @@ related: [language/modules, language/methods, specification/name-resolution]
 
 ## Meaning
 
-A declaration exists and matches the call, but is not visible where the call was written.
+A declaration exists and matches the use, but is not visible where the use was written. The declaration may be a function, a global `let`, a struct, or a field of a struct (`` field `x` of `Point` is private to the file that declares it ``).
 
 - `` `name` is private to the file that declares it `` — the declaration carries `private`, and the call is in a different file.
 - `` `name` is internal to the package that declares it `` — the declaration carries `internal`, and the call is outside its package. A package is the module's import path minus the last segment, so `store.index` and `store.cache` share one.
@@ -55,8 +55,9 @@ What *does* fail inside one file is a modifier somewhere it is not accepted:
 
 <!-- prismio-check: fail -->
 ```prismio
-private struct Hidden {
-    x: Int
+private enum Hidden {
+    A,
+    B
 }
 
 fn main() -> Int {
@@ -65,7 +66,7 @@ fn main() -> Int {
 ```
 
 ```text
-error: `private` is only accepted on a function or an `extern` declaration in v0.1
+error: `private` is only accepted on a function, a struct, a global `let` or an `extern` declaration
 ```
 
 ## How to fix it

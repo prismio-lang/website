@@ -98,14 +98,14 @@ prismio aif pin_refuted.psm
 ```text
 AIF analysis
   Source   pin_refuted.psm
-  Result   converged in 8 rounds
-  Sites    113 potential allocation site(s), not runtime allocation counts
+  Result   converged in 5 rounds
+  Sites    2 potential allocation site(s), not runtime allocation counts
 
 Storage plan
   Stack                   0
-  Arena                   2
+  Arena                   0
   Scoped heap             0
-  Unique heap             111
+  Unique heap             2
   Shared heap             0
   Cycle-managed heap      0
   Cross-thread heap       0
@@ -114,13 +114,16 @@ Your code
   No allocation sites found.
 
 Imported modules
-  113 potential site(s) found in imported source.
-  Imported sites are analyzed even when their functions are not executed.
-...
+  2 potential site(s) found in imported source.
+  Imported sites are listed when the program can call them, whether or not they run.
+ID   location                 type            storage                           reason
+1    std.string:2626:35       String          unique heap                       returned to the caller
+2    std.string:2627:19       String          unique heap                       returned to the caller
+
 Use `--why=<ID>` for one decision or `--manifest` for compiler/CI details.
 ```
 
-(excerpt — the per-site table between the header and that last line is cut; exit status 0.) Only `build` rejects it, because only `compileSource` — the function behind `build` and `run` — calls `aifReportPins()` before generating code:
+(exit status 0.) Only `build` rejects it, because only `compileSource` — the function behind `build` and `run` — calls `aifReportPins()` before generating code:
 
 ```bash
 prismio build pin_refuted.psm -o pin_refuted.ll

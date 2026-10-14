@@ -136,7 +136,7 @@ Two declarations do not take the default:
 - **`main`** is the program's entry point and is found by the driver rather than by a call, so a modifier on it changes nothing.
 - **A method in an `impl Trait for Type` block** is public unless it says otherwise. Implementing a trait is a promise made to everyone who can see the trait, and a private `eq` would satisfy the conformance check and then be unreachable from the generic code that conformance exists to serve. A method in a plain `impl Type` block takes the private default like any other `fn`.
 
-Modifiers apply to `fn`, `extern fn`, and a method inside an [`impl` block](/language/methods#visibility-on-methods) -- a method *is* a free function whose first parameter is the receiver, so the marker means the same thing there. A modifier on a type, an enum, or a global is rejected rather than accepted and ignored, because the check runs during overload resolution and would otherwise promise a guarantee the compiler does not enforce.
+Modifiers apply to `fn`, `extern fn`, a method inside an [`impl` block](/language/methods#visibility-on-methods) -- a method *is* a free function whose first parameter is the receiver, so the marker means the same thing there -- and to [global `let`s](/language/variables#global-bindings), [structs and their fields](/language/structs#visibility). A global with no marker stays open to every file; a struct is `internal` and a field `private` unless marked. A modifier on an enum is rejected rather than accepted and ignored, because it would promise a guarantee the compiler does not enforce.
 
 ## Selective imports
 
@@ -360,7 +360,7 @@ import {decode, encode} from protocol
 
 Prismio 0.1 has no re-exports. A module that imports another does not pass those names on to *its* importers — see [imports are not transitive](#imports-are-not-transitive) — so a composition root that only re-imports its parts gives its own importers nothing. Name the modules you use.
 
-Visibility does not extend to types, enums, or globals — a modifier on one is rejected. Qualifiers do not extend to them either.
+Visibility extends to globals, structs and struct fields; an enum takes no modifier yet. Qualifiers do not extend to types, enums or globals.
 
 A same-kind duplicate named declaration is an error, except that functions may form valid overload sets.
 

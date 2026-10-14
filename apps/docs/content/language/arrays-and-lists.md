@@ -23,6 +23,32 @@ let values: [Int] = [10, 20, 30]      // shorthand: the length comes from the va
 - **`Array<T, N>` without an initializer** reserves `N` slots, each starting at the element type's zero: `0`, `0.0`, `false`, the first variant of an enum. The element type has to have a zero, so `Array<String, 4>` is refused; use a `Vec` for elements that own memory.
 - **`[T]` and `Array<T>` are shorthand** for an array whose length comes from its initializer, so they need one. `let a: [Int]` on its own is an error that suggests `Array<Int, N>`.
 - **A written length has to match** the initializer, and be a positive whole number. It can be written in hex: `Array<U8, 0x100>`.
+- **The length may be a constant expression**, [below](#constant-lengths).
+
+### Constant lengths
+
+A length is a constant expression: numbers, parentheses, `+ - * / % << >> & | ^`, and global `let`s that are not `mut` and are initialised by a constant. A global is itself a constant when it is an integer initialised by one, so a size is written once.
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+let N: Usize = 4
+let CELLS: Usize = N * N
+
+fn main() -> Int {
+    let mut grid: Array<Int, CELLS>
+    for i in 0..<N {
+        for j in 0..<N {
+            grid[i * N + j] = (i * 10 + j) as Int
+        }
+    }
+    println(grid[15])     // 33
+    return 0
+}
+```
+
+The loop counts in `Usize` because its bound is one, and the index `i * N + j` is a `Usize`: **a collection is indexed by any integer type**. An index of a type whose every value is an `Int` converts as written; a wider or unsigned one is converted so that a value no `Int` holds stays out of range instead of wrapping into it. A local or a `let mut` global in a length is an error that says why.
 
 Inside a loop body, a zero-filled array starts at zero again on every iteration.
 

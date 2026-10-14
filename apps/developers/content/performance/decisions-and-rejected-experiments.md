@@ -3,7 +3,7 @@ title: Performance decisions and rejected experiments
 description: What was tried to make Prismio faster or smaller, what each attempt measured, and why the obvious alternative lost, so a contributor does not re-derive a negative result.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-10-08"
+lastUpdated: "2026-10-14"
 tags: [performance, decisions, benchmarks, llvm, runtime]
 related: [performance/investigation-method, performance/telling-a-difference-from-noise, runtime/collection-representations, llvm/runtime-ir-and-optimization]
 ---
@@ -226,6 +226,39 @@ stores supply. `heapsort` (a recurrence in a loop condition, 1.02×) is the one 
 open in `docs/KNOWN_ISSUES.md`. The other routes measured, among them `freeze`
 semantics, `mustprogress` and `llvm.assume`, are in [Wrapping integers and tight
 loops](/performance/wrapping-integers-and-tight-loops), with the prior art.
+
+### A sieve is tiled by the compiler, and `Vec<Bool>` stays bytes
+
+Decided 2026-10-14. A sieve's inner loop stores at a stride, so once the list is past L1 nearly
+every store misses. Three remedies were measured as hand-written C first (M5, clang -O3, marking
+loop only, against the plain loop):
+
+| n | tiled, 64 KB windows | the plain loop with a 64-bit bound | bit-packed, tiled |
+|---|---:|---:|---:|
+| 100K | 2.03× | 2.03× | 0.21× |
+| 400K | 2.52× | 1.29× | 0.24× |
+| 10M | 3.11× | 1.18× | 0.33× |
+| 100M | 7.83× | 1.04× | 1.06× |
+
+The middle column is not about cache at all: the same loop, made countable, lets LLVM interleave
+its stores four ways. On Prismio's IR the missing fact was `nsw` on the outer `p = p + 1`, which the
+range guard now supplies from `p * p <= n` (`emitSquareBound`). Tiling is the rest, and is built
+(`src/ir/tiling.psm`, [Stride tiling and square bounds](/compiler/stride-tiling)): whole sieve 1.18 to
+0.70 ms at 10^6 and 339 to 80 ms at 10^8, level with the hand-tiled C; hosted `prime_sieve` 482 to
+420 µs against C++'s 454.
+
+**Bit-packing lost everywhere.** A byte store is one `strb`; clearing a bit is a load, a shift, a
+`bic` and a store, and stores to one word serialise. The 8× smaller footprint only pays when the
+untiled loop is DRAM-bound, which tiling removes. Packing would also have changed the layout of
+every `Vec<Bool>` a function can receive and undone the byte representation that lets `memset` and
+vectorised scans work. A packed bitset is a type a program asks for, not a layout chosen silently.
+
+Two more results came out of making the tiled sweeps fast, both from
+`-Rpass-analysis=loop-vectorize`. A counter read after its loop ("a value used outside the loop")
+stops LLVM interleaving it, so the resume point is computed in closed form. And a step known
+positive only from a dominating branch or an `llvm.assume` is not known positive to the analysis
+that counts the loop; rebuilding it as `zext(trunc(s - 1)) + 1` gives it a range of [1, 2^32], and
+the loop is counted.
 
 ### A bit test is split from its partner branch again on AArch64
 

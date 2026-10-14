@@ -112,6 +112,7 @@ export const docsConfig: DocsAppConfig = {
                 { label: "Closures and captures", href: "/compiler/closures-and-captures" },
                 { label: "Enums and pattern lowering", href: "/compiler/enums-and-pattern-lowering" },
                 { label: "Loop guards", href: "/compiler/loop-guards" },
+                { label: "Stride tiling", href: "/compiler/stride-tiling" },
                 { label: "Bootstrapping", href: "/compiler/bootstrap" },
             ],
         },

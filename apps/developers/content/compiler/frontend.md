@@ -441,6 +441,56 @@ stops bracketing the caller. None needs a seed refresh while `src/` does not cal
 use (`LLVMBuildAtomicRMW`, `LLVMGetInlineAsm` and the rest) are declared in `runtime/prismio_llvm.h` too, for
 the builds that use the hand-kept header.
 
+The programs reach these through `std.raw`, `std.port` and `std.asm`, never by name: `semaRefuseRuntimeCalls`
+(`sema/vec.psm`) runs before any rewrite and refuses every `__builtin_*` written outside `std/`, with the wrapper
+to write instead from `semaBuiltinSpelling`. Add a builtin and its spelling goes in that table, its wrapper in
+`std/`. `asm`, `asmRead` and `asmWrite` cannot be wrappers, because the text must be a literal in the
+instruction stream: their declarations in `std/asm.psm` are placeholders and `semaStdAsmBuiltin` lowers a call
+to the builtin in place, only when the callee resolves to `std.asm`'s declaration.
+
+**Conditions, `is`/`not`, nested functions, closure blocks.** `parseCondition` (`parse/stmt.psm`) reads an `if` or
+`while` condition with `allowStructLit` off, so the `{` is the body; `parseBracketed` turns it back on inside
+parentheses, call arguments, indexes and literals. `is`, `is not` and `not` are keywords read into the `==`,
+`!=` and `!` nodes in `parseExpression` and `parseUnary`, so no later pass sees them. A `fn` statement is parsed
+by `parseNestedFn` (`parse/decl.psm`) and hoisted: the parser keeps the FUNCTION being read in `fnNode`, names a
+nested one `outer$inner` (`nestedFunctionPrefix`, which adds the type for a method), chains it on `hoistHead`,
+and `parseModule` splices the chain in after the declaration it was written in. `renameNestedCalls` rewrites
+the calls in the declaring block when the block closes. A closure may take a block: `parseClosureExpr` stores
+the BLOCK in `child2`, `semaClosureBodyType` types the last statement, and `semaLowerClosure` makes it the
+`call` function's body with that statement turned into a `return`; names the block itself declares are never
+captures (`semaClosureDeclaredNames`).
+
+**Visibility.** A function, a global `let`, a struct and a struct field carry their level in `i2` (0 public,
+1 file, 2 package), and `semaVisibleFrom` (`sema/types.psm`) is the one test, with `ir_same_package` answering
+the package question in C. The parser stamps the defaults, `internal` on a struct and `private` on a field, so
+a node built by sema (a closure's struct, an enum payload) has 0 and is public. A field is checked in
+`semaFindStructFieldType`, a struct in `semaCheckStructVisible` where an annotation or a literal names it, and a
+literal's fields together in `semaCheckStructLiteralVisible`. A standard-library body naming a program's struct
+is the type argument of a generic arriving, already checked where the program wrote it. Moving the tree to
+the new defaults was mechanical: compile every entry point, read the diagnostics, widen each declaration to the
+level its uses need. **`src/` uses the markers, so the pinned seed cannot parse it** until a seed is cut and
+re-pinned.
+
+**Constants, ranges and indexes.** An array's length is parsed as an expression (`parseTypeArgList`, tighter
+than `>`, with `lengthDepth` so a `>>` still closes two lists) and `semaResolveArrayLength` (`sema/consts.psm`)
+folds it to the literal everything else reads; `semaFoldConstantInitializer` does the same for an integer
+global. A `for` over bounds of another integer type is rewritten by `semaForTypedRange` (`sema/ranges.psm`)
+into declarations and the `Int` loop over a count, so every loop proof still applies: `__builtin_range_count`
+and `__builtin_range_at` (`ir/range_values.psm`) do the arithmetic in 64 bits, and the check that the count fits
+is left out where it cannot fail, so a freestanding program with constant ranges references no failure
+routine. An index of another integer type is converted in `semaIndexOperandAsInt`, by a cast when every value
+fits and by `__builtin_index_int`, which saturates, otherwise. `nowrap` recognises `std.math`'s `min` and `max`
+(`nowrapIsStdMath`) because the builtins no longer appear in programs.
+
+**Definite assignment.** `semaCheckDefiniteAssignment` (`sema/assign.psm`) runs over each function body after
+sema, because it needs `match` exhaustiveness (`i3`). The state at a point is the declared-but-unassigned locals
+(a `let` with an annotation and no initializer, arrays excepted) plus a dead flag; branches join by union, a
+return, jump or never-returning call makes a path dead, and a loop body is analysed once with the entry state.
+Sema marks a value-less `let` assignable (`ir_mark_mutable`), so the *first* assignment to an immutable one is
+not refused there; the pass refuses a second one, and one a loop could repeat, which it finds by recording
+assignments made inside a loop to declarations from outside it and checking at each back edge (the end of the
+body and `continue`) whether control returns with the declaration assigned.
+
 A slice's end is normalised by `parseSliceEnd`: `a[x..y]` is stored as the exclusive bound
 `y + 1`, so sema and codegen only ever see the half-open form they always handled.
 Parsing a construct into a generic expression statement and repairing it later

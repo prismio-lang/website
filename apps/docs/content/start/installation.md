@@ -187,7 +187,7 @@ dist/Prismio/
 
 On Windows, `bin/` also holds `LLVM-C.dll`, the one LLVM library the compiler loads there.
 
-**The prefix needs no LLVM on the machine it runs on.** On macOS and Linux, LLVM is linked into the compiler itself. It optimizes your program and generates machine code without starting another process. The only thing it runs is the system's linker, which links the finished object against the C library: `cc` on macOS and Linux, and on Windows the `link.exe` from Visual Studio, which the compiler finds by itself. You do not need to open a developer prompt. Set `PRISMIO_CC` to use a different linker driver.
+**The prefix needs no LLVM on the machine it runs on.** On macOS and Linux, LLVM is linked into the compiler itself. It optimizes your program and generates machine code without starting another process. The only thing it runs is the system's linker, which links the finished object against the C library: `cc` on macOS and Linux, and on Windows the `link.exe` from Visual Studio, which the compiler finds by itself. You do not need to open a developer prompt. Set `PRISMIO_CC` to use a different linker driver. On macOS the driver is consulted once and `ld` is run directly after that; `PRISMIO_LINK_CACHE=0` always goes through the driver.
 
 The prefix moves as a unit — the compiler locates everything relative to its own executable, with no hardcoded installation path — so you can copy or rename `dist/Prismio` freely. What you cannot do is copy `bin/prismio` on its own; see [Toolchain layout](/compiler/toolchain-layout).
 

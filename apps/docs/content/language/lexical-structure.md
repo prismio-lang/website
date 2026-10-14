@@ -314,7 +314,7 @@ The lexer recognizes the operator spellings documented in [operators and casts](
 
 ## Reserved vocabulary
 
-Implemented words include `import`, `let`, `mut`, `fn`, `extern`, `struct`, `enum`, `trait`, `impl`, `where`, `if`, `else`, `match`, `while`, `loop`, `for`, `in`, `break`, `continue`, `return`, `and`, `or`, `as`, `sink`, `inout`, `region`, `none`, and `default` — the last two are values: `none` is the absent optional, and [`default`](/language/variables#default-values) is the default of whatever type the context expects.
+Implemented words include `import`, `let`, `mut`, `fn`, `extern`, `struct`, `enum`, `trait`, `impl`, `where`, `if`, `else`, `match`, `while`, `loop`, `for`, `in`, `break`, `continue`, `return`, `and`, `or`, `is`, `not`, `as`, `sink`, `inout`, `region`, `none`, and `default` — the last two are values: `none` is the absent optional, and [`default`](/language/variables#default-values) is the default of whatever type the context expects.
 
 `repeat`, `step`, `unique` and `pin` are contextual: each means something only in its own position and is an ordinary name everywhere else, so `"ab".repeat(3)` and a variable called `step` both work. `throw` is lexed as a reserved word but no statement using it is parsed in 0.1.
 

@@ -57,7 +57,7 @@ if (index >= 0 and index < limit) {
 }
 ```
 
-Prismio uses the words `and` and `or`, not `&&` and `||`.
+Prismio uses the words `and` and `or`, not `&&` and `||`. `not` is a second spelling of `!`, and `is` and `is not` of `==` and `!=`: `if x is not none and not done { }`. They are read into the same nodes as the symbols, `is` ranks with `==` and `not` binds as `!` does, to the next operand only (`not x == y` negates `x`; write `not (x == y)` for the comparison).
 
 ## None-coalescing
 

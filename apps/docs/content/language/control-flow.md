@@ -8,12 +8,12 @@ tags: [control-flow, if, loops, ranges, labels, return]
 related: [language/pattern-matching, language/functions, language/arrays-and-lists, specification/evaluation]
 ---
 
-Control-flow constructs are statements. Conditions are parenthesized and bodies are blocks. In 0.1, `if`, loops, and `match` do not produce values; assign into a mutable binding or return from a branch when a computation must select a result.
+Control-flow constructs are statements. A condition is any `Bool` expression, with or without parentheses, and bodies are blocks. In 0.1, `if`, loops, and `match` do not produce values; assign into a mutable binding or return from a branch when a computation must select a result.
 
 | To… | Write |
 | --- | --- |
-| choose between branches | `if (c) { } else if (d) { } else { }` |
-| repeat while a condition holds | `while (c) { }` |
+| choose between branches | `if c { } else if d { } else { }` |
+| repeat while a condition holds | `while c { }` |
 | repeat until you `break` | `loop { }` |
 | repeat a fixed number of times | `repeat(n) { }` |
 | count through a range | `for i in 1..10 { }`, `for i in 0..<n step 2 { }` |
@@ -42,6 +42,33 @@ fn main() -> Int {
 ```
 
 Compare explicitly, such as `count != 0`.
+
+### Parentheses are optional, and `is` and `not` are words for `==` and `!`
+
+A condition ends at the `{` that opens the body, so it needs no parentheses. `if (ready) { }` still works: `(ready)` is an ordinary parenthesised expression.
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+fn main() -> Int {
+    let mut x = 3
+    let none_int: Int? = none
+
+    if x == 3 { println("three") }
+    if x is 3 { println("also three") }
+    if x is not 4 { println("not four") }
+    if not (x == 4) { println("still not four") }
+    if none_int == none { println("nothing") }
+    while x < 6 { x = x + 1 }
+    println(x)
+    return 0
+}
+```
+
+`a is b` is `a == b`, `a is not b` is `a != b` and `not a` is `!a`: the parser reads the words into the same nodes as the symbols, so nothing after it can tell which was written. `not` binds exactly as `!` does, to the next operand only, so `not x == y` negates `x`; write `not (x == y)` to negate the comparison. `is` and `not` are reserved words.
+
+One thing a bare condition cannot contain is a struct literal, because the `{` after a name would read as the body. Parenthesise it: `if (Point { x: 1, y: 2 }).x == 1 { }`. Inside any brackets, including call arguments, a struct literal is fine.
 
 Chain as many conditions as you need with `else if`. They are tested in order and the first one that holds runs; the final `else` is optional. Any branch can hold further `if` statements.
 
@@ -186,12 +213,13 @@ This prints `12345`, `0123` and `9630`.
 - **`..<` is the one for indices.** A `Vec` of length `n` is indexed `0..<n`, which is empty when `n` is 0. `0..n` would visit one past the end.
 - **The direction comes from the values.** `a..b` counts down when `a` is greater than `b`, whether the bounds are literals or computed. A literal range is settled when the program is compiled; a computed one costs one comparison when the loop starts.
 - **Watch `0..n - 1`.** It is `0..<n` when `n` is at least 1, but when `n` is 0 it counts down, visiting 0 and then -1, where `0..<n` runs no times. The compiler warns about this shape; write `0..<n`.
-- **Either bound can be any `Int` expression.** Parentheses are allowed but not required: `for i in 1..x + n * 2` and `for i in lo + 1..hi` both work, because `..` binds more loosely than arithmetic.
+- **Either bound can be any integer expression, of one type.** Parentheses are allowed but not required: `for i in 1..x + n * 2` and `for i in lo + 1..hi` both work, because `..` binds more loosely than arithmetic.
 - **The start, the end and the step are each evaluated once**, in that order, before the first test. Changing a variable used in the end inside the body does not change how many times the loop runs, and `for i in 0..<v.length` does not recompute the length every iteration.
 - **`a..a` runs once and `a..<a` runs no times**, in either direction.
 - **`step` is a distance, so it must be positive.** The range already says which way to go; `step` says how far each iteration moves. A literal `step 0` or `step -2` is a compile error, and a computed step that turns out zero or negative stops the program with an error naming the line.
 - **Ranges stop at the ends of `Int`.** `for i in 2147483640..2147483647` runs eight times and ends; a range down to the smallest `Int` ends there too. Neither wraps around.
-- **The loop variable is an immutable `Int`** scoped to the body.
+- **The loop variable is immutable** and scoped to the body. It has the type of the bounds, `Int` unless they are another integer type.
+- **A range may count in any integer type.** `for i in 0..<MATRIX` over a `Usize` bound gives a `Usize` variable, and `U32`, `U64`, `I64`, `U8` and the rest work the same way, with the direction, `..` and `..<`, `step` and labels exactly as for `Int`. A bare literal bound takes the other bound's type; two variables of different types are an error (`as` converts one). The loop that runs is the `Int` loop over a count, so a range of more than 2,147,483,647 values stops with an error when it is entered, and a range up to the top of its type visits that value and ends without wrapping.
 
 The header may be written in parentheses, which reads naturally with `step`:
 
