@@ -163,6 +163,7 @@ export const docsConfig: DocsAppConfig = {
                         { label: "Closures", href: "/language/closures" },
                         { label: "Error handling", href: "/language/error-handling" },
                         { label: "Concurrency · Experimental", href: "/language/concurrency" },
+                        { label: "Async and await · Experimental", href: "/language/async-await" },
                     ],
                 },
                 {

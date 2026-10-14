@@ -4,13 +4,17 @@ description: Tasks, blocking typed channels, how AIF models thread affinity, and
 status: experimental
 version: "0.1.0"
 lastUpdated: "2026-09-30"
-tags: [concurrency, tasks, threads, spawn, join, channels, aif]
-related: [stdlib/concurrency, specification/memory-model, guides/memory-and-aif, roadmap]
+tags: [concurrency, tasks, threads, spawn, join, channels, aif, async, await, scope]
+related: [language/async-await, stdlib/concurrency, specification/memory-model, guides/memory-and-aif, roadmap]
 ---
 
 Prismio has a **task model** and a **blocking typed channel**. `spawn` starts a call on another
 thread and returns a `Task<R>`; `join` waits for it and yields the `R`. `Channel<T>` carries values
 between tasks, one owner at a time. Both are implemented and tested.
+
+On top of the task model there is [async and await](/language/async-await): `async fn`, a lazy
+`Future<T>` (the same type as `Task<T>`), `await`, `scope { }` and `spawn { }`. This page is the
+layer under it: what a task owns, how the analysis treats it, and channels.
 
 The page is marked experimental because the surface is deliberately small and the surrounding rules
 — synchronization types, memory ordering, cancellation — are not specified yet.
@@ -219,8 +223,8 @@ is more work.
 free safe. Freeing a channel a task is still blocked on is a program defect the runtime cannot
 detect.
 
-There is **no executor, no future and no `await`.** A send blocks while the channel is full; a
-receive blocks until a message arrives or the channel closes. That is the whole surface, and it is
+A send blocks while the channel is full; a receive blocks until a message arrives or the channel
+closes, and neither is an `await` point yet: they wait on the thread they are called from. That is
 enough to keep a worker pool alive across frames rather than creating threads per unit of work.
 
 The runtime functions these methods become — `chan_new`, `chan_send` and the rest — are not part
@@ -233,12 +237,15 @@ error[P4001]: `chan_send` is the runtime's name, not Prismio's
 
 ## Not implemented
 
-None of the following exist in 0.1, in the language or in the importable standard library:
+None of the following exist yet, in the language or in the importable standard library:
 
-- `async` functions and `await`
 - user-facing atomics, mutexes, condition variables, or other synchronization types
 - a specified memory-ordering model
-- task cancellation, timeouts, or structured-concurrency scopes
+- task cancellation beyond not starting a future, and timeouts. (`scope { }` is the
+  structured-concurrency block, and it waits rather than cancels: see [async and
+  await](/language/async-await).)
+- an `await` that gives its thread back while it waits. A task is an operating-system thread, and
+  awaiting one that is running elsewhere blocks the awaiting thread until it finishes
 - a non-blocking or selectable receive (`select` over several channels), or a non-blocking send
 - a send that hands an undelivered message back. A send to a closed channel answers `false`; a
   plain-data message is still the sender's, and one that was moved is released by the send, so

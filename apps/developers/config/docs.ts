@@ -110,6 +110,7 @@ export const docsConfig: DocsAppConfig = {
                 { label: "Generics and monomorphization", href: "/compiler/generics-and-monomorphization" },
                 { label: "Traits, impls, and dispatch", href: "/compiler/traits-impls-and-dispatch" },
                 { label: "Closures and captures", href: "/compiler/closures-and-captures" },
+                { label: "async, await and scope", href: "/compiler/async-and-scope" },
                 { label: "Enums and pattern lowering", href: "/compiler/enums-and-pattern-lowering" },
                 { label: "Loop guards", href: "/compiler/loop-guards" },
                 { label: "Stride tiling", href: "/compiler/stride-tiling" },

@@ -65,10 +65,11 @@ This page distinguishes shipped compiler behavior from intent. It does not assig
 | User-written lifetimes | Coming Soon |
 | Exceptions or result propagation syntax (`?`) | Coming Soon |
 | Tasks: `spawn`, `join`, `Task<R>` | Experimental |
+| `async fn`, lazy `Future<T>`, `await`, `scope { }`, `spawn { }` | Experimental |
 | Blocking typed channels: `Channel<T>`, `for msg in c` | Implemented |
 | Plain-data messages copied rather than boxed | Implemented |
 | `select` over channels, non-blocking send and receive | Coming Soon |
-| Async functions, `await`, atomics, synchronization types | Coming Soon |
+| An `await` that gives its thread back, atomics, synchronization types | Coming Soon |
 | Macros and compiler plug-ins | Coming Soon |
 | Package manifest (`build.ums`) with profiles, project commands, native C sources, a lockfile and path dependencies | Implemented |
 | Package registry and version solving | Coming Soon |
@@ -83,9 +84,9 @@ prelude, so a program that names no I/O carries none.
 
 Channels are the exception to "a library is a module you import": `Channel<T>` and its methods —
 `send`, `receive`, `share`, `close`, `length`, `free`, and `for msg in c` — are lowered by the
-compiler, in the same category as a Vec's `push` and indexing, so they need no import. There is no executor and no `await` — a send blocks while the channel is full and a
+compiler, in the same category as a Vec's `push` and indexing, so they need no import. A send blocks while the channel is full and a
 receive blocks until a message arrives or the channel closes. See
-[concurrency](/language/concurrency).
+[concurrency](/language/concurrency) and [async and await](/language/async-await).
 
 Generic functions are specialized before type checking and code generation reaches their bodies.
 Consequently, an eligible concrete `Vec<Flat>` instantiation may use inline storage while another

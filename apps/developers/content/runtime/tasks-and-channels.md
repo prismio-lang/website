@@ -3,14 +3,16 @@ title: Native tasks and typed channels
 description: The runtime model behind spawn, join, Task results, blocking Channel operations, ownership transfer, and current concurrency limits.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-30"
+lastUpdated: "2026-10-14"
 tags: [runtime, concurrency, channels]
 related: [compiler/closures-and-captures, aif/tiers-and-analysis-domains, performance/benchmark-contract]
 ---
 
 `spawn` creates a native operating-system thread and returns a typed `Task<R>`; `join`
 waits for completion and transfers the result. There is no persistent executor or work-stealing
-pool in the current runtime, and no future or `await`.
+pool in the current runtime. `async fn`, `await`, `scope { }` and `spawn { }` are lowered onto this
+same task: see [async, await and scope](/compiler/async-and-scope) for the lowering and for the
+unstarted task (`prismio_future_new`) that an `async fn` call builds.
 
 **A task that cannot start is a panic.** When the operating system refuses a thread, `spawn` prints
 `panic: could not start a task: <reason>` and exits with status 101. It used to run the task
@@ -171,16 +173,26 @@ and starts a Windows thread or POSIX pthread. `prismio_task_entry` marks worker-
 calls `prismio_task_invoke`, stores the result, and performs thread-local memory cleanup.
 
 The compiler generates task thunks when the ordinary function ABI cannot be called directly from
-the erased runtime entry. `functionNeedsTaskThunk` currently checks string parameters/returns;
-`taskThunkName` derives the symbol and `generateTaskThunk` packs or unpacks the runtime slots.
+the erased runtime entry. `functionNeedsTaskThunk` checks for any parameter that is not a plain
+pointer (a String or a scalar) and any result that is not `void`, a pointer or an `i32`;
+`taskThunkName` derives the symbol and `generateTaskThunk` packs or unpacks the runtime slots with
+`scalarToSlot` and `slotToScalar`. A task's function is named by address, so `declareTaskTarget`
+declares it ahead of the spawn when it is defined later in the module.
 
-`prismio_task_await` joins exactly once and returns the task record. Typed join entry points then
-select the result:
+`prismio_task_await` joins exactly once and returns the task record; a task that was built by
+`prismio_future_new` and never started is run inline on the calling thread instead of waited for.
+Typed join entry points then select the result:
 
 - `prismio_task_join` returns the integer form;
 - `prismio_task_join_p` returns a pointer/owned aggregate handle;
 - `prismio_task_join_v` waits for a void task; and
-- `prismio_task_release` releases a task handle whose result lifecycle is complete.
+- `prismio_task_release` drops one reference to a task handle (`refs`), freeing it at zero. The
+  binding that received the handle holds one, and a `scope { }` that registered the task holds
+  another.
+
+A `scope` is `prismio_scope_new`, `prismio_scope_spawn` for each task started inside it, and
+`prismio_scope_end`, which awaits every registered task and releases the scope's reference to
+each. `prismio_task_start(scope, handle)` is `spawn fut`.
 
 Semantic helpers `semaSpawnArgAllowed` and `semaTaskResultAllowed` reject values the erased ABI
 cannot preserve. AIF's `aif_con_spawn` distinguishes a task that is structurally joined from one
