@@ -81,7 +81,7 @@ fn main() -> Int {
 }
 ```
 
-Use `private` for a helper no other file should call, and `internal` for one that its own package may share but others may not. Both are enforced; neither is a convention.
+Use `private` for a helper no other file should call, and `internal` for one that its own package may share but others may not. Both are enforced; neither is a convention. A `struct` or an `enum` is `internal` until you write `public` on it, so a type used by another package needs the marker: `public enum Mode { Fast, Slow }`.
 
 ## Handle nested directories
 

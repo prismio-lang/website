@@ -3,9 +3,9 @@ title: Enums
 description: Define and use fieldless nominal enum variants in Prismio 0.1.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-30"
+lastUpdated: "2026-10-15"
 tags: [enums, variants, nominal-types]
-related: [language/pattern-matching, language/types, language/conversions, specification/evaluation]
+related: [language/pattern-matching, language/types, language/conversions, language/modules, specification/evaluation]
 ---
 
 Enums declare a closed set of fieldless variant names. They are useful for readable states, tags, and small result categories that carry no attached payload. Each enum is a type of its own: a `Color` is always one of `Color`'s variants, never an arbitrary number.
@@ -57,6 +57,31 @@ fn main() -> Int {
 ```
 
 The declaration has no `Missing` variant, so the selection is rejected.
+
+## Visibility
+
+An enum carries a visibility marker, written before `enum`, with the levels a [function](/language/modules#visibility) and a [struct](/language/structs#visibility) have: `public` is everywhere, `internal` the declaring package, `private` the declaring file. **An enum is `internal` unless marked**, so a type is a closed box until its author opens it.
+
+<!-- prismio-check: pass -->
+```prismio
+public enum Mode { Fast, Slow }
+
+internal enum Phase { Warm, Hot }
+
+private enum Scratch { Used, Free }
+
+fn main() -> Int {
+    let mode = Mode.Slow
+    let phase: Phase = Phase.Hot
+    let scratch = Scratch.Free
+    if (mode == Mode.Slow and phase == Phase.Hot and scratch == Scratch.Free) { return 0 }
+    return 1
+}
+```
+
+`Mode` is nameable from any file, `Phase` from files in the same package, and `Scratch` only from the file that declares it. A variant takes its enum's level, so there is nothing to mark on one: writing `Scratch.Used` names `Scratch`. The rule is the same for an enum with payloads and for a generic one, `public enum Result<T, E>`.
+
+Naming an enum you cannot see is a compile error that says which level stops you and what to write. It is raised wherever the name is used: in a type annotation, where a variant is built (`Mode.Fast`), and in a `match` arm that names a variant. A value of a hidden enum can still reach a file that cannot name it, because a `public` function may return it; that file can hold the value and pass it on, but cannot annotate it, build another one, or write an arm for it.
 
 ## Numbers and enums
 

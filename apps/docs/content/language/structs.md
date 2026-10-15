@@ -143,7 +143,7 @@ When a struct contains another move-only value, constructing the outer struct tr
   inherent or for a trait, and an `impl` may be generic. There is no dedicated
   constructor declaration: write an associated `new` that returns the struct, and
   `Point(3, 4)` calls it — see [calling a type](/language/methods#calling-a-type-calls-its-new).
-- Visibility applies to a struct and its fields, not to an enum yet. See [visibility](#visibility).
+- Visibility applies to a struct and its fields. An enum takes the same markers, without fields: see [enum visibility](/language/enums#visibility).
 - Structs may be [generic](/language/generics); there are no field defaults. A literal that omits a field is accepted, and the omitted field is zero-initialised — a null pointer, a zero number, zeroed array elements, or a recursively zeroed inline struct.
 - A generic struct cannot hold an `Array<T, N>` field yet.
 - There is no update syntax that copies unspecified fields.

@@ -73,8 +73,9 @@ Block comments are `/* ... */` and nest; see [lexical structure](/language/lexic
 Methods, `impl` blocks, traits and closures **are**. A declaration may carry a leading visibility modifier, and an `impl` body holds `fn` declarations that may each carry one:
 
 ```text
-declaration    = visibility? (importDecl | letDecl | "cold"? fnDecl | propDecl | externDecl
-                             | structDecl | enumDecl | implDecl | traitDecl) ;
+declaration    = importDecl | implDecl | traitDecl
+               | visibility? (letDecl | "cold"? fnDecl | propDecl | externDecl
+                              | structDecl | enumDecl) ;
 visibility     = "public" | "private" | "internal" ;
 implDecl       = "impl" typeName ("for" typeName)? "{" implMember* "}" ;
 implMember     = visibility? ("cold"? fnDecl | propDecl) ;
@@ -83,7 +84,7 @@ traitDecl      = "trait" identifier "{" fnSignature* "}" ;
 closureExpr    = "|" parameters? "|" (expression | block) ;
 ```
 
-A visibility modifier is accepted only on a function or a foreign declaration -- `fn`, `extern fn`, `extern let`, or a method inside an `impl` block. On a type, an enum, or a Prismio global it is a parse-time rejection rather than a marker that is accepted and ignored.
+A visibility modifier is accepted on a function, a method inside an `impl` block, a global `let`, a foreign declaration (`extern fn`, `extern let`), a `struct` and an `enum`. A struct and an enum are `internal` when unmarked. On a `trait`, an `impl` block or an `import` there is no declaration to restrict, and the marker is a parse-time rejection rather than one that is accepted and ignored.
 
 `prop` is contextual: it begins a `propDecl` only when a name follows it in declaration position, so it remains an ordinary name elsewhere. A property is read without parentheses (`x.length`) and a method called with them; writing either one the other way is a semantic error, as are a property with more than one parameter, no return type, or an owned return type.
 

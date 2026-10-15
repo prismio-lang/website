@@ -35,7 +35,7 @@ This page distinguishes shipped compiler behavior from intent. It does not assig
 | `from std import {io, vec}`, the import group with the directory first | Implemented |
 | `fn main()` with no return type and no `return 0` | Implemented |
 | Module qualifiers (`std.string.trim(x)`) | Implemented (calls only, by full import path) |
-| Visibility: `public`, `private`, `internal` | Implemented (`fn` and `extern fn`; `public` is the default) |
+| Visibility: `public`, `private`, `internal` | Implemented (functions, `extern` declarations, global `let`s, structs with their fields, and enums) |
 | Selective imports (`import m.name`) | Implemented |
 | Aliased imports (`import m as n`) | Coming Soon |
 | Method call syntax and `impl` blocks | Implemented |
