@@ -451,7 +451,9 @@ to the builtin in place, only when the callee resolves to `std.asm`'s declaratio
 **Conditions, `is`/`not`, nested functions, closure blocks.** `parseCondition` (`parse/stmt.psm`) reads an `if` or
 `while` condition with `allowStructLit` off, so the `{` is the body; `parseBracketed` turns it back on inside
 parentheses, call arguments, indexes and literals. `is`, `is not` and `not` are keywords read into the `==`,
-`!=` and `!` nodes in `parseExpression` and `parseUnary`, so no later pass sees them. A `fn` statement is parsed
+`!=` and `!` nodes in `parseExpression` and `parseUnary`, so no later pass sees them. `refuseWordCall`
+(`parse/expr.psm`, `P3010`) reports a `(` that touches `is` or the `not` after it, because the right operand of an
+infix word is not an argument list; a `(` after a space is a grouped operand. A `fn` statement is parsed
 by `parseNestedFn` (`parse/decl.psm`) and hoisted: the parser keeps the FUNCTION being read in `fnNode`, names a
 nested one `outer$inner` (`nestedFunctionPrefix`, which adds the type for a method), chains it on `hoistHead`,
 and `parseModule` splices the chain in after the declaration it was written in. `renameNestedCalls` rewrites

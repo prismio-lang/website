@@ -68,6 +68,8 @@ fn main() -> Int {
 
 `a is b` is `a == b`, `a is not b` is `a != b` and `not a` is `!a`: the parser reads the words into the same nodes as the symbols, so nothing after it can tell which was written. `not` binds exactly as `!` does, to the next operand only, so `not x == y` negates `x`; write `not (x == y)` to negate the comparison. `is` and `not` are reserved words.
 
+`is` and `is not` are operators that sit between their two operands, as in Python: `x is 3`, `x is not none`. A `(` that touches the word reads as a call, which `is` is not, so `x is(3)` is an error. A grouped right operand takes a space: `x is (y + 2)`.
+
 One thing a bare condition cannot contain is a struct literal, because the `{` after a name would read as the body. Parenthesise it: `if (Point { x: 1, y: 2 }).x == 1 { }`. Inside any brackets, including call arguments, a struct literal is fine.
 
 Chain as many conditions as you need with `else if`. They are tested in order and the first one that holds runs; the final `else` is optional. Any branch can hold further `if` statements.
