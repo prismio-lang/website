@@ -3,7 +3,7 @@ title: Lexer, parser, and AST
 description: The Prismio frontend from UTF-8 scanning through parser recovery and the typed structures consumed by later stages.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-27"
+lastUpdated: "2026-10-15"
 tags: [lexer, parser, ast]
 related: [compiler/pipeline-and-driver, compiler/semantic-analysis-and-types, compiler/diagnostics, cookbook/add-a-language-feature]
 ---
@@ -462,16 +462,34 @@ the BLOCK in `child2`, `semaClosureBodyType` types the last statement, and `sema
 `call` function's body with that statement turned into a `return`; names the block itself declares are never
 captures (`semaClosureDeclaredNames`).
 
-**Visibility.** A function, a global `let`, a struct and a struct field carry their level in `i2` (0 public,
+**Visibility.** A function, a global `let`, a struct, an enum and a struct field carry their level in `i2` (0 public,
 1 file, 2 package), and `semaVisibleFrom` (`sema/types.psm`) is the one test, with `ir_same_package` answering
-the package question in C. The parser stamps the defaults, `internal` on a struct and `private` on a field, so
-a node built by sema (a closure's struct, an enum payload) has 0 and is public. A field is checked in
-`semaFindStructFieldType`, a struct in `semaCheckStructVisible` where an annotation or a literal names it, and a
-literal's fields together in `semaCheckStructLiteralVisible`. A standard-library body naming a program's struct
-is the type argument of a generic arriving, already checked where the program wrote it. Moving the tree to
-the new defaults was mechanical: compile every entry point, read the diagnostics, widen each declaration to the
-level its uses need. **`src/` uses the markers, so the pinned seed cannot parse it** until a seed is cut and
-re-pinned.
+the package question in C. The parser stamps the defaults, `internal` on a struct and an enum and `private` on a
+field, so a node built by sema (a closure's struct) has 0 and is public. The enum default is the return value of
+`enumDefaultVisibility` in `parse/decl.psm`, the one place to change it. `visibilityIsEnforced` decides which
+declarations a marker is accepted on; `visibilityLevel` also recognises `trait` and `impl` so that a marker on
+one is refused by name (P3001) instead of reading as "expected a declaration".
+
+A field is checked in `semaFindStructFieldType`, and a struct or an enum in `semaCheckTypeVisible` wherever a
+type annotation names it, with `semaCheckDeclVisible` as the test and the report. Two further places check the
+enum on its own: `semaMemberAccessExpr` for a fieldless variant (`Mode.Fast`, which is also how a fieldless
+`match` arm is checked, since the pattern is an expression) and `enumResolveConstruction` for a payload variant;
+`semaCheckPayloadArm` checks the arm that names a variant. A literal's fields are checked together in
+`semaCheckStructLiteralVisible`. A standard-library body naming a program's type is the type argument of a generic
+arriving, already checked where the program wrote it.
+
+**An enum with payloads is a struct by the time sema runs**, and its marker has to survive the desugar.
+`enumDesugarToStruct` builds the struct with `createNode`, which would leave `i2` at 0 and make every payload enum
+public, so it copies the enum's `i2` and sets `STRUCT_DECL.i1` bit 4 (`nodeMarkFromEnum`), which only lets a
+diagnostic say "enum" instead of "struct". The original `ENUM_DECL` stays on the shadow chain (`module.child3`),
+and a construction or an arm is checked against *that* node, so the error names the enum as it was written. A
+generic enum is not in the declaration index (templates are not), so `enumCheckTemplateVisible` checks the
+annotation `Wrapper<Int>` against the template, and the instantiation copies the template's `i2` and file.
+
+Moving the tree to the new defaults was mechanical: compile every entry point with `check
+--diagnostic-format=json`, read the diagnostics, widen each declaration to the level its uses need
+(`internal` within a package, `public` across). **`src/` uses the markers, so the pinned seed cannot parse it** until
+a seed is cut and re-pinned.
 
 **Constants, ranges and indexes.** An array's length is parsed as an expression (`parseTypeArgList`, tighter
 than `>`, with `lengthDepth` so a `>>` still closes two lists) and `semaResolveArrayLength` (`sema/consts.psm`)

@@ -3,7 +3,7 @@ title: Imports, modules, and symbols
 description: How the compiler turns several .psm files into one flattened program, resolves std.* to precompiled .plib interfaces, and enforces public/private/internal visibility during lookup.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-10-15"
 tags: [imports, modules, symbols]
 related: [compiler/frontend, compiler/semantic-analysis-and-types, compiler/diagnostics]
 ---
@@ -76,6 +76,8 @@ error[P4001]: `secret` is private to the file that declares it
 ```
 
 The note names both fixes: `public` opens the declaration to every file that imports it; `internal` opens it to the rest of its own package — the qualifier with its last dotted segment removed — without going fully public. [Modules and imports](https://docs.prismio.org/language/modules) is the user-facing reference for all three levels; this page is about how the compiler enforces them.
+
+A struct or an enum is checked by the same test (`semaVisibleFrom`) but at the places a *type name* is written, not by overload resolution: `semaCheckTypeVisible` for an annotation, a variant construction, and the arm of a `match` that names a variant. It reports `` enum `Mode` is internal to the package that declares it `` with the note `write `public enum Mode`...`. The [frontend](/compiler/frontend) page lists each site and explains why a payload enum needs its marker copied across the desugar.
 
 ## Why a working call can depend on a file that imports nothing
 
