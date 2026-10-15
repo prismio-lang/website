@@ -69,6 +69,18 @@ Sequentially consistent, in `U8`, `U16`, `U32` and `U64` (shown for `U32`):
 | `atomicCompareExchangeU32(address, expected, desired)` | the value that was there; the swap happened if it equals `expected` |
 | `fence()` | nothing; a full barrier |
 
+On a [typed pointer](/language/low-level#typed-pointers-ptrt) the same operations are methods with the ordering written at the call, from the `AtomicOrder` this module declares:
+
+| Variant | Meaning |
+| --- | --- |
+| `Relaxed` | Atomic, and nothing is ordered around it: a counter. |
+| `Acquire` | What follows cannot move above it: taking a lock. A load or a read-modify-write. |
+| `Release` | What precedes cannot move below it: dropping one. A store or a read-modify-write. |
+| `AcqRel` | Both, for a read-modify-write. |
+| `SeqCst` | Every thread sees every such access in one order. What the address functions above use. |
+
+`p.atomicLoad(order)`, `p.atomicStore(value, order)`, `p.atomicSwap`, `atomicAdd`, `atomicSub`, `atomicAnd`, `atomicOr`, `atomicXor` `(value, order)` (the old value) and `p.atomicCompareExchange(expected, desired, order)` (the value that was there). The pointee is an integer of 8, 16, 32 or 64 bits, and a method that writes needs a `Ptr<mut T>`. The ordering must be written as a variant (`AtomicOrder.Acquire`), because it is a property of the instruction, not a value; a load cannot be `Release` or `AcqRel`, and a store cannot be `Acquire` or `AcqRel`.
+
 ## Byte order and Float bits
 
 | Function | Meaning |

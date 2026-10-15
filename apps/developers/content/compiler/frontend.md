@@ -522,6 +522,75 @@ by a compiler that parses it. Two names are renamed on the way through, so no
 later pass ever meets them: `Vec` becomes the internal `List`, and `I32` becomes
 `Int`, the one signed 32-bit type.
 
+`Ptr<T>` carries its capabilities as qualifiers written before the pointee:
+`Ptr<mut T>`, `Ptr<volatile T>`, `Ptr<mut volatile T>`. `parsePtrQualifiers`
+(`parse/decl.psm`) turns each into a leading `$mut` / `$volatile` marker in the
+argument chain, named like `dyn$Show` because `$` cannot occur in a source
+identifier, so the node keeps its shape and every pass that copies or substitutes
+an annotation carries them along. `volatile` is contextual, a qualifier only when
+a type follows it, and a repeated qualifier is `P3009`. Sema reads the markers
+(`semaPtrAnnotationType`) into a PTR-kinded `TypeInfo` named `Ptr<...>`, with the
+pointee in `child` and the capabilities in `length` (bit 0 `mut`, bit 1
+`volatile`); `typePtrConverts` is the one asymmetric conversion rule, which
+`semaTypesMatch` consults after `typeEquals`. A read-only `Ptr<T>` is not
+convertible to the opaque `Ptr`: foreign code may write through that, and the
+`readonly` parameter attribute would then be false. See `docs/PTR_PLAN.md` for the
+stages that follow.
+
+**Reading through a typed pointer** is `src/sema/pointer.psm`. The member-access, method,
+operator and `semaCheckValue` arms in `checker.psm` and `ownership.psm` each call into it
+once the operand is typed: `semaPtrMemberAccess` types `p.field` as the field (or as a
+`Ptr<Inner>` for an inline struct field), and `semaPtrLoad` rewrites a pointer to a scalar
+in place into `__builtin_ptr_load(copy)` -- a shallow copy, because the node becomes the
+call and the call's argument is what the node was, and its cached `typeInfo` is cleared so
+`semaExpr` types it afresh. Overload matching admits the same projection
+(`semaArgMatchesType`) and ranks an exactly-typed pointer above one converted from `mut`
+(`semaPtrExactArgumentCount`); `semaMangleType` puts the pointee and capabilities in the
+symbol. In IR, `generateMemberAccess` takes the struct from the pointer's pointee
+(`memberObjectStructName`), `__builtin_ptr_load` is emitted in `generateMemBuiltin`
+through `ir_load_ptr` (the scalar path an array element takes), and the parameter
+attributes come from `ir_function_param_pointer` in `llvm-api-backend.c`, which reads
+size and alignment from the pointee's own key so a packed struct is `align 1`. The
+builtin is described to AIF as a borrow (`memBuiltinAny`) and in the oracle's
+`FFI_CONTRACTS`.
+
+**Writing through a typed pointer** adds one builtin, `__builtin_ptr_store(p, v)`, and no new
+assignment path. `semaAssignment` calls `semaPtrCheckFieldWrite` when the target is a member of
+a typed pointer: the pointer must be `mut` and not `volatile`, and a field whose declared type
+is a struct is refused (re-derived with `semaFindStructFieldType`, because a `Ptr<Inner>` field
+and an inline struct field both type as `Ptr<Inner>`). The assignment then runs as for any
+field, and `generateAssignment` reads the struct from the pointee (`memberObjectStructName`)
+instead of from the object's IR key, which for a pointer is just `ptr`. `p.store(v)` is
+rewritten by `semaPtrMethod` into the builtin with the receiver as its first operand, and
+`semaPtrAssignedItsPointee` turns `p = 5` into the message that names `store`. A volatile
+pointer's field write is reported once, while the target is typed, so the assignment check
+skips an invalid target. Compound assignment on a field (`p.length += 1`) is refused for every
+struct by `P3302`, because the desugaring names the target twice; that rule is not the pointer's.
+
+**Address operations** are one table, `ptrOpKind` in `common/mem_builtins.psm`, and one lowering,
+`ir_ptr_op` in `llvm-api-backend.c`; a kind is a number and the builtin is `__builtin_ptr_<op>`.
+`semaPtrMethod` rewrites `p.offset(n)` and its siblings into the builtin with the receiver first;
+`p.addr` is the existing `__builtin_ptr_addr`, which now accepts a typed pointer of any capability.
+The IR takes the pointee's own key (`struct:Header`, not its storage key `ptr`), so the stride, the
+alignment and the unit of a distance are the data layout's. `advance`, `at` and `castAligned` are
+selects on a null: an `inbounds` offset past the end is poison, and a select never uses the arm it
+does not choose. The constructors are `semaPtrAssociated`, the sibling of `semaChannelAssociated`,
+reached from the `TYPE_ANNOTATION` branch of `semaCallExpr`; it checks the `std.raw` import with
+`ir_file_imports_module`, takes the result's type from the written `Ptr<T>` (the builtin cannot know
+it), and refuses a cast that adds `mut` to a read-only pointer. `Ptr<mut T>.at(...)` needed
+`looksLikeTypeArgs` (`parse/expr.psm`) to admit the `mut` keyword.
+
+**Volatile and atomic access** reuse the load and store builtins rather than adding a family:
+`ir_ptr_load_volatile` and `ir_ptr_store_volatile` mark the access, and the choice is the pointer's
+type (`typePtrIsVolatile`) or the builtin's name (`__builtin_ptr_vload` / `_vstore`, which
+`readVolatile` and `writeVolatile` rewrite to). A field reached through a volatile pointer takes
+`ir_struct_load_ptr_volatile` / `_store_ptr_volatile`, the same field access with the instruction
+marked, so the TBAA tag stays. The atomics are `__builtin_ptr_atomic_<op>` (`ptrAtomicKind`) lowered
+by `ir_ptr_atomic`; the ordering operand is never generated -- sema checks it is written
+`AtomicOrder.Variant` (`semaCheckPtrAtomic`) and the emitter reads the variant's name through
+`ptrAtomicOrderCode`. A compare-exchange's failure ordering is the success ordering without its
+release half. `AtomicOrder` is declared in `std/raw.psm`, which is why the methods need `import std.raw`.
+
 `TypeInfo` is separate from syntax. `nodeSetType` attaches a copied resolved
 type after semantic analysis, and `nodeGetType` is the later contract.
 `dumpAstJson` walks the actual linked structure, includes the file table, and
