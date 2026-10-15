@@ -609,6 +609,16 @@ by `ir_ptr_atomic`; the ordering operand is never generated -- sema checks it is
 `ptrAtomicOrderCode`. A compare-exchange's failure ordering is the success ordering without its
 release half. `AtomicOrder` is declared in `std/raw.psm`, which is why the methods need `import std.raw`.
 
+**Typed pointers in generics.** `monoAnnotationFromType` spells a typed pointer as the parser does -- `Ptr`, the capabilities
+as leading `$mut` / `$volatile` markers, then the pointee -- because its display name, `Ptr<mut U8>`, is no identifier and a
+substituted annotation with that name resolves to nothing. `monoMatchParam` solves `T` from a `Ptr<T>` parameter by stepping
+over the markers (`typePtrAnnotationPointee`) to the pointee, and `monoArgumentFits` lets `typePtrConverts` admit a `Ptr<mut T>`
+where a generic `Ptr<T>` is wanted. `std.mem`'s `allocOf<T>` is the first user: it reads the element size off the type as the
+distance a pointer moves for one element, which the optimiser folds to a constant.
+
+A `Slice` is `{ handle, offset, length }` with the handle a list header, which is why a pointer cannot become one: there is no
+header for a bare pointer and a count, and every `generateIndex` arm for a slice calls the list runtime.
+
 `TypeInfo` is separate from syntax. `nodeSetType` attaches a copied resolved
 type after semantic analysis, and `nodeGetType` is the later contract.
 `dumpAstJson` walks the actual linked structure, includes the file table, and
