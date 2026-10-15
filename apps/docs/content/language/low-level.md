@@ -157,7 +157,7 @@ fn main() -> Int {
 
 `p.readVolatile()` and `p.writeVolatile(v)` are the one-off forms. `p.atomicLoad(order)`, `atomicStore`, `atomicSwap`, `atomicAdd`, `atomicSub`, `atomicAnd`, `atomicOr`, `atomicXor` and `atomicCompareExchange` are the atomic ones, with the ordering written at the call as a variant of `AtomicOrder` ([`std.raw`](/stdlib/raw)). A pointer is not promised readable for its whole size when it is `volatile`, since a device register is not memory a load may be moved past; a plain `Ptr<T>` is, and the compiler uses that.
 
-**Not available yet:** a checked `Slice` view. A pointer also comes from foreign code (`extern fn calloc(count: Usize, size: Usize) -> Ptr<mut Header>`). A typed pointer is still unchecked for use after free and for bounds: it removes null, accidental writes and accidental stepping, not a dangling address.
+**A `Slice` view of a pointer is not available, and not for want of a method.** A `Slice<T>` here is a handle to a Prismio list header with an offset and a length, and every element access goes through that list, so a bare pointer and a count have nothing to be a view of. It needs a second view representation over foreign memory and the borrow rules for one, which is a design of its own. Until then, a pointer you step by hand (`offset`, `advance` with a limit) is the bounded loop, and a `Buffer` is the checked container. A pointer also comes from foreign code (`extern fn calloc(count: Usize, size: Usize) -> Ptr<mut Header>`). A typed pointer is still unchecked for use after free and for bounds: it removes null, accidental writes and accidental stepping, not a dangling address.
 
 ## Byte order and Float bits
 

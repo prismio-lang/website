@@ -74,6 +74,7 @@ fn main() -> Int {
 | `b[i]` | the byte at `i`, a `U8` |
 | `b[i] = x` | replaces the byte at `i`; needs `let mut b` |
 | `b.address` | where the bytes are now, as a `Usize` (see [below](#reaching-a-buffers-bytes-directly)) |
+| `b.pointer` | the same place as a `Ptr<mut U8>?`, `none` for an empty Buffer (see [below](#reaching-a-buffers-bytes-directly)) |
 
 An offset outside the Buffer stops the program with the offset and the length:
 
@@ -170,6 +171,8 @@ fn main() -> Int {
 
 `b.address` is where the bytes are now, for the [`load`/`store` methods](#loads-and-stores-at-an-address), a [low-level builtin](/language/low-level) or a C function. It stays valid until the next `resize`, `push`, `append` or `clear`, which may move the bytes, and until the Buffer itself is freed.
 
+`b.pointer` is the same place as a [typed pointer](/language/low-level#typed-pointers-ptrt), a `Ptr<mut U8>?`: `none` for an empty Buffer, which has no bytes to point at, and otherwise the first byte, so `expect(b.pointer).offset(4).load()` reads the fifth. It follows the same validity rule as `address`.
+
 ## Manual memory
 
 | Function | Effect |
@@ -181,6 +184,17 @@ fn main() -> Int {
 | `copy(to, from, count)` | copies `count` bytes; the two ranges may overlap |
 | `fill(address, value, count)` | sets `count` bytes to `value` |
 | `compare(a, b, count)` | `-1`, `0` or `1` as the first differing byte of `a` is below, equal to or above `b`'s |
+
+A block can also be a typed pointer, for a `T` of plain data (numbers, `Bool`, `Char`, enums, pointers and structs of those; a type that owns memory is refused by the pointer type):
+
+| Function | Meaning |
+|---|---|
+| `allocOf<T>(count)` | room for `count` of `T` as a `Ptr<mut T>`; the contents are whatever was there |
+| `allocZeroedOf<T>(count)` | the same, zero-filled |
+| `reallocOf(block, count)` | the block grown or shrunk to room for `count`, possibly moved; the old pointer is dead afterwards |
+| `free(block)` | gives a block from any of these back |
+
+There is no size to compute and no cast: the element size is read off the type, so a padded struct and a packed one are each their own. `let headers = allocZeroedOf<Header>(4)` is a `Ptr<mut Header>` four elements long; step it with `headers.offset(i)`, and the pointer is as unchecked as an address is.
 
 Sizes and addresses are `Usize`. **An allocation never returns `0`.** A program that runs out of memory stops with `runtime error: out of memory allocating N bytes`, so there is no failure value to test after every call.
 
