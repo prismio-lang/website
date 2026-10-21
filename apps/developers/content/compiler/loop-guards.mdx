@@ -53,8 +53,11 @@ unsigned long long list_get_inline_scalar(void* lp, int index, int elem_size) {
 Both tests are load-bearing. The representation test exists because
 `list_get_inline` returns two different *kinds* of thing — a slot's address for
 an inline list, a slot's contents for a boxed one — and only a scalar element can
-tell those apart. The bounds test exists because `list_get` is **total**: it
-returns zero rather than trapping.
+tell those apart. The bounds test exists because an index out of range stops the
+program (`list_index_fail`), and the inline paths emit that test themselves
+(`list_bounds_or_fail`): a cold call that never returns, so the in-range path is a
+guard with no join. Until 2026-10-16 `list_get` was **total**, answering zero, and the
+inline paths implemented that a second time.
 
 Inlined into a DP loop, one iteration of a 1-D knapsack emitted three
 representation tests, two bounds tests, and six or seven reloads of the header.
@@ -282,9 +285,11 @@ term it interprets folds its own no-wrap facts and is marked by `relCommit`.
 
 ## Loops over sized arrays
 
-A fixed `Array<T, N>` is indexed with no check at all, so its loops have nothing for a guard
-to remove. They are versioned anyway when the guard holds something LLVM cannot work out for
-itself. A loop with no list guard runs the same analysis over its sized-array accesses
+A fixed `Array<T, N>` index is checked against `N` (`generateArrayIndexCheck` in
+`src/ir/expr.psm`, lowered by `ir_array_index_check` to a compare and a branch to the cold,
+noreturn `array_index_fail`; a constant index out of range is refused in sema). An access the
+proved copy covers skips the check. Its loops are versioned when the guard holds something LLVM
+cannot work out for itself. A loop with no list guard runs the same analysis over its sized-array accesses
 (`arrays` in `src/ir/ranges.psm`), with the type's `N` as the length. The guard then holds the
 facts that keep every access in `[0, N)` over the counters' whole range, and the proved copy
 marks the arithmetic those facts make safe.
@@ -322,16 +327,18 @@ Two rules keep the duplicated code small:
 - **Innermost loops only.** Versioning an outer loop copies every loop inside it, for facts about
   the outer loop's own accesses. Knapsack's item loop got a second copy of the capacity loop and
   nothing for it.
-- **Only when the proof marks arithmetic.** An array access drops no check, so
-  `for i in 0..<n { a[i] }` would gain a second copy for the fact `n <= N` alone.
+- **Only when the proof marks arithmetic.** `for i in 0..<n { a[i] }` would gain a second copy
+  for the fact `n <= N` alone, and LLVM already makes that one fact out of the check: one compare
+  of `n` against `N` before the loop, which still vectorises (measured 2026-10-16).
 
 A `[T]` parameter has no length the preheader can read, so it is left to the facts below.
 
 ## Facts an unchecked access implies
 
-An element of a fixed array or of a `[T]` view is addressed without a check, and the language
-requires every index to be in range (*Bounds and storage* in the specification's undefined
-behaviour page). So an access that ran says its index was in `[0, len)`. Every length fits
+An element of a `[T]` view is addressed without a check, and the language requires every index
+to be in range (*Bounds and storage* in the specification's undefined behaviour page); an element
+of a fixed array is checked, which stops the program on any other index. Either way an access that
+ran says its index was in `[0, len)`. Every length fits
 `Int`, so the index was at most `Int.MAX - 1`. The fact holds until the name is assigned or
 bound again: a scalar cannot be passed `inout` and closures capture by value, so only an
 assignment in the same function changes a local `Int`.
@@ -343,8 +350,9 @@ wrapped is in `[Int.MAX - k + 1, Int.MAX]`, so its fact is taken only when the l
 indices reach `Int.MAX - 1`, so a view's `a[i - 2]` could have run with `i` at `Int.MIN + 1`, and
 it gives no fact on `i`. `viewBelow` in `test_270_array_nowrap.psm` checks that.
 
-`src/ir/nowrap.psm` walks each function that has a loop, before its body is generated. It
-marks two kinds of `+`/`-` `nsw`, in every copy of every loop:
+`src/ir/nowrap.psm` walks each function that has a loop or subscripts a fixed array, before its
+body is generated. It marks two kinds of `+`/`-` `nsw`, in every copy of every loop, and proves
+indices in range (below):
 
 - **Bounded.** The facts bound every operand, and the exact result is inside `Int`. Nothing is
   assumed. Quicksort's scan `while (a[i] < p) { i = i + 1 }` adds 1 to an `i` the access left at
@@ -358,9 +366,15 @@ Facts flow forward in evaluation order:
 
 - **Code that may not run keeps its facts.** Facts from the right side of `and`, `or` and `??`
   stay inside it.
+- **Comparisons narrow.** `a < b` (and `<=`, `>`, `>=`, `==`) narrows the locals it names on the
+  taken branch, `a` below `b`'s largest value and `b` above `a`'s smallest, and its negation narrows
+  them on the `else` branch and after a loop that has no `break`. `!=` trims an interval whose edge
+  it names. An operand with no fact is anything its type holds.
 - **Branches meet.** An `if` joins the facts of its two branches.
-- **Loop heads forget.** A loop head keeps only the facts on names the loop never assigns.
-- **A `Vec` gives no facts.** Its out-of-range read answers zero, and the program goes on.
+- **Loop heads keep what is inductive.** A loop head keeps the facts on names the loop never
+  assigns, and on names it does assign when one is an invariant (below).
+- **A `Vec` gives no facts yet.** Its out-of-range read now stops the program, so a read that
+  returned implies its index was in range, as a `Slice` access does; using that is not done.
 
 **An update is marked only when its loop's subscripts are.** The same widening that made
 `w != Int.MIN` a loss applies here. `nsw` on `c = c - 1` with `c - w` unmarked measured 6.26M,
@@ -420,6 +434,54 @@ The walk also counts the loop. With a fact on `i` where the loop starts, it runs
 `(bound - start) / c + 1` times, unless the body holds a `continue`, which skips the step. The
 count is what bounds the contents of an array, below.
 
+## Loop invariants
+
+Binary search keeps `lo` and `hi` in `[0, 4096]`, but only as a pair: `hi = mid` and
+`lo = mid + 1` stay inside it because `lo < hi` held where `mid` was computed. No single assignment
+shows it, so a loop head that forgot every name the loop assigns lost both, and `table[mid]` kept
+its check. `nowrapInvariants` finds such facts by trying them:
+
+- **Candidates.** Each local of a fact type the loop assigns that had a fact where the loop started.
+- **A probe.** One walk of the condition and body from the head's facts with the guesses added, in
+  a mode that marks nothing and records nothing (`NOWRAP_PROBE`). Its marks go to a pass of their
+  own, and the walk's loop and block counters are put back afterwards.
+- **Widening with thresholds** (Blanchet et al., PLDI 2003). A guess grows to the hull of itself and
+  what the probe leaves at the end of the body. From the third round a bound that still moves jumps
+  to the next of the name's thresholds, a literal the loop compares it with, one either side of
+  that, or its entry bound, else to its type's edge. From the sixth a guess that still moves is
+  dropped, so it does not hold the others up. When a probe moves nothing, the guesses are inductive.
+- **Exits.** A `continue` anywhere in the body (a labelled one in a nested loop included) is a way
+  back the walk does not follow, so the loop gets no invariants. A `break` leaves from inside the
+  body, so the invariants hold in the body but are not the facts after the loop.
+
+A function spends at most 400 probes (`NOWRAP_PROBE_BUDGET`); past that a loop keeps what it kept
+before. Compiling the compiler took the same time within noise.
+
+## Narrow integers and proved indices
+
+The facts are `I64` intervals over every integer type of at most 32 bits: `Int`, `U32`, `U16`,
+`U8`, `I16`, `I8`. Each operation is checked against its own type's range and succeeds only if its
+exact result fits, so a fact is never a wrapped value: `+`, `-`, `*`, `>>` and `&` by a literal,
+an unsigned `%` by a literal or by a divisor bounded above zero, and `as` between integers when the
+value fits the target (truncation, extension and reinterpretation agree there). `for i in a..<b`
+bounds `i` between its ends in either direction. Only a signed `Int` `+`/`-` is marked `nsw`.
+
+An access to a fixed array whose subscript's interval lies inside `[0, N)` is marked on the
+`INDEX_EXPR` (`nowrapMarkInRange`), and `generateArrayIndexCheck` emits no check for it
+(`nowrapIndexInRange`). That is what keeps `binary_search`, `pointer_chase` and
+`bytecode_interpreter` free of checks in their hot loops:
+
+| freestanding, instructions | checked | proved | C |
+| --- | ---: | ---: | ---: |
+| `binary_search` | 13,438,400 | **11,036,304** | 11,036,304 |
+| `pointer_chase` | 14,448,592 | **9,629,904** | 9,629,904 |
+| `bytecode_interpreter` | 10,400,032 | **9,650,048** | 9,850,032 |
+
+`test_311_proved_indices.psm` holds the proved shapes and twelve that look provable and are not
+(an off-by-one `<=`, a `U32` below zero, an exit the end of the body does not see, a large `U32`
+cast, a mask one too wide, a store nothing bounds, a `let` bound twice), each of which must still
+stop at its index; `proved_indices` in `test_runner.py` reads the IR for which keep a check.
+
 ## What a local array holds
 
 Edit distance keeps two rows of costs, and each new cost is one more than a neighbour or equal to
@@ -431,8 +493,8 @@ cur[j] = __builtin_min(__builtin_min(prev[j] + 1, cur[j - 1] + 1), prev[j - 1] +
 
 C's compiler turns `min(a + 1, b + 1)` into `min(a, b) + 1`, one add fewer per cell, because C's
 overflow is undefined. For Prismio it may only if neither add can wrap, which depends on what the
-rows hold, not on any index. `src/ir/contents.psm` keeps a bound on the elements of a local
-`Array<Int, N>`:
+rows hold, not on any index. `src/ir/contents.psm` keeps a bound on the elements of a local array
+of any fact type:
 
 - **Which arrays.** Nothing but a subscript names the array, in its function and outside any
   closure, and its name is bound once there. A view, an `inout` argument, a copy or a `for x in`
@@ -442,8 +504,13 @@ rows hold, not on any index. `src/ir/contents.psm` keeps a bound on the elements
   the bound, because a store into one reads the others.
 - **A form per store.** A stored value is a concrete interval from literals and facts, or relative
   to the family's bound `[L, M]` through the elements it reads: `prev[j] + 1` is at most `M + 1`.
-  Sums, `__builtin_min` and `__builtin_max` combine forms. Anything else, or a sum of two elements,
-  leaves the family without a bound.
+  Sums, `min` and `max` combine forms; a program's own `min` or `max` counts when its body is one
+  comparison of its two parameters and a `return` of each (`nowrapSelection`), since a freestanding
+  program cannot import std.math. A value read through an immutable `let` bound once in the
+  function (`let t = order[i]; ... order[j] = t`) is a read of that array. Anything else, or a sum
+  of two elements, leaves the family without a bound.
+- **Types.** The bound must lie inside each member's element type. A member too narrow for it, a
+  `U8` row beside an `Int` one, fails alone, and the rest settle again without it.
 - **Growth.** `L` holds if no store can go below it. `M` grows by at most the relative part of each
   store, so over one lifetime it stays at or below the largest initial or concrete value, plus that
   part times the store's executions. The counted loops between the declaration and the store bound
@@ -555,8 +622,8 @@ with its own soundness argument:
 - Struct elements in the write path, whose setter can run a user releaser.
 - A sized array in a loop that also has a list guard. The guard serves the lists, and a fact about
   an array that failed at run time would cost the lists their unchecked copy.
-- Access facts from a `Vec`, whose read is total, and from a `Slice`, whose check traps and so
-  would supply them. Slices are not done yet.
+- Access facts from a `Vec` and from a `Slice`, whose checks both trap and so would supply them.
+  Neither is done yet.
 - Heapsort's `while (root * 2 + 1 <= end)`. `root = pick` is no counter, and proving the multiply
   needs `root >= 0` carried through the loop plus a guard on `start` and `end`. An emulation
   measured 3.2% on a row already inside the parity band; see `docs/KNOWN_ISSUES.md`.
@@ -575,6 +642,8 @@ with its own soundness argument:
 | Access facts | `src/ir/nowrap.psm`, run from `generateFunction` in `src/ir/module.psm`; marks in `ir_nowrap_mark` (`runtime/ir_symbols.c`); emitted by `nowrapImplied` in `generateBinary` |
 | Counted loops | `src/ir/counters.psm`; applied from the bounding conjunct on by `nowrapCondition` in `src/ir/nowrap.psm` |
 | Array contents | `src/ir/contents.psm`; the forms are evaluated by `nowrapForm` in `src/ir/nowrap.psm` |
+| Loop invariants | `nowrapInvariants`, `nowrapProbe` and `NowrapThresholds` in `src/ir/nowrap.psm`, applied by `nowrapLoop` |
+| Proved indices | `nowrapMarkInRange` and `nowrapIndexInRange` in `src/ir/nowrap.psm`, read by `generateArrayIndexCheck` in `src/ir/expr.psm`; the walk runs for a loop-free function that subscripts a fixed array (`moduleTreeIndexesArray`, `src/ir/module.psm`) |
 | Remainders by a literal | `src/ir/residues.psm`; ranges in `nowrapRemainder`, loop heads in `nowrapKeepResidues`, forms marked by `nowrapMarkRemainder` (`ir_rem_form_mark` in `runtime/ir_symbols.c`) and emitted by `reducedRemainder` in `src/ir/expr.psm` |
 | Square bounds, stride tiling | [Stride tiling and square bounds](/compiler/stride-tiling#testing-and-debugging) |
 | Which calls decline a loop | `irFlatGuardCount` in `src/ir/expr.psm` |
@@ -584,7 +653,7 @@ with its own soundness argument:
 | min/max/abs intrinsics | `src/sema/builtins.psm`, `src/ir/expr.psm`, `std/math.psm` |
 | Float math builtins | `src/common/float_builtins.psm` (the table), marked safe in `src/ir/module.psm` |
 | Failure builtins (`panic`, `assert`, …) | marked safe in `src/ir/module.psm`; `irFlatGuardCount` counts only an `assert`'s condition, since the rest runs on the way out of the process |
-| Tests | `tests/test_119_loop_range_guard.psm`, `test_120_min_max_abs.psm`, `test_121_guard_effect_analysis.psm`, `test_169_loop_range_proofs.psm`, `test_179_proved_index_nsw.psm` (with `proved_index_nsw` in `test_runner.py`), `test_270_array_nowrap.psm` (with `array_nowrap`), `test_271_array_contents.psm` (with `array_contents`), `test_286_stride_tiling.psm` (with `stride_tiling`), `test_288_remainder_steps.psm` (with `remainder_steps_codegen`) |
+| Tests | `tests/test_119_loop_range_guard.psm`, `test_120_min_max_abs.psm`, `test_121_guard_effect_analysis.psm`, `test_169_loop_range_proofs.psm`, `test_179_proved_index_nsw.psm` (with `proved_index_nsw` in `test_runner.py`), `test_270_array_nowrap.psm` (with `array_nowrap`), `test_271_array_contents.psm` (with `array_contents`), `test_311_proved_indices.psm` (with `proved_indices`), `test_286_stride_tiling.psm` (with `stride_tiling`), `test_288_remainder_steps.psm` (with `remainder_steps_codegen`) |
 
 ## Debugging a guard change
 

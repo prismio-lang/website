@@ -110,7 +110,7 @@ module and lowers up to eight partitions in parallel, then links with `-dead_str
 binary had carried 136 `str*` functions it never called and a 79 KB Unicode table because every function
 was external. Two things follow. A new fast/slow split needs `cold` or `PRISMIO_NOINLINE`, or LLVM folds the slow half
 back into the fast one (the map update path lost 1.28× and `quicksort` 1.13× until theirs were marked).
-And an earlier attempt to internalise everything but `main` (2026-09-05) was reverted because it made the
+The mirror case needs `inline fn`: `Vec` index checks grew the map probe past LLVM's cost model, `key_value_update` read 1.13x and `mixed_map_removal` 1.10x, and marking `mapProbe` `inline` together with `__builtin_assume` for the table's two invariants measured 0.79x and 0.94x of the build before any check. And an earlier attempt to internalise everything but `main` (2026-09-05) was reverted because it made the
 map update phase *worse*, 7.25 ms to 8.84 ms: half the probe inlined and nothing could combine the two
 halves. That is why linkage changes are measured across the whole suite.
 

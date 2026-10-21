@@ -257,6 +257,59 @@ Use it for paths that are rare **at run time**, not merely long. The standard
 library marks the insert half of `Map.set`; marking a hot function cold moves its
 callers' fast path the wrong way.
 
+## Inline functions
+
+`cold` keeps a function out of its callers. `inline` is the opposite: the function is
+folded into **every** caller, whatever its size.
+
+The optimiser normally decides this from a cost model, and the model is usually right.
+It is wrong when a function is small in what it *does* but large in what it *says*: a
+loop whose body grew a check, so that it no longer fits the budget although its caller
+runs it millions of times and wants the body in view. Mark that function `inline`:
+
+```prismio
+inline fn square(value: Int) -> Int {
+    return value * value
+}
+
+fn sumOfSquares(count: Int) -> Int {
+    let mut total = 0
+    for i in 0..<count {
+        total = total + square(i)
+    }
+    return total
+}
+
+fn main() -> Int {
+    return sumOfSquares(10)
+}
+```
+
+It is LLVM's `alwaysinline` -- Rust's `#[inline(always)]`. Like `cold`, it goes after any
+visibility marker and directly before `fn`, at top level or inside an `impl` block, and it
+combines with the other function modifiers in either order (`export inline fn`):
+
+```prismio
+private inline fn probe(slots: Vec<Int>, at: Int) -> Int { ... }
+impl Table {
+    inline fn slotOf(self, key: Int) -> Int { ... }
+}
+```
+
+It is contextual, so a variable or function may still be *named* `inline`, and it changes
+where code is placed, never what it does. A generic function keeps the marker in every
+instantiation. A build with debug information (`-g`) ignores it, so that a function can be stepped into.
+
+`cold` and `inline` contradict each other, so a function cannot carry both:
+
+```text
+error[P3201]: a function cannot be both `cold` and `inline`
+```
+
+Use it sparingly. Inlining a large function into many callers grows the program, and the
+compiler's own choice is better than a guess for most code. The standard library marks
+the probe of `Map`, which every lookup and update runs in a loop.
+
 ## Entry point
 
 An executable uses a top-level `main` function, and it can be written two ways: `fn main()` and `fn main() -> Int`. The returned integer becomes the process exit status. A `main` with no return type exits with status 0: **reaching the closing brace is `return 0`, and so is a bare `return`**. Writing `-> Int` says the status is yours, so that `main` is held to the rule every `-> Int` function has: each path must `return` a number, and falling off the end or a bare `return` is an error. Any other return type is refused (`main` returns an `Int`, the exit status, or nothing). The 0.1 compiler does not document command-line argument parameters on `main`; obtain environment or argument data through supported runtime or FFI functions instead of copying signatures from C, Rust, or older drafts.

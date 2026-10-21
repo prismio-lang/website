@@ -141,6 +141,34 @@ EOF
 - **Tolerance large because the spread is large:** the verdict cannot be trusted either way.
   Increase `--runs`, close other work, and check the power state recorded under `environment`.
 
+## A 2x that is not noise: the SDK stamp
+
+A large, repeatable difference with **identical machine code** is not a timing mode and not a code
+change. One was found in 2026-10 comparing a compiler built from a checkout (`prismio build`) with a
+packaged one: `tree_traversal` read 1.8x, `manual_alloc_churn` 2.1x and `s_expression_parse` 1.5x, the
+saved IR for the hot functions was identical, and so was their disassembly. What differed was a field
+in the executable.
+
+Every Mach-O executable records the SDK it was linked against (`LC_BUILD_VERSION`, the `sdk` line of
+`otool -l`). macOS keys behaviour on it: a binary that claims an old SDK gets the older, slower `malloc`.
+A checkout links with the pinned LLVM `clang` (`link_driver_command` in `runtime/build_driver.c`), which
+was given no sysroot, found no SDK to read, and stamped the minimum deployment version instead (`sdk 11.0`);
+Apple's `cc` stamps the real one (`sdk 27.0` here). Patching only that field in the slow binary
+(`vtool -set-build-version macos 11.0 27.0 -replace`) restored full speed, which is how it was proved.
+
+It is fixed: the link passes `-isysroot $(xcrun --show-sdk-path)` (`SDKROOT` wins, host builds only), the
+project's runtime bitcode is compiled for the packaged deployment version, and `bootstrap.py --promote`
+does not leak the pinned LLVM's floor into the promoted build. The check stays worth running before
+believing a macOS timing that moved without the IR moving:
+
+```bash
+otool -l path/to/binary | grep -A4 LC_BUILD_VERSION    # sdk must be the installed SDK's version
+```
+
+An earlier "A/B shows noise only" had compared two compilers built from the same checkout, so the
+shared defect cancelled; compare against a packaged compiler (`tools/package.py`) when a result looks too
+good or too bad.
+
 ## If you are changing this
 
 The rule is implemented three times, and they must agree:

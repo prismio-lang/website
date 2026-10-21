@@ -88,7 +88,7 @@ A literal needs its elements to implement `Copy` (every scalar, `String`, and an
 | `for x in v` | each element in order |
 | `v[a..<b]`, `v[a..b]` | a [slice](/language/arrays-and-lists#slices) of the range — `..<` stops before `b`, `..` includes it |
 
-**An index outside the Vec answers the element type's zero, not an error** — `0` for an `Int`, `""` for a `String`. Check `length` first, or use `get`, which says whether the element was there. `last` reads its receiver twice, so it has to be a name or a field of one; bind a call's result first.
+**An index outside the Vec stops the program** with a message naming the index and the length, for a read, a write and `swap` alike: `runtime error: index 6 is out of range for a Vec of length 1`. Check `length` first, or use `get`, which answers `none` for an element that is not there. `last` reads its receiver twice, so it has to be a name or a field of one; bind a call's result first.
 
 ### Search
 

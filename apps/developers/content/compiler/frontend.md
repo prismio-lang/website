@@ -420,7 +420,11 @@ with explicit type arguments on `child3`. Sema decides that `Name` is a type
 visibility markers are. `atFnModifiers` and `atStructModifiers` claim one only when the next token continues
 a declaration (`fn`, `struct`, another modifier, or `(` for the three that take one), so a variable called
 `export` keeps compiling, and `visibilityLevel` looks through them so `public export fn` parses. The struct
-markers set bits in `STRUCT_DECL.i1` (`nodeMarkReprC`, `nodeMarkPacked`). The function ones do not touch the
+markers set bits in `STRUCT_DECL.i1` (`nodeMarkReprC`, `nodeMarkPacked`). A packed struct's fields are at
+any offset, so the backend reads the alignment of every field access off its address (`access_align`: a GEP
+into a packed struct type is one byte), which covers a read, a write, a literal's initialiser and a typed
+pointer through one path. It cannot reach through a field, so `semaCheckPackedStructs` (`sema/types.psm`)
+keeps what a packed struct holds to scalars, pointers, packed structs and byte arrays. The function ones do not touch the
 node: `FUNCTION.i1` already holds one state at a time (inline, property, cold), and a field on every node
 would cost the whole compiler for a handful of boot-stub declarations. They go into a table in
 `ast/fn_attrs.psm`, one record per line keyed by the position of the `fn` keyword (`file:line:col`), which
@@ -430,6 +434,16 @@ once per function and calls `ir_function_export`, `ir_function_naked`, `ir_funct
 the program already names the mangled symbol. A new modifier is: a word in `isFnModifierWord`, a case in
 `parseModifiedFunctionDecl`, a bit or field in the table, and a backend call. Add it to the IntelliJ plugin's
 `PrismioWords` and `SignatureParser` in the same change.
+
+`inline` is the one modifier that says how a function is *called*, the opposite of `cold`, and takes bit 8 of
+that table (`nodeIsInline`). It is in `isFnModifierWord`, so the top level reads it in any order beside the
+others; an `impl` block reads it, and `cold`, one word at a time (`atMethodMarker`), because the top level's
+modifier list does not reach a method. `generateFunction` lowers it to `alwaysinline`
+(`ir_function_always_inline`), the call a single-callsite function already made, and a `-g` build skips both.
+`cold` and `inline` together are a parse error (P3201, "a function cannot be both `cold` and `inline`") wherever
+they appear, because one asks for a function that is never inlined and the other for one that always is.
+It exists for std's `mapProbe`: a bounds check made the probe larger than LLVM's cost model would inline into
+the loops that call it, and `key_value_update` paid 1.13x until it was marked.
 
 **Hardware builtins.** `src/common/mem_builtins.psm` is the one table for `__builtin_mem_*`,
 `__builtin_asm*`, `__builtin_port_*` and `__builtin_ptr_addr`/`addr_ptr`, read by four places that must agree:
@@ -488,8 +502,8 @@ annotation `Wrapper<Int>` against the template, and the instantiation copies the
 
 Moving the tree to the new defaults was mechanical: compile every entry point with `check
 --diagnostic-format=json`, read the diagnostics, widen each declaration to the level its uses need
-(`internal` within a package, `public` across). **`src/` uses the markers, so the pinned seed cannot parse it** until
-a seed is cut and re-pinned.
+(`internal` within a package, `public` across). **`src/` uses the markers, so the committed seed cannot parse it** until
+a new seed is cut and committed.
 
 **Constants, ranges and indexes.** An array's length is parsed as an expression (`parseTypeArgList`, tighter
 than `>`, with `lengthDepth` so a `>>` still closes two lists) and `semaResolveArrayLength` (`sema/consts.psm`)
@@ -536,9 +550,17 @@ in a type-argument list is accepted for `Array` alone — `parseTypeArgList`
 refuses it for any other constructor with `P3006` and drops it, so no pass after
 the parser meets a number where a type belongs. `src/` does not use
 `Array<T, N>` yet: under the seed rule it can once the seed has been refreshed
-by a compiler that parses it. Two names are renamed on the way through, so no
-later pass ever meets them: `Vec` becomes the internal `List`, and `I32` becomes
-`Int`, the one signed 32-bit type.
+by a compiler that parses it. Four names are renamed on the way through, so no
+later pass ever meets them: `Vec` becomes the internal `List`, `I32` becomes
+`Int`, the one signed 32-bit type, and `F64` becomes `Float`.
+
+`Int<N>` and `UInt<N>` are the fourth: `parseIntWidth` reads the width, a literal from 1 to
+8,388,608, and replaces the name and its argument with one name (`I16` for `Int<16>`, `Int$24`
+for `Int<24>`; `ast/int_width.psm`), so the node has no type argument and nothing after the
+parser can see one. A width that is not a whole number or is out of range is `P3011`, recovered
+as 32 so it is one error. A float takes no width: `F<24>` and `Float<32>` are `P3012`
+(`rejectFloatWidth`), recovered as `Float`. `F` followed by a number is the only spelling it
+catches, so a generic struct a program names `F` is still one.
 
 `Ptr<T>` carries its capabilities as qualifiers written before the pointee:
 `Ptr<mut T>`, `Ptr<volatile T>`, `Ptr<mut volatile T>`. `parsePtrQualifiers`
@@ -552,7 +574,8 @@ pointee in `child` and the capabilities in `length` (bit 0 `mut`, bit 1
 `volatile`); `typePtrConverts` is the one asymmetric conversion rule, which
 `semaTypesMatch` consults after `typeEquals`. A read-only `Ptr<T>` is not
 convertible to the opaque `Ptr`: foreign code may write through that, and the
-`readonly` parameter attribute would then be false. See `docs/PTR_PLAN.md` for the
+`readonly` parameter attribute would then be false. Nor is a volatile one, since
+`Ptr<T>.cast` of the opaque result would be a plain pointer to a device register. See PTR_PLAN (removed; git history) for the
 stages that follow.
 
 **Reading through a typed pointer** is `src/sema/pointer.psm`. The member-access, method,
@@ -566,9 +589,15 @@ call and the call's argument is what the node was, and its cached `typeInfo` is 
 (`semaPtrExactArgumentCount`); `semaMangleType` puts the pointee and capabilities in the
 symbol. In IR, `generateMemberAccess` takes the struct from the pointer's pointee
 (`memberObjectStructName`), `__builtin_ptr_load` is emitted in `generateMemBuiltin`
-through `ir_load_ptr` (the scalar path an array element takes), and the parameter
-attributes come from `ir_function_param_pointer` in `llvm-api-backend.c`, which reads
-size and alignment from the pointee's own key so a packed struct is `align 1`. The
+through `ir_ptr_load`, and the parameter attributes come from `ir_function_param_pointer`
+in `llvm-api-backend.c`: `noundef nonnull align(A)`, with the alignment read from the
+pointee's own key so a packed struct is `align 1`, and `readonly` unless `mut`. Not
+`dereferenceable`: a pointer may be one past its allocation, and the attribute would
+make passing one undefined. A load or store through a typed pointer, of the pointee or
+of a field, carries **no TBAA tag**, because `cast` makes two types the same bytes; the
+tagged paths (`ir_load_ptr`, `ir_struct_load_ptr`) are for managed values, which nothing
+casts. `test_303_ptr_soundness` holds a store and a load through two such pointers that
+-O3 reordered while they were tagged. The
 builtin is described to AIF as a borrow (`memBuiltinAny`) and in the oracle's
 `FFI_CONTRACTS`.
 
@@ -591,19 +620,20 @@ struct by `P3302`, because the desugaring names the target twice; that rule is n
 `p.addr` is the existing `__builtin_ptr_addr`, which now accepts a typed pointer of any capability.
 The IR takes the pointee's own key (`struct:Header`, not its storage key `ptr`), so the stride, the
 alignment and the unit of a distance are the data layout's. `advance`, `at` and `castAligned` are
-selects on a null: an `inbounds` offset past the end is poison, and a select never uses the arm it
-does not choose. The constructors are `semaPtrAssociated`, the sibling of `semaChannelAssociated`,
+selects on a null: an out-of-range offset is never used, because a select does not read the arm it
+does not choose. The condition must not be poison, though, so `advance` divides the byte distance with
+an ordinary `sdiv` (`exact` is poison for a `limit` that is not a whole number of elements away) and
+steps with a plain GEP (`inbounds` would claim that `p` and `p + n` share an allocation). The constructors are `semaPtrAssociated`, the sibling of `semaChannelAssociated`,
 reached from the `TYPE_ANNOTATION` branch of `semaCallExpr`; it checks the `std.raw` import with
 `ir_file_imports_module`, takes the result's type from the written `Ptr<T>` (the builtin cannot know
 it), and refuses a cast that adds `mut` to a read-only pointer. `Ptr<mut T>.at(...)` needed
 `looksLikeTypeArgs` (`parse/expr.psm`) to admit the `mut` keyword.
 
 **Volatile and atomic access** reuse the load and store builtins rather than adding a family:
-`ir_ptr_load_volatile` and `ir_ptr_store_volatile` mark the access, and the choice is the pointer's
-type (`typePtrIsVolatile`) or the builtin's name (`__builtin_ptr_vload` / `_vstore`, which
-`readVolatile` and `writeVolatile` rewrite to). A field reached through a volatile pointer takes
-`ir_struct_load_ptr_volatile` / `_store_ptr_volatile`, the same field access with the instruction
-marked, so the TBAA tag stays. The atomics are `__builtin_ptr_atomic_<op>` (`ptrAtomicKind`) lowered
+`ir_ptr_load` and `ir_ptr_store` take an `isVolatile` flag, which is the pointer's type
+(`ptrAccessVolatility`) or the builtin's name (`__builtin_ptr_vload` / `_vstore`, which
+`readVolatile` and `writeVolatile` rewrite to). A field reached through a typed pointer takes the
+same two, on the field's address. `semaPtrAssociated` refuses a `cast` that would drop `volatile`. The atomics are `__builtin_ptr_atomic_<op>` (`ptrAtomicKind`) lowered
 by `ir_ptr_atomic`; the ordering operand is never generated -- sema checks it is written
 `AtomicOrder.Variant` (`semaCheckPtrAtomic`) and the emitter reads the variant's name through
 `ptrAtomicOrderCode`. A compare-exchange's failure ordering is the success ordering without its

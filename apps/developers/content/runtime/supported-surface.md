@@ -42,6 +42,22 @@ their types and borrowing effects and lowers them to `extractvalue`, GEP and
 load, or GEP and store. They emit no LLVM declaration and require no linked
 symbol.
 
+One more builtin is in this layer and is not about representation. `__builtin_assume(cond)` tells
+LLVM a fact (`llvm.assume`) that std's own data keeps and no analysis can see. It is
+**std-only** (`P4001`: "internal to the standard library") and, unlike every builtin above, **unchecked and
+undefined when the fact is false**: that is the point, since the check it makes redundant is the cost. A
+program cannot call it, and std uses it only where an invariant is written on the structure and kept by
+every function in the file. `Map` is the case. Its probe table has a power-of-two length, so
+`at & mask` is below `slots.length`, and an index read out of `slots` is below `entryKeys.length`.
+A bounds check on each `Vec` read there grew `mapProbe` past what LLVM inlines and cost `key_value_update`
+1.13x, so `std/map.psm` states the check's own unsigned compare before the access
+(`__builtin_assume((at as U32) < (list_len(m.slots) as U32))`) and LLVM folds the check away. This
+needs `Map`'s columns to be `private` -- a program that pushed to one would break the promise without
+the compiler seeing it. It is the shape C++ gives `[[assume]]` and Rust gives
+`core::hint::assert_unchecked`, kept to the library that can prove the invariant. The AIF contract is
+`borrow` for its operand (`src/aif/contracts.psm`, `tools/aif_oracle/aif.py`), and the flat-loop matcher
+treats it as guard-safe (`irFlatGuardCount`).
+
 Allocation is a different category. `str_with_capacity` remains a real runtime
 call so the verifier and arena placement still observe it; code generation pairs
 its returned pointer with the length the caller supplied.

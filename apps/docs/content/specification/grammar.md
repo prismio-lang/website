@@ -90,6 +90,8 @@ A visibility modifier is accepted on a function, a method inside an `impl` block
 
 `cold` is contextual in the same way: it marks a function only directly before `fn`. A [cold function](/language/functions#cold-functions) is never inlined and calls to it are treated as unlikely; the marker changes code placement, not behaviour.
 
+`inline` is contextual in the same way and is the opposite marker: an [inline function](/language/functions#inline-functions) is inlined into every caller, at top level or in an `impl` block, and it combines with `export`, `naked`, `section` and `align` in either order. A function carrying both `cold` and `inline` is a parse error.
+
 An `impl` member without a `self` parameter is an associated function; a generic `impl` (`impl Box<Int>`) is rejected.
 
 ## Parameters

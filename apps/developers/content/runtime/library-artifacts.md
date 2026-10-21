@@ -98,7 +98,7 @@ There is no source fallback on this path and no environment variable that restor
 Adding or removing a runtime module touches four lists, and `tools/check_source_lists.py` is what keeps them in step:
 
 1. `prismio_toolchain_files[]` in `runtime/build_driver.c`
-2. `RUNTIME_SOURCES` in `tools/bootstrap.sh` and `tools/bootstrap.ps1`
+2. `RUNTIME_SOURCES` in `tools/bootstrap.py`
 3. `RUNTIME_BITCODE` / `LIBRARIES` in `tools/package.py`
 4. `tools/check_source_lists.py` itself
 

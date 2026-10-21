@@ -250,7 +250,7 @@ fn main() -> Int { return 0 }
 
 A length is written in three places only: a local `let`, a return type and a struct field. A parameter takes `[T]` and gets its length from each call; a type argument (`Vec<Array<Int, 4>>`), an optional, an `extern` signature and a module-level `let` cannot carry one.
 
-Indexing an `Array<T, N>` or a `[T]` view is not checked, and an index outside `[0, length)` is [undefined behaviour](/specification/behavior#bounds-and-storage). The compiler relies on it: it treats an index that was used as in range, and optimises the arithmetic around it on that basis. Keep indices in range, and check one that may not be against the length first.
+Indexing an `Array<T, N>` is checked. A constant index outside `[0, N)` is a compile error (`index 3 is out of range for an array of length 3`), and any other one stops the program with the index and the length. An index the compiler proves in range pays nothing for it, and a simple counting loop pays one compare before it starts. The proof follows integers of any width up to 32 bits, comparisons on both branches of an `if`, what a loop keeps true across its iterations, and what a local array can hold, so a binary search's `table[mid]` under `while (lo < hi)` and a walk `at = next[at]` through an array of indices are both unchecked. **A `[T]` view is not checked yet**: it does not carry its length, so an index outside it is [undefined behaviour](/specification/behavior#bounds-and-storage) until it does. Check one that may be out of range against the length you passed beside it.
 
 ## Vec
 
@@ -357,7 +357,7 @@ A Slice is not a C buffer. An `extern fn` taking or returning `Slice<T>` is reje
 Indices are `Int`.
 
 - **A Slice checks every access** and stops the program on an out-of-range index.
-- **A Vec does not.** `values[i]` outside `[0, length)` answers the element type's zero. Check `values.length` first, or use `values.get(i)`, which answers `none` for a missing element.
+- **So does a Vec.** `values[i]` outside `[0, length)` stops the program with the index and the length; a loop whose indices the compiler proves in range drops the check. Use `values.get(i)` for an element that may not be there: it answers `none`.
 
 `for x in values` visits each element in order and borrows the Vec, which stays usable afterwards. `for (i, x) in values` gives the index as well, and a range over `0..<values.length` works when only the index matters. [Control flow](/language/control-flow#collections-for-x-in-items) covers every collection `for` accepts.
 

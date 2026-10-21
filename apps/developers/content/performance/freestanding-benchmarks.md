@@ -16,7 +16,7 @@ A time on bare metal under an emulator is not a measurement of anything a user h
 
 The factor is calibrated, not derived: a loop of exactly 10,000,000 instructions reads 625,000 ticks on every run. The count is the same for the same image on every run on every machine, so there is no median, no spread and no noise model. `run()` boots every arm `min(--runs, 3)` times anyway and records `deterministic: false` with a warning if two boots of one image disagree, which would mean the premise had failed.
 
-A verdict is therefore a fixed rule. `verdict()` calls a ratio within `PARITY = 0.02` of 1 parity, because code placement alone moves a count by a fraction of a percent, and anything else a win or a loss. It records `outcome`, `ratio` and `tolerance`, in the same shape as the hosted verdict minus the noise fields.
+A verdict is therefore absolute. `verdict()` calls fewer instructions than the other arm a win, more a loss, and only an equal count (the same number of ticks) parity, printed as "level". It records `outcome`, `ratio` and `difference` (Prismio's count minus the other's). It used to allow `PARITY = 0.02` either side, on the reasoning that code placement moves a count by a fraction of a percent; that called `edit_distance`'s 5% and `heapsort`'s 2% parity, and a tolerance belongs to a measurement with noise, which this is not. The terminal prints ratios to three places and colours them by the verdict, so `1.000×` in red is a loss under 0.05%.
 
 What the number is not: a time. It models no cache, pipeline or branch predictor. A workload dominated by memory stalls (`pointer_chase`, `mem_copy`) costs more on silicon than its count says, and a count cannot show what a vectorised loop would gain. It also counts every instruction equally, including a division that takes many cycles.
 
@@ -45,6 +45,8 @@ Held equal for the three arms, because a difference in any of them would change 
 | Alignment | strict: C `-mstrict-align`, Prismio `+strict-align` | with the MMU off every access is to device memory, and an unaligned access takes an alignment fault. Without it LLVM merges adjacent loads into a wider one and the guest dies at the exception vector (0x200) |
 | Optimisation | C `-O3 -ffunction-sections`, Rust `opt-level=3` with `lto=fat` and one codegen unit, Prismio's default | Prismio always builds whole-program |
 | Linking | `harness/link.ld`, `--gc-sections`, `-nostdlib -static` | one image layout |
+
+One setting is not held equal, and on purpose. LLVM's AArch64 cost model enables partial unrolling only for a CPU whose scheduling model gives a loop micro-op buffer, and `generic` gives none, so clang and rustc leave every loop rolled. Prismio's backend sets `-unroll-allow-partial -unroll-max-count=4` for a freestanding target (`ensure_codegen_initialized`, `runtime/llvm-api-backend.c`): a loop with a known trip count is unrolled up to four times. On the suite it cut the geomean to 0.914 of the build before, with no workload worse, and grew `.text` from 17.2 to 29.9 KB. Runtime unrolling (`-unroll-runtime`) reached 0.853 but made `fibonacci` 31% worse: tail-recursion elimination turns `fib`'s second call into a loop of a few trips, and each of its 300,000 entries paid the trip-count prologue. A function built for size keeps LLVM's zero unroll threshold, so `-Os` and `-Oz` are unchanged. To separate the setting from the code generation, build the C arm with `-funroll-loops`.
 
 Prismio builds with `prismio build suite.psm --target aarch64-unknown-none-elf --freestanding --target-features ... --link-arg <harness.o> --link-arg -T --link-arg link.ld`, under `PRISMIO_INTERNAL_HOSTED=1` and with `PRISMIO_CC` naming the clang to use, so the compiler under test is invoked as a compiler and not forwarded by the launcher. It is run with the build directory as its working directory, not the repository root: a working directory that contains `runtime/` makes the compiler resolve its runtime from that source tree, the program stops being closed, and the compiler internalises nothing. The same `suite.psm` built from the repository root was 512 bytes larger and `heapsort` ran 200,000 instructions longer. `run_timed()` takes a `cwd` for this; the other two arms build from the root, where it makes no difference. The C arm is one translation unit including its category files, as the hosted C++ arm is one dispatcher, so the compiler sees every workload at once the way it sees the Prismio program and the Rust crate.
 
@@ -93,7 +95,7 @@ A freestanding report (`schema_version` 1) holds:
 | --- | --- |
 | `metric`, `metric_note`, `tick_instructions` | `instructions`, a sentence for the report, and 16 |
 | `runs`, `deterministic` | boots per arm and whether they all agreed |
-| `parity` | 0.02 |
+| `verdict_rule` | a sentence: fewer instructions is a win, more a loss, an equal count level |
 | `target`, `machine`, `scale` | the triple, `QEMU virt, cortex-a57, -icount shift=0`, and the `--scale` |
 | `languages`, `language_labels` | `["prismio", "c", "rust"]` and display names |
 | `environment` | the host and toolchains, with `qemu` and `lld` versions added |
@@ -101,7 +103,7 @@ A freestanding report (`schema_version` 1) holds:
 | `images` | per arm, bytes of `text`, `rodata`, `data`, `bss`, the `file`, and `code_net` (`text` minus the harness's) |
 | `harness_text_bytes` | the shared object's `.text` |
 | `summary` | per other arm: `geomean` of Prismio's ratios, and `win`, `parity`, `loss` counts |
-| `benchmarks` | one record per workload: catalog fields, `result` (the agreed checksum), `languages.<arm>.{ticks, instructions, instructions_samples}`, and `verdict.<other>.{outcome, ratio, tolerance}` |
+| `benchmarks` | one record per workload: catalog fields, `result` (the agreed checksum), `languages.<arm>.{ticks, instructions, instructions_samples}`, and `verdict.<other>.{outcome, ratio, difference}` |
 
 `elf_sections()` reads the section headers itself, so no `size` tool is needed. A workload whose arms return different `result` values is a hard error: `run()` raises `checksum mismatch for freestanding <name>` before any verdict is formed.
 
@@ -129,7 +131,9 @@ The compiler now supplies most of what undefined overflow gave C, without making
 | `edit_distance` | 5,900,624 | 5,540,624 | 5,596,832 | 0.99× |
 | `heapsort` | 10,907,456 | 10,907,440 | 10,702,272 | 1.02× |
 
-`quicksort` gains from the facts an unchecked access implies, `knapsack` from a range guard on its sized array, and `edit_distance` from a bound on what its two rows can hold; [Loop guards](/compiler/loop-guards#loops-over-sized-arrays) describes all three. Knapsack ends up well ahead of C because the guard holds a fact, `w >= 0`, that C's undefined overflow never supplied: C reaches the same count only when that fact is written into its source. Against C the suite then read 4 fewer, 16 level and none more, geomean 0.95×; with `ring_buffer` (below) it reads 5, 15 and none. `heapsort` is the one row still behind, inside the parity band: `root * 2 + 1` in its loop condition is a recurrence no counter describes. [Wrapping integers and tight loops](/performance/wrapping-integers-and-tight-loops) has the investigation, every alternative measured, and what `heapsort` would need.
+Those were the proofs alone. With unrolling (above) and the bounds checks the compiler now proves away ([Loop guards](/compiler/loop-guards#narrow-integers-and-proved-indices)), the suite reads 17 fewer, 3 level and 0 more against C, geomean 0.876×, and 15, 5 and 0 against Rust, geomean 0.789×: `edit_distance` 4,207,920 (0.752× C), `heapsort` 10,459,760 (0.977× C). `edit_distance` had lost its element bound by then: the benchmark's own `fn min` was not std.math's, and the analysis asked for the name. It now judges the callee by its body.
+
+`quicksort` gains from the facts an unchecked access implies, `knapsack` from a range guard on its sized array, and `edit_distance` from a bound on what its two rows can hold; [Loop guards](/compiler/loop-guards#loops-over-sized-arrays) describes all three. Knapsack ends up well ahead of C because the guard holds a fact, `w >= 0`, that C's undefined overflow never supplied: C reaches the same count only when that fact is written into its source. Against C the suite then read 4 fewer, 16 level and none more, geomean 0.95×; with `ring_buffer` (below) it reads 5, 15 and none. `heapsort` was then the one row behind, 2%: `root * 2 + 1` in its loop condition is a recurrence no counter describes. Unrolling has since put it ahead without that proof. [Wrapping integers and tight loops](/performance/wrapping-integers-and-tight-loops) has the investigation, every alternative measured, and what `heapsort` would need.
 
 The suite keeps C's default, because C's default is what C is, and the README says so. When a row is behind C, run it with `-fwrapv` before treating it as code generation, and use `PRISMIO_NOWRAP=0` and `PRISMIO_RANGE_PROOFS=0` ([method](/performance/wrapping-integers-and-tight-loops#method)) to separate what the proofs buy from what the versioning around them costs.
 

@@ -51,11 +51,12 @@ Each indexed collection has its own out-of-range rule:
 
 | Indexing | Index outside `[0, length)` |
 | --- | --- |
-| `Array<T, N>` and a `[T]` view | **undefined behaviour** |
+| `Array<T, N>` | a constant index is a compile error; any other stops the program with a bounds error |
+| a `[T]` view | **undefined behaviour** (it does not carry its length yet) |
 | `Slice<T>` | stops the program with a bounds error |
-| `Vec<T>` | answers the element type's zero |
+| `Vec<T>` | stops the program with a bounds error |
 
-A fixed array and a `[T]` view are indexed with no check, and the compiler relies on every index being in range. After an access to `a[i]`, it treats `i` as having been in `[0, length)`, and it marks arithmetic on `i` as unable to wrap where that follows. An out-of-range index is therefore not just a stray read or write: it can change what arithmetic before or after it in the same function computes. Check an index that may be out of range against the length before using it.
+A `[T]` view is indexed with no check, and the compiler relies on every index being in range. After an access to `a[i]`, it treats `i` as having been in `[0, length)`, and it marks arithmetic on `i` as unable to wrap where that follows. An out-of-range index is therefore not just a stray read or write: it can change what arithmetic before or after it in the same function computes. Check an index that may be out of range against the length before using it. An `Array<T, N>` index is checked, so on it the same assumption is one the check makes true.
 
 Returning local arrays is statically rejected to prevent a known stack escape, but this does not turn every raw pointer or foreign buffer operation into checked access.
 

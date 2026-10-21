@@ -15,15 +15,15 @@ Type inference is local and does not make a binding polymorphic or dynamic. Once
 
 ## Type universe
 
-Primitive types are `Int` (also spelled `I32`), `I8`, `I16`, `I64`, `Isize`, `U8`, `U16`, `U32`, `U64`, `Usize`, `Float`, `Bool`, `Char`, `String`, and `Ptr`. Struct names introduce nominal types. Enum names introduce nominal enum types. `Array<T, N>` forms an array type of element `T` and length `N`, an integer literal; `[T]` and `Array<T>` spell it with the length taken from an initializer. `Vec<T>` forms the built-in growable vector type. `List<T>`, its former spelling, is rejected with a diagnostic naming `Vec<T>`.
+Primitive types are `Int` (also spelled `I32`), `I8`, `I16`, `I64`, `Isize`, `U8`, `U16`, `U32`, `U64`, `Usize`, `Int<N>` and `UInt<N>` for any width `N` from 1 to 8,388,608 (where `N` is 8, 16, 32 or 64 the type is the one named above), `Float` (also spelled `F64`), `F16`, `F32`, `F128`, `BF16`, `Bool`, `Char`, `String`, and `Ptr`. Struct names introduce nominal types. Enum names introduce nominal enum types. `Array<T, N>` forms an array type of element `T` and length `N`, an integer literal; `[T]` and `Array<T>` spell it with the length taken from an initializer. `Vec<T>` forms the built-in growable vector type. `List<T>`, its former spelling, is rejected with a diagnostic naming `Vec<T>`.
 
-`Int` is signed 32-bit. `Float` is the sole floating-point type: IEEE 754 binary64 (ISO/IEC 60559). `Isize` and `Usize` use target pointer width. `Char` is byte-sized in 0.1.
+`Int` is signed 32-bit. `Float` is IEEE 754 binary64 (ISO/IEC 60559); `F16`, `F32` and `F128` are binary16, binary32 and binary128, and `BF16` is bfloat16. The set of floating-point types is closed: `F<N>` and `Float<N>` are errors. A float literal has `Float` unless its context gives it another float type. `Isize` and `Usize` use target pointer width. `Char` is byte-sized in 0.1.
 
 Struct identity is nominal: distinct declarations do not become compatible because their fields coincide. Enum identity is nominal as well: a variant expression has its enum's type, and neither `Int` nor another enum is compatible with it in either direction. `c as Int` yields the ordinal; `n as E?` is the only conversion into an enum. `Vec<T>` is a built-in type constructor, separate from [generics](/language/generics): it predates them and is not an instance of them. An enum with payload variants is not an `Int` — it compiles to a tagged struct and is nominal and move-only like any other struct.
 
 ## Literal typing
 
-Decimal integer literals are checked against a contextual integer type when one is available. An ordinary uncontextualized integer uses the compiler's default behavior centered on `Int`; larger values require a compatible contextual width. Floating literals have `Float`, Boolean literals have `Bool`, character literals have `Char`, and string literals produce `String`.
+Decimal integer literals are checked against a contextual integer type when one is available. An ordinary uncontextualized integer uses the compiler's default behavior centered on `Int`; larger values require a compatible contextual width. An integer literal is checked against the width of the type it takes, up to the widest, so `340282366920938463463374607431768211455` is a `UInt<128>` and not an error. Floating literals have `Float`, Boolean literals have `Bool`, character literals have `Char`, and string literals produce `String`.
 
 `none` requires or receives an optional reference-shaped context. It is not a universal inhabitant of every type.
 

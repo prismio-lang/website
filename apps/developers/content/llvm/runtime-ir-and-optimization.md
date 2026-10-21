@@ -132,6 +132,8 @@ loop is folded straight back. Size used to keep such halves apart. They must now
 and `PRISMIO_NOINLINE` in the runtime. A new fast/slow split needs the same marker, or its fast
 half will quietly stop inlining.
 
+The opposite marker is `inline fn` ([inline functions](https://docs.prismio.org/language/functions#inline-functions)), `alwaysinline`, for a function whose body a hot loop needs in view but whose size a cost model counts against it; std's `mapProbe` is the one user.
+
 ### Parallel machine code
 
 After the whole program is simplified **as one module**, it is split into up to eight partitions

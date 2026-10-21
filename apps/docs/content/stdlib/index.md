@@ -5,7 +5,7 @@ status: stable
 version: "0.1.0"
 lastUpdated: "2026-10-09"
 tags: [standard-library, runtime, status]
-related: [stdlib/io, stdlib/display, stdlib/input, stdlib/strings, stdlib/math, stdlib/time, stdlib/filesystem, stdlib/vec, stdlib/map, stdlib/mem, stdlib/raw, stdlib/option, roadmap]
+related: [stdlib/io, stdlib/display, stdlib/number-text, stdlib/input, stdlib/strings, stdlib/math, stdlib/time, stdlib/filesystem, stdlib/vec, stdlib/map, stdlib/mem, stdlib/raw, stdlib/option, roadmap]
 ---
 
 Prismio ships twenty-one standard-library modules:
@@ -14,6 +14,7 @@ Prismio ships twenty-one standard-library modules:
 | --- | --- |
 | [`std.io`](/stdlib/io) | `print`, `println`, `eprint`, `eprintln` |
 | [`std.display`](/stdlib/display) | the `Display` trait; `print` and `println` for any type that has it, optionals included |
+| [`std.number_text`](/stdlib/number-text) | text for an `Int<N>` wider than 64 bits and for `F16`, `F32`, `BF16` and `F128` |
 | [`std.input`](/stdlib/input) | standard input: `inputLines()`, `readLine()`, `readLineOr()`, `readInt()`, `readLines()` and more |
 | [`std.string`](/stdlib/strings) | `String` and `Char` methods, parsing, formatting, `StringBuilder`, and the `String` operators |
 | [`std.unicode`](/stdlib/unicode) | grapheme clusters, terminal width, normalization |
@@ -67,11 +68,11 @@ The output overloads participate in normal declaration lookup, overload resoluti
 
 ## Math
 
-[`std.math`](/stdlib/math) holds Float's square roots, rounding modes, powers, logarithms and trigonometry, integer `pow`, `gcd`, `lcm`, `floorDiv`/`floorMod` and `isqrt`, and every numeric type's limits as `Int.MAX`, `Float.PI`, `Float.INFINITY` and so on. Each Float function compiles to the instruction or C-library call a C compiler would use. `Float` itself is IEEE 754 binary64. Random numbers, `F32` and bit counting are not available yet.
+[`std.math`](/stdlib/math) holds Float's square roots, rounding modes, powers, logarithms and trigonometry, integer `pow`, `gcd`, `lcm`, `floorDiv`/`floorMod` and `isqrt`, and every numeric type's limits as `Int.MAX`, `Float.PI`, `Float.INFINITY` and so on. Each Float function compiles to the instruction or C-library call a C compiler would use. `Float` itself is IEEE 754 binary64. Random numbers and `std.math` functions on `F32` and the other float types are not available yet.
 
 ## Math
 
-[`std.math`](/stdlib/math) holds Float's square roots, rounding modes, powers, logarithms and trigonometry, integer `pow`, `gcd`, `lcm`, `floorDiv`/`floorMod` and `isqrt`, and every numeric type's limits as `Int.MAX`, `Float.PI`, `Float.INFINITY` and so on. Each Float function compiles to the instruction or C-library call a C compiler would use. `Float` itself is IEEE 754 binary64. Random numbers, `F32` and bit counting are not available yet.
+[`std.math`](/stdlib/math) holds Float's square roots, rounding modes, powers, logarithms and trigonometry, integer `pow`, `gcd`, `lcm`, `floorDiv`/`floorMod` and `isqrt`, and every numeric type's limits as `Int.MAX`, `Float.PI`, `Float.INFINITY` and so on. Each Float function compiles to the instruction or C-library call a C compiler would use. `Float` itself is IEEE 754 binary64. Random numbers and `std.math` functions on `F32` and the other float types are not available yet.
 
 ## Strings
 

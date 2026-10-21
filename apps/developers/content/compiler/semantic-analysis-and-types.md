@@ -3,7 +3,7 @@ title: Semantic analysis and types
 description: The passes that resolve names, types, overloads, calls, fields and flow — and why a rejection reports every mistake it can find rather than stopping at the first.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-27"
+lastUpdated: "2026-10-21"
 tags: [semantics, types, overloads]
 related: [compiler/imports-and-symbols, compiler/ownership-and-drop-lowering, compiler/generics-and-monomorphization, compiler/diagnostics, aif/overview]
 ---
@@ -103,16 +103,29 @@ error[P4001]: integer literal `2147483648` does not fit in Int
    |
 6 |     let sum = 0 - 2147483648
    |                   ^^^^^^^^^^
-error[P4001]: integer literal `99999999999999999999999` is too large for any integer type
+error[P4001]: integer literal `99999999999999999999999` does not fit in Int
   --> literal_range.psm:7:13
    |
 7 |     println(99999999999999999999999)
    |             ^^^^^^^^^^^^^^^^^^^^^^^
-  note: the widest are `I64` and `U64`, at 64 bits
 error: aborting due to 4 previous errors
 ```
 
-Each literal is checked against the type it is used as — `U8` for `small`, `Int`'s own 32-bit range for a bare `let`, and the 64-bit ceiling once nothing narrower could possibly hold the value. None of these silently wrap: a literal that does not fit used to be accepted and truncated in silence, which is a worse failure than a compile error, because the program runs and prints a wrong number with no indication anything was lost. A deliberate `narrowing` cast (`300 as U8`, meaning 44) is a different, explicit operation and is not what this diagnostic is about.
+Each literal is checked against the type it is used as — `U8` for `small`, and `Int`'s own 32-bit range for a bare `let` and for the argument of `println`. The last is 77 bits, which an `Int<128>` holds, so it is an `Int` that does not fit and not a number without a type; a literal is rejected as "too large for any integer type" only past `Int<8388608>`. None of these silently wrap: a literal that does not fit used to be accepted and truncated in silence, which is a worse failure than a compile error, because the program runs and prints a wrong number with no indication anything was lost. A deliberate `narrowing` cast (`300 as U8`, meaning 44) is a different, explicit operation and is not what this diagnostic is about.
+
+## The numeric families
+
+Two small modules own what the names mean, and every other pass asks them rather than keeping its own list.
+
+**`ast/int_width.psm`** is the integers. `Int<N>` and `UInt<N>` are a *spelling*: the parser (`parseIntWidth`) folds the width into the annotation's name and leaves a node that looks as if the program had written `I16` or `Int$24`, so no pass after it sees a type argument on an integer. A width that has a name keeps it (`intWidthName`: 8 → `I8`, 32 → `Int`, unsigned 64 → `U64`), which is what makes `Int<8>` and `I8` one type with one key; any other is `Int$24` or `UInt$24`. `$` cannot occur in a source identifier, so the name cannot collide with a program's, and `typeDisplay` already reads `Int$24` back as `Int<24>` by the rule that renders `Map$String$Int`. The same module range-checks a literal wider than 64 bits (`intLiteralFitsWide`), by bit length and power-of-two test on the digits, since there is no machine integer to parse it into.
+
+**`ast/float_width.psm`** is the floats: the five names (`Float` and `F64` are one), the LLVM key each lowers to (`half`, `bfloat`, `float`, `double`, `fp128`), their widths, and the intrinsic suffix. The set is closed, which is why `F<24>` is the parser's error P3012 and not a type that fails to resolve.
+
+`typeIntFromName` and `typeFloatFromName` (ast/types.psm) build the `TypeInfo`, and there used to be four copies of the name list to keep in step — `typeFromAnnotation`, `semaAnnotationInner`, `typeFromSemKey` and `mapType` — that now call them. `TypeInfo.name` for a float is its own name and `typeEquals` compares it, so `F32` and `Float` are different types that never meet implicitly.
+
+**Literals take their type from context.** `Int` and `Float` are first guesses. `semaLiteralTakes` says whether a literal can become a given type — an integer literal any integer type, a float literal any float type — and the same five places that adopted an integer literal's type (an annotation, a parameter, the other side of a binary operator, an assignment, a generic argument) now ask it. Overload ranking prefers the default: `f(1.5)` beside `f(F32)` and `f(Float)` picks `Float`.
+
+**Printing an unnamed width is a rewrite.** `semaNumberTextLower` (sema/number_text.psm) runs before overload resolution for a call named `print`, `println` or `toString` whose first argument is an `Int<N>` with no name: up to 64 bits it inserts a cast to `I64` or `U64`; wider, it rewrites to `intText(value, bits, signed)` (std/number_text.psm), a generic function that is checked once `T` is concrete. The floats other than `Float` need none of this, since there are four of them: they have ordinary overloads in `std.number_text`.
 
 ## Analysis order
 

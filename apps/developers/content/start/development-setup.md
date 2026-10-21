@@ -62,13 +62,12 @@ If no installed compiler is available, build the first generation from the relea
 build two self-hosted generations:
 
 ```bash
-tools/bootstrap.sh --seed --out build/gen0
-tools/bootstrap.sh --compiler build/gen0 --out build/gen1
-tools/bootstrap.sh --compiler build/gen1 --out build/gen2
+python3 tools/bootstrap.py --seed --out build/gen0
+python3 tools/bootstrap.py --compiler build/gen0 --out build/gen1
+python3 tools/bootstrap.py --compiler build/gen1 --out build/gen2
 ```
 
-Windows uses `tools/bootstrap.ps1` with `-Out`, plus `-Compiler` to build from an existing generation (without it the seed is fetched and used; `-Seed <path>` names another). Once a compiler exists, `build.ums` declares the repository's own commands: `prismio build`, `prismio suite`, `prismio verify`, `prismio gate` and `prismio release` (see [how a release is cut](/releases)). The compiler links three LLVM backends, AArch64, X86 and WebAssembly; they are listed in `runtime/prismio_llvm.h` and `tools/setup_llvm.py`, and `tools/check_source_lists.py` fails if the two disagree. The pinned release seed (`bootstrap/seed.json`) only has to be able to parse `src/`; a newer one is cut with `tools/refresh_seed.sh` and published with a release. The shell and PowerShell
-scripts compile the LLVM bridge and runtime support, consume the same source inventory, use a
+`tools/bootstrap.py` is the same script on Windows; `--compiler` builds from an existing generation (without it the committed seed is used; `--seed <path>` names another) and `--promote` installs the last generation as the checkout's local toolchain. Once a compiler exists, `build.ums` declares the repository's own commands: `prismio bootstrap` (the three steps above; `--promote` adds that flag), `prismio seed`, `prismio build`, `prismio suite`, `prismio verify`, `prismio gate` and `prismio release` (see [how a release is cut](/releases)). The compiler links three LLVM backends, AArch64, X86 and WebAssembly; they are listed in `runtime/prismio_llvm.h` and `tools/setup_llvm.py`, and `tools/check_source_lists.py` fails if the two disagree. The committed seed (`bootstrap/seed.ll`) only has to be able to parse `src/`; a newer one is cut with `prismio seed` (`tools/refresh_seed.py`) and committed only when the maintainer says so. The script compiles the LLVM bridge and runtime support, consume the same source inventory, use a
 content-keyed object cache, link into a temporary path, and install the completed compiler
 atomically. `PRISMIO_LLVM_DIR` overrides recorded LLVM discovery. `PRISMIO_OBJ_CACHE=0` disables
 the cache when investigating it.

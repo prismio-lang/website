@@ -50,6 +50,32 @@ future, and `semaLazyFuture` rewrites it in place:
 CALL_EXPR f(x)   ==>   SPAWN_EXPR (i2 = 1) { child1 = CALL_EXPR f(x) (i3 = 8, typed R) }  : Future<R>
 ```
 
+Both shapes in one program:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+import std.string
+
+async fn double(x: Int) -> Int {
+    return x * 2
+}
+
+async fn main() -> Int {
+    // Awaited where it is called: this is just the call.
+    let direct = await double(4)
+    // Not awaited: sema rewrites it to `spawn double(21)`, a Future<Int>.
+    let pending = double(21)
+    let later = await pending
+    println((direct + later).toString())
+    return 0
+}
+```
+
+```text
+50
+```
+
 `semaExpr` caches a node's type, so the rewrite runs once. Everything after sema — the AIF walk,
 the E-SPAWN-J proof that a `let t = spawn ...` is joined, the task-handle drop — sees a
 `SPAWN_EXPR`, which is what it already handled.

@@ -123,7 +123,7 @@ A pointer is made from something that is not one with four functions of `std.raw
 |---|---|
 | `Ptr<T>.at(address)` | A `Ptr<T>?`: `none` for 0 or an address a `T` cannot sit at. |
 | `Ptr<T>.atUnchecked(address)` | A `Ptr<T>`, trusting the address. |
-| `Ptr<U>.cast(p)` | The same address as another type. A read-only pointer cannot become a `Ptr<mut U>`. |
+| `Ptr<U>.cast(p)` | The same address as another type. A read-only pointer cannot become a `Ptr<mut U>`, and a volatile one only becomes a `Ptr<volatile U>`. |
 | `Ptr<U>.castAligned(p)` | A `Ptr<U>?`, `none` when `p`'s address cannot hold a `U`. |
 
 A `Ptr<T>?` has no flow narrowing: unwrap it with `expect(p)` or `p ?? fallback`.
@@ -155,7 +155,9 @@ fn main() -> Int {
 }
 ```
 
-`p.readVolatile()` and `p.writeVolatile(v)` are the one-off forms. `p.atomicLoad(order)`, `atomicStore`, `atomicSwap`, `atomicAdd`, `atomicSub`, `atomicAnd`, `atomicOr`, `atomicXor` and `atomicCompareExchange` are the atomic ones, with the ordering written at the call as a variant of `AtomicOrder` ([`std.raw`](/stdlib/raw)). A pointer is not promised readable for its whole size when it is `volatile`, since a device register is not memory a load may be moved past; a plain `Ptr<T>` is, and the compiler uses that.
+`p.readVolatile()` and `p.writeVolatile(v)` are the one-off forms. `p.atomicLoad(order)`, `atomicStore`, `atomicSwap`, `atomicAdd`, `atomicSub`, `atomicAnd`, `atomicOr`, `atomicXor` and `atomicCompareExchange` are the atomic ones, with the ordering written at the call as a variant of `AtomicOrder` ([`std.raw`](/stdlib/raw)). A volatile pointer stays volatile: it does not become the opaque `Ptr`, and `cast` takes it only to another volatile pointer, so a C function that writes a register is declared with a `Ptr<mut volatile T>` parameter.
+
+What the compiler tells the optimiser about a pointer is what is always true of it: it is not null, it is aligned for what it points at, and, unless it is `mut`, the function does not write through it. Not that it may be read early: a pointer may point one past the end of its block (`p.offset(count)`, or the `limit` you give `advance`), and passing one is fine. And not that two pointers of different types are apart: `cast` can make a `Ptr<Float>` and a `Ptr<U64>` the same bytes, so a write through one is always seen by a read through the other.
 
 **A `Slice` view of a pointer is not available, and not for want of a method.** A `Slice<T>` here is a handle to a Prismio list header with an offset and a length, and every element access goes through that list, so a bare pointer and a count have nothing to be a view of. It needs a second view representation over foreign memory and the borrow rules for one, which is a design of its own. Until then, a pointer you step by hand (`offset`, `advance` with a limit) is the bounded loop, and a `Buffer` is the checked container. A pointer also comes from foreign code (`extern fn calloc(count: Usize, size: Usize) -> Ptr<mut Header>`). A typed pointer is still unchecked for use after free and for bounds: it removes null, accidental writes and accidental stepping, not a dangling address.
 
@@ -269,7 +271,9 @@ packed struct Wire {
 }
 ```
 
-`Gate` is `{ i8, i32, i16 }` with padding after `flags` and `selector`; `Wire` is five bytes. `repr` takes only `C`. `Bool` is not a byte in memory the way C's `bool` is (see [foreign globals](/language/ffi)), so declare a flag that hardware reads as `U8`.
+`Gate` is `{ i8, i32, i16 }` with padding after `flags` and `selector`; `Wire` is five bytes, and `word` sits at offset 1, so it is read and written as four unaligned bytes. `repr` takes only `C`.
+
+A field of a packed struct is a number, `Bool`, `Char`, an enum, a pointer, another packed struct or a byte array (`Array<U8, N>`). A `repr(C)` struct, an `Array<U32, N>` or a `U32?` inside one would be read at its own alignment through an address that does not have it, so each is refused; declare an inner struct `packed` as well. On a strict-alignment processor that would be a fault, and everywhere it is undefined. `Bool` is not a byte in memory the way C's `bool` is (see [foreign globals](/language/ffi)), so declare a flag that hardware reads as `U8`.
 
 You cannot yet take the address of a field or ask for a type's size, so a `repr(C)` struct is for layout you can reason about and for passing to C, not for pointing a register at.
 
@@ -278,6 +282,8 @@ You cannot yet take the address of a field or ask for a type's size, so a `repr(
 | Code | Message |
 |---|---|
 | `P4001` | `no overload of `volatileStoreU8` accepts these argument types` (a value of the wrong width) |
+| `P4001` | `` `header` cannot be `Header` in a packed struct: its fields would be read at an address `Header` is not aligned to `` |
+| `P4001` | ``cannot cast `Ptr<mut volatile U32>` to `Ptr<mut U32>`: it is volatile`` |
 | `P4001` | `the assembly text of `__builtin_asm` must be a string literal` |
 | `P4001` | `no overload of `atomicCompareExchangeU32` accepts these argument types` (the wrong number of arguments) |
 | `P4001` | `` `portOutU8` is an x86 instruction, and the target is `aarch64-unknown-none-elf` `` |

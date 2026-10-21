@@ -238,6 +238,14 @@ factor.
 bucket, so `remove` marks the bucket rather than emptying it: a lookup probes past a marker, and an
 insertion reuses the first one it passes.
 
+**The columns are private.** A map's two entry columns and its probe table are fields of `Map`, and
+none of them is part of its surface: a program cannot read, push to or truncate one
+(`field 'entryKeys' of 'Map$Int$Int' is private to the file that declares it`). The probe relies on two
+facts about them -- a bucket is always inside the probe table, and an entry index read out of it is always
+inside both entry columns -- and states them to the optimiser instead of checking them on every probe, so
+a lookup carries no bounds check. A program that could resize a column would break both without the
+compiler seeing it. Use `keyAt`, `valueAt`, `length` and the operations above.
+
 ## Vec
 
 A map's keys, values and slots are each a [`Vec`](/stdlib/vec) — the growable vector, whose backing block doubles on push and stores flat elements inline.

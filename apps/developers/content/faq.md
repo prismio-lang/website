@@ -17,7 +17,7 @@ revision for persistent work.
 ## Is the compiler really self-hosted?
 
 Yes. The lexer, parser, AST, import resolver, semantic analysis, AIF, and LLVM IR generator are
-written in Prismio. A target-neutral LLVM IR seed, published as a release asset, breaks the initial bootstrap cycle. Later generations
+written in Prismio. A target-neutral LLVM IR seed, committed as `bootstrap/seed.ll`, breaks the initial bootstrap cycle. Later generations
 compile the current source and are checked for fixed-point agreement.
 
 ## What does AIF stand for?

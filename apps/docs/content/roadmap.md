@@ -3,7 +3,7 @@ title: Roadmap and feature status
 description: Implementation status for current and planned Prismio language, tooling, platform, and library capabilities.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-30"
+lastUpdated: "2026-10-21"
 tags: [roadmap, status, coming-soon]
 related: [start/overview, releases/0.1.0, faq]
 ---
@@ -20,7 +20,9 @@ This page distinguishes shipped compiler behavior from intent. It does not assig
 | Importable standard-library modules | Implemented |
 | Terminal colours and styles (`std.term`), `\e` / `\xHH` / `\u{…}` escapes | Implemented |
 | Math (`std.math`): Float roots, rounding, logarithms, trigonometry, IEEE 754 constants; integer `pow`, `gcd`, `floorMod`, limits | Implemented |
-| Random numbers, `F32`, bit counting, checked integer arithmetic | Coming Soon |
+| Integers of any width (`Int<N>`, `UInt<N>`) and the float types `F16`, `F32`, `F64`, `F128`, `BF16` | Implemented |
+| The standard traits (`Eq`, `Ord`, `Copy`, `Default`, `Display`, `Key`) for an unnamed-width `Int<N>` and for `F16`, `F32`, `BF16`, `F128`; `print` of those floats without `import std.number_text`; `std.math` on `F32`; a `Vec` of integers wider than 64 bits | Coming Soon |
+| Random numbers, checked integer arithmetic | Coming Soon |
 | Standard input (`std.input`): lines, one line, or everything | Implemented |
 | Time (`std.time`): `Instant`, `Duration`, the wall clock, `sleep` | Implemented |
 | Calendar dates, time zones, timers | Coming Soon |

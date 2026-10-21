@@ -149,7 +149,7 @@ The location it names is inside `std.string`'s own `.plib`, not the caller's fil
 
 ## Command-dependent exits
 
-`check` runs the complete frontend without creating LLVM IR or invoking the linker. `dump-ast` serializes frontend output for tooling and the AIF oracle. An output path ending in `.ll` stops after module generation. Native `build`, `run`, and `test` continue through object generation and linking.
+`check` runs the complete frontend without creating LLVM IR or invoking the linker. `dump-ast` serializes frontend output for tooling and the AIF oracle. An output path ending in `.ll` stops after module generation. Native `build`, `run`, and `test` continue through object generation and linking. A compiler run from a checkout that has the pinned LLVM links with that `clang`; on macOS it is given `-isysroot` from `xcrun --show-sdk-path` (unless `SDKROOT` is set or a `--target` names its own sysroot), because without an SDK it stamps the executable with the minimum deployment version and macOS gives such a binary the older `malloc` (see [telling a difference from noise](/performance/telling-a-difference-from-noise)).
 
 ## Native compilation
 

@@ -3,7 +3,7 @@ title: Types and ABI
 description: Prismio-to-LLVM type keys, storage forms, field layout, target widths, optional encoding, string ABI, and foreign-call coercion.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-30"
+lastUpdated: "2026-10-21"
 tags: [llvm, types, abi]
 related: [llvm/overview, runtime/collection-representations, compiler/string-representation]
 ---
@@ -23,13 +23,22 @@ analysis stores a resolved type on each annotation and expression; `mapTypeNode`
 | `Int` (also `I32`), `U32` | `i32` | `LLVMInt32TypeInContext` | `Int` is signed 32-bit; the parser renames `I32` to `Int` |
 | `I64`, `U64` | `i64` | `LLVMInt64TypeInContext` | Used directly, not widened through `Int` |
 | `Isize`, `Usize` | selected pointer integer | `i32` or `i64` | `ir_set_pointer_int_type` follows the target data layout |
-| `Float` | `double` | `LLVMDoubleTypeInContext` | Prismio's current floating representation is 64-bit |
+| `Int<N>`, `UInt<N>` (N not 8, 16, 32 or 64) | `iN` | `LLVMIntTypeInContext` | Any N from 1 to 8,388,608; signedness belongs to operations. Named when N is 8, 16, 32 or 64 |
+| `Float` (also `F64`) | `double` | `LLVMDoubleTypeInContext` | The default; the parser renames `F64` to `Float` |
+| `F32` | `float` | `LLVMFloatTypeInContext` | |
+| `F16` | `half` | `LLVMHalfTypeInContext` | |
+| `BF16` | `bfloat` | `LLVMBFloatTypeInContext` | Shares a size with `F16`; neither contains the other |
+| `F128` | `fp128` | `LLVMFP128TypeInContext` | Arithmetic is a soft-float library call |
 | `Ptr` | `ptr` | opaque LLVM pointer | Pointee types are not encoded in LLVM's pointer type |
 | `String` | `struct:prismio.str` | `{ ptr, usize }` | A value pair internally, a NUL-terminated pointer at C boundaries |
 | `Slice<T>` | `struct:prismio.slice` | value aggregate | Carries base, offset/length data required by the runtime contract |
 | `DataView<T>` element | `struct:prismio.data_element` | value aggregate | Describes view storage rather than a heap object |
 | user `struct S` | `struct:S` | named `%S` body | Locals normally hold a pointer; fields embed non-optional structs |
 | `Vec<T>` (internally `List<T>`), array, `T?` | `ptr` or `ptrptr` | opaque pointer | Representation details are carried by semantic/AIF side tables |
+
+`type_from_key` accepts `iN` for any N and the five float keys, through `key_int_width` and
+`float_type_from_key`, which also serve the constant reader, the debug-info table and the
+flat-layout test, so the backend names its numeric keys in one place.
 
 `mapType` handles primitive names. `mapTypeNode` handles resolved annotations, list/array
 markers, optionals, and nominal types. `getExprType` reads the semantic type first and has
@@ -171,6 +180,43 @@ the 16-byte `{ i1, K }` itself, reached by address as a flat struct element is: 
 spills it and `slotToScalar` loads it. That is only correct because a list of one is always
 inline (`inlineElemSizeOfList` returns 16 for it).
 
+## Arbitrary-width integers and the float family
+
+**Storage and layout.** An `iN` is stored in `ceil(N/8)` bytes but allocated in more: LLVM's data
+layouts here have `i128:128`, so an `i24` takes 4 bytes, an `i40` takes 8, and anything past 64
+bits takes a multiple of 16 (`intWidthAllocBytes`). `aifTypeBytes` uses that size, and
+`aifTypeAlign` caps the alignment at 16 — an `Int<200>` is 32 bytes aligned to 16 — and the
+Python oracle (`tools/aif_oracle/layout.py`) keeps the twin of both.
+
+**Arithmetic is LLVM's.** Add, subtract, multiply and the shifts wrap at N bits, and the
+`--overflow-checks` intrinsics (`llvm.sadd.with.overflow.iN`) exist at every width, so
+`isIntegerStorageKey` is any `iN` with N of two or more. A shift amount is an integer of its own
+type and `generateBinary` resizes it to the shifted value's before the instruction — it did not
+before, and `x >> n` with a `U64` and an `Int` failed module verification.
+
+**Constants.** `const_from_text` reads a literal wider than 64 bits with `LLVMConstIntOfString`
+in the radix the prefix named, and every float but `double` with `LLVMConstRealOfString`, because
+`atof` is a double and cannot carry the 113-bit significand of an `fp128`.
+
+**Casts** are `src/ir/numeric.psm`: `numericConvert` for `as`, and `numericFits` for the flag of
+`as T?`. Integer to integer is `trunc`, `sext` or `zext`; integer to float is `sitofp` or `uitofp`;
+float to float is `fpext` or `fptrunc`, through `float` between `half` and `bfloat`; and float to
+integer is `llvm.fptosi.sat.iN.fSUFFIX`, saturating and NaN-to-zero, for every pair.
+The bounds a float is compared with are hexadecimal float literals (`0x1p63`), exact at any
+exponent. For a float target, `x as T?` is `none` only when the value overflows to an infinity.
+
+**Containers.** A container slot is one pointer-sized word. A float narrower than the word is
+bitcast to the integer of its own width and zero-extended into it (`scalarToSlot`), and an odd
+integer is zero-extended and truncated back. A scalar `T?` of an odd width or a narrow float
+takes the carrier of the power of two that holds its payload (`optPayloadBits`). A number wider
+than 64 bits — `Int<128>`, `F128` — has no slot or row to be held in, so `Vec<T>` rejects it at the
+annotation (`typeIsWideScalar`); wrapping it in a struct is how to hold one.
+
+**Toolchain constraints.** `fp128` arithmetic and conversions, and `half` and `bfloat` on a target
+without them, lower to compiler-rt/libgcc routines (`__multf3`, `__extendhfsf2`). They link on
+macOS and Linux; a Windows build with `link.exe` has no such library, so a program using `F128`
+there does not link. See the known issues.
+
 ## Checked conversions
 
 `x as T?` between numbers is `generateCheckedCast` (src/ir/expr.psm), and it is straight-line
@@ -180,8 +226,8 @@ code: a present flag from a few compares, and the value converted regardless of 
   the source. That one test catches both a magnitude too large and a sign the target cannot hold.
 - **Equal or greater width** can only lose a sign: one `icmp sge value, 0` when the signedness
   changes (except unsigned widening to signed, which always fits).
-- **From a Float**: `llvm.trunc.f64(x) == x` for wholeness and `low <= x < high` for range,
-  with power-of-two bounds a double holds exactly (`2^63` is exclusive, so `I64.MAX` never has to
+- **From a float**: `llvm.trunc.fSUFFIX(x) == x` for wholeness and `low <= x < high` for range,
+  with power-of-two bounds a float holds exactly (`2^63` is exclusive, so `I64.MAX` never has to
   be represented). NaN fails every ordered compare and an infinity fails the range. The value is
   computed with the *saturating* intrinsic even though the flag has excluded every input that
   would saturate, because a plain `fptosi` of an out-of-range input is poison, and the value is

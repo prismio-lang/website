@@ -249,7 +249,7 @@ This prints 5, 2 and 9.
 | Missing | What it is | Use today |
 | --- | --- | --- |
 | Random numbers (`std.random`) | seeded generators, ranges, shuffles | a small xorshift or PCG in your own module — about ten lines |
-| 32-bit floats | an `F32` type and its functions | `Float`; convert at the boundary with C |
+| Functions on `F32`, `F16`, `BF16`, `F128` | the types exist, but `sqrt`, `sin`, `pow` and the rest are `Float`'s | cast to `Float` and back: `(x as Float).sqrt() as F32` |
 | Checked and saturating integer arithmetic | `checkedAdd`, `saturatingMul`, overflow as a `T?` | compare against `Int.MAX` before the operation, or compute in `I64` |
 | Bit counting and rotation | `countOnes`, `leadingZeros`, `trailingZeros`, `rotateLeft` | a loop over `(x >> i) & 1`; `extern fn` to a C builtin wrapper |
 | `Float` bit access | `toBits`, `fromBits`, `nextUp` | not expressible without them |

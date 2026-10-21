@@ -8,43 +8,46 @@ tags: [compiler, bootstrap, self-hosting, reproducibility]
 related: [start/development-setup, start/local-compiler-loop, testing/fixed-point-verification]
 ---
 
-Self-hosting creates a cycle: Prismio source needs a Prismio compiler. The project breaks it with target-neutral LLVM IR for a seed compiler. The seed is a release asset (`prismio-seed-<version>.ll`), not a tracked file: `bootstrap/seed.json` pins its version and SHA-256, `tools/fetch_seed.py` downloads and checks it, and `--seed` runs that for you.
+Self-hosting creates a cycle: Prismio source needs a Prismio compiler. The project breaks it with target-neutral LLVM IR for a seed compiler. The seed is `bootstrap/seed.ll`, a tracked file: there is no release asset, no SHA-256 pin and no downloader, and `--seed` reads the file. A refreshed seed is about 20 MB, so one is never staged or committed until the maintainer says so (`.githooks/pre-commit` refuses it; `PRISMIO_ALLOW_SEED_COMMIT=1` overrides, `git config core.hooksPath .githooks` enables the hook).
 
 The seed is a trust anchor, not the preferred everyday implementation. Its job is to reconstruct a current compiler whose later generations can be checked against one another.
 
 ## Generation workflow
 
 ```bash
-tools/bootstrap.sh --seed --out build/gen0
-tools/bootstrap.sh --compiler build/gen0 --out build/gen1
-tools/bootstrap.sh --compiler build/gen1 --out build/gen2
+python3 tools/bootstrap.py --seed --out build/gen0
+python3 tools/bootstrap.py --compiler build/gen0 --out build/gen1
+python3 tools/bootstrap.py --compiler build/gen1 --out build/gen2 --promote
 ```
+
+On a machine that already has `prismio`, `prismio bootstrap` runs the three steps (`prismio bootstrap --promote` adds the last flag), and `prismio seed` cuts a new `bootstrap/seed.ll` from `build/gen2` and checks that a compiler built from only that file works. A fresh clone has no `prismio`, so it starts with the first command.
 
 Conceptually:
 
-- the pinned release seed produces `gen0` for the host;
+- the committed seed produces `gen0` for the host;
 - `gen0` compiles the current Prismio compiler source into `gen1`;
 - `gen1` compiles the same source into `gen2`; and
 - fixed-point checks compare the relevant `gen1` and `gen2` outputs.
 
 Use explicit paths for every compiler generation so an unrelated `prismio` on `PATH` cannot enter the chain.
 
-PowerShell provides the corresponding Windows workflow. Each generation compiles `src/main.psm`, lowers the resulting IR with Clang, rebuilds runtime/backend C sources from the current tree, and links LLVM C API support.
+`tools/bootstrap.py` is one script for every platform (it replaces the `.sh`/`.ps1` pair). Each generation compiles `src/main.psm`, lowers the resulting IR with Clang, rebuilds runtime/backend C sources from the current tree, and links LLVM C API support; the Windows differences (the `.exe` suffix, the export table `run --jit` needs, the 16 MiB stack, `LLVM-C.dll` beside the compiler) live in the same file. Use it instead of manually reproducing its link command when validating self-hosting.
 
-The scripts also coordinate the pinned LLVM line and platform-specific executable naming/link requirements. Use them instead of manually reproducing their link command when validating self-hosting.
+In seed mode it lowers `bootstrap/seed.ll` (or the path after `--seed`); in compiler mode it asks the named compiler to `build src/main.psm` to LLVM IR and links that itself. Either way it compiles the current C sources with real LLVM headers, in parallel, through content-derived cache keys, and installs a cache entry by rename. `PRISMIO_LLVM_DIR` overrides the toolchain recorded by `tools/setup_llvm.py`; `PRISMIO_OBJ_CACHE=0` provides a cache-bypass diagnostic path; `--keep` keeps the work directory; `--print-cache-key <source.c>` prints a source's key and does nothing else (a test uses it).
 
-`tools/bootstrap.sh` and `tools/bootstrap.ps1` are maintained counterparts. In seed mode they lower
-the seed `tools/fetch_seed.py` fetches (`bootstrap/prismio-seed-<version>.ll`); in compiler mode they ask the named compiler to `build src/main.psm` to
-LLVM IR and link that themselves.
-Both compile the current C sources with real LLVM headers, use content-derived cache keys, link to a
-staging path, and atomically install the result. `PRISMIO_LLVM_DIR` overrides the toolchain recorded
-by `tools/setup_llvm.py`; `PRISMIO_OBJ_CACHE=0` provides a cache-bypass diagnostic path.
+### Promoting a generation
+
+`--promote` makes the last generation this checkout's local toolchain. It runs that generation's own `build --release` (which installs `.prismio/build/release/prismio`, the project host, with the `lib/` and `stdlib/` built beside it and the `prismio.trusted` stamp) and then `build` (the debug compiler that `prismio build`, `suite` and `verify` run). It does not copy the binary: a copied host has no trust stamp and is refused. Promote after a change the old host cannot build, such as a `src/` that uses new syntax.
+
+### Cutting a seed
+
+`tools/refresh_seed.py --compiler build/gen2` (or `prismio seed`) builds `src/main.psm` twice with `PRISMIO_SEED_IR=1`, refuses a compiler whose two outputs differ, strips the target triple and data layout so clang targets whatever host it runs on, and writes `bootstrap/seed.ll`. It is left uncommitted. Verify with `python3 tools/bootstrap.py --seed --out build/seedcheck`: the compiler that comes out must emit the same IR as `gen2`.
 
 ## Why the runtime and backend C sources come from the working tree
 
-The compiler is not only Prismio code. Its runtime and its LLVM backend bridge are C, and a change to either has to reach the next generation. This repository's `build.ums` lists those files as `native` sources of its `prismio` target, so `prismio build` compiles them from the working tree on every build (through a cache keyed by their content) and links them into the new compiler. Nothing about them is built into the compiler doing the building. An older generation, the installed compiler and the project's own host all produce a compiler with the current C, and `tools/bootstrap.sh` does the same when no compiler exists yet.
+The compiler is not only Prismio code. Its runtime and its LLVM backend bridge are C, and a change to either has to reach the next generation. This repository's `build.ums` lists those files as `native` sources of its `prismio` target, so `prismio build` compiles them from the working tree on every build (through a cache keyed by their content) and links them into the new compiler. Nothing about them is built into the compiler doing the building. An older generation, the installed compiler and the project's own host all produce a compiler with the current C, and `tools/bootstrap.py` does the same when no compiler exists yet.
 
-Two things are still true. The frontend source must be parseable by the compiler doing the build, which is what the pinned seed has to stay able to do. (When `src/` first uses syntax the pinned seed predates, as visibility markers on structs did in 0.2.0, a new host is built with a compiler that reads it and a new seed is cut before the gate can pass; the seed pin may name its own asset so the published one is not replaced.) And the programs a compiler builds link the runtime library installed beside it, so a runtime edit needs that library re-emitted: a compiler with a source tree beside it refuses to build with a library made from different runtime sources (`P1004`) rather than link a stale one.
+Two things are still true. The frontend source must be parseable by the compiler doing the build, which is what the committed seed has to stay able to do. (When `src/` first uses syntax the committed seed predates, as visibility markers on structs did in 0.2.0, a new host is built with a compiler that reads it, `--promote` installs it, and a new seed is cut and committed before the gate can pass.) And the programs a compiler builds link the runtime library installed beside it, so a runtime edit needs that library re-emitted: a compiler with a source tree beside it refuses to build with a library made from different runtime sources (`P1004`) rather than link a stale one.
 
 ## Fixed-point meaning
 

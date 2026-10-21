@@ -211,7 +211,7 @@ error[P2001]: a digit separator `_` goes between two digits, as in `1_000_000`
 
 ## Floating-point and Boolean literals
 
-A decimal point produces a `Float` literal, such as `1.5` or `0.0`. `Float` is the only floating-point type in 0.1 and maps to a 64-bit IEEE-style backend value.
+A decimal point produces a `Float` literal, such as `1.5` or `0.0`: a 64-bit IEEE 754 value unless its context asks for another float type (`let x: F32 = 0.1`). An integer literal may be as wide as the type it is given, so `340282366920938463463374607431768211455` is a valid `UInt<128>`.
 
 The Boolean literals are `true` and `false`. Prismio does not treat integers as conditions, so `if (1)` is invalid; the condition must have type `Bool`.
 

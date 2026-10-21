@@ -79,7 +79,7 @@ before `PATH` and prints the chosen executable.
 ## Use named generations for reproducibility
 
 Bootstrap, seed refresh, and fixed-point work should use `build/genN` outputs rather than the
-moving debug host. `tools/bootstrap.sh --compiler build/gen1 --out build/gen2` gives each generation
+moving debug host. `python3 tools/bootstrap.py --compiler build/gen1 --out build/gen2` gives each generation
 an immutable path; `prismio gate` independently rebuilds successors from a packaged candidate and
 compares their IR (a hand-run `tools/release_gate.py --rc` needs a packaged compiler and the pinned LLVM first on `PATH`). Record the exact compiler path in bug reports and benchmark results.
 

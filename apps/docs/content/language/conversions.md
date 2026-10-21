@@ -48,10 +48,16 @@ Between numbers, `as` never fails. It chooses an answer instead:
 - widening a signed integer sign-extends, and widening an unsigned one, a `Bool`
   or a `Char` zero-extends;
 - narrowing an integer keeps its low bits: `300 as U8` is 44 and `-1 as U8` is 255;
-- an integer to a `Float` converts, rounding if the integer has more digits than
-  a `Float` holds;
-- a `Float` to an integer truncates toward zero and **saturates**: out of range is
+- an integer to a float converts, rounding if the integer has more digits than
+  the float holds, and to infinity if it is past its range (`70000 as F16`);
+- a float to a float rounds to nearest when it narrows and is exact when it widens.
+  `F16` and `BF16` are both 16 bits and neither holds the other, so a cast between
+  them goes through `F32`;
+- a float to an integer truncates toward zero and **saturates**: out of range is
   the type's `MAX` or `MIN`, and NaN is 0.
+
+All of this holds at every integer width, `Int<24>` and `UInt<200>` included: a
+`Float` converted to an `Int<24>` saturates at ±8,388,607.
 
 Those rules are what you want when the truncation is the point, as in hashing or
 bit manipulation. When it is not, write `as T?` and let the out-of-range case be
@@ -95,7 +101,8 @@ the comparison you mean, such as `n != 0`.
 The edges are exact. `-128 as I8?` is present and `-129 as I8?` is not;
 `-9223372036854775808.0 as I64?` is `I64.MIN`, and `9223372036854775808.0` (2⁶³) is
 `none`. An integer to `Float?` is always present, since every integer is in a
-`Float`'s range.
+`Float`'s range; into a narrower float, `x as F16?` is `none` when the value is too
+large for an `F16` to hold at all (above 65,504), and rounding is not a loss.
 
 <!-- prismio-check: pass -->
 ```prismio

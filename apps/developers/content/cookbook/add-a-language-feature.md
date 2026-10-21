@@ -128,21 +128,21 @@ A feature is not complete while `dump-ast`, `check`, a native build, and the rel
 
 ## Why new syntax lands in two steps
 
-The bootstrap seed is LLVM IR, published as a release asset and pinned in `bootstrap/seed.json`: the compiler that exists before any compiler does, because a self-hosted compiler needs *something* to build its first generation from. That seed has to be able to parse everything under `src/`. If you teach the frontend a new construct and use it in `src/` in the same change, the seed can no longer parse the compiler's own source, and bootstrapping from scratch breaks — a failure mode nothing in `tests/` or `aif/corpus/` exercises, because both assume a working compiler already exists.
+The bootstrap seed is LLVM IR, committed as `bootstrap/seed.ll`: the compiler that exists before any compiler does, because a self-hosted compiler needs *something* to build its first generation from. That seed has to be able to parse everything under `src/`. If you teach the frontend a new construct and use it in `src/` in the same change, the seed can no longer parse the compiler's own source, and bootstrapping from scratch breaks — a failure mode nothing in `tests/` or `aif/corpus/` exercises, because both assume a working compiler already exists.
 
-Land it in two steps: teach the frontend, cut and publish a seed (`tools/refresh_seed.sh`) and commit the new pin, *then* use the new syntax in `src/`.
+Land it in two steps: teach the frontend, cut a seed (`prismio seed`) and have the maintainer commit it, *then* use the new syntax in `src/`. A refreshed seed is never committed on its own initiative: it is about 20 MB and `.githooks/pre-commit` refuses it.
 
 ```bash
 # after the frontend change is in place, before anything in src/ uses it:
-tools/refresh_seed.sh   # tools/refresh_seed.ps1 on Windows
+prismio seed   # tools/refresh_seed.py --compiler build/gen2; needs `prismio bootstrap` first
 ```
 
 Separately, a behavior-preserving change (one that should alter nothing about what the compiler emits) must produce byte-identical output for every program in `tests/` and `benchmarks/hosted/prismio/`. That is checked by building two generations and comparing them to a fixed point, running the full suite, and running the AIF differential:
 
 ```bash
-tools/bootstrap.sh --seed --out build/gen0
-tools/bootstrap.sh --compiler build/gen0 --out build/gen1
-tools/bootstrap.sh --compiler build/gen1 --out build/gen2
+python3 tools/bootstrap.py --seed --out build/gen0
+python3 tools/bootstrap.py --compiler build/gen0 --out build/gen1
+python3 tools/bootstrap.py --compiler build/gen1 --out build/gen2
 # gen1 and gen2 must then agree, byte for byte, on every compiled program
 python3 tools/run_suite.py
 python3 tools/aif_differential.py --compiler build/gen2

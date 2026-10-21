@@ -2,14 +2,17 @@
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
   "name": "Prismio",
   "scopeName": "source.prismio",
-  "fileTypes": ["pr"],
+  "fileTypes": ["psm"],
+  "comment": "The vocabulary is the compiler's: reserved words are `reservedWords` in src/lexer/token.psm, and the contextual words and type names follow the IntelliJ plugin's PrismioWords, which its corpus test keeps in step with the compiler. Every scope ends in `.prismio`, which is what the themes in index.ts colour.",
   "patterns": [
     { "include": "#comments" },
     { "include": "#strings" },
+    { "include": "#labels" },
+    { "include": "#function-declaration" },
     { "include": "#keywords" },
     { "include": "#types" },
     { "include": "#numbers" },
-    { "include": "#functions" },
+    { "include": "#calls" },
     { "include": "#constants" },
     { "include": "#operators" },
     { "include": "#punctuation" }
@@ -18,14 +21,17 @@
     "comments": {
       "patterns": [
         {
+          "name": "comment.line.documentation.prismio",
+          "match": "///.*$"
+        },
+        {
           "name": "comment.line.double-slash.prismio",
           "match": "//.*$"
         },
         {
           "name": "comment.block.prismio",
           "begin": "/\\*",
-          "end": "\\*/",
-          "captures": {}
+          "end": "\\*/"
         }
       ]
     },
@@ -36,11 +42,14 @@
           "name": "string.quoted.triple.prismio",
           "begin": "\"\"\"",
           "end": "\"\"\"",
-          "patterns": [{ "include": "#string-interpolation" }]
+          "patterns": [
+            { "include": "#string-interpolation" },
+            { "include": "#string-escape" }
+          ]
         },
         {
           "name": "string.quoted.double.prismio",
-          "begin": "r?\"",
+          "begin": "\"",
           "end": "\"",
           "patterns": [
             { "include": "#string-interpolation" },
@@ -49,7 +58,7 @@
         },
         {
           "name": "string.quoted.single.prismio",
-          "match": "'(?:\\\\.|[^'\\\\])'"
+          "match": "'(?:\\\\(?:x[0-9a-fA-F]{2}|u\\{[0-9a-fA-F]+\\}|.)|[^'\\\\])'"
         }
       ]
     },
@@ -59,10 +68,10 @@
       "begin": "\\$\\{",
       "end": "\\}",
       "beginCaptures": {
-        "0": { "name": "punctuation.definition.template-expression.begin.prismio" }
+        "0": { "name": "punctuation.section.interpolation.begin.prismio" }
       },
       "endCaptures": {
-        "0": { "name": "punctuation.definition.template-expression.end.prismio" }
+        "0": { "name": "punctuation.section.interpolation.end.prismio" }
       },
       "patterns": [{ "include": "$self" }]
     },
@@ -72,54 +81,102 @@
       "match": "\\\\(?:n|r|t|e|0|\\\\|\"|'|\\$|x[0-9a-fA-F]{2}|u\\{[0-9a-fA-F]+\\})"
     },
 
-    "keywords": {
+    "labels": {
       "patterns": [
         {
-          "name": "keyword.control.prismio",
-          "match": "\\b(if|else|when|match|for|in|loop|while|break|continue|return)\\b"
-        },
-        {
-          "name": "keyword.control.prismio",
-          "match": "(?<![.\\w])repeat(?=\\s*\\()"
-        },
-        {
+          "comment": "outer@ for ...",
           "name": "entity.name.label.prismio",
           "match": "\\b[A-Za-z_][A-Za-z0-9_]*@(?=\\s*(?:for|while|loop|repeat)\\b)"
         },
         {
-          "name": "entity.name.label.prismio",
-          "match": "(?<=\\bbreak|\\bcontinue)@[A-Za-z_][A-Za-z0-9_]*"
+          "comment": "break@outer, continue@outer",
+          "match": "\\b(break|continue)(@[A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.control.flow.prismio" },
+            "2": { "name": "entity.name.label.prismio" }
+          }
+        }
+      ]
+    },
+
+    "function-declaration": {
+      "comment": "fn name, fn name<T>(, async fn name",
+      "match": "\\b(fn)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "captures": {
+        "1": { "name": "storage.type.function.prismio" },
+        "2": { "name": "entity.name.function.declaration.prismio" }
+      }
+    },
+
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.flow.prismio",
+          "match": "(?<![.\\w])(if|else|match|for|in|while|loop|repeat|break|continue|return|throw)\\b"
         },
         {
-          "name": "keyword.declaration.prismio",
-          "match": "(?<=[}*])\\s*\\bfrom\\b"
+          "comment": "`step` is contextual: a keyword only in a for header, after the range",
+          "name": "keyword.control.flow.prismio",
+          "match": "(?<=\\s)step(?=\\s+[\\w(-])"
         },
         {
-          "name": "keyword.declaration.prismio",
-          "match": "\\b(fn|let|mut|pub|extern|unsafe|struct|impl|enum|module|import|as|type|trait|interface|abstract|override|open|sealed|data|object|companion|by|delegate|inline|infix|operator|suspend|async|await|defer)\\b"
+          "name": "keyword.operator.word.prismio",
+          "match": "(?<![.\\w])(and|or|is|not|as)\\b"
         },
         {
-          "name": "keyword.other.prismio",
-          "match": "\\b(self|super|where|dyn|static|const|use|mod)\\b"
+          "name": "keyword.control.import.prismio",
+          "match": "(?<![.\\w])(import|from)\\b(?!\\s*:)"
         },
         {
-          "name": "constant.language.boolean.prismio",
-          "match": "\\b(true|false|none|default)\\b"
+          "name": "storage.type.prismio",
+          "match": "(?<![.\\w])(fn|let|struct|enum|trait|impl|extern|region|where)\\b"
+        },
+        {
+          "comment": "contextual: a declaration word where it opens a declaration, a name elsewhere",
+          "name": "storage.type.prismio",
+          "match": "(?<![.\\w])(type|prop)\\b(?=\\s+[A-Za-z_])"
+        },
+        {
+          "name": "keyword.other.concurrency.prismio",
+          "match": "(?<![.\\w])(async|await|spawn|join|scope)\\b(?!\\s*(?::(?!:)|=(?!=)))"
+        },
+        {
+          "name": "storage.modifier.prismio",
+          "match": "(?<![.\\w])(mut|inout|sink)\\b"
+        },
+        {
+          "comment": "contextual modifiers: visibility, ownership contracts, layout",
+          "name": "storage.modifier.prismio",
+          "match": "(?<![.\\w])(public|private|internal|cold|inline|dyn|pin|unique|produce|borrow|alias|free|export|naked|section|align|repr|packed)\\b(?!\\s*(?::(?!:)|=(?!=)))"
+        },
+        {
+          "name": "constant.language.prismio",
+          "match": "(?<![.\\w])(true|false|none|default)\\b"
+        },
+        {
+          "name": "variable.language.self.prismio",
+          "match": "(?<![.\\w])(self|Self)\\b"
         }
       ]
     },
 
     "types": {
-      "name": "entity.name.type.prismio",
-      "match": "\\b(Int|Int8|Int16|Int32|Int64|UInt|UInt8|UInt16|UInt32|UInt64|Float|Float32|Float64|Bool|Char|String|Unit|Never|Any|Nothing|Option|Result|Ok|Err|Some|List|Array|Map|Set|Vec|Box|Arc|Mutex|RwLock|Rc)\\b"
+      "patterns": [
+        {
+          "comment": "the compiler's own type table",
+          "name": "support.type.primitive.prismio",
+          "match": "\\b(Int|Float|Bool|Char|String|Ptr|Void|I8|I16|I32|I64|Isize|U8|U16|U32|U64|Usize)\\b"
+        },
+        {
+          "comment": "shipped in std",
+          "name": "support.type.std.prismio",
+          "match": "\\b(Vec|Array|List|Map|Result|Box|Task|Future|Slice|DataView|Channel|Chan|Buffer|Arena|Instant|Duration)\\b"
+        }
+      ]
     },
 
     "numbers": {
       "patterns": [
-        {
-          "name": "constant.numeric.float.prismio",
-          "match": "\\b[0-9][0-9_]*\\.[0-9][0-9_]*([eE][+-]?[0-9]+)?f?\\b"
-        },
         {
           "name": "constant.numeric.hex.prismio",
           "match": "\\b0[xX][0-9a-fA-F_]+\\b"
@@ -133,48 +190,80 @@
           "match": "\\b0[oO][0-7_]+\\b"
         },
         {
+          "name": "constant.numeric.float.prismio",
+          "match": "\\b[0-9][0-9_]*(?:\\.[0-9][0-9_]*(?:[eE][+-]?[0-9_]+)?|[eE][+-]?[0-9_]+)\\b"
+        },
+        {
           "name": "constant.numeric.integer.prismio",
           "match": "\\b[0-9][0-9_]*\\b"
         }
       ]
     },
 
-    "functions": {
+    "calls": {
       "patterns": [
         {
-          "name": "entity.name.function.prismio",
-          "match": "\\b([a-z_][a-zA-Z0-9_]*)\\s*(?=\\()"
+          "comment": "x.method(",
+          "match": "(?<=\\.)([a-z_][A-Za-z0-9_]*)\\s*(?=\\(|<[^<>()]*>\\s*\\()",
+          "captures": {
+            "1": { "name": "entity.name.function.method.prismio" }
+          }
         },
         {
-          "comment": "fn declaration name",
-          "match": "\\b(fn)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+          "comment": "call(, generic<T>(",
+          "match": "\\b([a-z_][A-Za-z0-9_]*)\\s*(?=\\(|<[^<>()]*>\\s*\\()",
           "captures": {
-            "1": { "name": "keyword.declaration.prismio" },
-            "2": { "name": "entity.name.function.prismio" }
+            "1": { "name": "entity.name.function.call.prismio" }
           }
         }
       ]
     },
 
     "constants": {
-      "name": "variable.other.constant.prismio",
-      "match": "\\b[A-Z][A-Z0-9_]+\\b"
+      "patterns": [
+        {
+          "comment": "ALL_CAPS globals and enum variants",
+          "name": "variable.other.constant.prismio",
+          "match": "\\b[A-Z][A-Z0-9_]+\\b"
+        },
+        {
+          "comment": "a user type: Point, TokenType",
+          "name": "entity.name.type.prismio",
+          "match": "\\b[A-Z][A-Za-z0-9_]*\\b"
+        }
+      ]
     },
 
     "operators": {
-      "name": "keyword.operator.prismio",
-      "match": "(->|=>|\\?\\?=?|\\?\\.|\\.\\.<|\\.\\.=?|::|:=?|==|!=|<=?|>=?|&&|\\|\\||!|\\+|-|\\*|/|%|&|\\||\\^|~|<<|>>|=(?!=))"
+      "patterns": [
+        {
+          "name": "keyword.operator.range.prismio",
+          "match": "\\.\\.<|\\.\\."
+        },
+        {
+          "name": "keyword.operator.arrow.prismio",
+          "match": "->|=>"
+        },
+        {
+          "name": "keyword.operator.prismio",
+          "match": "\\?\\?=?|\\?|==|!=|<=|>=|&&|\\|\\||<<=?|>>=?|[-+*/%&|^]=?|[<>!~]|=(?!=)"
+        }
+      ]
     },
 
     "punctuation": {
       "patterns": [
         {
-          "name": "punctuation.brackets.prismio",
+          "name": "punctuation.section.brackets.prismio",
           "match": "[\\[\\]\\(\\)\\{\\}]"
         },
         {
           "name": "punctuation.separator.prismio",
-          "match": "[,;]"
+          "match": "[,;:]"
+        },
+        {
+          "name": "punctuation.accessor.prismio",
+          "match": "\\."
         }
       ]
     }
