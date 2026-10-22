@@ -28,15 +28,18 @@ jobs:
         run: |
           pnpm --filter docs build:content
           pnpm --filter developers build:content
+          pnpm --filter research build:content
           pnpm --filter docs audit:content
           pnpm --filter developers audit:content
+          pnpm --filter research audit:content
       - run: pnpm check-types
       - run: pnpm lint
       - name: Static export builds
-        # The three Cloudflare sites: vinext static export, then the assets-only Build Output.
+        # The four Cloudflare sites: vinext static export, then the assets-only Build Output.
         run: |
           pnpm --filter web build:vinext
           pnpm --filter docs build:vinext
           pnpm --filter developers build:vinext
+          pnpm --filter research build:vinext
       - name: No Twitter/X metadata in the built sites
-        run: "! grep -rIil twitter apps/web/dist/client apps/docs/dist/client apps/developers/dist/client"
+        run: "! grep -rIil twitter apps/web/dist/client apps/docs/dist/client apps/developers/dist/client apps/research/dist/client"

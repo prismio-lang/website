@@ -15,6 +15,7 @@ This repository is a **pnpm + Turborepo monorepo** hosting all public web proper
 | `apps/web` | Landing site, roadmap, downloads, benchmarks | `https://prismio.org` | Next.js 16, Vite/vinext (Cloudflare Workers) |
 | `apps/docs` | User & language documentation | `https://docs.prismio.org` | Next.js 16, Velite MDX, vinext |
 | `apps/developers` | Compiler internals & contributor docs | `https://developers.prismio.org` | Next.js 16, Velite MDX, vinext |
+| `apps/research` | Papers and notes: measured results and design records | `https://research.prismio.org` | Next.js 16, Velite MDX, vinext; light only, no docs-core UI |
 | `packages/docs-core` | Shared documentation engine, layout, search, SEO, and Velite schemas | Workspace package | React 19, TypeScript, Shiki |
 | `packages/ui` | Shared UI primitives & HeroUI components | Workspace package | React 19, Tailwind CSS |
 | `packages/utils` | Shared constants (version, links) | Workspace package | TypeScript |
@@ -29,6 +30,7 @@ pnpm install                 # Install workspace dependencies
 pnpm dev                     # Start all apps concurrently via Turborepo
 pnpm --filter docs dev       # Start docs site (runs velite dev + next dev on port 3001)
 pnpm --filter developers dev # Start developers site (port 3002)
+pnpm --filter research dev   # Start research site (port 3003)
 pnpm --filter web dev        # Start marketing site (port 3000)
 ```
 
@@ -118,6 +120,21 @@ Refer to [`DOC_STYLE.md`](file:///Users/vibrant/Desktop/Projects/Prismio/website
 
 ---
 
+### Research site (`apps/research`)
+
+Its own schema and look, on purpose: it does not use `docs-core`'s layout, HeroUI or theme switch. **Light only** (no dark
+media query; `color-scheme: only light`), set in Source Serif 4 (text, optical sizing on), Inter (labels, tables) and
+JetBrains Mono (code). Content is `content/papers/*.md` and `content/notes/*.md`; the front matter (abstract, findings,
+evidence, faq) is defined in `velite.config.ts` and checked by `scripts/audit-content.mjs`. A paper must state at least
+two findings and link the code or data that reproduces it. The pages are server-rendered at build time, with `Prose`
+evaluating the compiled MDX, so nothing in an article runs in the reader's browser.
+
+`scripts/generate-static-assets.mjs` writes `sitemap.xml`, `robots.txt`, `feed.xml`, `llms.txt`, `llms-full.txt`,
+`.well-known/ai.txt` and a Markdown copy of each entry (`/papers/<name>.md`). Each page carries Open Graph, canonical,
+Google Scholar `citation_*` tags and JSON-LD (`ScholarlyArticle` or `TechArticle`, `BreadcrumbList`, `FAQPage`).
+
+---
+
 ## 4. Entity Identity & SEO Disambiguation
 
 "Prismio" is actively disambiguated in search engines and AI knowledge graphs from unrelated non-compiler entities. Maintain canonical signals:
@@ -129,6 +146,7 @@ Refer to [`DOC_STYLE.md`](file:///Users/vibrant/Desktop/Projects/Prismio/website
 - **Website**: `https://prismio.org`
 - **User Docs**: `https://docs.prismio.org`
 - **Compiler Docs**: `https://developers.prismio.org`
+- **Research**: `https://research.prismio.org`
 - **Source Code**: `https://github.com/prismio-lang/prismio`
 - **GitHub Org**: `https://github.com/prismio-lang`
 - **Wikidata Item**: `https://www.wikidata.org/wiki/Q141648085` (QID: `Q141648085`)
@@ -148,13 +166,13 @@ Refer to [`DOC_STYLE.md`](file:///Users/vibrant/Desktop/Projects/Prismio/website
    - Next.js 16 with React 19 is used in conjunction with `vinext` for Cloudflare Workers edge deployment. Avoid Node.js-only builtins in edge runtime code.
 3. **Always Run Verification Before Finishing**:
    - Always execute `pnpm check-types` and `pnpm lint`.
-   - If docs were modified, run `pnpm --filter docs audit:content` and `pnpm --filter developers audit:content`.
+   - If docs were modified, run `pnpm --filter docs audit:content` and `pnpm --filter developers audit:content`; for research, `pnpm --filter research audit:content`.
 
 ---
 
-## 6. Static export and deployment (apps/web, apps/docs, apps/developers)
+## 6. Static export and deployment (apps/web, apps/docs, apps/developers, apps/research)
 
-The three Cloudflare sites are **static exports** (`output: "export"` in each `next.config`). Every page is HTML in
+The four Cloudflare sites are **static exports** (`output: "export"` in each `next.config`). Every page is HTML in
 Workers Static Assets, so a page view invokes no Worker; only requests with no matching asset reach the 0.28 KiB stub
 Worker, which answers with the static `404.html`. That matters on the free plan: Worker requests are capped at 100,000
 a day and 10 ms of CPU each, while static asset requests are free and unlimited.

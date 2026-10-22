@@ -71,6 +71,9 @@ async function withPrismio(base: string, mode: "light" | "dark"): Promise<any> {
 const prismioLight: any = await withPrismio("github-light", "light");
 const prismioDark: any = await withPrismio("github-dark", "dark");
 
+// For a site that is light only and wants Prismio's highlighting without the dual-theme setup.
+export { prismioLight, prismioGrammar };
+
 export const docsCollection: any = defineCollection({
     name: "Docs",
     pattern: "**/*.{md,mdx}",

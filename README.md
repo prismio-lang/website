@@ -10,6 +10,7 @@ language, in one pnpm and Turborepo workspace.
 | [`apps/web`](apps/web) | <https://prismio.org> | 3000 | The main site: overview, install, benchmarks, roadmap, community, sponsors, team |
 | [`apps/docs`](apps/docs) | <https://docs.prismio.org> | 3001 | The language guide, standard library, and specification, for people writing Prismio |
 | [`apps/developers`](apps/developers) | <https://developers.prismio.org> | 3002 | The contributor reference, for people changing the compiler, runtime, and tooling |
+| [`apps/research`](apps/research) | <https://research.prismio.org> | 3003 | Papers and notes: measured results and design records, light theme only |
 | [`apps/packages`](apps/packages) | <https://packages.prismio.org> | 3003 | The package registry site. A "coming soon" page for now: Prismio 0.1 has no registry |
 | [`apps/play`](apps/play) | <https://play.prismio.org> | 3004 | The playground. A "coming soon" page for now |
 
@@ -26,6 +27,7 @@ apps/
   web/              the main site
   docs/             language documentation (content/ is Markdown)
   developers/       contributor documentation (content/ is Markdown)
+  research/         papers and notes, light theme (content/ is Markdown)
   packages/         package registry site
   play/             playground site
 packages/
