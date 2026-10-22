@@ -30,7 +30,7 @@ pnpm install                 # Install workspace dependencies
 pnpm dev                     # Start all apps concurrently via Turborepo
 pnpm --filter docs dev       # Start docs site (runs velite dev + next dev on port 3001)
 pnpm --filter developers dev # Start developers site (port 3002)
-pnpm --filter research dev   # Start research site (port 3003)
+pnpm --filter research dev   # Start research site (port 3005)
 pnpm --filter web dev        # Start marketing site (port 3000)
 ```
 

@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"velite dev\" \"next dev --port 3003\"",
+    "dev": "concurrently \"velite dev\" \"next dev --port 3005\"",
     "build": "pnpm build:content && next build",
     "build:content": "pnpm velite && node scripts/generate-static-assets.mjs",
     "audit:content": "node scripts/audit-content.mjs",
@@ -12,7 +12,7 @@
     "start": "next start",
     "lint": "eslint --max-warnings 0",
     "check-types": "next typegen && tsc --noEmit",
-    "dev:vinext": "concurrently \"velite dev\" \"vite dev --port 3003\"",
+    "dev:vinext": "concurrently \"velite dev\" \"vite dev --port 3005\"",
     "build:vinext": "pnpm build:content && vite build && node ../../scripts/finalize-static-site.mjs",
     "start:vinext": "vite preview",
     "deploy:vinext": "pnpm build:vinext && cf deploy --prebuilt"

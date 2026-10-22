@@ -10,7 +10,7 @@ From the website workspace root:
 pnpm --filter research dev
 ```
 
-The site runs at <http://localhost:3003>. Velite watches `content/` and regenerates `.velite/`.
+The site runs at <http://localhost:3005>. Velite watches `content/` and regenerates `.velite/`.
 
 ## Writing an entry
 
