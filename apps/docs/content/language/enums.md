@@ -202,7 +202,7 @@ fn main() -> Int {
 }
 ```
 
-A number is a compile-time integer: a literal, or literals combined with `+ - * << |`, such as `1 << 3`. It must fit the representation. Without a representation type, the numbers are `Int`.
+The type is any integer type: `Int` (also spelled `I32`), `I8`, `I16`, `I64`, `U8`, `U16`, `U32`, `U64`, or `Int<N>` / `UInt<N>`. A number is a compile-time integer: a literal, or literals combined with `+ - * << |`, such as `1 << 3`. It must fit the representation. Without a representation type, the numbers are `Int`.
 
 <!-- prismio-check: fail -->
 ```prismio
@@ -247,7 +247,7 @@ A variant can name its payload fields. They are stored in the order written, exa
 <!-- prismio-check: pass -->
 ```prismio
 enum Event {
-    Click { x: Int, y: Int },
+    Click { x: I32, y: I32 },
     Key { code: Int },
     Close
 }
@@ -268,7 +268,7 @@ fn main() -> Int {
 }
 ```
 
-Fields can be written in any order when building a value, and every field is required; a missing, repeated or unknown field is an error naming the variant. In a pattern, `{ x, y }` binds each field to the name written, and every field must appear.
+`I32` and `Int` are two spellings of the same 32-bit signed [type](/language/types), so the fields above mix both without a cast. A generic enum's struct variants work the same way, with the type arguments inferred or written: `Shape<Int>.Rect { w: 5, h: 6 }`. Fields can be written in any order when building a value, and every field is required; a missing, repeated or unknown field is an error naming the variant. In a pattern, `{ x, y }` binds each field to the name written, and every field must appear.
 
 ## Codesets
 
@@ -294,6 +294,26 @@ fn main() -> Int {
 ```
 
 `Status.Ok` is a `U16`, the representation, wherever it is written, and it can be matched on like any integer. A codeset needs its representation type, may repeat a number, takes the same numbers and the same range check as an enum's, and has no payloads. It is `internal` unless marked, like an enum.
+
+## Enums as map keys
+
+A fieldless enum is an integer underneath, so `Copy`, `Eq` and `Key` need no `impl` to be written: an enum that appears as a type argument gets them. Write your own `impl` for any of the three and yours is used instead.
+
+<!-- prismio-check: pass -->
+```prismio
+import std.map
+
+enum Level { Low, Mid, High }
+
+fn main() -> Int {
+    let counts = mapNew<Level, Int>()
+    mapSet(counts, Level.High, 3)
+    if (mapGetOr(counts, Level.High, 0) == 3 and mapHas(counts, Level.Low) == false) { return 0 }
+    return 1
+}
+```
+
+A payload enum owns values and has no such meaning, so it still needs hand-written impls to be a key.
 
 ## Modeling data with a tag
 
@@ -329,5 +349,3 @@ This is not a tagged union: every `ParseResult` always stores every declared fie
 - There are no enum methods or implementations.
 - Duplicate-arm detection, and a missing-arm error, apply to payload enums only. A fieldless enum's `match` is exhaustive when it names every variant, and a subset stays legal.
 - An enum that states no representation has an ordinal representation that is not a stable serialization or FFI contract.
-- A struct variant of a generic enum is built positionally; the braces form needs a non-generic enum.
-- `I32` is not a type name: the 32-bit signed integer is `Int`.

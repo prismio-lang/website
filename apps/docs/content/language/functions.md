@@ -179,7 +179,7 @@ Tail-call optimization is not a source-language guarantee. Bound recursion expli
 
 ## Overloading
 
-Functions may share a name when their parameter count or exact parameter types differ. Resolution does not use implicit numeric coercions, and return type alone cannot distinguish overloads. Default arguments, named arguments, variadic functions, and expression bodies are not implemented. Functions may be [generic](/language/generics).
+Functions may share a name when their parameter count or exact parameter types differ. Resolution does not use implicit numeric coercions, and return type alone cannot distinguish overloads. Default arguments, named arguments and expression bodies are not implemented; [variadic parameters](/language/variadics) are. Functions may be [generic](/language/generics).
 
 ```prismio
 fn describe(value: Int) -> Int { return value }
@@ -341,8 +341,9 @@ Two functions may each declare a `helper`, a method may declare one, and a neste
 
 ## Not implemented
 
-Named functions cannot currently define optional/default arguments,
-accept source-level variadics, or use expression bodies. Functions may declare
+Named functions cannot currently define optional/default arguments
+or use expression bodies, and take any number of arguments only through a
+[pack](/language/variadics). Functions may declare
 [type parameters](/language/generics) with one or more [trait bounds](/language/traits).
 Closures provide anonymous capturing callables, and method-call syntax plus `impl`
 blocks provide type-oriented operations; each has its own documented constraints.
