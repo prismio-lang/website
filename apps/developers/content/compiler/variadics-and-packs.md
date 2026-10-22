@@ -44,6 +44,34 @@ The unrolled body is one `if (true) { ... }` per argument. That is the scope eac
 - **Visibility is the function's.** A list is checked against the file of the function that names it, so a public pack function may use a private list of its own file.
 - **Duplicate errors.** The unrolled body is checked once per copy, so `runtime/diagnostics.c` drops an error identical in code, location and message to one already reported, and the notes that follow it. Generics benefit as well.
 
+## See the expansion
+
+Two calls with different argument counts become two functions. Build this to IR and look for `total`:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+fn total(...parts: Int) -> Int {
+    let mut sum = 0
+    for part in parts { sum = sum + part }
+    return sum
+}
+
+fn main() -> Int {
+    println(total(1, 2))
+    println(total(1, 2, 3))
+    return 0
+}
+```
+
+```bash
+prismio build total.psm -o total.ll
+grep '^define.*total' total.ll
+```
+
+The IR defines `total$pack$Int$Int__Int_Int(i32, i32)` and `total$pack$Int$Int$Int__Int_Int_Int(i32, i32, i32)`: one ordinary function per call shape, and no pack anywhere after sema.
+
 ## Two details that cost time
 
 - **An instantiation needs `genericInfo`.** Codegen decides whether to emit a function from source or take it from a PLIB by `nodeIsNull(func.genericInfo)` (`shouldEmitFunctionFromSource`). A pack function with no type parameter (`...parts: String`) has none, so the instantiation gets a marker `GENERIC_PARAM`; without it the call links against a symbol no PLIB defines.

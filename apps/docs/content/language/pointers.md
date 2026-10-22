@@ -1,6 +1,6 @@
 ---
 title: Pointers
-description: Ptr<T>, the typed pointer: never null, read through by default, written only through Ptr<mut T>, volatile and atomic on request, stepped by methods and never by operators, and what the compiler does and does not assume about one.
+description: "Ptr<T>, the typed pointer: never null, read through by default, written only through Ptr<mut T>, with volatile and atomic access and explicit stepping."
 status: experimental
 version: "0.2.0"
 lastUpdated: "2026-10-22"
