@@ -3,7 +3,7 @@ title: Enums and pattern lowering
 description: How Prismio represents fieldless and payload enums, checks exhaustive matches on payload enums, and lowers payload ownership safely.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-17"
+lastUpdated: "2026-10-22"
 tags: [enums, pattern-matching, lowering]
 related: [compiler/semantic-analysis-and-types, compiler/ownership-and-drop-lowering, llvm/types-and-abi, compiler/generics-and-monomorphization]
 ---
@@ -178,10 +178,49 @@ belongs in this desugaring transform, not in every consumer of it.
 Representation details are implementation artifacts, not a stable persistence
 or foreign ABI (application binary interface).
 
-Tags are one-based: `enumVariantTag` returns the declaration index plus one,
-because zero is reserved by other compiler node/type conventions. In the
-`Tree` example, `Empty` (declared first) is tag `1` and `Node` (declared
-second) is tag `2` — matching the `select i1 %2, i32 1, i32 2` above.
+An enum that writes neither a representation nor a number keeps one-based
+tags: `enumVariantTag` returns the declaration index plus one. In the `Tree`
+example, `Empty` (declared first) is tag `1` and `Node` (declared second) is
+tag `2` — matching the `select i1 %2, i32 1, i32 2` above. A *numbered* enum
+(below) stores its discriminants instead, in a tag of the representation type,
+so its first tag may be `0`; the null-pointer representation is not used for it,
+because that representation stands for tag 1 or 2 of a two-variant enum.
+
+## Discriminants, representation types and `codeset`
+
+`enum E: U16 { A = 200, B(Int), C { x: Int } }` and `codeset S: U16 { Ok = 200 }`
+are owned by four modules, each one responsibility:
+
+| Concern | Module |
+|---|---|
+| Syntax: `: Repr`, `= value`, struct variants, `codeset`, `Enum.V { f: e }` | `parse/enums.psm` |
+| Evaluating, numbering and checking discriminants (range, duplicates, implicit overflow, constness) | `sema/enum_discriminants.psm` |
+| `Status.Ok` as a typed constant | `sema/codeset.psm` |
+| `Enum.V { f: e }` and the pattern `Enum.V { f }` rewritten to the positional call | `sema/enum_struct_variants.psm` |
+
+`ENUM_VARIANT` carries `child2` (the discriminant expression), `child3` (a struct
+variant's field names, parallel to `child1`) and `i1` = 1 for a struct variant;
+`ENUM_DECL` and `CODESET_DECL` carry the representation annotation in `child2`.
+`enumAssignDiscriminants` runs in `resolveImports` before `monoCollectTemplates`,
+so a generic enum is numbered once and instantiations copy the numbers. The value
+is kept as **decimal text** in the variant's `s2` (`i3` = 1 once assigned): `Int`
+is an i32 and a `U64` discriminant does not fit a node field. Arithmetic is a sign
+and a `U64` magnitude, the range check is `typeIntLiteralFits`.
+
+An enum is **numbered** when it states a representation or any discriminant, and
+only then does anything change; every other enum compiles to what it always did
+(the corpus compiles byte-identically). A numbered fieldless enum registers its
+representation with `ir_register_enum_repr` (`enumDeclareType`, the one route by
+which an enum becomes a type), after which `typeEnum` carries the integer's key,
+`mapType` answers it for a name, `typeEnumRepr` gives the integer type a
+conversion goes through, and AIF sizes the field from it (`aif/layout.psm`, with
+`tools/aif_oracle/layout.py` as its twin). Variant values are 64-bit in the
+backend (`ir_register_enum_variant`), so `ir_enum_has_variant` answers "is this a
+variant" — a negative value is not a miss. A numbered payload enum's `$tag` field
+is typed with the representation, and a `match` arm carries the tag to compare as
+a literal on its `child3`. `n as E?` into a numbered enum tests membership in the
+registered values (`enumMembership` in `ir/expr.psm`) after checking that `n` fits
+the representation; it is a set, because numbering may leave gaps.
 
 ## If you are changing this
 

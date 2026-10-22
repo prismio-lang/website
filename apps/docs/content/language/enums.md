@@ -1,9 +1,9 @@
 ---
 title: Enums
-description: Define and use fieldless nominal enum variants in Prismio 0.1.
+description: Define enums with payloads, struct variants, explicit discriminants and representation types, and codesets for aliased numeric constants.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-10-15"
+lastUpdated: "2026-10-22"
 tags: [enums, variants, nominal-types]
 related: [language/pattern-matching, language/types, language/conversions, language/modules, specification/evaluation]
 ---
@@ -85,7 +85,7 @@ Naming an enum you cannot see is a compile error that says which level stops you
 
 ## Numbers and enums
 
-`c as Int` is a variant's zero-based ordinal. The way back is the [checked conversion](/language/conversions#into-an-enum) `n as Color?`: the variant with that ordinal, or `none` when there is none. A plain `n as Color` is an error that names `as Color?`, because `n` might be no variant at all.
+`c as Int` is a variant's value: its zero-based ordinal, or the number it was given when the enum has [discriminants](#discriminants-and-representation). The way back is the [checked conversion](/language/conversions#into-an-enum) `n as Color?`: the variant with that ordinal, or `none` when there is none. A plain `n as Color` is an error that names `as Color?`, because `n` might be no variant at all.
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -166,11 +166,134 @@ fn main() -> Int {
 
 A `match` naming only some variants is still allowed; it runs no arm for the others. Match is statement-form in 0.1, so store a selected result in a mutable binding or return inside arms.
 
-## Runtime representation
+## Discriminants and representation
 
-Variants are selected as `Enum.Variant`. Their current runtime representation uses zero-based integer ordinals in declaration order. Treat that representation as implementation-defined at FFI or persistence boundaries unless an explicit ABI guarantee is introduced.
+An enum can say what integer it is stored as, and what number each variant has. The type goes after the name; a number goes after a variant, with `=`:
 
-Reordering variants can therefore change the emitted ordinal today, even though source-level code normally observes only named variants. Do not serialize raw ordinals or pass them through a foreign ABI without a conversion function that fixes an application-owned numeric contract. The same applies to a payload enum's tag, which is the variant's one-based position.
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+enum HttpStatus: U16 {
+    Ok = 200,
+    NotFound = 404,
+    ServerError = 500
+}
+
+fn main() -> Int {
+    println(HttpStatus.NotFound as Int)   // 404
+    return 0
+}
+```
+
+The representation applies to the whole enum and is how it is **stored**: an `enum Color: U8` field takes one byte, a `HttpStatus` field two. `as Int` converts through it, so a `U8` enum above 127 widens by zero extension and an `I8` one below zero by sign extension.
+
+**Numbering.** The first variant is `0`, and every variant without a number is the previous one plus one. The compiler never skips to a free number and never wraps:
+
+<!-- prismio-check: pass -->
+```prismio
+enum Level: I8 { Low = -5, Mid, High = 100 }   // -5, -4, 100
+
+enum Opcode: U8 { Nop, Load = 0x10, Store, Halt = 0xFF }   // 0, 16, 17, 255
+
+fn main() -> Int {
+    if (Level.Mid as Int == -4 and Opcode.Store as Int == 17) { return 0 }
+    return 1
+}
+```
+
+A number is a compile-time integer: a literal, or literals combined with `+ - * << |`, such as `1 << 3`. It must fit the representation. Without a representation type, the numbers are `Int`.
+
+<!-- prismio-check: fail -->
+```prismio
+enum State: U8 { Ready = 256 }
+```
+
+The error is ``the discriminant 256 of `Ready` does not fit `U8` (0 to 255)``. Three more are refused the same way: a number that is not constant, a variant left to count past the end of the type (``the implicit discriminant of `B` is past the range of `U8` ``), and two variants with one number:
+
+<!-- prismio-check: fail -->
+```prismio
+enum Message: U8 {
+    Quit = 0,
+    Text(String),                    // implicitly 1
+    Move { x: Int, y: Int } = 1      // collides with Text
+}
+```
+
+A tagged enum's tag must tell its variants apart, so the compiler does not renumber either one; it names both. For names that are meant to share a number, use a [`codeset`](#codesets).
+
+The number is a variant's identity and **not** its payload: `Text(String) = 5` is variant 5 carrying a `String`. A payload enum's tag is stored in the representation type, so the first variant may be `0`.
+
+`n as Color?` is present when some variant has the number `n` and `none` otherwise, so with gaps it is a set, not a range:
+
+<!-- prismio-check: pass -->
+```prismio
+enum HttpStatus: U16 { Ok = 200, NotFound = 404 }
+
+fn main() -> Int {
+    let found = 404 as HttpStatus?
+    let missing = 405 as HttpStatus?
+    if (found != none and missing == none) { return 0 }
+    return 1
+}
+```
+
+An enum that writes neither a representation nor a number is unchanged: ordinals in declaration order, stored as an `Int`. Even so, treat the representation as implementation-defined at FFI and persistence boundaries unless the enum states one.
+
+## Struct variants
+
+A variant can name its payload fields. They are stored in the order written, exactly as the tuple form's are, and may be built and matched either way:
+
+<!-- prismio-check: pass -->
+```prismio
+enum Event {
+    Click { x: Int, y: Int },
+    Key { code: Int },
+    Close
+}
+
+fn weight(e: Event) -> Int {
+    match (e) {
+        Event.Click { x, y } => { return x * 100 + y }
+        Event.Key { code } => { return code }
+        Event.Close => { return 0 }
+    }
+}
+
+fn main() -> Int {
+    let click = Event.Click { y: 2, x: 7 }
+    if (weight(click) != 702) { return 1 }
+    if (weight(Event.Key(65)) != 65) { return 2 }
+    return 0
+}
+```
+
+Fields can be written in any order when building a value, and every field is required; a missing, repeated or unknown field is an error naming the variant. In a pattern, `{ x, y }` binds each field to the name written, and every field must appear.
+
+## Codesets
+
+Protocol codes and status numbers sometimes share a value on purpose. A `codeset` is a set of named integers, not a type, so it allows that:
+
+<!-- prismio-check: pass -->
+```prismio
+codeset Status: U16 {
+    Ok = 200,
+    Success = 200,
+    NotFound = 404
+}
+
+fn describe(code: U16) -> Int {
+    if (code == Status.Ok) { return 0 }
+    if (code == Status.NotFound) { return 1 }
+    return 2
+}
+
+fn main() -> Int {
+    return describe(Status.Success)
+}
+```
+
+`Status.Ok` is a `U16`, the representation, wherever it is written, and it can be matched on like any integer. A codeset needs its representation type, may repeat a number, takes the same numbers and the same range check as an enum's, and has no payloads. It is `internal` unless marked, like an enum.
 
 ## Modeling data with a tag
 
@@ -188,7 +311,7 @@ enum Shape {
 
 An enum with any payload variant compiles to a tagged struct rather than an integer, which makes its values owned and move-only — including the variants that carry nothing. Take them apart with [variant patterns](/language/pattern-matching). See [`Result`](/stdlib/option#result) for the representation and its costs.
 
-Discriminant assignments and methods are still not implemented. A fieldless enum is entirely unaffected by any of this and keeps its integer ordinals.
+A fieldless enum is unaffected by this and keeps its integer values.
 
 ```prismio
 enum ParseStatus { Success, Failure }
@@ -203,8 +326,8 @@ This is not a tagged union: every `ParseResult` always stores every declared fie
 
 ## Current limitations
 
-- Source code cannot assign explicit discriminant values.
 - There are no enum methods or implementations.
-- Explicit discriminants and methods are unavailable.
 - Duplicate-arm detection, and a missing-arm error, apply to payload enums only. A fieldless enum's `match` is exhaustive when it names every variant, and a subset stays legal.
-- The ordinal representation is not a stable serialization or FFI contract.
+- An enum that states no representation has an ordinal representation that is not a stable serialization or FFI contract.
+- A struct variant of a generic enum is built positionally; the braces form needs a non-generic enum.
+- `I32` is not a type name: the 32-bit signed integer is `Int`.

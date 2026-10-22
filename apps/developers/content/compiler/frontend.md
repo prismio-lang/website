@@ -209,7 +209,8 @@ parser, not the token list.
 advances through UTF-8 source, records source positions, recognizes comments
 and literals, and produces tokens for the parser.
 
-**Parsing.** `src/parse/decl.psm`, `stmt.psm`, and `expr.psm` divide the
+**Parsing.** `src/parse/decl.psm`, `stmt.psm`, `expr.psm` and `enums.psm` (`enum`,
+`codeset`, variants) divide the
 grammar by role. `parser.psm` owns shared cursor and diagnostic behavior.
 Expression parsing uses precedence-aware logic; declarations and statements
 select productions from their leading syntax.
