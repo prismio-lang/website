@@ -8,16 +8,20 @@ export function EntryList({ entries, heading: Heading = "h2" }: { entries: Resea
         <ol className="entries">
             {entries.map((entry) => (
                 <li key={entry.slug} className="entry">
-                    <Heading>
-                        <Link href={pathOf(entry)}>{entry.title}</Link>
-                    </Heading>
-                    <ul className="meta">
-                        <li><time dateTime={entry.published.slice(0, 10)}>{formatDate(entry.published)}</time></li>
-                        <li>{entry.kind === "paper" ? "Paper" : "Note"}</li>
-                        <li>Prismio {entry.version}</li>
-                        <li>{entry.minutes} min read</li>
-                    </ul>
-                    <p>{entry.description}</p>
+                    <time className="entry-when" dateTime={entry.published.slice(0, 10)}>
+                        {formatDate(entry.published)}
+                    </time>
+                    <div>
+                        <Heading>
+                            <Link href={pathOf(entry)}>{entry.title}</Link>
+                        </Heading>
+                        <p>{entry.description}</p>
+                        <ul className="pills">
+                            <li className="pill pill-accent">{entry.kind === "paper" ? "Paper" : "Note"}</li>
+                            <li className="pill">Prismio {entry.version}</li>
+                            <li className="pill">{entry.minutes} min read</li>
+                        </ul>
+                    </div>
                 </li>
             ))}
         </ol>

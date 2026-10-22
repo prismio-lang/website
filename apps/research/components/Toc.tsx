@@ -17,7 +17,7 @@ function List({ items }: { items: TocItem[] }) {
 export function TocInline({ items }: { items: TocItem[] }) {
     if (items.length < 3) return null;
     return (
-        <details className="toc toc-inline">
+        <details className="toc toc-inline narrow-only">
             <summary>Contents</summary>
             <List items={items} />
         </details>
@@ -25,10 +25,10 @@ export function TocInline({ items }: { items: TocItem[] }) {
 }
 
 export function TocSide({ items }: { items: TocItem[] }) {
-    if (items.length < 3) return <div className="toc-side" />;
+    if (items.length < 3) return <div className="rail" aria-hidden="true" />;
     return (
-        <nav className="toc toc-side" aria-label="Contents">
-            <p className="toc-label">Contents</p>
+        <nav className="rail toc" aria-label="Contents">
+            <h2>Contents</h2>
             <List items={items} />
         </nav>
     );

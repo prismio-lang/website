@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
     return (
-        <div className="shell">
+        <div className="frame">
             <JsonLd
                 data={{
                     "@context": "https://schema.org",
@@ -22,7 +22,6 @@ export default function Page() {
                 }}
             />
             <section className="masthead">
-                <p className="eyebrow">About</p>
                 <h1>A record of what the compiler taught us.</h1>
             </section>
             <div className="prose">

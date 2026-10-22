@@ -14,10 +14,9 @@ export const metadata: Metadata = {
 
 export default function Page() {
     return (
-        <div className="shell">
+        <div className="frame">
             <JsonLd data={homeJsonLd(entries)} />
             <section className="masthead">
-                <p className="eyebrow">Prismio research</p>
                 <h1>What we measured, and how to check it.</h1>
                 <p className="lede">
                     {site.entity} This is where its design decisions meet evidence: the memory analysis, the
@@ -28,7 +27,7 @@ export default function Page() {
             <h2 className="section-title">Latest</h2>
             <EntryList entries={entries} />
 
-            <div className="column" style={{ marginTop: "3rem" }}>
+            <div className="column closing">
                 <p>
                     Every result names the version it was measured on and where its code lives. Read the{" "}
                     <Link href="/papers">{kinds.papers.label.toLowerCase()}</Link> for the full method, or the{" "}

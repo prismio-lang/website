@@ -29,10 +29,9 @@ export default async function Page({ params }: { params: Promise<{ kind: string 
     if (!info) notFound();
     const entries = byKind(kind);
     return (
-        <div className="shell">
+        <div className="frame">
             <JsonLd data={indexJsonLd(kind as Kind, entries)} />
             <section className="masthead">
-                <p className="eyebrow">{site.name}</p>
                 <h1>{info.label}</h1>
                 <p className="lede">{info.blurb}</p>
             </section>

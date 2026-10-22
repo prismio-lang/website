@@ -36,15 +36,17 @@ export default async function Page({ params }: { params: Params }) {
     const info = kinds[kind as Kind];
 
     return (
-        <div className="shell">
+        <div className="frame">
             <JsonLd data={articleJsonLd(entry)} />
             <article className="article-grid">
+                <TocSide items={toc} />
                 <div>
                     <header className="article-head">
-                        <p className="eyebrow">
-                            <Link href={`/${kind}`}>{info.singular}</Link> · Prismio {entry.version}
-                            {entry.status === "preprint" ? " · Preprint" : ""}
-                        </p>
+                        <nav className="crumbs" aria-label="Breadcrumb">
+                            <Link href="/">Research</Link>
+                            <span aria-hidden="true">›</span>
+                            <Link href={`/${kind}`}>{info.label}</Link>
+                        </nav>
                         <h1>{entry.title}</h1>
                         <p className="byline">
                             {entry.authors.map((author, index) => (
@@ -54,14 +56,21 @@ export default async function Page({ params }: { params: Params }) {
                                 </span>
                             ))}
                         </p>
-                        <ul className="meta">
-                            <li>Published <time dateTime={entry.published.slice(0, 10)}>{formatDate(entry.published)}</time></li>
-                            {entry.updated.slice(0, 10) !== entry.published.slice(0, 10) && (
-                                <li>Updated <time dateTime={entry.updated.slice(0, 10)}>{formatDate(entry.updated)}</time></li>
-                            )}
-                            <li>{entry.minutes} min read</li>
-                            <li><a href={`${pathOf(entry)}.md`}>Markdown</a></li>
-                        </ul>
+                        <div className="narrow-only">
+                            <ul className="pills" style={{ marginBottom: "0.9rem" }}>
+                                <li className="pill pill-accent">{info.singular}</li>
+                                <li className="pill">Prismio {entry.version}</li>
+                                {entry.status === "preprint" && <li className="pill">Preprint</li>}
+                            </ul>
+                            <ul className="meta">
+                                <li>Published <time dateTime={entry.published.slice(0, 10)}>{formatDate(entry.published)}</time></li>
+                                {entry.updated.slice(0, 10) !== entry.published.slice(0, 10) && (
+                                    <li>Updated <time dateTime={entry.updated.slice(0, 10)}>{formatDate(entry.updated)}</time></li>
+                                )}
+                                <li>{entry.minutes} min read</li>
+                                <li><a href={`${pathOf(entry)}.md`}>Markdown</a></li>
+                            </ul>
+                        </div>
 
                         <section className="abstract" aria-labelledby="abstract">
                             <h2 id="abstract">Abstract</h2>
@@ -128,7 +137,19 @@ export default async function Page({ params }: { params: Params }) {
                         </section>
                     )}
                 </div>
-                <TocSide items={toc} />
+                <aside className="rail" aria-label="Details">
+                    <h2>Details</h2>
+                    <dl className="details">
+                        <div><dt>Type</dt><dd>{info.singular}, {entry.status}</dd></div>
+                        <div><dt>Measured on</dt><dd>Prismio {entry.version}</dd></div>
+                        <div><dt>Published</dt><dd><time dateTime={entry.published.slice(0, 10)}>{formatDate(entry.published)}</time></dd></div>
+                        {entry.updated.slice(0, 10) !== entry.published.slice(0, 10) && (
+                            <div><dt>Updated</dt><dd><time dateTime={entry.updated.slice(0, 10)}>{formatDate(entry.updated)}</time></dd></div>
+                        )}
+                        <div><dt>Reading time</dt><dd>{entry.minutes} min</dd></div>
+                        <div><dt>Plain text</dt><dd><a href={`${pathOf(entry)}.md`}>Markdown</a></dd></div>
+                    </dl>
+                </aside>
             </article>
         </div>
     );
