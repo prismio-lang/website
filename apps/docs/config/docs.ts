@@ -157,6 +157,7 @@ export const docsConfig: DocsAppConfig = {
                         { label: "Memory annotations", href: "/language/annotations" },
                         { label: "Modules and imports", href: "/language/modules" },
                         { label: "Foreign functions", href: "/language/ffi" },
+                        { label: "Pointers · Experimental", href: "/language/pointers" },
                         { label: "Low-level programming · Experimental", href: "/language/low-level" },
                         { label: "Generics", href: "/language/generics" },
                         { label: "Traits", href: "/language/traits" },

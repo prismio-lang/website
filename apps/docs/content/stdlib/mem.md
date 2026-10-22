@@ -171,7 +171,7 @@ fn main() -> Int {
 
 `b.address` is where the bytes are now, for the [`load`/`store` methods](#loads-and-stores-at-an-address), a [low-level builtin](/language/low-level) or a C function. It stays valid until the next `resize`, `push`, `append` or `clear`, which may move the bytes, and until the Buffer itself is freed.
 
-`b.pointer` is the same place as a [typed pointer](/language/low-level#typed-pointers-ptrt), a `Ptr<mut U8>?`: `none` for an empty Buffer, which has no bytes to point at, and otherwise the first byte, so `expect(b.pointer).offset(4).load()` reads the fifth. It follows the same validity rule as `address`.
+`b.pointer` is the same place as a [typed pointer](/language/pointers), a `Ptr<mut U8>?`: `none` for an empty Buffer, which has no bytes to point at, and otherwise the first byte, so `expect(b.pointer).offset(4).load()` reads the fifth. It follows the same validity rule as `address`.
 
 ## Manual memory
 

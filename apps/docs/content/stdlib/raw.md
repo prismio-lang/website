@@ -5,7 +5,7 @@ status: experimental
 version: "0.2.0"
 lastUpdated: "2026-10-14"
 tags: [standard-library, low-level, volatile, atomics, freestanding, hardware]
-related: [stdlib, stdlib/mem, stdlib/port, stdlib/asm, language/low-level, guides/freestanding]
+related: [stdlib, stdlib/mem, stdlib/port, stdlib/asm, language/low-level, language/pointers, guides/freestanding]
 ---
 
 `import std.raw`. What code that talks to hardware needs and the language has no syntax for: a device register read or written exactly as written, a lock taken with an atomic, a barrier, an address turned back into a pointer. Each function is one instruction or a few and calls nothing in the C runtime, so a [freestanding](/guides/freestanding) kernel may import it and link nothing but the failure core.
@@ -69,7 +69,7 @@ Sequentially consistent, in `U8`, `U16`, `U32` and `U64` (shown for `U32`):
 | `atomicCompareExchangeU32(address, expected, desired)` | the value that was there; the swap happened if it equals `expected` |
 | `fence()` | nothing; a full barrier |
 
-On a [typed pointer](/language/low-level#typed-pointers-ptrt) the same operations are methods with the ordering written at the call, from the `AtomicOrder` this module declares:
+On a [typed pointer](/language/pointers) the same operations are methods with the ordering written at the call, from the `AtomicOrder` this module declares:
 
 | Variant | Meaning |
 | --- | --- |

@@ -5,7 +5,7 @@ status: experimental
 version: "0.1.0"
 lastUpdated: "2026-10-14"
 tags: [low-level, volatile, atomics, assembly, repr-c, packed, export, naked, freestanding]
-related: [guides/freestanding, stdlib/raw, stdlib/port, stdlib/asm, stdlib/mem, language/ffi, language/types, language/structs, language/functions, language/annotations]
+related: [guides/freestanding, language/pointers, stdlib/raw, stdlib/port, stdlib/asm, stdlib/mem, language/ffi, language/types, language/structs, language/functions, language/annotations]
 ---
 
 Most programs never need anything on this page. It is for code that reads and writes a device register, takes a lock, runs an instruction the language has no syntax for, or lays a structure out the way hardware expects. The usual place to need all of it at once is a kernel: see [freestanding programs](/guides/freestanding).
@@ -47,119 +47,9 @@ fn put(c: U8) {
 
 Every access but the unaligned ones is naturally aligned; an address that is not is undefined behaviour, as it is in C. The unaligned ones take any address, and in return the compiler assumes the memory is byte storage, such as a [`Buffer`](/stdlib/mem)'s bytes or a block from `alloc`, and never also a struct field or a `Vec` element it reads as another type. That assumption is what lets a loop of byte writes keep everything else in registers. A literal argument adopts the width, so `volatileStoreU8(0x1000, 65)` is a `U8`, and a `U32` variable passed for a `U8` is refused rather than truncated.
 
-## Typed pointers: `Ptr<T>`
+## Typed pointers
 
-A `Ptr<T>` is a pointer to a `T` that is **never null**, one machine word wide. An absent one is `Ptr<T>?`, which costs nothing extra. What a pointer may do is written in front of what it points at:
-
-| Type | Meaning |
-|---|---|
-| `Ptr<T>` | Read only. |
-| `Ptr<mut T>` | May write: `p.field = v`, and `p.store(v)` for a scalar. |
-| `Ptr<volatile T>` | Every access is volatile: a read, a write, a field, an operand. |
-| `Ptr<mut volatile T>` | Both, in either order. |
-
-`T` is plain data: a number, `Bool`, `Char`, an enum, another pointer, or a struct made of those. `Ptr<String>` and a pointer to a struct that holds a `Vec` are refused, because a pointer moves bytes in and out of memory that nothing releases. A struct may hold a pointer to itself: `next: Ptr<Node>?`.
-
-A pointer is **read through** where a value is wanted, and is a pointer everywhere else. There is no `*p` and no `p->field`:
-
-<!-- prismio-check: pass -->
-```prismio
-repr(C) struct Header {
-    magic: U32,
-    length: U32,
-    flags: U16,
-}
-
-fn verify(p: Ptr<Header>) -> Bool {
-    if p.magic != 0x5052534D { return false }
-    return p.length > 0
-}
-
-fn next(counter: Ptr<Int>) -> Int {
-    let copy = counter          // still a pointer
-    return copy + 1             // the value, plus one
-}
-
-fn third(items: Ptr<Int>, end: Ptr<Int>) -> Int {
-    // Three elements on, if that stays inside `end`: `none` otherwise, never a stray pointer.
-    let found = items.advance(2, end)
-    if found == none { return -1 }
-    return expect(found).load()
-}
-
-fn reset(p: Ptr<mut Header>, counter: Ptr<mut Int>) {
-    p.magic = 0x5052534D        // a store at the field's own width
-    p.length = p.length + 1     // `+=` needs a plain variable, as for any field
-    counter.store(0)            // a scalar is written with `store`
-}
-
-fn main() -> Int {
-    return 0
-}
-```
-
-`p.magic` is one load at the field's own alignment. `p + 1` is the value plus one, never the next address, so a pointer cannot be stepped by accident. `p.load()` reads a scalar outright, `let n: Int = p` and passing `p` to an `Int` parameter read it too, and a field that is itself a struct is a pointer to it, so `packet.header.magic` reads through two. Two pointers under one operator are an error, because `p == q` could mean where they point or what they hold.
-
-Only a `Ptr<mut T>` writes. `ro.value = 1` through a read-only `Ptr<T>` is an error that names the `Ptr<mut T>` to take, `p = 5` is an error that points at `p.store(5)` (it would replace the pointer, not the value), and a field that is itself a struct is written a field at a time, not assigned whole.
-
-The compiler uses the type: a `Ptr<T>` parameter is known to be non-null, aligned for `T`, readable for `sizeof T` bytes, and not written through unless it is `mut`, which lets it keep values in registers and move loads earlier. A `Ptr<mut T>` becomes a `Ptr<T>`, and becomes the opaque `Ptr` that foreign code takes; a read-only `Ptr<T>` does not, because foreign code may write through an opaque one.
-
-A pointer's address and its motion are methods, never operators, so `p + 1` cannot be mistaken for stepping:
-
-| Method | Meaning |
-|---|---|
-| `p.addr` | Where it points, as a `Usize`. A property. |
-| `p.offset(n)` | `n` elements on (`inbounds`). A 12-byte struct steps 12 bytes. |
-| `p.byteOffset(n)` | `n` bytes on. |
-| `p.wrappingOffset(n)` | `n` elements on without the `inbounds` promise, for a ring buffer. |
-| `p.offsetFrom(q)` | Elements from `q` to `p`, as an `Int`. |
-| `p.isAligned(a)` | Whether the address is a multiple of `a`, a power of two. |
-| `p.sameAs(q)` | Whether both point at the same place. `p == q` is refused, because it could mean this or the values. |
-| `p.advance(n, limit)` | `n` elements on, or `none` rather than pass `limit` going that way. One past `limit` is allowed. |
-
-A pointer is made from something that is not one with four functions of `std.raw`, and a file that has not written `import std.raw` cannot call them. That import is the `unsafe` marker:
-
-| Function | Meaning |
-|---|---|
-| `Ptr<T>.at(address)` | A `Ptr<T>?`: `none` for 0 or an address a `T` cannot sit at. |
-| `Ptr<T>.atUnchecked(address)` | A `Ptr<T>`, trusting the address. |
-| `Ptr<U>.cast(p)` | The same address as another type. A read-only pointer cannot become a `Ptr<mut U>`, and a volatile one only becomes a `Ptr<volatile U>`. |
-| `Ptr<U>.castAligned(p)` | A `Ptr<U>?`, `none` when `p`'s address cannot hold a `U`. |
-
-A `Ptr<T>?` has no flow narrowing: unwrap it with `expect(p)` or `p ?? fallback`.
-
-A **volatile pointer** is how a device is written. Every access through a `Ptr<volatile T>` is volatile, including a field read, a field write and a struct inside it, so a driver cannot write one register access the optimiser may drop or hoist out of a loop:
-
-<!-- prismio-check: pass -->
-```prismio
-import std.raw
-
-repr(C) struct Uart {
-    data: U32,
-    status: U32,
-}
-
-fn send(uart: Ptr<mut volatile Uart>, byte: U8) {
-    uart.status = 0x20                  // a volatile store
-    if (uart.status & 0x20) == 0 { return }   // a volatile load, read again every time
-    uart.data = byte as U32
-}
-
-fn counter(c: Ptr<mut Int>) -> Int {
-    c.writeVolatile(1)                  // the one-off form, on a pointer that is not volatile
-    return c.atomicAdd(1, AtomicOrder.AcqRel)   // the old value; see std.raw for the orderings
-}
-
-fn main() -> Int {
-    return 0
-}
-```
-
-`p.readVolatile()` and `p.writeVolatile(v)` are the one-off forms. `p.atomicLoad(order)`, `atomicStore`, `atomicSwap`, `atomicAdd`, `atomicSub`, `atomicAnd`, `atomicOr`, `atomicXor` and `atomicCompareExchange` are the atomic ones, with the ordering written at the call as a variant of `AtomicOrder` ([`std.raw`](/stdlib/raw)). A volatile pointer stays volatile: it does not become the opaque `Ptr`, and `cast` takes it only to another volatile pointer, so a C function that writes a register is declared with a `Ptr<mut volatile T>` parameter.
-
-What the compiler tells the optimiser about a pointer is what is always true of it: it is not null, it is aligned for what it points at, and, unless it is `mut`, the function does not write through it. Not that it may be read early: a pointer may point one past the end of its block (`p.offset(count)`, or the `limit` you give `advance`), and passing one is fine. And not that two pointers of different types are apart: `cast` can make a `Ptr<Float>` and a `Ptr<U64>` the same bytes, so a write through one is always seen by a read through the other.
-
-**A `Slice` view of a pointer is not available, and not for want of a method.** A `Slice<T>` here is a handle to a Prismio list header with an offset and a length, and every element access goes through that list, so a bare pointer and a count have nothing to be a view of. It needs a second view representation over foreign memory and the borrow rules for one, which is a design of its own. Until then, a pointer you step by hand (`offset`, `advance` with a limit) is the bounded loop, and a `Buffer` is the checked container. A pointer also comes from foreign code (`extern fn calloc(count: Usize, size: Usize) -> Ptr<mut Header>`). A typed pointer is still unchecked for use after free and for bounds: it removes null, accidental writes and accidental stepping, not a dangling address.
+`Ptr<T>`, `Ptr<mut T>`, `Ptr<volatile T>` and their methods have a page of their own: [Pointers](/language/pointers). The volatile and atomic forms there are the ones a driver uses: every access through a `Ptr<mut volatile Uart>` is a volatile access, fields included, and `p.atomicAdd(1, AtomicOrder.AcqRel)` is an atomic read-modify-write.
 
 ## Byte order and Float bits
 
