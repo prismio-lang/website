@@ -12,17 +12,17 @@
     --ink-faint: #6b675d;
     --rule: #e3dfd3;
     --rule-strong: #cfcabb;
-    --accent: #7e22ce;          /* links and numbers: purple-700, 7:1 on paper */
-    --brand: #9333ea;           /* the site's name in the wordmark, as "Developers" is on its site */
-    --accent-soft: #f5ecfe;
+    --accent: #1d4ed8;          /* links and numbers: blue-700, 6.6:1 on paper. Docs is gray and Developers purple; Research is blue. */
+    --brand: #2563eb;           /* the site's name in the wordmark, as "Developers" is on its site */
+    --accent-soft: #e8efff;
 
     --serif: "Source Serif 4 Variable", "Source Serif 4", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
     --sans: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
     --mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
     --pad: 1.25rem;             /* px-5 on a phone, px-8 from 640px: the developers header */
-    --measure: 42rem;
-    --frame: 80rem;
+    --measure: 47rem;
+    --frame: 88rem;
     --header: 4rem;
 }
 @media (min-width: 40rem) { :root { --pad: 2rem; } }
@@ -129,7 +129,7 @@ main { display: block; }
 .article-grid { display: grid; grid-template-columns: minmax(0, 1fr); }
 .rail { display: none; }
 @media (min-width: 80rem) {
-    .article-grid { grid-template-columns: 13.5rem minmax(0, var(--measure)) 13.5rem; column-gap: 3.5rem; justify-content: center; }
+    .article-grid { grid-template-columns: 12.5rem minmax(0, var(--measure)) 12.5rem; column-gap: 3rem; justify-content: center; }
     .rail { display: block; position: sticky; top: calc(var(--header) + 2rem); align-self: start; max-height: calc(100vh - var(--header) - 3rem); overflow: auto; margin-top: 8.25rem; }
     .narrow-only { display: none !important; }
 }

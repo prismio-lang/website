@@ -117,6 +117,7 @@ export default async function Page({ params }: { params: Params }) {
                         </section>
                     )}
 
+                    {entry.kind === "paper" && (
                     <section className="aside-block cite" aria-labelledby="cite">
                         <h2 id="cite">Cite this</h2>
                         <p>{plainCitation(entry)}</p>
@@ -125,6 +126,7 @@ export default async function Page({ params }: { params: Params }) {
                             Licensed under <a href={site.license} rel="license">{site.licenseName}</a>.
                         </p>
                     </section>
+                    )}
 
                     {related.length > 0 && (
                         <section className="aside-block" aria-labelledby="related">

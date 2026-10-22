@@ -45,7 +45,7 @@ export default function Page() {
                 </ul>
                 <h2>Citing and reusing</h2>
                 <p>
-                    Every page ends with a citation and a BibTeX entry, and is available as plain Markdown at its URL
+                    Every paper ends with a citation and a BibTeX entry, and every page is available as plain Markdown at its URL
                     with <code>.md</code> added. The text is under the{" "}
                     <a href={site.license} rel="license">{site.licenseName} license</a>. The whole corpus is at{" "}
                     <a href="/llms-full.txt">/llms-full.txt</a>; new pages appear in the <a href="/feed.xml">feed</a>.
