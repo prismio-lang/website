@@ -34,6 +34,16 @@ A pack (`...args: Ts`) takes any number of arguments, and a `typelist` says whic
 
 The unrolled body is one `if (true) { ... }` per argument. That is the scope each copy needs so its `let`s do not meet the next copy's, and it is a real statement kind, where sema has no bare block to lower. `break` and `continue` inside it would bind to an enclosing loop, so they are refused.
 
+## Beyond the basic shape
+
+- **Ordinary type parameters.** `packSolveGenerics` solves them with `monoSolveTypeParam` from the fixed arguments, the pack's own type parameter answers itself (a substitution to nothing), `packCheckGenericBounds` checks the rest, and the solved chain substitutes into the copy with `monoSubstituteChain`. The mangled name carries *every* argument's type, the fixed ones included, or two solutions of `T` with the same pack would be one function.
+- **A bound can be a typelist, a trait, or absent.** `packListOf` answers a typelist; a trait alone (`<Ts: Display>`) becomes a synthetic one-entry set; a typelist or trait written directly as the parameter's type needs no type parameter at all.
+- **Conventions survive.** `sink` and `inout` on the pack parameter are copied to each expanded parameter.
+- **A bound.** `PACK_MAX_ARGUMENTS` (128) caps the arguments of one call. What a runaway pack function grows is the call, so that is what is bounded.
+- **Declarations are checked once.** `typelistCheckDeclarations` runs from `analyzeModule` and marks a failing list (`i3` = 1); `packBind` stays silent about a marked list, so a mistake is reported at the list and not at every call.
+- **Visibility is the function's.** A list is checked against the file of the function that names it, so a public pack function may use a private list of its own file.
+- **Duplicate errors.** The unrolled body is checked once per copy, so `runtime/diagnostics.c` drops an error identical in code, location and message to one already reported, and the notes that follow it. Generics benefit as well.
+
 ## Two details that cost time
 
 - **An instantiation needs `genericInfo`.** Codegen decides whether to emit a function from source or take it from a PLIB by `nodeIsNull(func.genericInfo)` (`shouldEmitFunctionFromSource`). A pack function with no type parameter (`...parts: String`) has none, so the instantiation gets a marker `GENERIC_PARAM`; without it the call links against a symbol no PLIB defines.
@@ -41,4 +51,4 @@ The unrolled body is one `if (true) { ... }` per argument. That is the scope eac
 
 ## Not done
 
-A pack in a closure; keyword arguments; a minimum count. `docs/VARIADICS_PLAN.md` has the design record.
+A closure with a pack of its own (closures take no type parameters), and keyword arguments. `docs/VARIADICS_PLAN.md` has the design record and the keyword-argument proposal.

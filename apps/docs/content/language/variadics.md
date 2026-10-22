@@ -113,6 +113,36 @@ fn main() -> Int {
 
 The annotation is the type of **each argument**, not of the collection (the opposite of TypeScript's `...args: string[]`).
 
+### Beside ordinary type parameters
+
+A pack can sit beside generic parameters of its own; they are solved from the fixed arguments, and each solution is its own function.
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+import std.string
+import std.display
+
+typelist Printable { Display }
+
+fn tagged<T: Display, Ts: Printable>(first: T, ...rest: Ts) -> String {
+    let mut out = first.show()
+    for r in rest { out = out.concat("|", r.show()) }
+    return out
+}
+
+fn main() -> Int {
+    println(tagged(1, "a", 2.5))     // 1|a|2.5
+    return 0
+}
+```
+
+"At least one" is written the same way: a fixed parameter before the pack. `fn max(a: Int, b: Int, c: Int, ...rest: Int)` takes three or more.
+
+### A list or a trait as the type itself
+
+A pack whose type is a typelist or a trait needs no type parameter to carry it: `fn say(...xs: Printable)` and `fn say(...xs: Display)` both take any number of printable arguments. The type parameter form is for when the body needs to name the type.
+
 ### More than one pack
 
 A function may have several packs. Their arguments are consecutive, in declaration order: all of the first pack's, then all of the second's. A set ends at the first argument not in it, so two set packs must not overlap.
@@ -159,10 +189,16 @@ The error is ``argument 2 has type `Opaque`, which is not in `Printable` ``. For
 ## In the standard library
 
 - `print`, `println`, `eprint` and `eprintln` take any number of printable arguments and separate them with a space (`import std.display`): `println("n =", n, "ok =", ok)`. One argument still calls the per-type overload in `std.io`.
+- `max` and `min` take two or more integers (`import std.math`).
 - `concat` takes any number of strings. Two to six parts have hand-tuned overloads; seven or more use a pack. String interpolation is always one `concat`.
+
+## Limits
+
+- A call may pass at most **128** variadic arguments. A pack function that calls itself with more arguments than it received (`f(...xs, 1)`) makes a longer function at each step and would never end; the 129th is an error that says so.
+- A typelist is checked where it is written, once: an entry that names nothing, a list that is empty, contains itself, repeats a type or names an entry of a set is an error at the declaration. A `private` or `internal` list is as visible as a type: it can bound a pack in the file or package that declares it.
+- An error inside a pack function's body is reported once, however many arguments the body was repeated for.
 
 ## Not available yet
 
 - Keyword arguments and a keyword pack: the language has no named arguments.
-- A pack in a closure.
-- A minimum count ("at least one").
+- A closure with a pack of its own. A closure can capture a pack function's pack (`args.length` inside `|k| ...` works), but closures take no type parameters, so one cannot be variadic.
