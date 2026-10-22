@@ -147,7 +147,7 @@
         {
           "comment": "contextual modifiers: visibility, ownership contracts, layout",
           "name": "storage.modifier.prismio",
-          "match": "(?<![.\\w])(public|private|internal|cold|inline|dyn|pin|unique|produce|borrow|alias|free|export|naked|section|align|repr|packed)\\b(?!\\s*(?::(?!:)|=(?!=)))"
+          "match": "(?<![.\\w])(public|private|internal|cold|hot|inline|noinline|noreturn|const|dyn|pin|unique|produce|borrow|alias|free|export|naked|section|align|repr|packed)\\b(?!\\s*(?::(?!:)|=(?!=)))"
         },
         {
           "name": "constant.language.prismio",

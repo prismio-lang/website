@@ -416,35 +416,49 @@ seed's ordinals do not move, and it never survives sema.
 with explicit type arguments on `child3`. Sema decides that `Name` is a type
 (`semaTypeCall`).
 
-**Declaration modifiers.** `export`, `naked`, `section("...")` and `align(n)` before `fn`, and
-`repr(C)` and `packed` before `struct`, are contextual words, matched as identifiers the way `cold` and the
-visibility markers are. `atFnModifiers` and `atStructModifiers` claim one only when the next token continues
-a declaration (`fn`, `struct`, another modifier, or `(` for the three that take one), so a variable called
-`export` keeps compiling, and `visibilityLevel` looks through them so `public export fn` parses. The struct
-markers set bits in `STRUCT_DECL.i1` (`nodeMarkReprC`, `nodeMarkPacked`). A packed struct's fields are at
-any offset, so the backend reads the alignment of every field access off its address (`access_align`: a GEP
-into a packed struct type is one byte), which covers a read, a write, a literal's initialiser and a typed
-pointer through one path. It cannot reach through a field, so `semaCheckPackedStructs` (`sema/types.psm`)
-keeps what a packed struct holds to scalars, pointers, packed structs and byte arrays. The function ones do not touch the
-node: `FUNCTION.i1` already holds one state at a time (inline, property, cold), and a field on every node
-would cost the whole compiler for a handful of boot-stub declarations. They go into a table in
-`ast/fn_attrs.psm`, one record per line keyed by the position of the `fn` keyword (`file:line:col`), which
-is unique per declaration and survives the copy a generic instantiation makes; `generateFunction` reads it
-once per function and calls `ir_function_export`, `ir_function_naked`, `ir_function_section` and
-`ir_function_align`. `export` is an LLVM alias beside the function, not a rename, because every call inside
-the program already names the mangled symbol. A new modifier is: a word in `isFnModifierWord`, a case in
-`parseModifiedFunctionDecl`, a bit or field in the table, and a backend call. Add it to the IntelliJ plugin's
-`PrismioWords` and `SignatureParser` in the same change.
+**Declaration modifiers.** `repr(C)` and `packed` before `struct` are contextual words, matched as identifiers
+the way the visibility markers are. `atStructModifiers` claims one only when the next token continues a
+declaration (`struct`, another modifier, or `(`), so a variable called `repr` keeps compiling, and
+`visibilityLevel` looks through them so `public packed struct` parses. The struct markers set bits in
+`STRUCT_DECL.i1` (`nodeMarkReprC`, `nodeMarkPacked`). A packed struct's fields are at any offset, so the backend
+reads the alignment of every field access off its address (`access_align`: a GEP into a packed struct type is
+one byte), which covers a read, a write, a literal's initialiser and a typed pointer through one path. It cannot
+reach through a field, so `semaCheckPackedStructs` (`sema/types.psm`) keeps what a packed struct holds to
+scalars, pointers, packed structs and byte arrays.
 
-`inline` is the one modifier that says how a function is *called*, the opposite of `cold`, and takes bit 8 of
-that table (`nodeIsInline`). It is in `isFnModifierWord`, so the top level reads it in any order beside the
-others; an `impl` block reads it, and `cold`, one word at a time (`atMethodMarker`), because the top level's
-modifier list does not reach a method. `generateFunction` lowers it to `alwaysinline`
-(`ir_function_always_inline`), the call a single-callsite function already made, and a `-g` build skips both.
-`cold` and `inline` together are a parse error (P3201, "a function cannot be both `cold` and `inline`") wherever
-they appear, because one asks for a function that is never inlined and the other for one that always is.
-It exists for std's `mapProbe`: a bounds check made the probe larger than LLVM's cost model would inline into
-the loops that call it, and `key_value_update` paid 1.13x until it was marked.
+**Function markers.** Everything that can stand before `fn` -- `export`, `naked`, `section("...")`, `align(n)`,
+`async`, `inline`, `inline(always)`, `inline(never)`, `noinline`, `cold`, `hot`, `noreturn`, `const` -- is one
+grammar in `parse/modifiers.psm`, used by the top level and by `impl` blocks (a method refuses the four that
+name a symbol). `atFnModifiers` looks ahead to the `fn` before claiming anything, which is what lets `const hot = 3`
+be a constant called `hot`; `checkFnModifierConflicts` is the one table of which pairs contradict. The parser
+records bits and nothing more, in `ast/fn_attrs.psm`: a table with one record per line keyed by the position of
+the `fn` keyword (`file:line:col`), unique per declaration and surviving the copy a generic instantiation makes.
+It is a table rather than a field because `FUNCTION.i1` is codegen's scratch state and a field on every node
+costs the whole compiler for a few declarations. Every bit has a name (`fnAttrBitHot`) and every question a
+predicate (`nodeIsHot`, `nodeIsNoreturn`, `nodeIsNeverInlined`), so nothing outside that file spells a number.
+
+Two places read the bits. Sema reads `noreturn` (`semaCheckNoreturn` holds the body to its promise;
+`semaCallNeverReturns` ends the path at a call, by name, when every declaration of the name is `noreturn`) and
+`const` (below). Codegen reads the rest through `ir/fn_attributes.psm`, the one table from markers to LLVM
+attributes, which calls `ir_function_attribute(name)` -- a C function that adds a named enum attribute -- so
+a new marker is a bit, a word in `modifiers.psm` and a line there, and no C. `inline(always)` is skipped in a
+`-g` build, as is the single-callsite inlining codegen chooses itself. `cold` implies `noinline` because `cold`
+alone only lowers the threshold and an internal function's only call wins regardless. The inlining markers exist
+for std's `mapProbe` (`inline(always)`): a bounds check made the probe larger than LLVM's cost model would inline
+into the loops that call it, and `key_value_update` paid 1.13x until it was marked. Add a new marker to the
+IntelliJ plugin's `PrismioWords`, `PrismioLexer` and `SignatureParser` in the same change.
+
+**Constants.** `const NAME = expr` parses as an immutable `let` whose initializer is wrapped in a `CONST_EXPR`,
+and the parser notes that one exists (`nodeNoteConstExpr`) so that a program with none pays nothing.
+`semaFoldConstants` is the first thing `analyzeModule` does: it walks the tree for `CONST_EXPR`s, evaluates each
+with the interpreter in `sema/const_eval.psm`, and rewrites the node in place into the literal it came to. It
+runs before any other pass because the interpreter reads a `const fn`'s body as the parser built it -- a `for`
+not yet lowered to a `while`, a compound assignment not yet expanded -- and nothing after it ever sees a
+`CONST_EXPR`. The interpreter handles integers of every width and `Bool` with exact 62-bit arithmetic
+(`constArithmetic` in `sema/consts.psm`, shared with the array-length evaluator, which hands it any call it
+meets). Every value that meets a declared type must fit it, which is what keeps a constant equal to the same
+function at run time; a step budget and a depth limit bound it. `test_335_const_eval` compares each constant
+with the function called normally.
 
 **Hardware builtins.** `src/common/mem_builtins.psm` is the one table for `__builtin_mem_*`,
 `__builtin_asm*`, `__builtin_port_*` and `__builtin_ptr_addr`/`addr_ptr`, read by four places that must agree:

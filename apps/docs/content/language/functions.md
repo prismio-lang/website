@@ -4,7 +4,7 @@ description: Declare Prismio 0.1 functions, return values, overloads, and borrow
 status: stable
 version: "0.1.0"
 lastUpdated: "2026-09-28"
-tags: [functions, parameters, returns, overloads, cold, inlining]
+tags: [functions, parameters, returns, overloads, cold, hot, inlining, noreturn, const]
 related: [language/ownership-and-borrowing, language/ffi, errors/wrong-arity]
 ---
 
@@ -257,18 +257,28 @@ Use it for paths that are rare **at run time**, not merely long. The standard
 library marks the insert half of `Map.set`; marking a hot function cold moves its
 callers' fast path the wrong way.
 
-## Inline functions
+## Inlining
 
-`cold` keeps a function out of its callers. `inline` is the opposite: the function is
-folded into **every** caller, whatever its size.
+The optimiser decides from a cost model whether a call is replaced by the function's body, and
+the model is usually right. Three markers, written directly before `fn`, say otherwise when you
+know something it cannot:
 
-The optimiser normally decides this from a cost model, and the model is usually right.
-It is wrong when a function is small in what it *does* but large in what it *says*: a
-loop whose body grew a check, so that it no longer fits the budget although its caller
-runs it millions of times and wants the body in view. Mark that function `inline`:
+| Marker | Meaning | LLVM | Rust |
+|---|---|---|---|
+| `inline fn` | worth inlining; a hint | `inlinehint` | `#[inline]` |
+| `inline(always) fn` | inlined into every caller, whatever its size | `alwaysinline` | `#[inline(always)]` |
+| `inline(never) fn`, `noinline fn` | never inlined | `noinline` | `#[inline(never)]` |
 
+`noinline` and `inline(never)` are two spellings of one request. The compiler's own sources use
+`noinline`.
+
+The cost model is wrong when a function is small in what it *does* but large in what it *says*: a
+probe loop whose body grew a bounds check, so that it no longer fits the budget although its caller
+runs it millions of times and wants the body in view. That function earns `inline(always)`:
+
+<!-- prismio-check: pass -->
 ```prismio
-inline fn square(value: Int) -> Int {
+inline(always) fn square(value: Int) -> Int {
     return value * value
 }
 
@@ -285,30 +295,151 @@ fn main() -> Int {
 }
 ```
 
-It is LLVM's `alwaysinline` -- Rust's `#[inline(always)]`. Like `cold`, it goes after any
-visibility marker and directly before `fn`, at top level or inside an `impl` block, and it
-combines with the other function modifiers in either order (`export inline fn`):
+A plain `inline fn` only nudges the cost model, and the nudge can lose. Use it for a small function
+you expect to be cheap to copy, and `inline(always)` when the body has to be in view.
+
+The markers go after any visibility marker, at top level or inside an `impl` block, and combine
+with the other function modifiers in any order:
 
 ```prismio
-private inline fn probe(slots: Vec<Int>, at: Int) -> Int { ... }
+private inline(always) fn probe(slots: Vec<Int>, at: Int) -> Int { ... }
+export hot inline(always) fn tick(x: Int) -> Int { ... }
 impl Table {
-    inline fn slotOf(self, key: Int) -> Int { ... }
+    inline(always) fn slotOf(self, key: Int) -> Int { ... }
+    noinline fn rebuild(self) { ... }
 }
 ```
 
-It is contextual, so a variable or function may still be *named* `inline`, and it changes
-where code is placed, never what it does. A generic function keeps the marker in every
-instantiation. A build with debug information (`-g`) ignores it, so that a function can be stepped into.
+Every marker is contextual, so a variable or function may still be *named* `inline`, and each changes
+where code is placed, never what it does. A generic function keeps its markers in every
+instantiation. A build with debug information (`-g`) ignores `inline(always)`, so that a function
+can be stepped into.
 
-`cold` and `inline` contradict each other, so a function cannot carry both:
+Markers that contradict each other are refused where they are written:
 
 ```text
+error[P3201]: a function cannot be both `inline` and `noinline`
 error[P3201]: a function cannot be both `cold` and `inline`
+error[P3201]: `hot` is written twice
 ```
 
-Use it sparingly. Inlining a large function into many callers grows the program, and the
-compiler's own choice is better than a guess for most code. The standard library marks
-the probe of `Map`, which every lookup and update runs in a loop.
+Use `inline(always)` sparingly. Inlining a large function into many callers grows the program, and
+the compiler's own choice is better than a guess for most code. The standard library marks the probe
+of `Map`, which every lookup and update runs in a loop.
+
+## Hot functions
+
+`hot` is the opposite of `cold`: a function that runs often. It is LLVM's `hot` -- the optimiser
+favours speed over size for it, even when the rest of the program is built small, and its code is
+placed with the other hot code. It says nothing about inlining, so it combines with any of the markers
+above, and it contradicts only `cold`.
+
+```prismio
+hot fn step(state: Int) -> Int { ... }
+```
+
+## Functions that do not return
+
+A call to a `noreturn fn` never gives control back: the function ends the program, loops forever, or
+calls another `noreturn` function.
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+noreturn fn die(code: Int) {
+    println("fatal")
+    exit(code)
+}
+
+fn checked(x: Int) -> Int {
+    if (x < 0) { die(2) }
+    return x
+}
+
+fn pick(x: Int) -> Int {
+    if (x > 0) {
+        return 1
+    } else {
+        die(3)
+    }
+}
+
+fn main() -> Int {
+    return checked(pick(1)) - 1
+}
+```
+
+Because the optimiser treats the code after such a call as unreachable, the promise is checked rather
+than trusted. A body that contains a `return`, or can reach its closing brace, is an error:
+
+```text
+error[P4001]: function `die` is `noreturn`, so it cannot `return`
+error[P4001]: function `die` is `noreturn`, but control can reach its closing brace
+```
+
+End the body with `panic`, `exit`, `unreachable`, an endless `loop`, or a call to another `noreturn`
+function. Callers benefit too: a path that ends in a `noreturn` call needs no `return`, as the second
+`pick` branch above shows. A function declared `noreturn` combines with `cold`
+(`cold noreturn fn`), which is what an error path usually is.
+
+A call is known to diverge by its name, and only when every function and method of that name is
+`noreturn`. If a `noreturn fn abort` shares its name with an ordinary `abort` elsewhere, a function
+that ends in the call still needs an explicit `return` or `unreachable()`. The optimiser is told
+either way.
+
+## Constant functions
+
+A `const fn` is an ordinary function that the compiler may also run while it compiles. It is
+checked and compiled like any other, so it can be called at run time too; `const` adds one thing,
+which is that a [constant](/language/variables#constants) may call it.
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+const fn area(width: Int, height: Int) -> Int {
+    return width * height
+}
+
+const fn isPrime(n: Int) -> Bool {
+    if (n < 2) { return false }
+    let mut d = 2
+    while (d * d <= n) {
+        if (n % d == 0) { return false }
+        d += 1
+    }
+    return true
+}
+
+const CELLS = area(8, 8)
+const PRIME = isPrime(97)
+
+fn main() -> Int {
+    println(CELLS)          // 64, worked out before the program existed
+    println(PRIME)          // true
+    return 0
+}
+```
+
+What a `const fn` may do at compile time:
+
+- take and return **integers of any width and `Bool`**;
+- declare `let` and `let mut` variables of those types, and assign to them;
+- use `if`, `match` on a value, `while`, `loop`, `for` over a range (`0..<n`, `a..b`,
+  `step`, counting down), `repeat`, `break` and `continue` with labels, and `return`;
+- call other `const fn`s, recursively, and read global constants.
+
+Anything else -- strings, floats, `Vec`s, structs, pointers, closures, generics -- is refused where
+the constant is written, naming the first thing it could not run. The result is exact, not wrapped:
+every value that meets a declared type (a parameter, an annotated variable, the return type) has to
+fit it, `as` truncates to the width it names, and arithmetic that leaves the range of a 62-bit
+integer is an error. A constant is therefore either what the function computes at run time or a
+compile error. Evaluation is bounded -- a loop that never ends or a recursion with no base case is
+reported, not hung on.
+
+A `const fn` cannot be `async`, `naked` or `noreturn`. It combines with `export`, `hot`, `inline` and
+the other markers.
 
 ## Entry point
 

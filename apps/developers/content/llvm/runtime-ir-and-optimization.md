@@ -132,7 +132,7 @@ loop is folded straight back. Size used to keep such halves apart. They must now
 and `PRISMIO_NOINLINE` in the runtime. A new fast/slow split needs the same marker, or its fast
 half will quietly stop inlining.
 
-The opposite marker is `inline fn` ([inline functions](https://docs.prismio.org/language/functions#inline-functions)), `alwaysinline`, for a function whose body a hot loop needs in view but whose size a cost model counts against it; std's `mapProbe` is the one user.
+The other markers are `inline fn` (`inlinehint`), `inline(always) fn` (`alwaysinline`) for a function whose body a hot loop needs in view but whose size a cost model counts against it -- std's `mapProbe` is the one user -- `inline(never) fn` and `noinline fn` (`noinline`), `hot fn` (`hot`) and `noreturn fn` (`noreturn`). They are all [function markers](https://docs.prismio.org/language/functions#inlining). The compiler maps them to LLVM attributes in one table, `src/ir/fn_attributes.psm`; a new marker is a bit in `src/ast/fn_attrs.psm`, a word in `src/parse/modifiers.psm` and a line in that table, and the C side (`ir_function_attribute`) takes the attribute by name. `noinline` is the spelling the compiler's own sources use.
 
 ### Parallel machine code
 

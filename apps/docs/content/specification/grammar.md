@@ -74,11 +74,15 @@ Methods, `impl` blocks, traits and closures **are**. A declaration may carry a l
 
 ```text
 declaration    = importDecl | implDecl | traitDecl
-               | visibility? (letDecl | "cold"? fnDecl | propDecl | externDecl
+               | visibility? (letDecl | constDecl | fnModifier* fnDecl | propDecl | externDecl
                               | structDecl | enumDecl) ;
+fnModifier     = "cold" | "hot" | "inline" ("(" ("always" | "never") ")")? | "noinline"
+               | "noreturn" | "const" | "async" | "export" | "naked"
+               | "section" "(" string ")" | "align" "(" integer ")" ;
+constDecl      = "const" identifier (":" type)? "=" expression ;
 visibility     = "public" | "private" | "internal" ;
 implDecl       = "impl" typeName ("for" typeName)? "{" implMember* "}" ;
-implMember     = visibility? ("cold"? fnDecl | propDecl) ;
+implMember     = visibility? (fnModifier* fnDecl | propDecl) ;
 propDecl       = "prop" identifier "(" parameter ")" returnType block ;
 traitDecl      = "trait" identifier "{" fnSignature* "}" ;
 closureExpr    = "|" parameters? "|" (expression | block) ;
@@ -88,9 +92,9 @@ A visibility modifier is accepted on a function, a method inside an `impl` block
 
 `prop` is contextual: it begins a `propDecl` only when a name follows it in declaration position, so it remains an ordinary name elsewhere. A property is read without parentheses (`x.length`) and a method called with them; writing either one the other way is a semantic error, as are a property with more than one parameter, no return type, or an owned return type.
 
-`cold` is contextual in the same way: it marks a function only directly before `fn`. A [cold function](/language/functions#cold-functions) is never inlined and calls to it are treated as unlikely; the marker changes code placement, not behaviour.
+The function modifiers are contextual in the same way: each marks a function only in a run of modifier words that ends in `fn`, so a variable called `cold`, `hot` or `const` keeps compiling. They combine in any order. The [inlining markers](/language/functions#inlining) are `inline` (a hint), `inline(always)`, `inline(never)` and `noinline` (a spelling of `inline(never)`); a [cold function](/language/functions#cold-functions) is never inlined and calls to it are treated as unlikely; a [hot function](/language/functions#hot-functions) is optimised for speed; a [`noreturn`](/language/functions#functions-that-do-not-return) function never returns to its caller, which the compiler checks; and a [`const fn`](/language/functions#constant-functions) may also be called by a constant. The markers change code placement and promises, not behaviour. Pairs that contradict each other (`cold` with `hot` or `inline`, `inline` with `noinline`, `naked` with `inline`, `const` with `async`, `naked` or `noreturn`) and a word written twice are parse errors, and a method takes none of `export`, `naked`, `section` and `align`.
 
-`inline` is contextual in the same way and is the opposite marker: an [inline function](/language/functions#inline-functions) is inlined into every caller, at top level or in an `impl` block, and it combines with `export`, `naked`, `section` and `align` in either order. A function carrying both `cold` and `inline` is a parse error.
+`const` also begins a [`constDecl`](/language/variables#constants) when a name follows it: an immutable binding whose value the compiler works out at compile time, at top level or inside a function. `const mut` and a `const` with no value are parse errors.
 
 An `impl` member without a `self` parameter is an associated function; a generic `impl` (`impl Box<Int>`) is rejected.
 

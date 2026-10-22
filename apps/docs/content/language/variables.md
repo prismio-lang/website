@@ -241,7 +241,7 @@ Shadowing creates a new binding; it does not mutate or revive an old one. Owners
 
 ## Global bindings
 
-`let` declarations may appear at the top level. Global initializers must be static values the compiler can compute: a literal, or for an integer global arithmetic on other constants (`let CELLS: Usize = N * N`). A function call or a runtime expression cannot initialize a global.
+`let` declarations may appear at the top level. Global initializers must be static values the compiler can compute: a literal, or for an integer global arithmetic on other constants (`let CELLS: Usize = N * N`). A runtime expression cannot initialize a global, and neither can a plain function call -- unless the global is a [`const`](#constants), which may call a `const fn`.
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -297,6 +297,47 @@ fn main() -> Int { return count }
 ```
 
 This program is rejected because the global initializer is a call rather than a supported static literal.
+
+## Constants
+
+`const` declares a binding whose value the compiler works out while it compiles. It is a `let` that
+cannot be `mut`, with a value that has to be known at compile time, and it may call a
+[`const fn`](/language/functions#constant-functions):
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+const fn area(side: Int) -> Int { return side * side }
+
+const SIDE = 8
+const CELLS = area(SIDE)                // a global constant: 64
+const LIMIT: U8 = 200
+
+fn main() -> Int {
+    const half = CELLS / 2              // a local constant: 32
+    let cells: Array<Int, area(2)> = [1, 2, 3, 4]
+    println(half + cells.length)
+    return 0
+}
+```
+
+A constant may be written at the top level (with a visibility marker, `public const LIMIT = 8`) or
+inside a function. Its type is inferred from the value, or written: `const LIMIT: U8 = 200`, checked
+the way a `let` is. After the compiler has worked a constant out, the program contains only the
+number or `true`/`false` it came to -- there is nothing left to run.
+
+A constant is made of integers, `Bool`, global constants, the operators on them and calls to
+`const fn`s. A value that cannot be worked out at compile time is an error where it is written, not
+a surprise at run time. A *local* constant cannot read another local, even another local constant:
+write the global, or the arithmetic.
+
+```text
+error[P4001]: this constant cannot be worked out at compile time: `plain` is not a `const fn`, so it cannot run at compile time; declare it `const fn`
+error[P3201]: a `const` cannot be `mut`: its value is fixed at compile time
+```
+
+`const` is contextual: a variable or a function may still be called `const`.
 
 ## Ownership state
 
