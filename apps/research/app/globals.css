@@ -21,8 +21,8 @@
     --mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
     --pad: 1.25rem;             /* px-5 on a phone, px-8 from 640px: the developers header */
-    --measure: 47rem;
-    --frame: 88rem;
+    --measure: 52rem;
+    --frame: 92rem;
     --header: 4rem;
 }
 @media (min-width: 40rem) { :root { --pad: 2rem; } }
@@ -40,7 +40,7 @@ body {
     background: var(--paper);
     color: var(--ink);
     font-family: var(--serif);
-    font-size: clamp(1.125rem, 1.02rem + 0.28vw, 1.25rem);
+    font-size: clamp(1.125rem, 1.02rem + 0.34vw, 1.3125rem);
     line-height: 1.7;
     font-optical-sizing: auto;
     font-kerning: normal;
