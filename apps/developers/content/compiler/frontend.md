@@ -327,7 +327,7 @@ Three checks keep what a reader sees and what compiles the same text:
   the diagnostics registry's copy (`diag_file_content`), because a confusable
   pair can be one name in std and one in the program.
 
-The diagnostic renderer (`runtime/diagnostics.c`) prints a bidi control in a
+The diagnostic renderer (`src/common/diagnostics.psm`) prints a bidi control in a
 quoted source line as U+FFFD, so the error about one does not reorder the line
 it quotes, and draws carets by character rather than byte.
 

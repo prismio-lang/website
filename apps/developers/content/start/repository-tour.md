@@ -138,7 +138,7 @@ The C boundary is split by trust and lifecycle:
 - `runtime/llvm-api-backend.c` wraps the LLVM C API.
 - `runtime/lang_runtime.c` supplies managed values, strings, collections, arenas, reference counting, and verifier hooks.
 - `runtime/program_support.c` implements arguments, files, processes, tasks, channels, and other platform-facing services.
-- `runtime/diagnostics.c` renders diagnostics, because it needs the original text of the file a node came from.
+- `src/common/source_files.psm` keeps the original text of every file a node came from, `src/common/diagnostics.psm` renders diagnostics from it, and `src/common/terminal.psm` owns colour, the progress line and result lines.
 - `runtime/build_driver.c` turns verified IR into objects and native artifacts.
 
 Adding a function to one file does not expose it automatically: declarations, AIF contracts, the shipped bitcode module set, and packaging may all need updates. See [the runtime overview](/runtime/overview).

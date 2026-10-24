@@ -202,7 +202,7 @@ scope. `aif_var_note_scope` and `aif_var_note_use` record where bindings are dec
 
 `aif_place_arenas` runs after tier solving. It rejects sites with blockers reported by
 `aif_arena_blockers`, groups eligible lifetimes, computes statement ranges, and chooses the
-scope/arena serving each site. `arena_would_serve` counts only a site codegen would actually route
+scope/arena serving each site. `arenaWouldServe` counts only a site codegen would actually route
 into an arena: not a list, a container-owned value, a foreign pointer — and not an array literal,
 which `generateArrayLiteral` always builds in an entry-block `alloca`. Counting one put a push and a
 pop around every iteration of a loop that declared an array and allocated nothing. `aif_arena_range_first` and `aif_arena_range_last` allow codegen
@@ -251,15 +251,15 @@ fn errOf(r: Result<Int, String>) -> Found<String> {
 its payload; binding one out does not stop that. The sites alone cannot tell: they are the
 payload's sites, and `r`'s own payload field lists them too, so **both fields agreed they were the
 release point**, and the payload was freed once by each enum. Two changes in
-`runtime/aif_support.c` close it, and each needs the other.
+`src/aifcore/dispositions.psm` close it, and each needs the other.
 
-- **`field_release_of` declines a field that may hold a view of an enum's payload**
-  (`field_holds_enum_view`). The new `Found` does not free `e`; the `Result` stays its one owner.
-  A payload enum is a `$tag` struct by the time AIF sees it (`site_is_enum` looks for that field).
-- **`fn_may_return_view_of_param` looks through the returned object's fields.** `errOf` returns a
+- **`fieldReleaseOf` declines a field that may hold a view of an enum's payload**
+  (`fieldHoldsEnumView`). The new `Found` does not free `e`; the `Result` stays its one owner.
+  A payload enum is a `$tag` struct by the time AIF sees it (`siteIsEnum` looks for that field).
+- **`fnMayReturnViewOfParam` looks through the returned object's fields.** `errOf` returns a
   `Found` of its own, a fresh object, but that object *holds* a view of `r`. The caller used to
   free its argument at scope exit while that `Found` lived: `let h = parse(t); return errOf(h)`
-  handed back a payload already freed. `fn_return_holds_view_of_param` walks every field of every
+  handed back a payload already freed. `fnReturnHoldsViewOfParam` walks every field of every
   object the return may reach, since a struct can hold the `Found`, and asks whether any of them
   views an enum the parameter points to. When one does, the caller keeps `h` alive, which leaks it
   rather than freeing it early. `tests/binder_rewrap_probe.psm` is the same shape through a `String?`, where the optional is the payload's own pointer.
@@ -267,7 +267,7 @@ release point**, and the payload was freed once by each enum. Two changes in
 **Enums only.** A *struct* whose field value is read out and kept elsewhere is not released with
 that field (the rule behind "a field value read out and returned leaks"), so there the holder is the
 one owner. Restricted to enums, the compiler's own IR is byte-identical across the change. Counting
-structs too moved it twice: `field_release_of` declined the parser's copy of `umsLex`'s
+structs too moved it twice: `fieldReleaseOf` declined the parser's copy of `umsLex`'s
 `lexer.tokens` in `umsParse` and leaked the token list, and the return walk declined
 `parseSource`'s lexer and parser, reached through every punned `Ptr` field of an `ASTNode`. Field keys are per type rather than per
 object, so the fact is conservative the usual way: any view stored into that field anywhere counts,

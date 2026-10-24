@@ -42,7 +42,7 @@ The unrolled body is one `if (true) { ... }` per argument. That is the scope eac
 - **A bound.** `PACK_MAX_ARGUMENTS` (128) caps the arguments of one call. What a runaway pack function grows is the call, so that is what is bounded.
 - **Declarations are checked once.** `typelistCheckDeclarations` runs from `analyzeModule` and marks a failing list (`i3` = 1); `packBind` stays silent about a marked list, so a mistake is reported at the list and not at every call.
 - **Visibility is the function's.** A list is checked against the file of the function that names it, so a public pack function may use a private list of its own file.
-- **Duplicate errors.** The unrolled body is checked once per copy, so `runtime/diagnostics.c` drops an error identical in code, location and message to one already reported, and the notes that follow it. Generics benefit as well.
+- **Duplicate errors.** The unrolled body is checked once per copy, so `src/common/diagnostics.psm` drops an error identical in code, location and message to one already reported, and the notes that follow it. Generics benefit as well.
 
 ## See the expansion
 

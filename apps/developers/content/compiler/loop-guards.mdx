@@ -639,16 +639,16 @@ with its own soundness argument:
 | Range proofs, per access | `src/ir/ranges.psm` (delta tier), `src/ir/relations.psm` and `src/ir/dbm.psm` (difference bounds) |
 | `nsw` on proved index arithmetic | `rangeMarkIndex` in `src/ir/ranges.psm`, `relCommit` in `src/ir/relations.psm`; emitted by `irAccessProved` in `src/ir/expr.psm` |
 | Sized-array guards | `servesAccess`, `rangeServesArrays` and the `arrays` field in `src/ir/ranges.psm`; requested by `generateWhile` and `generateForDirection` in `src/ir/stmt.psm` |
-| Access facts | `src/ir/nowrap.psm`, run from `generateFunction` in `src/ir/module.psm`; marks in `ir_nowrap_mark` (`runtime/ir_symbols.c`); emitted by `nowrapImplied` in `generateBinary` |
+| Access facts | `src/ir/nowrap.psm`, run from `generateFunction` in `src/ir/module.psm`; marks in `ir_nowrap_mark` (`src/symbols/facts.psm`); emitted by `nowrapImplied` in `generateBinary` |
 | Counted loops | `src/ir/counters.psm`; applied from the bounding conjunct on by `nowrapCondition` in `src/ir/nowrap.psm` |
 | Array contents | `src/ir/contents.psm`; the forms are evaluated by `nowrapForm` in `src/ir/nowrap.psm` |
 | Loop invariants | `nowrapInvariants`, `nowrapProbe` and `NowrapThresholds` in `src/ir/nowrap.psm`, applied by `nowrapLoop` |
 | Proved indices | `nowrapMarkInRange` and `nowrapIndexInRange` in `src/ir/nowrap.psm`, read by `generateArrayIndexCheck` in `src/ir/expr.psm`; the walk runs for a loop-free function that subscripts a fixed array (`moduleTreeIndexesArray`, `src/ir/module.psm`) |
-| Remainders by a literal | `src/ir/residues.psm`; ranges in `nowrapRemainder`, loop heads in `nowrapKeepResidues`, forms marked by `nowrapMarkRemainder` (`ir_rem_form_mark` in `runtime/ir_symbols.c`) and emitted by `reducedRemainder` in `src/ir/expr.psm` |
+| Remainders by a literal | `src/ir/residues.psm`; ranges in `nowrapRemainder`, loop heads in `nowrapKeepResidues`, forms marked by `nowrapMarkRemainder` (`ir_rem_form_mark` in `src/symbols/facts.psm`) and emitted by `reducedRemainder` in `src/ir/expr.psm` |
 | Square bounds, stride tiling | [Stride tiling and square bounds](/compiler/stride-tiling#testing-and-debugging) |
 | Which calls decline a loop | `irFlatGuardCount` in `src/ir/expr.psm` |
 | Effect analysis and fixed point | `irBodyMovesNoBlock` and the sweep in `src/ir/module.psm` |
-| Guard-safe function table | `ir_mark_guard_safe_fn`, `ir_is_guard_safe_fn` in `runtime/ir_symbols.c` |
+| Guard-safe function table | `ir_mark_guard_safe_fn`, `ir_is_guard_safe_fn` in `src/symbols/facts.psm` |
 | Unchecked read and write | `ir_list_flat_scalar_elem`, `ir_list_flat_scalar_set` in `runtime/llvm-api-backend.c` |
 | min/max/abs intrinsics | `src/sema/builtins.psm`, `src/ir/expr.psm`, `std/math.psm` |
 | Float math builtins | `src/common/float_builtins.psm` (the table), marked safe in `src/ir/module.psm` |

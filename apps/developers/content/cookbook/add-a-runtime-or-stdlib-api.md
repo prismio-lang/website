@@ -86,7 +86,7 @@ public extern fn cli_arg(index: Int) -> String alias
 
 `cli_arg` hands back a pointer *into* `argv` — memory the operating system gave the process, not memory Prismio allocated. `alias` says exactly that: the caller may read it, but nothing about calling this function transfers ownership. Had it been declared `produce`, semantic analysis would trust that the returned pointer came from an allocator matching the named deallocator, and something downstream would eventually call that deallocator on `argv` itself. That is not a hypothetical: it is the specific mistake `produce`/`alias` exists to make impossible to express by accident, because a wrong declaration here is a contract violation baked into every caller, not a bug that shows up where the extern was written.
 
-The general form: for an allocating return, every success and failure path must return storage the named deallocator accepts — a function that sometimes returns a string literal cannot honestly be declared `produce(free)`, because freeing a literal is the same class of bug as freeing `argv`. For an `alias`, document who owns the value and the event that invalidates it.
+The general form: for an allocating return, every success and failure path must return storage the named deallocator accepts — a function that sometimes returns a string literal cannot honestly be declared `produce(rt_free)`, because freeing a literal is the same class of bug as freeing `argv`. For an `alias`, document who owns the value and the event that invalidates it.
 
 ## Choose the owning layer
 

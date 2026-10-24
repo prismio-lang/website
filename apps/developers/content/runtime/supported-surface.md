@@ -349,13 +349,28 @@ provenance, which the analysis widens to `Shared`, and its result gets no owner.
 | `bytes` | `borrow`, and the callee reads no terminator; `String` parameters only |
 | `consume` | The callee takes ownership of the argument |
 | `retain_in:k` | The callee stores the argument into argument *k*'s container |
-| `produce(free)` | The return is a fresh allocation the caller must release |
+| `produce(rt_free)` | The return is a fresh block from `rt_base_alloc` the caller must release |
+| `produce(f)` | The return is a fresh allocation that `f` releases (see below) |
 | `alias` | The return is an existing value, **not** a fresh allocation |
 
 `produce` versus `alias` is the distinction that bites. A C function returning a
 pointer into memory it does not own (`cli_arg` was one, returning a slot of
-`argv`) is `alias`; declaring it `produce(free)` hands that memory to the
+`argv`) is `alias`; declaring it `produce(...)` hands that memory to the
 deallocator.
+
+**The name in `produce(f)` is the deallocator, and it is read.** `rt_free` is the
+seam's own: Prismio releases the value like any it allocated, which is right for
+everything in `runtime/` (every runtime function that returns an owned String
+allocates with `rt_base_alloc`). Any other `f` on a `String` result -- `free` for a
+`strdup`, a library's `lib_string_free` -- copies the bytes into a seam block as the
+call returns and calls `f` on the original there and then (`fatAdopted` in
+`src/ir/expr.psm`), so the foreign block never reaches `rt_free`. On a `Ptr` or a
+scalar, Prismio releases nothing and `f` documents what the caller must call. On a
+type Prismio releases itself (a struct, a `Vec`), a foreign `f` is refused with
+P4112, because the eventual release would be `rt_free` wherever the value had moved.
+Before 2026-10-24 the name was ignored and every release was `rt_free`, which the
+slab allocator behind the seam would turn into a libc `free` of a foreign block at
+best (`docs/ALLOCATOR_PLAN.md`, stage 1).
 
 **`borrow` is about ownership, not about writing.** The backend turns it into LLVM's
 `readonly` on a `String` argument only, where it is the property that lets a
@@ -459,7 +474,9 @@ a console write to the same descriptor in order.
 points, so its declaration needs no contract. On Windows it also turns on
 `ENABLE_VIRTUAL_TERMINAL_PROCESSING`, answering 0 if that cannot be set, so
 asking before styling is what gets colour in a legacy console. The styling
-itself is Prismio.
+itself is Prismio. `prismio_rt_is_terminal(fd)` is `std.term`'s `isTerminal(fd)`:
+`isatty` (`_isatty` on Windows) and nothing else, which is what the compiler's progress line
+needs, because a log that only renders ANSI must not receive a line rewritten with `\r`.
 
 **Float text is Prismio, and the C copy is for the console.** `std/float_text.psm`
 writes the shortest decimal that reads back as the same double, with at most
@@ -483,7 +500,7 @@ until a seed that does not reference them is published.
 
 | C symbol | Prismio | Contract |
 | --- | --- | --- |
-| `str_with_capacity` | Internal allocation seam for `std.string` | `produce(free)` |
+| `str_with_capacity` | Internal allocation seam for `std.string` | `produce(rt_free)` |
 | `str_own` | Code generation only: a `String` entering a boxed container slot or leaving through an `alias` return | — |
 | `list_str_data` `list_str_word` `list_push_str` `list_set_str` | Code generation only: `Vec<String>` element access, where the element is the 16-byte pair | — |
 | `list_capacity` `list_reserve` | Code generation only: `v.capacity`, `v.reserve(n)` | — |
@@ -492,29 +509,29 @@ until a seed that does not reference them is published.
 | `str_find_byte` `str_find_byte_pair` | Internal bounded-search accelerators | `borrow` |
 | `str_find_needle` | Internal short-needle search behind `strIndexOfFrom` | `bytes` |
 | `str_hash` | Code generation only: the half of `__builtin_string_hash` a pair cannot answer (a key past twelve bytes, a view, or a short string on the heap) | — |
-| `read_file` `get_directory` `join_path` | `readFile` `directoryOf` `joinPath` | `produce(free)` |
-| `current_directory` `executable_directory` | `currentDirectory` `executableDirectory` | `produce(free)` |
-| `list_modules` | `listModules` → `Vec<String>` | `produce(free)` |
+| `read_file` `get_directory` `join_path` | `readFile` `directoryOf` `joinPath` | `produce(rt_free)` |
+| `current_directory` `executable_directory` | `currentDirectory` `executableDirectory` | `produce(rt_free)` |
+| `list_modules` | `listModules` → `Vec<String>` | `produce(rt_free)` |
 | `file_exists` `delete_file` | `fileExists` `deleteFile` | → `Bool` |
 | `write_file` `make_directory` `directory_exists` | `writeFile` `makeDirectory` `directoryExists` | `borrow`; → `Bool` |
-| `fs_list_begin` `fs_list_name` `fs_list_end` | `listDirectory` → `Vec<String>` | `borrow`; `fs_list_name` → `produce(free)`; one listing at a time per process |
+| `fs_list_begin` `fs_list_name` `fs_list_end` | `listDirectory` → `Vec<String>` | `borrow`; `fs_list_name` → `produce(rt_free)`; one listing at a time per process |
 | `fs_append_file` `fs_rename` `fs_remove_directory` | `appendFile` `rename` `removeDirectory` | `bytes` for the appended text; → `Bool` |
 | `fs_metadata` | `metadata` → `Metadata?` | `borrow`; `MetadataOut` written through its pointer |
-| `fs_lines_open` `fs_lines_has_line` `fs_lines_take_line` `fs_lines_close` | `readLines` `tryReadLines` → `FileLines`, `FileLines.close` | An `Int` handle (slot and generation; −1 when the file cannot be opened); the reader closes itself at end of file; `fs_lines_take_line` → `produce(free)` |
+| `fs_lines_open` `fs_lines_has_line` `fs_lines_take_line` `fs_lines_close` | `readLines` `tryReadLines` → `FileLines`, `FileLines.close` | An `Int` handle (slot and generation; −1 when the file cannot be opened); the reader closes itself at end of file; `fs_lines_take_line` → `produce(rt_free)` |
 | `proc_spawn_begin` `proc_spawn_arg` `proc_spawn_run` | `Process.spawn`, `Process.run` | `borrow`; `SpawnOut` written through its pointer |
 | `proc_exec` | `Process.exec` | Returns only on failure, then −1 |
 | `proc_wait` `proc_kill` | `Child.wait` `Child.kill` | → `Int` |
-| `proc_read_all` | `Stream.readAll` | `produce(free)` |
+| `proc_read_all` | `Stream.readAll` | `produce(rt_free)` |
 | `proc_write` `proc_close` | `Stream.write` `Stream.close` | `bytes`; → `Int` |
-| `proc_env_has` `proc_env_get` | `process.env` | `borrow`; `proc_env_get` → `produce(free)`, `""` for unset (never a literal) |
+| `proc_env_has` `proc_env_get` | `process.env` | `borrow`; `proc_env_get` → `produce(rt_free)`, `""` for unset (never a literal) |
 | `proc_env_set` `proc_env_remove` `proc_pid` | `process.setEnv` `removeEnv` `pid` | `borrow`; → `Int` |
 | `time_monotonic_nanos` `time_unix_nanos` `time_sleep_nanos` | `Instant.now()` `unixTime()` `sleep` | → `I64` nanoseconds; POSIX `clock_gettime` / `nanosleep`, Windows `QueryPerformanceCounter` / `GetSystemTimePreciseAsFileTime` / `Sleep` |
-| `io_stdin_has_line` `io_stdin_take_line` `io_stdin_read_all` | `inputLines()` `readLine()` `readAll()` | The last two → `produce(free)`, `""` at end of input (never a literal) |
+| `io_stdin_has_line` `io_stdin_take_line` `io_stdin_read_all` | `inputLines()` `readLine()` `readAll()` | The last two → `produce(rt_free)`, `""` at end of input (never a literal) |
 | `mem_alloc` `mem_alloc_zeroed` `mem_realloc` `mem_free` | `alloc` `allocZeroed` `realloc` `free` | `Usize` in and out, so no contract: the address is a number Prismio never releases. On `rt_base_alloc`/`rt_free`, so `--verify` counts them; never 0, exhaustion exits |
 | `mem_copy` `mem_fill` `mem_compare` | `copy` `fill` `compare` | `memmove`, `memset`, `memcmp` (normalised to −1/0/1) |
 | `mem_bytes_data` `mem_bytes_address` | `b.address`, and the checked address behind `b[i]` and `b.readU32LE` … `b.writeFloatBE` | `borrow` on the `Vec<U8>`; curated. The access itself is `__builtin_mem_uload`/`ustore`, unaligned and tagged as byte storage so a store does not make LLVM reload the header; big-endian is `__builtin_swap_bytes`, a Float `__builtin_float_bits` |
 | `mem_bytes_resize` `mem_bytes_fill` `mem_bytes_copy` `mem_bytes_equal` `mem_bytes_index_of` `mem_bytes_write_text` | `resize` `clear` `append` `fill` `copyFrom` `slice` `==` `indexOf` `fromString` | `borrow` on each `Vec<U8>`, which the writers write through; `bytes` for the String |
-| `mem_bytes_text` | `b.toString()` | `produce(free)`; stops at the first zero byte |
+| `mem_bytes_text` | `b.toString()` | `produce(rt_free)`; stops at the first zero byte |
 
 The `Int` returns are normalized because the raw conventions disagree:
 `file_exists` returns 1 for yes, while `delete_file` returns **0** for success.
@@ -608,8 +625,14 @@ Emitted by code generation, not called from source: `rc_*`, `cyc_*`, `arena_*`,
 
 Compiler-internal, for the self-hosted frontend only: `ptr_to_node`,
 `node_to_ptr`, `ptr_to_token`, `token_to_ptr`, `ptr_to_type`, `type_to_ptr`, and
-everything in `ir_symbols.c`, `aif_support.c`, `diagnostics.c`, `build_driver.c`,
-and `llvm-api-backend.c`.
+everything in `build_driver.c` and
+`llvm-api-backend.c`. The AIF engine the compiler calls is the Prismio package `src/aifcore`, not C. The file registry and the terminal output those files call
+(`diag_file_path_cstr`, `diag_file_module_cstr`, `diag_file_count`, `diag_progress_cstr`,
+`diag_progress_clear`) are `export fn`s in `src/common/source_files.psm` and
+`src/common/terminal.psm`. The symbol tables are `src/symbols/`, and the struct and enum
+queries the backend makes (`ir_get_struct_field_type_at_cstr` and its ten siblings, in
+`type_registry.psm`) are `export fn`s too: each takes C strings and answers with an interned
+name's NUL-terminated copy, valid for the rest of the process.
 
 Reached through syntax: the `prismio_task_*` family, through `spawn` and `join`,
 and the `chan_*` family (with `chan_send_copy`/`chan_recv_copy` for plain-data
@@ -683,7 +706,7 @@ contract tables.** They allocate on every path and appear in neither
 `aifFfiProduces` (`src/aif/contracts.psm`) nor `FFI_RETURNS_PRODUCE`
 (`tools/aif_oracle/aif.py`). Nothing in `std.*` calls them, so no supported path is
 affected, but a hand-written `extern fn` for one still leaks unless it carries
-`produce(free)`. `run_oracle_vocabulary_test` cannot catch this class: it compares
+`produce(rt_free)`. `run_oracle_vocabulary_test` cannot catch this class: it compares
 the two tables against each other, and both omit the same four names. It should
 also be compared against the C.
 

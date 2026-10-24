@@ -83,7 +83,7 @@ fn main() {
 
 Handing out that pointer as a `String` would make one `String` in your program unlike every other: one that must never be released. `process.args[i]` returns a copy instead, so the obvious call is the safe one, and one small allocation on a path that runs once per program is not worth the hazard.
 
-The same distinction is what an FFI return contract states. A C function that returns a pointer into memory it does not own is `alias`; declaring it `produce(free)` would not leak, it would hand that memory to the deallocator — the mistake the `produce(free)` declarations in [`std.fs`](/stdlib/filesystem) invite by habit.
+The same distinction is what an FFI return contract states. A C function that returns a pointer into memory it does not own is `alias`; declaring it `produce(...)` would not leak, it would hand that memory to the deallocator — the mistake the `produce(rt_free)` declarations in [`std.fs`](/stdlib/filesystem) invite by habit.
 
 ## Running another program
 

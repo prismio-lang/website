@@ -193,7 +193,7 @@ needs a two-build measure-then-recompile workflow outside this page's scope.
 
 The layout model consumes type size and alignment, field access frequency, traversal structure,
 container use, and workload annotations where available. `src/aif/layout.psm` defines the
-self-hosted model, while `runtime/aif_support.c` contains supporting evaluation machinery.
+self-hosted model, while `src/aifcore/layout_search.psm` holds the traversal table, the cost model and the search.
 
 ### Type graph and exact sizing
 

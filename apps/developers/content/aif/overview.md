@@ -115,7 +115,7 @@ The rest is the map you need if you are changing the pass itself.
 - `src/aif/contracts.psm` — what foreign code does to ownership.
 - `src/aif/layout.psm` — field order and hot/cold splitting.
 - `src/aif/report.psm` — the human, `--why` and manifest forms.
-- `runtime/aif_support.c` — the solver the self-hosted compiler calls.
+- `src/aifcore/` — the engine: points-to solver, tier derivation, arena placement, layout search and the ownership queries codegen asks. Prismio, one module per responsibility.
 
 The declared compiler level is AIF-1. Policy and report details remain experimental.
 

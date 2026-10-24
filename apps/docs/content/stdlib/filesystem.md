@@ -51,7 +51,7 @@ Unlike [`std.string`](/stdlib/strings), none of this could be written in Prismio
 
 You cannot: the runtime's raw entry points (`read_file`, `join_path` and the other nine) are `internal` to `std.fs`, so calling one through `import std.fs` is ``error: `read_file` is internal to the package that declares it``. Call the wrapper, `readFile`. A program that declares its own `extern fn read_file` still can, since that is its own foreign-function declaration. The wrappers exist for two reasons.
 
-**The ownership contract.** `read_file`, `get_directory`, `join_path`, `current_directory`, `executable_directory`, and `list_modules` all return memory the caller must release. Only the first three are in the compiler's fallback contract table, so an application that declared one of the other three itself, without `produce(free)`, got an opaque return — no owner, and a leak on every call.
+**The ownership contract.** `read_file`, `get_directory`, `join_path`, `current_directory`, `executable_directory`, and `list_modules` all return memory the caller must release. Only the first three are in the compiler's fallback contract table, so an application that declared one of the other three itself, without `produce(rt_free)`, got an opaque return — no owner, and a leak on every call.
 
 **The `Int` conventions disagree with each other.** `file_exists` returns 1 for yes. `delete_file` returns **0** for success. Two adjacent functions in one runtime file where 0 means opposite things is a trap; every predicate below is a `Bool`.
 

@@ -184,6 +184,7 @@ fn main() -> Int {
 | `copy(to, from, count)` | copies `count` bytes; the two ranges may overlap |
 | `fill(address, value, count)` | sets `count` bytes to `value` |
 | `compare(a, b, count)` | `-1`, `0` or `1` as the first differing byte of `a` is below, equal to or above `b`'s |
+| `stringFromCString(pointer)` | a copy of the NUL-terminated text a C function left at `pointer`, as a `String` you own. The pointer's bytes are not touched or freed |
 
 A block can also be a typed pointer, for a `T` of plain data (numbers, `Bool`, `Char`, enums, pointers and structs of those; a type that owns memory is refused by the pointer type):
 

@@ -199,9 +199,11 @@ do not rely on colour escape sequences or exact whitespace as a public API.
 ### Where it lives
 
 The self-hosted declaration surface — the codes and call sites sema and the
-parser use — is `src/common/diagnostics.psm`. Storage, rendering, and JSON
-serialization are the native diagnostic registry in `runtime/diagnostics.c`.
-`diag_add_file()` assigns the file identifier carried by tokens and AST
+parser use — is `src/common/diagnostics.psm`, which also renders and serializes
+JSON. The file registry is `src/common/source_files.psm` and the terminal output
+is `src/common/terminal.psm`; C reaches the registry and the progress line through
+`export fn`s that hand it a NUL-terminated copy, because a `String` of twelve bytes
+or fewer has no pointer to give. `diag_add_file()` assigns the file identifier carried by tokens and AST
 (abstract syntax tree) nodes; `diag_set_file_module()` attaches the resolved
 module qualifier so later visibility diagnostics can name both the source and
 the namespace.

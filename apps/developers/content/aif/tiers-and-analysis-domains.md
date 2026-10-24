@@ -227,10 +227,11 @@ Runtime tests for T3 and T4 must validate both edge instrumentation and concurre
 
 ### Native fact representation
 
-Each `Site` in `runtime/aif_support.c` stores the current escape, alias, thread, and cyclicity
-values plus identity, type, source, scope, size, pin, widening, arena, and ownership metadata.
-`Constraint` records are grouped by the domain they can change. Dense `Bits` sets from
-`aif_containers.c` represent points-to/value relations; `bits_set` reports whether a set grew,
+Each site in `src/aifcore/sites.psm` stores the current escape, alias, thread, and cyclicity
+values plus identity, type, source, scope, size, pin, widening, arena, and ownership metadata,
+as one column per field rather than a record.
+`Constraint` records are grouped by the domain they can change. Dense bit sets from
+`src/aifcore/bits.psm` represent points-to/value relations; `bitsSet` reports whether a set grew,
 which is the fixed-point work signal.
 
 `aif_con_unique`, `aif_con_borrow`, `aif_con_live_in`, `aif_con_escape_caller`,
@@ -257,7 +258,7 @@ and cross-thread values so codegen can select atomic RC only when required.
 that "region membership dominates aliasing": an arena reset frees nothing individually, so sharing
 inside a region costs nothing. A container element is never arena-served — its container frees it
 through the deallocator — so a container element that is `Shared` would be freed once per holder.
-`derived_tier` (and the oracle's `tier_of`) therefore let `in_container && A == Shared` fall through
+`derivedTier` (and the oracle's `tier_of`) therefore let `in_container && A == Shared` fall through
 to T3, or T4b for a recursive type. Before 2026-09-18 that site stayed T1, and
 `list_push(ys, list_get(xs, 0))` on a struct literal read `release of a pointer that is not live`
 while `--why` said "A rose to Shared <- A-CONTAIN" over the T1 site.

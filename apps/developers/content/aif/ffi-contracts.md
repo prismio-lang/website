@@ -176,7 +176,7 @@ it.
 
 ## A produced return is not arena memory
 
-`produce(free)` says the caller owns a fresh block. It does not say *where the block came from*,
+`produce(f)` says the caller owns a fresh block and names what releases it. It does not say *where in Prismio's memory the block may live*,
 and until 2026-09-25 AIF assumed it could be anywhere a Prismio allocation could be — including an
 arena. An enclosing region was allowed to "serve" the return of any `produce` extern except
 `chan_recv`, and code generation bracketed the call with the arena hint.
@@ -202,7 +202,7 @@ served nothing:
 `str_slice`, `str_with_capacity`, `str_clone`, `str_clone_n`, `str_own`, `str_from_double`,
 `str_from_double_fixed`, `int_to_str`, `list_new`, `list_new_with_capacity`, `soa` and `aos`. When
 it is true, the walk (`src/aif/walk.psm`) applies `aif_con_foreign` to the return's site. A
-`foreign` site is refused by `arena_would_serve`, gets no frame slot (T0), and the bracket gate and
+`foreign` site is refused by `arenaWouldServe`, gets no frame slot (T0), and the bracket gate and
 its cost model report it under the `no-stack` blocker, since the reason a reader needs is the same:
 this site's storage is not this frame's.
 

@@ -86,6 +86,7 @@ The methods always add the escape sequences. Whether they belong in the output i
 | --- | --- |
 | `colorEnabled()` | whether stdout shows colour: it is a terminal, `NO_COLOR` is not set, and `TERM` is not `dumb` |
 | `stderrColorEnabled()` | the same for stderr, which is redirected separately |
+| `isTerminal(fd)` | whether the stream `fd` (1 for stdout, 2 for stderr) is a terminal and nothing more: `FORCE_COLOR` makes `colorEnabled()` say yes for a pipe, and does not change this |
 
 <!-- prismio-check: pass -->
 ```prismio

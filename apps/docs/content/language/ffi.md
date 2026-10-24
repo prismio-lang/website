@@ -78,6 +78,37 @@ Return contracts are `alias` for a borrowed/aliased result and `produce(free_fn)
 
 An `alias` result refers to storage owned elsewhere. The application must not treat it as independently owned or outlive the documented source owner. `produce(free_fn)` says the call creates owned storage and names the function required to release it.
 
+The name is the deallocator Prismio calls. For a `String` result, the bytes are copied into a string of Prismio's own as the call returns, and `free_fn` is called on the original right there. Your library gets its block back before the next statement runs, and nothing Prismio releases later came from it:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+// libc's strdup allocates with malloc, so its deallocator is libc's free.
+extern fn strdup(text: String borrow) -> String produce(free)
+
+fn main() -> Int {
+    let copy = strdup("a string from the C heap")
+    println(copy)
+    return 0
+}
+```
+
+A library with its own allocator names its own function, `produce(lib_string_free)`, and the same happens with that. On a `Ptr` or an integer handle, Prismio releases nothing, so the name documents what your code must call. On a type Prismio releases itself, such as a struct, the release would not be `free_fn`, so the compiler refuses the declaration (P4112):
+
+<!-- prismio-check: fail -->
+```prismio
+struct Point { x: Int, y: Int }
+
+extern fn point_new(x: Int, y: Int) -> Point produce(point_free)
+
+fn main() {
+    let p = point_new(1, 2)
+}
+```
+
+Return a `Ptr` and call the deallocator yourself, or write a C adapter that copies into a struct. `produce(rt_free)` is the runtime's own spelling, for a C function that allocates with `rt_base_alloc`. The standard library's declarations use it.
+
 These contracts connect foreign behavior to compiler allocation/ownership analysis. They do not cause Prismio to verify that `free_fn` is correct, thread-safe, or compatible with the allocator that created the storage.
 
 ## Foreign globals

@@ -41,9 +41,28 @@ premature balanced releases, and concurrency races require additional tests and 
 ## Base allocator and pools
 
 `rt_base_alloc` and `rt_base_realloc` are no-inline allocation boundaries so verifier,
-profiling, and native instrumentation can observe them. `rt_pool_put_or_free` returns eligible
-blocks to the runtime pool and otherwise calls the platform allocator. `rt_free` is the matching
-release. `rt_alloc` checks whether a runtime allocation should follow the active arena hint.
+profiling, and native instrumentation can observe them. `rt_free` is the matching release, and
+both names are what codegen emits: every heap object a program allocates and every release.
+`rt_alloc` checks whether a runtime allocation should follow the active arena hint.
+
+On 64-bit macOS and Linux the seam is a **slab allocator** (`runtime/lang_runtime.c`): a 64 GiB
+address range reserved once, carved into 64 KiB spans, each owned by one of 32 size classes from
+16 to 512 bytes. A block's class is its span's entry in a side table, so a release is a range
+compare, a load and a push onto a cache. The main thread uses a process-local cache, workers a
+thread-local one, and once a thread exists full caches spill batches of 64 blocks to a
+per-class shared list that the other threads refill from. Larger requests, and everything after
+a refused reservation, come from the C library. `PRISMIO_SLAB=0` in the environment turns the
+slab off at run time, which is what a sanitizer or valgrind needs, because neither can see slab
+blocks. Windows keeps the older small-block recycler, which classifies a block with `_msize`.
+A 32-bit or freestanding build uses the C library (or the program's `prismio_alloc`) directly.
+
+The invariant this sets is **one-way**. A C library block may reach `rt_free`, since anything
+outside the slab's range goes to `free`. A block from `rt_base_alloc` must never reach libc
+`free` or `realloc`, because that is corruption, not a leak. In the runtime sources the two are
+spelled `tmp_free`/`tmp_realloc` (libc) and `rt_free`/`rt_base_realloc` (seam), and the bare
+names are poisoned, so a release that does not say which allocator its block came from does
+not compile. The measurements and the staged rollout are in `docs/ALLOCATOR_PLAN.md` in the
+compiler repository.
 
 The verifier replaces the base path with `aif_verify_alloc`, `aif_verify_realloc`, and
 `aif_verify_release`. Its ledger hashes live pointers, stores sizes/state, poisons released

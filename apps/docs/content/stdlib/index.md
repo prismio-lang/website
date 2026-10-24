@@ -103,7 +103,7 @@ remains the general conservative replacement operation.
 
 Programs can declare C-compatible symbols with `extern fn`. It is the escape hatch for networking and platform services the standard library does not cover — **not** the way to reach the Prismio runtime. Files, input, clocks, arguments, and string operations are covered by [`std.fs`](/stdlib/filesystem), [`std.input`](/stdlib/input), [`std.time`](/stdlib/time), [`std.process`](/stdlib/process), and [`std.string`](/stdlib/strings), which carry the ownership contracts so applications do not have to.
 
-An `extern fn` with no contract has unknown provenance: the analysis widens it to Shared, the result gets no owner, and it leaks. Worse, `produce(free)` on a function that returns a borrowed pointer hands that pointer to the deallocator. See the [contract table](https://developers.prismio.org/runtime/supported-surface#writing-an-extern-contract) on the developer portal.
+An `extern fn` with no contract has unknown provenance: the analysis widens it to Shared, the result gets no owner, and it leaks. Worse, `produce(...)` on a function that returns a borrowed pointer hands that pointer to the deallocator. See the [contract table](https://developers.prismio.org/runtime/supported-surface#writing-an-extern-contract) on the developer portal.
 
 These pages separate existing runtime surface from planned modules. Networking is marked Coming Soon, and so is the concurrency page, for the synchronization types and `async` that are not built yet; every other page describes a module that ships.
 

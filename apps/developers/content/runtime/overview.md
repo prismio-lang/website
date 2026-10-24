@@ -134,15 +134,13 @@ Runtime changes require compiler tests, native link tests, verifier coverage whe
 | `lang_runtime.c` | `rt_base_alloc`, strings, arenas, RC, cycles, lists, DataView, slices, profiling | Language data representations and memory mechanisms | yes |
 | `program_support.c` | files, paths, process execution, CLI args, tasks, channels | Operating-system services and executable support | yes |
 | `build_driver.c` | compiler output paths, runtime discovery, object cache, linking, promotion, embedded toolchain sources | Native build and installed-toolchain mechanics | no |
-| `aif_support.c` | AIF graph, solver, layout, placement, reports | Native analysis engine used by the self-hosted compiler | no |
 | `llvm-api-backend.c` | `ir_*` implementation | LLVM object ownership and IR construction | no |
-| `ir_symbols.c` | names, declarations, scoped bindings, drop lists | Native tables needed during self-hosted lowering | no |
 
 The public declarations are collected in `prismio_runtime.h`, `prismio_platform.h`, and `prismio_llvm.h`. `prismio_runtime.h` also carries `PRISMIO_HOST_ABI`, the version of the pairing between what a compiler generation emits and what the runtime it links defines.
 
 ### Allocation entry points
 
-`rt_base_alloc`, `rt_base_realloc`, and `rt_free` are the ordinary base allocator seam. An allocation returned to Prismio goes through `rt_base_alloc`; an internal temporary the runtime frees itself does not. `rt_alloc` routes through the current arena hint when one is active. Compiler-selected mechanisms call `arena_alloc`, `rc_alloc`, or `cyc_alloc` directly through LLVM bridge helpers.
+`rt_base_alloc`, `rt_base_realloc`, and `rt_free` are the ordinary base allocator seam, and the names codegen emits for every heap object and every release; on 64-bit POSIX a slab allocator sits behind them ([allocation, arenas, RC and cycles](/runtime/allocation-arenas-rc-and-cycles)). An allocation returned to Prismio goes through `rt_base_alloc`; an internal temporary the runtime frees itself does not, and is released with `tmp_free`. A block from the seam is never handed to libc `free`. `rt_alloc` routes through the current arena hint when one is active. Compiler-selected mechanisms call `arena_alloc`, `rc_alloc`, or `cyc_alloc` directly through LLVM bridge helpers.
 
 `prismio_memory_threads_enable` turns on thread-safe memory state before spawned work can overlap. `prismio_memory_thread_enter` marks a worker, and `prismio_memory_thread_cleanup` releases its thread-local arenas and pools. Generated code must not call the single-threaded RC (reference counting) path after a value has become cross-thread.
 

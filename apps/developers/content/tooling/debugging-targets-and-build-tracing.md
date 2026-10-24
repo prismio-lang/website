@@ -62,9 +62,9 @@ include runtime discovery/curation, IR-to-object compilation, cache lookup, nati
 linking, debug-symbol output, publish, and execution.
 
 `PRISMIO_PHASE_TIMES=1` times the frontend the same way, one line per phase on stderr
-(`diag_phase_time` in `runtime/diagnostics.c`), keyed on the names the progress line already
-carries: parsing, resolving imports, checking types, analysing ownership, generating IR. It costs a
-`getenv` per phase. Read it beside `PRISMIO_BUILD_TRACE=1`: on a program that prints one line the
+(`phaseTime` in `src/common/terminal.psm`), keyed on the names the progress line already
+carries: parsing, resolving imports, checking types, analysing ownership, generating IR. It costs an
+environment read per phase. Read it beside `PRISMIO_BUILD_TRACE=1`: on a program that prints one line the
 frontend is about 3 ms of a 36 ms build, the runtime and library bitcode merge 7 ms (1.6 ms
 less on macOS and Linux, where only the definitions a program reaches are read and linked), optimisation
 and machine code 6 ms, and the link 15 ms.

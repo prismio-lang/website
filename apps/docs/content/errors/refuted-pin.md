@@ -22,7 +22,7 @@ The value may escape its lexical region, acquire aliases, enter an owning contai
 
 <!-- prismio-check: fail -->
 ```prismio
-extern fn str_concat(a: String borrow, b: String borrow) -> String produce(free)
+extern fn str_concat(a: String borrow, b: String borrow) -> String produce(rt_free)
 fn escapes() -> String {
     let pin(T1) value = str_concat("a", "b")
     return value
@@ -35,7 +35,7 @@ The returned value escapes its region, so `T1` cannot hold.
 
 <!-- prismio-check: pass -->
 ```prismio
-extern fn str_concat(a: String borrow, b: String borrow) -> String produce(free)
+extern fn str_concat(a: String borrow, b: String borrow) -> String produce(rt_free)
 fn escapes() -> String {
     let value = str_concat("a", "b")
     return value
