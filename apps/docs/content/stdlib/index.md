@@ -19,7 +19,9 @@ Prismio ships twenty-one standard-library modules:
 | [`std.string`](/stdlib/strings) | `String` and `Char` methods, parsing, formatting, `StringBuilder`, and the `String` operators |
 | [`std.unicode`](/stdlib/unicode) | grapheme clusters, terminal width, normalization |
 | [`std.fs`](/stdlib/filesystem) | files, directories, paths, `readLines`, `metadata` |
-| [`std.process`](/stdlib/process) | arguments, environment variables, the process id, starting other programs |
+| [`std.process`](/stdlib/process) | arguments, environment variables, the process id, starting other programs and reading them without blocking |
+| [`std.poll`](/stdlib/poll) | waiting on standard input and a child's pipes at once, with a timeout |
+| [`std.json`](/stdlib/json) | reading and writing JSON |
 | [`std.platform`](/stdlib/platform) | the target's operating system and architecture |
 | [`std.time`](/stdlib/time) | `Instant`, `Duration`, `unixTime()`, `sleep` |
 | [`std.math`](/stdlib/math) | Float and integer math, and every numeric type's limits |

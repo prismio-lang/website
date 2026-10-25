@@ -53,12 +53,42 @@ The input has four lines. The empty third line is a line, and the last one count
 | `readWords()` | `Vec<String>`: the rest of the input split at spaces, tabs and line ends | a list of tokens, however they are laid out |
 | `readAll()` | `String`: everything not yet read, terminators included | input that is one document rather than lines |
 | `atEndOfInput()` | `Bool`: whether there is no line left | a loop that reads a line at a time |
+| `readBytes(count)` | `String`: the next `count` bytes, fewer if the input ends first | a body whose length a header announced |
+| `waitForInput(milliseconds)` | `Bool`: whether a read would not wait | acting on a burst of input once, not on each piece |
 
 There is no `stdin` value to call them on: a process has one standard input, so each is a function of its own. `stdin.lines()` from 0.1 is `inputLines()` now, and `stdin.isAtEnd` is `atEndOfInput()`.
 
 **A line never carries its terminator.** `\n` and `\r\n` both end a line, and neither is part of it. A last line with no terminator is still a line, so `"a\nb"` and `"a\nb\n"` are the same two lines, and an empty input has none.
 
 **The reads share one buffer, so they can be mixed.** `readLine` followed by `readAll` gives the rest of the input after that line.
+
+### Length-prefixed messages
+
+`readBytes` reads through the same buffer as the lines, so a header can be read with `readLine` and the body it announced with `readBytes`. That is how the Language Server Protocol frames its messages: `Content-Length: 12`, a blank line, then exactly twelve bytes — which may themselves contain newlines, so a line-based read would have changed them.
+
+<!-- prismio-check: pass -->
+```prismio
+import std.input
+import std.io
+import std.option
+import std.string
+
+fn main() -> Int {
+    let header = readLine()
+    let blank = readLine()
+    let length = expect(header).replaceAll("Content-Length: ", "").parseInt().unwrapOr(0)
+    let body = readBytes(length)
+    println(body.length)
+    return 0
+}
+```
+
+```text
+$ printf 'Content-Length: 11\r\n\r\nhello\nworld' | ./message
+11
+```
+
+A `String` ends at its first NUL byte, so binary input is cut there; a protocol that frames *text* by length is unaffected. To wait for input *and* something else — a child's output, say — use [`waitReadable`](/stdlib/poll) with descriptor `0`; it counts bytes already in the buffer as ready, which `waitForInput` does too.
 
 ### An optional line prints, and has a fallback
 

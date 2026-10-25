@@ -510,7 +510,7 @@ until a seed that does not reference them is published.
 | `str_find_needle` | Internal short-needle search behind `strIndexOfFrom` | `bytes` |
 | `str_hash` | Code generation only: the half of `__builtin_string_hash` a pair cannot answer (a key past twelve bytes, a view, or a short string on the heap) | — |
 | `read_file` `get_directory` `join_path` | `readFile` `directoryOf` `joinPath` | `produce(rt_free)` |
-| `current_directory` `executable_directory` | `currentDirectory` `executableDirectory` | `produce(rt_free)` |
+| `current_directory` `executable_directory` `executable_path` | `currentDirectory` `executableDirectory` `executablePath` | `produce(rt_free)`; `executable_path` is the full path of the running executable (`""` when the platform cannot say), for a program that starts a copy of itself |
 | `list_modules` | `listModules` → `Vec<String>` | `produce(rt_free)` |
 | `file_exists` `delete_file` | `fileExists` `deleteFile` | → `Bool` |
 | `write_file` `make_directory` `directory_exists` | `writeFile` `makeDirectory` `directoryExists` | `borrow`; → `Bool` |
@@ -521,12 +521,17 @@ until a seed that does not reference them is published.
 | `proc_spawn_begin` `proc_spawn_arg` `proc_spawn_run` | `Process.spawn`, `Process.run` | `borrow`; `SpawnOut` written through its pointer |
 | `proc_exec` | `Process.exec` | Returns only on failure, then −1 |
 | `proc_wait` `proc_kill` | `Child.wait` `Child.kill` | → `Int` |
+| `proc_try_wait` | `Child.tryWait` → `Int?` | → `Int`; `PRISMIO_STILL_RUNNING` (−2) while the child runs, mapped to `none`. `waitpid(WNOHANG)`; Windows `WaitForSingleObject(h, 0)` |
+| `proc_read_some` | `Stream.readSome` | `produce(rt_free)`; `""` (allocated, never a literal) at end of file |
+| `poll_clear` `poll_add` `poll_wait` | `waitReadable` (std.poll) | Built a descriptor at a time like `proc_spawn_arg`, process-global and unlocked, ≤ 64. `poll(2)`; Windows polls pipes with `PeekNamedPipe` about once a millisecond. Descriptor 0 is ready when the stdin line reader holds bytes or has ended |
+| `stdio_binary` | `useBinaryStdio` | Windows `_setmode(_O_BINARY)` on descriptors 0 and 1; a no-op elsewhere |
 | `proc_read_all` | `Stream.readAll` | `produce(rt_free)` |
 | `proc_write` `proc_close` | `Stream.write` `Stream.close` | `bytes`; → `Int` |
 | `proc_env_has` `proc_env_get` | `process.env` | `borrow`; `proc_env_get` → `produce(rt_free)`, `""` for unset (never a literal) |
 | `proc_env_set` `proc_env_remove` `proc_pid` | `process.setEnv` `removeEnv` `pid` | `borrow`; → `Int` |
 | `time_monotonic_nanos` `time_unix_nanos` `time_sleep_nanos` | `Instant.now()` `unixTime()` `sleep` | → `I64` nanoseconds; POSIX `clock_gettime` / `nanosleep`, Windows `QueryPerformanceCounter` / `GetSystemTimePreciseAsFileTime` / `Sleep` |
 | `io_stdin_has_line` `io_stdin_take_line` `io_stdin_read_all` | `inputLines()` `readLine()` `readAll()` | The last two → `produce(rt_free)`, `""` at end of input (never a literal) |
+| `io_stdin_take_bytes` `io_stdin_ready` | `readBytes` `waitForInput` | `io_stdin_take_bytes` → `produce(rt_free)`: exactly `count` bytes through the line reader's buffer, fewer at end of input. `io_stdin_ready` → `Int` (1 when a read would not wait), over the same poll as `poll_wait` |
 | `mem_alloc` `mem_alloc_zeroed` `mem_realloc` `mem_free` | `alloc` `allocZeroed` `realloc` `free` | `Usize` in and out, so no contract: the address is a number Prismio never releases. On `rt_base_alloc`/`rt_free`, so `--verify` counts them; never 0, exhaustion exits |
 | `mem_copy` `mem_fill` `mem_compare` | `copy` `fill` `compare` | `memmove`, `memset`, `memcmp` (normalised to −1/0/1) |
 | `mem_bytes_data` `mem_bytes_address` | `b.address`, and the checked address behind `b[i]` and `b.readU32LE` … `b.writeFloatBE` | `borrow` on the `Vec<U8>`; curated. The access itself is `__builtin_mem_uload`/`ustore`, unaligned and tagged as byte storage so a store does not make LLVM reload the header; big-endian is `__builtin_swap_bytes`, a Float `__builtin_float_bits` |

@@ -202,6 +202,50 @@ fn main() -> Int {
 QUIET WORDS
 ```
 
+## Doing other things while a child runs
+
+`readAll` waits for the end, so it cannot be one of several things a program is doing. `Stream.readSome(max)` returns what the child has written so far, `Child.tryWait()` asks whether it has exited without waiting, and [`waitReadable`](/stdlib/poll) waits on a child's output and on anything else — standard input, another child — with a timeout:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+import std.option
+import std.poll
+import std.process
+import std.string
+import std.time
+import std.vec
+
+fn main() -> Int {
+    let echo = Process()
+    echo.program = "echo"
+    echo.arguments = ["done"]
+    echo.stdout = StreamMode.Pipe
+    let child = echo.spawn()
+
+    // Do other work, or just wait with a limit, until the child speaks.
+    if (waitReadable(child.stdout.descriptor, 5000)) {
+        print(child.stdout.readSome(4096))
+    }
+
+    // `none` while it runs; its status once it has exited.
+    let mut status = child.tryWait()
+    while (status == none) {
+        sleep(Duration.fromMillis(5))
+        status = child.tryWait()
+    }
+    println(status.unwrapOr(0 - 1))
+    return 0
+}
+```
+
+```text
+done
+0
+```
+
+`readSome` returns `""` when the child has closed its end. A child that `tryWait` has reported is **already reaped**: calling `wait` on it afterwards fails with `-1`. `kill()` then `tryWait()` in a loop is how to end a child without blocking.
+
 ## Reference
 
 **`Process`** — what to start. `Process()` gives one with nothing set and all three streams inherited.
@@ -233,6 +277,7 @@ QUIET WORDS
 | `handle` | `I64`: a pid on POSIX, a process `HANDLE` on Windows; negative if the start failed |
 | `stdin`, `stdout`, `stderr` | `Stream`s; only a piped one is open |
 | `wait()` | blocks until the child exits; its status, or `-1` if it could not be waited for |
+| `tryWait()` | `Int?`: the status if it has exited (and is now reaped), `none` while it runs; never waits |
 | `kill()` | terminates it; `0` on success. Call `wait()` afterwards |
 
 **`Stream`** — one end of a pipe, or nothing.
@@ -240,9 +285,12 @@ QUIET WORDS
 | Method | Returns |
 |---|---|
 | `readAll()` | everything until the child closes its end; `""` for a stream that is not a pipe |
+| `readSome(max)` | up to `max` bytes the child has written, waiting only until there are some; `""` once it has closed its end |
 | `write(text)` | bytes written, or `-1`; a short count means the child closed its end |
 | `close()` | `0`, or `-1` |
 | `isOpen()` | whether there is a descriptor at all |
+
+`useBinaryStdio()` makes this process's standard input and output carry bytes, not text. It matters only on Windows, where the C library otherwise turns `\n` into `\r\n` on output and ends input at a Ctrl-Z; a program that frames messages by byte count corrupts every message without it. Call it first.
 
 ## Things that bite
 

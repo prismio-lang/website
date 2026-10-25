@@ -63,6 +63,7 @@ You cannot: the runtime's raw entry points (`read_file`, `join_path` and the oth
 | `directoryOf(path)` | the directory part, without the trailing separator; `"."` when there is none |
 | `currentDirectory()` | the working directory; `"."` when the platform cannot answer |
 | `executableDirectory()` | the directory holding the running executable; `"."` on failure |
+| `executablePath()` | the full path of the running executable, for a program that starts a copy of itself (a bare name would be looked up on `PATH` and might find another build); `""` on failure |
 | `isSourcePath(path)` | whether `path` ends in `.psm` |
 
 ## Files
