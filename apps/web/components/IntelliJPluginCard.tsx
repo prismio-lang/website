@@ -12,7 +12,7 @@ const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:rin
 const PLUGIN_NAME = 'Prismio';
 const PLUGIN_VERSION = '0.1.0';
 const MARKETPLACE_URL = 'https://plugins.jetbrains.com/plugin/34672-prismio';
-const GITHUB_URL = 'https://github.com/prismio-lang/intellij-plugin';
+const GITHUB_URL = 'https://github.com/prismio-lang/jetbrains-plugin';
 
 // What the plugin does, taken from its own Marketplace description.
 const FEATURES = [
