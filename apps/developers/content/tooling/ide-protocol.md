@@ -3,12 +3,12 @@ title: IDE and JSON diagnostics protocol
 description: The analysis-only check command, versioned JSON Lines diagnostics, source positions, severities, and editor integration rules.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-30"
+lastUpdated: "2026-10-26"
 tags: [ide, diagnostics, json]
-related: [compiler/diagnostics, compiler/cli, cookbook/add-a-diagnostic, tooling/intellij-plugin]
+related: [compiler/diagnostics, compiler/cli, cookbook/add-a-diagnostic, tooling/intellij-plugin, tooling/language-server, tooling/vscode-extension]
 ---
 
-Editors should invoke `prismio check <source.psm> --diagnostic-format=json`. The command runs
+Editors should start `prismio lsp` ([the language server](/tooling/language-server)), which runs everything on this page for them. A client that cannot speak LSP can use the commands directly, starting with `prismio check <source.psm> --diagnostic-format=json`. The command runs
 imports, parsing, semantic analysis, ownership checks, and relevant analysis without generating
 LLVM IR, invoking the native linker, or creating an output artifact.
 
@@ -25,6 +25,17 @@ IntelliJ plugin looks for a file's program.
 The wire contract is documented in the repository's `IDE_PROTOCOL.md`. Output is JSON Lines so a
 client can process one diagnostic record at a time. Records identify schema version, severity,
 message, source file, and source range according to the current protocol.
+
+## Beyond diagnostics
+
+The same `check` also gives an editor what it needs to answer a question about the program, and four other commands exist for editors. The full contract is `IDE_PROTOCOL.md` in the compiler repository; what each is for:
+
+- **`check --partial`** keeps type checking a program that does not parse, over the declarations that did. A file open in an editor does not parse most of the time it is being edited; without this the editor would show a syntax error and nothing else.
+- **`check --emit-index <file>`** writes JSON Lines (`file`, `decl`, `ref`, `arg`, `unresolved`, `stats`): every declaration with its signature, type and comment, and every use of a name with the declaration it resolves to. Hover, definition, references, rename, symbols, inlay hints and semantic tokens are reads of it. A run that is killed leaves no `stats` line, so a reader never takes half an index.
+- **`check ... --complete <file> <line> <column>`** with the placeholder trick: the client writes `ixcursor__` where the word being typed starts, and the compiler lists what could stand there (members of the type before a `.`, names in scope, a module's contents). No list of library names is kept anywhere but the compiler.
+- **`check build.ums`** is the manifest language's own check, with the same JSON.
+- **`prismio fmt`** is the formatter (`--check`, `--write`, `--range`), shared by the editor, the server and CI.
+- **`prismio dump-tokens`** prints the token tables so a grammar or lexer is generated from them.
 
 ## Stream discipline
 

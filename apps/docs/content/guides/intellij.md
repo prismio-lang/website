@@ -24,6 +24,8 @@ It needs a JetBrains IDE from 2026.2 on, and works in IntelliJ IDEA and CLion, w
 
 The plugin finds `prismio` on your `PATH` by itself. If it cannot, or you want a different one, open **Settings | Languages & Frameworks | Prismio**, browse to the compiler, or press **Auto-Detect**. When Auto-Detect finds nothing, it says where it looked.
 
+Errors as you type come from the toolchain's language server, `prismio lsp`, which the plugin starts with that compiler (see [Set up your editor](/guides/editors)). The setting **Use the Prismio language server**, just below the compiler path, turns it off; with it off the plugin shows no compiler errors. The plugin's own completion, navigation and documentation are still its own and are moving to the server one feature at a time.
+
 Completion and error checking come from the compiler you pick, so a newer or older compiler shows its own functions and methods. There is nothing else to configure.
 
 ## Start a project

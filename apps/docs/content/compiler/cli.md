@@ -13,7 +13,10 @@ related: [start/build-and-run, compiler/aif, compiler/targets]
 ```text
 prismio build <source.psm> [-o output] [options]
 prismio run <source.psm> [options] [-- program-args...]
-prismio check <source.psm> [--diagnostic-format=json] [--overlay <file.psm> <text>] [--module <name>]
+prismio check <source.psm|build.ums> [--diagnostic-format=json] [--partial] [--overlay <file> <text>]... [--module <name>]
+prismio fmt <source.psm>... [--check] [--write] [--range <from>:<to>]
+prismio dump-tokens
+prismio lsp
 prismio dump-ast <source.psm>
 prismio aif <source.psm> [aif-options]
 prismio runtime-hash
@@ -84,6 +87,16 @@ There is no `bootstrap` command. The Prismio compiler is built from its reposito
 `dump-ast` parses a source entry and prints the compiler's current AST representation for development. The textual representation is diagnostic/internal and is not a stable machine protocol.
 
 `runtime-hash` prints the identity used to reason about the embedded/installed runtime content. It helps distinguish a compiler built with different runtime sources.
+
+## Editor commands
+
+These exist for editors and for CI; [Set up your editor](/guides/editors) shows them working.
+
+- **`prismio lsp`** is the language server, over standard input and output. It is started by the editor, takes no arguments, and is a program of its own installed beside `prismio` (`P1099` if it is missing).
+- **`prismio fmt <file>...`** checks or rewrites formatting. With no flag it prints nothing and exits 0 when every file is formatted. `--check` prints `would reformat <file>` for each file that is not and exits 1; `--write` rewrites them; `--range <from>:<to>` formats only those 1-based lines. Only whitespace moves.
+- **`prismio check build.ums`** checks a manifest with the same diagnostics (`UMS####` codes) and the same `--diagnostic-format=json` as a source.
+- **`prismio check --partial`** keeps type checking a program that does not parse, over the declarations that did; it holds back only the `unknown ...` errors that the dropped text could have caused. **`--emit-index <file>`** writes what the compiler knows about the program (declarations, references, types) as JSON Lines, and **`--complete <file> <line> <column>`** adds what could be written at a placeholder; see the [protocol page](https://developers.prismio.org/tooling/ide-protocol).
+- **`prismio dump-tokens`** prints the keywords, operators, built-in types and contextual keywords as one JSON object, so a grammar or lexer can be generated instead of copied.
 
 ## Build options
 
