@@ -17,6 +17,7 @@ prismio check <source.psm|build.ums> [--diagnostic-format=json] [--partial] [--o
 prismio fmt <source.psm|folder>... [--check] [--write] [--range <from>:<to>]
 prismio fmt --stdin [--range <from>:<to>]
 prismio dump-tokens
+prismio library-source <file.plib> <module>
 prismio lsp
 prismio dump-ast <source.psm>
 prismio aif <source.psm> [aif-options]
@@ -98,6 +99,7 @@ These exist for editors and for CI; [Set up your editor](/guides/editors) shows 
 - **`prismio check build.ums`** checks a manifest with the same diagnostics (`UMS####` codes) and the same `--diagnostic-format=json` as a source.
 - **`prismio check --partial`** keeps type checking a program that does not parse, over the declarations that did; it holds back only the `unknown ...` errors that the dropped text could have caused. **`--emit-index <file>`** writes what the compiler knows about the program (declarations, references, types) as JSON Lines, and **`--complete <file> <line> <column>`** adds what could be written at a placeholder; see the [protocol page](https://developers.prismio.org/tooling/ide-protocol).
 - **`prismio dump-tokens`** prints the keywords, operators, built-in types and contextual keywords as one JSON object, so a grammar or lexer can be generated instead of copied.
+- **`prismio library-source <file.plib> <module>`** prints the source a compiled library module carries, which is what the language server shows for a definition in the standard library. `P1119` is a wrong argument list and `P1120` a file that cannot be read or that holds another module.
 
 ## Build options
 

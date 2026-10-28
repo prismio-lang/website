@@ -142,6 +142,8 @@ The tables give each code's severity, the message it prints (with `x` standing f
 | `P1096` | error | could not record the native flag `x` | `--native-flag` ran out of memory storing it |
 | `P1117` | error | `build` is reserved for the values in build.ums, and this project has a module of that name | `import build` always means the manifest. Rename your module |
 | `P1118` | error | `import build` needs a valid build.ums: x | The import reads `project` values from the manifest found at or above the file. Fix the manifest the message names, or add one |
+| `P1119` | error | `library-source` takes the .plib file and the name of its module | `prismio library-source <file.plib> <module>` prints the source a compiled library module carries; it is what the language server uses to show a definition in the library |
+| `P1120` | error | cannot read the interface of file.plib: x | The file is missing, is not a PLIB v3 artifact, or holds another module than the one named. The message says which |
 | `P1029` | error | `--force-layout=` takes `<Type>:<hot-field-count>` | Write it as `--force-layout=Particle:8` |
 | `P1030` | error | `--budget=` must be at least 1 round | Give a positive round count |
 | `P1031` | error | `--target` requires an LLVM target triple | `prismio aif --target` needs one, for example `wasm32-unknown-unknown` |

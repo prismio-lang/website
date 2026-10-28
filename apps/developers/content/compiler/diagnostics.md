@@ -163,6 +163,7 @@ Every driver and project code is a call to `diag_error_code` or `diag_warning_co
 | File | Codes |
 |---|---|
 | `src/driver/imports.psm` | `P1001`, `P1002`, `P1068`–`P1072`, `P1094`, `P1117`, `P1118` |
+| `src/driver/library_source.psm` | `P1119`, `P1120` |
 | `src/driver/compile.psm` | `P1003`–`P1005`, `P1008`, `P1010`–`P1012`, `P1075` |
 | `src/driver/workload.psm` | `P1006`, `P1007` |
 | `src/main.psm` | `P1024`–`P1034`, `P1036`, `P1037`, `P1039`–`P1050`, `P1073`, `P1076`, `P1079`, `P1090`–`P1093`, `P1095`, `P1096` |
