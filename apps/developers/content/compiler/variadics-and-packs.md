@@ -18,7 +18,7 @@ A pack (`...args: Ts`) takes any number of arguments, and a `typelist` says whic
 | `typelist Name { ... }` / `( ... )` → `TYPELIST_DECL` | `parse/typelists.psm` |
 | `...name: T` on a parameter (`i1` = 1), packs last (`P3015`), none on `extern fn` (`P3014`) | `parse/decl.psm` |
 | `...args` at a call → `SPREAD_EXPR` | `parse/expr.psm` |
-| What a typelist accepts: types, traits, nested lists | `sema/typelists.psm` |
+| What a typelist accepts: types (optional ones too: the `?` is `i3` on the entry's annotation), traits, nested lists | `sema/typelists.psm` |
 | Binding a call to the packs, instantiating, rewriting the body | `sema/packs.psm` |
 | Treating a function with a pack as a template | `monoIsTemplate` in `sema/generics.psm` |
 | The one call site | `semaCallExpr`, just before `monoResolveGenericCall` |

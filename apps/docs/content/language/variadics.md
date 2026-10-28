@@ -17,11 +17,12 @@ A `typelist` is a named list of types. **The delimiter chooses whether order mat
 ```prismio
 typelist Scalars { Int, I64, Float, Bool }     // a set: any of these, in any order
 typelist Printable { Display }                 // a set with a trait: every type that implements it
+typelist Maybe { Int?, String? }               // optionals: `Int?` is an entry, distinct from `Int`
 typelist Row (Int, String, Bool)               // a sequence: an Int, then a String, then a Bool
 typelist Named (id: Int, name: String)         // a sequence with a name for each position
 ```
 
-An entry is a type, a trait (any type implementing it fits) or another typelist. `typelist` is a contextual word, like `codeset`, and a name that is not followed by a typelist declaration is an ordinary identifier. A typelist exists only at compile time: it is not a type and not a value.
+An entry is a type, a trait (any type implementing it fits) or another typelist. A type may be optional: `Int?` is its own entry, a different one from `Int`, so a list that wants both writes both. A trait or a typelist cannot be optional (`Display?` is an error at the declaration). `typelist` is a contextual word, like `codeset`, and a name that is not followed by a typelist declaration is an ordinary identifier. A typelist exists only at compile time: it is not a type and not a value.
 
 ## A pack
 
@@ -195,7 +196,7 @@ The error is ``argument 2 has type `Opaque`, which is not in `Printable` ``. For
 ## Limits
 
 - A call may pass at most **128** variadic arguments. A pack function that calls itself with more arguments than it received (`f(...xs, 1)`) makes a longer function at each step and would never end; the 129th is an error that says so.
-- A typelist is checked where it is written, once: an entry that names nothing, a list that is empty, contains itself, repeats a type or names an entry of a set is an error at the declaration. A `private` or `internal` list is as visible as a type: it can bound a pack in the file or package that declares it.
+- A typelist is checked where it is written, once: an entry that names nothing, a list that is empty, contains itself, repeats a type (`Int` and `Int?` are different types) or names an entry of a set is an error at the declaration. A `private` or `internal` list is as visible as a type: it can bound a pack in the file or package that declares it.
 - An error inside a pack function's body is reported once, however many arguments the body was repeated for.
 
 ## Not available yet
