@@ -40,7 +40,7 @@ tagged until three platforms have agreed on the exact commit that would be tagge
 | `prismio bench` | the cross-language benchmarks |
 
 1. **Refresh what is generated from the tree, first.** `prismio build` twice, so the host is a fixpoint of
-   this `src/`; `graphify update .`. The refresh belongs in the commit that gets tested: a refresh after the
+   this `src/`. The refresh belongs in the commit that gets tested: a refresh after the
    gate makes a new commit the gate has not seen. The seed is not part of it: it is `bootstrap/seed.ll`, a refreshed one is
    committed only when the maintainer says so, and a new one is cut after the tag (step 5).
 2. **`prismio gate`.** It lints, packages the host the way a user installs it, puts the pinned LLVM first on
@@ -65,7 +65,6 @@ In commands, from the compiler checkout:
 
 ```bash
 prismio build && prismio build                                   # the host is a fixpoint of this src/
-graphify update .                                                # AST only; the seed is cut after the tag
 prismio gate                                                     # green on this exact commit
 git push origin main                                             # needs the owner's go-ahead
 gh workflow run ci.yml --ref main                                # CI does not run on push

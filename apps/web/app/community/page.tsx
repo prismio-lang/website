@@ -95,7 +95,7 @@ const AREAS = [
     },
     {
         title: 'Editor support',
-        path: 'intellij-plugin · prismio-tmlanguage',
+        path: 'jetbrains-plugin · prismio-tmlanguage',
         copy: 'The JetBrains plugin and the TextMate grammar used for syntax highlighting.',
         href: 'https://github.com/prismio-lang/jetbrains-plugin',
         label: 'Open the plugin',

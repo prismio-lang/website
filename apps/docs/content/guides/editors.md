@@ -20,7 +20,7 @@ If it is not there, `prismio lsp` refuses to start and names what is missing (`P
 
 ## VS Code
 
-Install the **Prismio** extension from its `.vsix` (it is built from the `vscode-prismio` repository with `npm run package`; it is not on the Marketplace yet):
+Install the **Prismio** extension from its `.vsix` (it is built from the `vscode-plugin` repository with `npm run package`; it is not on the Marketplace yet):
 
 ```bash
 code --install-extension prismio-0.1.0.vsix

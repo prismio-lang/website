@@ -8,14 +8,14 @@ tags: [vscode, editor, lsp, tooling]
 related: [tooling/language-server, tooling/ide-protocol, tooling/intellij-plugin, compiler/cli]
 ---
 
-An editor extension that knows the language has to be kept in step with the compiler, one release at a time. This one does not know the language: it starts `prismio lsp`, and everything an editor shows (errors, hover, completion, rename, formatting) is the toolchain's answer. What is left for the extension is finding the toolchain, colouring text before the server has answered, and offering the tasks `build.ums` declares. The code is in the `vscode-prismio` repository.
+An editor extension that knows the language has to be kept in step with the compiler, one release at a time. This one does not know the language: it starts `prismio lsp`, and everything an editor shows (errors, hover, completion, rename, formatting) is the toolchain's answer. What is left for the extension is finding the toolchain, colouring text before the server has answered, and offering the tasks `build.ums` declares. The code is in the `vscode-plugin` repository.
 
 ## See it work
 
 The end-to-end suite starts the installed VS Code with the extension and a throwaway copy of a demo project, and asks the editor's own commands what they see:
 
 ```bash
-cd vscode-prismio
+cd vscode-plugin
 npm install
 PRISMIO=/path/to/prismio npm test
 ```

@@ -8,14 +8,14 @@ tags: [ide, intellij, plugin, tooling]
 related: [tooling/ide-protocol, tooling/ums-overview, tooling/compiler-host-and-promotion, compiler/diagnostics, start/repository-tour]
 ---
 
-The plugin is a separate repository, `intellij-plugin`, beside the compiler. It reads the compiler's behaviour rather than linking it: errors come from `prismio check`, the standard library from the toolchain's files, and projects from the same files `prismio init` writes. That makes it fragile in one direction only: when the compiler changes, a table in the plugin may be stale and nothing fails until someone looks.
+The plugin is a separate repository, `jetbrains-plugin`, beside the compiler. It reads the compiler's behaviour rather than linking it: errors come from `prismio check`, the standard library from the toolchain's files, and projects from the same files `prismio init` writes. That makes it fragile in one direction only: when the compiler changes, a table in the plugin may be stale and nothing fails until someone looks.
 
 Users of the plugin should read [the user guide](https://docs.prismio.org/guides/intellij). This page is for changing it.
 
 ## Build and test
 
 ```bash
-cd ../intellij-plugin
+cd ../jetbrains-plugin
 ./gradlew test --offline -Dprismio.checkout=/path/to/prismio   # the corpus tests need a checkout
 ./gradlew verifyPlugin buildPlugin --offline                    # compatibility, then the zip
 ./gradlew verifyPlugin --offline -Pprismio.verifyIdes="/path/CLion.app:/path/WebStorm.app"   # more IDEs
