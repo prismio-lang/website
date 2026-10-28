@@ -72,6 +72,16 @@ fn add(a: Int, b: Int) -> Int {
 
 `--range <from>:<to>` formats only those lines, which is what an editor's "format selection" sends.
 
+Line breaks are yours, with one exception: an `if` that has an `else` (and an `else if` chain) is written over several lines, one branch to a block, with `} else {` kept together. An `if` with no `else` is left as written, on one line or several, and an empty branch stays `{ }`:
+
+```text
+if (a) { b() } else { c() }   →   if (a) {
+                                      b()
+                                  } else {
+                                      c()
+                                  }
+```
+
 ## When something looks wrong
 
 - **No errors appear and nothing completes.** The server did not start. In VS Code, open the **Prismio** output channel; in IntelliJ, the IDE log (**Help | Show Log**). A toolchain that has no `prismio-lsp` beside it refuses with `P1099`.

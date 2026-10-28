@@ -78,6 +78,8 @@ The compiler itself treats these as ordinary comments; only the editor reads the
 
 Formatting treats `/** */` like `/* */`, and keeps a comment's leading stars lined up.
 
+An `if` that has an `else` is formatted over several lines, one branch to a block, with `} else {` kept together; an `if` with no `else` is left as you wrote it, on one line or several.
+
 ## Not available yet
 
 - Only IntelliJ IDEA and CLion have been used by hand. WebStorm, RustRover and the rest of the 2026.2 IDEs pass the compatibility check but are not confirmed.
