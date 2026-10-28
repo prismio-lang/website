@@ -14,7 +14,8 @@ related: [start/build-and-run, compiler/aif, compiler/targets]
 prismio build <source.psm> [-o output] [options]
 prismio run <source.psm> [options] [-- program-args...]
 prismio check <source.psm|build.ums> [--diagnostic-format=json] [--partial] [--overlay <file> <text>]... [--module <name>]
-prismio fmt <source.psm>... [--check] [--write] [--range <from>:<to>]
+prismio fmt <source.psm|folder>... [--check] [--write] [--range <from>:<to>]
+prismio fmt --stdin [--range <from>:<to>]
 prismio dump-tokens
 prismio lsp
 prismio dump-ast <source.psm>
@@ -93,7 +94,7 @@ There is no `bootstrap` command. The Prismio compiler is built from its reposito
 These exist for editors and for CI; [Set up your editor](/guides/editors) shows them working.
 
 - **`prismio lsp`** is the language server, over standard input and output. It is started by the editor, takes no arguments, and is a program of its own installed beside `prismio` (`P1099` if it is missing).
-- **`prismio fmt <file>...`** checks or rewrites formatting. With no flag it prints nothing and exits 0 when every file is formatted. `--check` prints `would reformat <file>` for each file that is not and exits 1; `--write` rewrites them; `--range <from>:<to>` formats only those 1-based lines. Only whitespace moves; the one line it splits is an `if` that has an `else`, whose branches are each written on lines of their own (an `if` with no `else` stays as you wrote it).
+- **`prismio fmt <file|folder>...`** formats Prismio source. Name any number of files and folders; a folder stands for every `.psm` file under it, searched recursively in order, and a hidden folder inside it (`.git`, `.prismio`) is skipped. With no flag it prints the formatted text of one file to standard output; several files need a flag. `--check` writes nothing, prints `would reformat <file>` for each file that is not formatted and exits 1, which is the CI form; `--write` rewrites those files in place; `--range <from>:<to>` formats only those 1-based lines of one file. `--stdin` formats what is piped in (how an editor formats an unsaved buffer) and takes no file. Only whitespace moves; the one line it splits is an `if` that has an `else`, whose branches are each written on lines of their own (an `if` with no `else` stays as you wrote it).
 - **`prismio check build.ums`** checks a manifest with the same diagnostics (`UMS####` codes) and the same `--diagnostic-format=json` as a source.
 - **`prismio check --partial`** keeps type checking a program that does not parse, over the declarations that did; it holds back only the `unknown ...` errors that the dropped text could have caused. **`--emit-index <file>`** writes what the compiler knows about the program (declarations, references, types) as JSON Lines, and **`--complete <file> <line> <column>`** adds what could be written at a placeholder; see the [protocol page](https://developers.prismio.org/tooling/ide-protocol).
 - **`prismio dump-tokens`** prints the keywords, operators, built-in types and contextual keywords as one JSON object, so a grammar or lexer can be generated instead of copied.

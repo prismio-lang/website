@@ -72,6 +72,13 @@ fn add(a: Int, b: Int) -> Int {
 
 `--range <from>:<to>` formats only those lines, which is what an editor's "format selection" sends.
 
+Name files or folders, as many as you like. A folder stands for every `.psm` file under it, searched recursively, with hidden folders such as `.git` skipped:
+
+```bash
+prismio fmt --check src std lsp          # CI: exits 1 if any file would change
+prismio fmt --write src tests/test_1.psm # a folder and a file in one command
+```
+
 Line breaks are yours, with one exception: an `if` that has an `else` (and an `else if` chain) is written over several lines, one branch to a block, with `} else {` kept together. An `if` with no `else` is left as written, on one line or several, and an empty branch stays `{ }`:
 
 ```text
