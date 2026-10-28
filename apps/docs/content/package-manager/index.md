@@ -152,6 +152,48 @@ error code it can report, is in the
 `P10xx` errors the commands themselves report are in the
 [diagnostic codes](/compiler/diagnostics#driver-and-project-codes-p10xx).
 
+## Constants and the manifest in code
+
+A manifest can name a value once and use it everywhere, with `const` and `enum`:
+
+```ums
+const MAJOR = 0
+const VERSION = "${MAJOR}.2.0"
+
+enum Channel { STABLE = "stable", BETA }
+const CHANNEL = Channel.BETA
+
+project {
+    name = "app-${CHANNEL}"
+    version = VERSION
+    prismio = "0.1"
+}
+```
+
+A name stands for its value anywhere a value is written, and `${NAME}` inside a
+string is replaced by it (`$$` is a literal `$`). An enum fixes the set of values
+a name may take: `Channel.GAMMA` is an error, where a typo in a plain string would
+not be. The `toolchain` block takes literals only.
+
+Your program reads the same `project` values with `import build`, with nothing to
+generate and nothing that can go stale:
+
+```prismio
+import build
+
+fn main() -> Int {
+    println("${BUILD_NAME} ${BUILD_VERSION}")
+    return 0
+}
+```
+
+`BUILD_NAME`, `BUILD_VERSION`, `BUILD_VERSION_MAJOR`, `BUILD_VERSION_MINOR`,
+`BUILD_VERSION_PATCH`, `BUILD_PRISMIO`, `BUILD_DESCRIPTION`, `BUILD_LICENSE`,
+`BUILD_LICENSE_FILE` and `buildAuthors()` are available; `import
+build.BUILD_VERSION` takes one. The
+[manifest reference](https://developers.prismio.org/tooling/build-manifest#using-the-manifest-from-code)
+lists each with its type.
+
 ## C code and native libraries
 
 A target can compile C sources of its own and link them into the executable.

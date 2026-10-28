@@ -95,23 +95,81 @@ targets {
 
 ## Syntax
 
-The syntax is small and has no keywords. Every name in a manifest is an identifier, and the meaning of `project`, `targets` or `executable` is decided afterwards, by [lowering](#if-you-are-changing-the-manifest), from where the name sits. That is why a newer manifest can still be parsed by an older compiler, which then reports the block it does not know instead of failing to read the file.
+The syntax is small and has two contextual keywords, `const` and `enum`, which declare names and are gone before lowering (see [constants and enums](#constants-and-enums)). Every other name in a manifest is an identifier, and the meaning of `project`, `targets` or `executable` is decided afterwards, by [lowering](#if-you-are-changing-the-manifest), from where the name sits. That is why a newer manifest can still be parsed by an older compiler, which then reports the block it does not know instead of failing to read the file.
 
 | Element | Form |
 |---|---|
 | Comment | `// to end of line` or `# to end of line` |
-| Identifier | starts with a letter or `_`; continues with letters, digits, `_` and `-` |
-| String | `"text"` with the escapes `\\`, `\"`, `\n`, `\r` and `\t`. A string ends at the closing quote or the end of the line |
+| Identifier | starts with a letter or `_`; continues with letters, digits, `_` and `-`. A `.` followed by a letter joins `Channel.BETA` into one identifier |
+| String | `"text"` with the escapes `\\`, `\"`, `\n`, `\r` and `\t`. A string ends at the closing quote or the end of the line. `${NAME}` inside one is replaced by a constant's value, and `$$` is a literal `$` |
 | Integer | one or more digits. There are no negative numbers |
 | Boolean | `true` or `false` |
-| Array | `["a", "b"]`, of scalar values, with an optional trailing comma. Only `authors` uses one |
+| Array | `["a", "b"]`, of scalar values, with an optional trailing comma. `authors` uses one, and a `const` may hold one |
 | Assignment | `key = value` |
+| Constant | `const NAME = value`, at the top level |
+| Enum | `enum Name { A, B = "b" }`, at the top level |
 | Call | `name("string", "string")`. Arguments are strings, or for a command step the bare word `args` |
 | Block | `name { ... }` or `name("string") { ... }`, holding assignments, calls and blocks |
 
 Semicolons are accepted after a statement and are never needed. Whitespace, including newlines, is insignificant, so a block may be written on one line.
 
 An element with neither arguments nor a block is an error (`UMS1102`). Statements are read generically first, so a block the loader does not understand is diagnosed by name at the top level (`UMS2006`) and does not stop the rest of the file from being checked.
+
+## Constants and enums
+
+A `const` gives a value a name, and an `enum` is a closed set of named values. Both are written at the top level and neither survives to lowering: a name is replaced by what it stands for, so every block reads the same manifest it would have if the value had been typed out.
+
+```ums
+const MAJOR = 0
+const VERSION = "${MAJOR}.2.0"
+const AUTHORS = ["Saksham Jaiswal"]
+
+enum Channel { STABLE = "stable", BETA }
+const CHANNEL = Channel.BETA
+
+project {
+    name = "prismio-${CHANNEL}"
+    version = VERSION
+    authors = AUTHORS
+}
+```
+
+- **A name stands for its value wherever a value is written**: an assignment, a call argument (`run(TOOL, FLAG, args)`), an array item. A constant that holds an array can be assigned to a key that takes one (`authors = AUTHORS`), and is an error anywhere that takes a single value.
+- **Interpolation** replaces `${NAME}` and `${Enum.VARIANT}` inside a string. `$$` is a literal `$`, and a `$` followed by anything else is left alone, so a string that never meant to interpolate keeps its meaning (`"$HOME"` is unchanged).
+- **An enum variant** is its name, or the value written after `=` (a string, integer or boolean). `Channel.STABLE` is `"stable"`, and `Channel.BETA` is `"BETA"`. Naming a variant the enum lacks is an error, which is the point of declaring the set.
+- **Order.** A declaration may use only the declarations above it, so there is no cycle to detect. A use anywhere else sees every declaration, wherever it is written.
+- **`toolchain` takes literals.** The installed compiler reads that block from the first bytes of the file, before any constant exists (`UMS1209`).
+- **`args`** is the command's own argument marker and cannot be declared.
+
+## Using the manifest from code
+
+A program reads the manifest's `project` values with `import build`:
+
+```prismio
+import build
+
+fn main() -> Int {
+    println("${BUILD_NAME} ${BUILD_VERSION}")
+    return 0
+}
+```
+
+`import build.BUILD_VERSION` names just the value wanted. `build` is not a file: the compiler writes the module's source in memory when it meets the import, from the `build.ums` found at or above the file being compiled, so it is never stale and there is no step that generates it. Each value is a literal, which the optimiser sees through.
+
+| Name | Type | Value |
+|---|---|---|
+| `BUILD_NAME` | `String` | `project.name` |
+| `BUILD_VERSION` | `String` | `project.version` |
+| `BUILD_VERSION_MAJOR`, `BUILD_VERSION_MINOR`, `BUILD_VERSION_PATCH` | `Int` | the leading digits of each part of the version; 0 for a part that is missing or has none |
+| `BUILD_PRISMIO` | `String` | `project.prismio` |
+| `BUILD_DESCRIPTION`, `BUILD_LICENSE`, `BUILD_LICENSE_FILE` | `String` | the property, or `""` when it is not written |
+| `buildAuthors()` | `Vec<String>` | `project.authors`; a function because a list is not a constant initializer |
+
+These are globals rather than members of a `build` namespace because a global cannot be reached through a module name and a property may not return a string. They carry a `BUILD_` prefix because every global lives in one namespace.
+
+Constants and enums are resolved before the module is written, so a version built from `${MAJOR}` is the string the program sees. They are not exposed as names of their own.
+
+`build` is a reserved import root, like `ums` and `lsp`. A project module called `build` is refused (`P1117`) rather than shadowed, and an import that cannot find or load a manifest is `P1118`: a project whose manifest is wrong has no values worth compiling in.
 
 ## Blocks at the top level
 
@@ -277,6 +335,22 @@ Loading collects every diagnostic it can before printing any, so one run reports
 | `UMS1101` | expected X, found Y | The token in the message is not what the statement needs. Look for a missing `,`, `)` or `}` |
 | `UMS1102` | DSL element 'x' requires arguments or a block | A bare name does nothing. Give it `("arguments")`, a `{ block }` or `= value` |
 
+### Constants and enums
+
+| Code | Message | What to do |
+|---|---|---|
+| `UMS1201` | const and enum are declared at the top level of build.ums | Move the declaration out of the block |
+| `UMS1202` | constant name 'x' must be letters, digits and '_' (or 'args' cannot be declared) | Rename it; `args` belongs to commands |
+| `UMS1203` | unknown constant 'x' | Declare `const x = ...`, or fix the spelling |
+| `UMS1204` | 'x' is declared more than once (or a variant is, within its enum) | Keep one |
+| `UMS1205` | unknown enum 'x' | Declare the enum, or fix the spelling |
+| `UMS1206` | enum 'x' has no variant 'y' | Name a variant the enum declares |
+| `UMS1207` | constant 'x' is a list, and this place takes one value | Assign it to a key that takes a list, or use an item |
+| `UMS1208` | '${' is never closed with '}' | Close it, or write `$$` for a literal `$` |
+| `UMS1209` | toolchain takes literals | Write the host path out; the installed compiler reads it first |
+
+A name or value that fails here keeps its raw text, so lowering may report the same line again (`UMS2001`, say). That is one mistake reported twice, never a silent wrong value.
+
 ### Blocks and the project
 
 | Code | Message | What to do |
@@ -397,7 +471,7 @@ The codes not listed are not issued. `UMS2315` is unassigned, and a number is no
 
 ## If you are changing the manifest
 
-The pipeline is `umsLex`, then `umsParse`, then `umsLowerDocument`, then `validate`, then the build plan. **Lowering** in `ums/model/lowering.psm` checks shape: which names and arguments are allowed, and what kind of value each key takes. **Validation** in `ums/model/validation.psm` checks meaning: that a name is well formed, that a file exists, that a step names something real. Put a new check in the stage that has what it needs, and give it its own code, since a code is permanent.
+The pipeline is `umsLex`, then `umsParse`, then `umsResolveConstants`, then `umsLowerDocument`, then `validate`, then the build plan. **Constant resolution** in `ums/model/constants.psm` replaces every use of a `const` or `enum` variant with its value and removes the declarations from the document's roots, which is why lowering never sees one; a new place that takes a value needs no change there, and a new kind of name does. The text `import build` reads is `umsBuildModuleSource` in `ums/model/build_module.psm`, asked for by `mergeBuildModule` in `src/driver/imports.psm` through `umsLoadBuildModule`. **Lowering** in `ums/model/lowering.psm` checks shape: which names and arguments are allowed, and what kind of value each key takes. **Validation** in `ums/model/validation.psm` checks meaning: that a name is well formed, that a file exists, that a step names something real. Put a new check in the stage that has what it needs, and give it its own code, since a code is permanent.
 
 `umsLex(source, path, diagnostics)` emits `UmsToken` records through `umsToken`, each with kind, value, byte offset, line, column and length. The lexer has its own identifier, number, string, punctuation and comment rules and does not reuse Prismio source tokens. `umsParse(tokens, path, diagnostics)` produces a `UmsAstDocument`. Statements carry their spans and enough raw boundaries for manifest-preserving edits, and values distinguish strings, integers, booleans, identifiers and arrays.
 
