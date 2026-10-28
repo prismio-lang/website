@@ -293,7 +293,21 @@ fn main() -> Int {
 }
 ```
 
-`Status.Ok` is a `U16`, the representation, wherever it is written, and it can be matched on like any integer. A codeset needs its representation type, may repeat a number, takes the same numbers and the same range check as an enum's, and has no payloads. It is `internal` unless marked, like an enum.
+Write the type when it is part of the contract, for instance a wire format that must stay `U16` however the numbers change:
+
+<!-- prismio-check: pass -->
+```prismio
+codeset Small { A = 1, B = 200 }          // U8: every entry fits a byte
+codeset Wire: U16 { A = 1, B = 200 }      // U16, written
+
+fn main() -> Int {
+    let byte: U8 = Small.B
+    let word: U16 = Wire.B
+    return (byte as Int) - (word as Int)
+}
+```
+
+`Status.Ok` is a `U16`, the representation, wherever it is written, and it can be matched on like any integer. The type after the name is optional: written, it is the representation; left out, the smallest integer type that holds every entry is used (`U8` when all are 0 to 255, then `U16`, `U32`, `U64`; `I8`, `I16`, `Int`, `I64` when any entry is negative), so `codeset Status { Ok = 200, NotFound = 404 }` is a `U16` codeset. A codeset may repeat a number, takes the same numbers and the same range check as an enum's, and has no payloads. It is `internal` unless marked, like an enum.
 
 ## Enums as map keys
 
