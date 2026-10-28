@@ -195,6 +195,7 @@ The error is ``argument 2 has type `Opaque`, which is not in `Printable` ``. For
 
 ## Limits
 
+- **Functions of one name that each have a pack are overloads.** A call goes to the one whose list accepts all of its arguments. When more than one does, the pack of concrete types wins over a pack bounded by a trait, and then the one declared first; a fixed overload (no pack) beats them all. When none fits, the error is the first one's. This is how `std.io`'s `println` (builtin types and their optionals) and `std.display`'s (anything with a `Display`) share a name.
 - A call may pass at most **128** variadic arguments. A pack function that calls itself with more arguments than it received (`f(...xs, 1)`) makes a longer function at each step and would never end; the 129th is an error that says so.
 - A typelist is checked where it is written, once: an entry that names nothing, a list that is empty, contains itself, repeats a type (`Int` and `Int?` are different types) or names an entry of a set is an error at the declaration. A `private` or `internal` list is as visible as a type: it can bound a pack in the file or package that declares it.
 - An error inside a pack function's body is reported once, however many arguments the body was repeated for.

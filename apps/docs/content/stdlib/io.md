@@ -1,14 +1,14 @@
 ---
 title: Console I/O
-description: Source-defined print and println overloads available to Prismio programs.
+description: print, println, eprint and eprintln -- variadic, over every builtin type and the optional of each, written in Prismio source.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-27"
+lastUpdated: "2026-10-28"
 tags: [standard-library, io, print, console]
 related: [start/hello-world, stdlib, stdlib/input, stdlib/filesystem, language/ffi]
 ---
 
-Console output has two public functions: `print` and `println`. They are ordinary exact-type overloads implemented in the shipped `std/io.psm` source module, and one call may carry several values. **There is no prelude — `import std.io` is required**, like any other module. That is deliberate: a program that names no I/O carries none, which is what lets a target with no stdout link at all.
+Console output has four public functions: `print`, `println`, `eprint` and `eprintln`. Each takes **any number of values**, of any builtin type or the optional of one, and is written in the shipped `std/io.psm` source module. **There is no prelude — `import std.io` is required**, like any other module. That is deliberate: a program that names no I/O carries none, which is what lets a target with no stdout link at all.
 
 ```prismio
 print("value: ")
@@ -83,8 +83,7 @@ repeatedly; bind it to a `let` first and pass the name.
 
 ### What this is, and is not
 
-There is no variadic function here and no new overload. `print(a, b, c)` is
-rewritten by the compiler into the calls you would have written yourself:
+`print`, `println`, `eprint` and `eprintln` are [variadic functions](/language/variadics): one function per call shape, with no array and no length at run time. A statement with two or more values, or one that ends in `separator(...)`, is also rewritten by the compiler into the single-value calls you would have written yourself, and that is where the separator comes from:
 
 ```prismio
 print(a)
@@ -94,14 +93,13 @@ print(" ")
 print(c)
 ```
 
-Each value goes through the exact-type overload it always had, so a type with no
-`print` overload has none here either, and the diagnostic points at that value.
+Each value goes through the one-value form of the same function, so a type that cannot be printed is reported at that value.
 The trailing `println` keeps its name rather than becoming `print` plus a
 newline, so a line still costs one write.
 
 Two consequences worth knowing:
 
-- **Your own declaration wins.** A program that declares `fn print(a: String, b: String)` is calling that, not being rewritten around it. The same is true of `separator`: declare a function with that name and the marker turns itself off.
+- **Your own declaration wins.** A program that declares `fn print(a: String, b: String)` is calling that, not being rewritten around it. A pack call that is not a statement -- `print(...args)` inside a variadic function of your own -- is the function itself, and writes the same text. The same is true of `separator`: declare a function with that name and the marker turns itself off.
 - **The pieces are separate writes.** `println("a", "b")` reaches the descriptor as three writes rather than one, so another thread printing at the same time can land between them.
 
 ## Colour
@@ -148,14 +146,11 @@ fn main() -> Int {
 }
 ```
 
-The width-specific overloads (`I8` through `U64`, `Float`, `Bool`, `Char`) are on
-stderr too. They have to be: `eprintln("count: ", n)` splits into an `eprint` of
-the text and an `eprintln` of the value, so a type missing from this set would
-turn a working stdout line into a diagnostic the moment it moved to stderr.
+The types are the same list as stdout's -- one list serves all four functions -- and that is the point of it: `eprintln("count: ", n)` splits into an `eprint` of the text and an `eprintln` of the value, so a type missing from stderr would turn a working stdout line into a diagnostic the moment it moved there.
 
-## Exact overloads
+## What can be printed
 
-The same two names accept the five supported console value types. Overload selection uses the argument's exact type; it is not a variadic formatter or a runtime `Any` conversion.
+The four functions accept these types, and the optional of each. The argument's exact type is what is checked; there is no runtime `Any` conversion, and a value of another type is refused.
 
 | Value type | No newline | With newline |
 | --- | --- | --- |
@@ -165,6 +160,7 @@ The same two names accept the five supported console value types. Overload selec
 | `Float` | `print` | `println` |
 | `Bool` | `print` | `println` |
 | `Char` | `print` | `println` |
+| any of the above as `T?`, `String?` included | `print` | `println` |
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -179,7 +175,7 @@ fn main() -> Int {
 }
 ```
 
-These are separate exact overloads, not implicit integer promotion. Arithmetic and assignment still require compatible widths, while output preserves the complete signed or unsigned value without a narrowing cast.
+The types are exact, not implicit integer promotion. Arithmetic and assignment still require compatible widths, while output preserves the complete signed or unsigned value without a narrowing cast.
 
 `Char` is byte-sized in 0.1, so its overload is not a complete Unicode scalar-output API. String source/runtime encoding details should be handled through the documented string/FFI contract.
 
@@ -196,7 +192,7 @@ For application-specific rich formatting, write typed helper functions or use a 
 
 ## Printing your own types
 
-`print`, `println`, `eprint` and `eprintln` also accept any value with an `impl Display`, once `std.display` is imported. That covers a type of your own and an optional such as a `String?` (its value, or `none`):
+A type of your own prints once it has an `impl Display` and `std.display` is imported. The builtin types and their optionals need no import beyond `std.io`: a `String?` prints as its value, or as `none`.
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -222,11 +218,11 @@ fn main() {
 }
 ```
 
-The overloads for the built-in types in the table above are exact matches and win over these, so importing `std.display` changes nothing for a program that only prints numbers and strings. They are in `std.display` and not here because `std.io` is imported by every printing program, and a generic `print` in it would carry `std.display` and `std.string` into all of them.
+A call whose values are all of the types in the table above goes to `std.io`'s own function, so importing `std.display` changes nothing for a program that prints only numbers, strings and their optionals. A call with a value of your own type goes to the `std.display` function, which accepts anything with a `Display`, the builtin types in the same call included. The two are separate because `Display` needs `std.string`, and `std.io` is imported by every printing program.
 
 When a value cannot be printed, the error lists the argument types it was given and, for an optional, says how to take the value out (`??`, `unwrapOr`, `expect`).
 
-The old chunked names such as `println_int`, `print_bool` and `print_char` are not public Prismio functions, and as of 0.1 they no longer exist as runtime symbols either — a program that declared one by hand will fail to link naming it. Use the overload set directly.
+The old chunked names such as `println_int`, `print_bool` and `print_char` are not public Prismio functions, and as of 0.1 they no longer exist as runtime symbols either — a program that declared one by hand will fail to link naming it. Use `print` and `println` directly.
 
 ## What "printed" guarantees
 

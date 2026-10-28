@@ -8,7 +8,7 @@ tags: [standard-library, display, print, trait, optional]
 related: [stdlib/io, stdlib/option, stdlib/term, language/traits]
 ---
 
-`import std.display`. `Display` is the trait for a value's text, and importing the module makes `print`, `println`, `eprint` and `eprintln` accept **anything that implements it**: your own types, a `String?` or an `Int?` and the other optionals, as well as the numbers, strings, `Bool` and `Char` that [`std.io`](/stdlib/io) already prints.
+`import std.display`. `Display` is the trait for a value's text, and importing the module makes `print`, `println`, `eprint` and `eprintln` accept **anything that implements it**: your own types, and a call that mixes them with the numbers, strings, `Bool`, `Char` and optionals that [`std.io`](/stdlib/io) already prints on its own.
 
 ```text
 trait Display {
@@ -87,7 +87,7 @@ That is what `readLine()` returns, so `println(readLine())` works and shows `non
 | `String` | itself |
 | `Int?`, `Float?`, `Char?` and the other scalar optionals, and `String?` | the value, or `none` |
 
-The overloads for the built-in types in `std.io` are exact matches and win over these, so importing `std.display` changes nothing for a program that only prints numbers and strings. They live here and not in `std.io` because every printing program imports `std.io`, and a generic `print` there would carry `std.display` and `std.string` into all of them.
+When every value in a call is a builtin type or its optional, the call goes to `std.io`'s own function, so importing `std.display` changes nothing for a program that prints only those. When one is a type of your own, it goes to the function here. They live here and not in `std.io` because every printing program imports `std.io`, and a `Display` function there would carry `std.display` and `std.string` into all of them.
 
 ## Writing code that is generic over `Display`
 
