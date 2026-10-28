@@ -1,14 +1,14 @@
 ---
 title: Use Prismio in IntelliJ
-description: Install the Prismio plugin for JetBrains IDEs, start a project, and run and check code from the editor.
+description: Install the Prismio plugin for JetBrains IDEs, start a project, and write, navigate, run and check code from the editor.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-10-02"
+version: "0.2.0"
+lastUpdated: "2026-10-29"
 tags: [guide, intellij, editor, tooling]
 related: [start/installation, start/build-and-run, compiler/cli, stdlib/term]
 ---
 
-Writing Prismio in a plain text editor means switching to a terminal to see whether it compiles. The Prismio plugin for JetBrains IDEs shows the compiler's errors as you type, fills the run menu from your project, and creates new projects for you.
+Writing Prismio in a plain text editor means switching to a terminal to see whether it compiles. The Prismio plugin for JetBrains IDEs shows the compiler's errors as you type, completes, navigates and renames with the compiler's own knowledge, fills the run menu from your project, and creates new projects for you.
 
 The plugin does not bundle a compiler. It uses the `prismio` you installed, so [install the toolchain](/start/installation) first.
 
@@ -24,9 +24,7 @@ It needs a JetBrains IDE from 2026.2 on, and works in IntelliJ IDEA and CLion, w
 
 The plugin finds `prismio` on your `PATH` by itself. If it cannot, or you want a different one, open **Settings | Languages & Frameworks | Prismio**, browse to the compiler, or press **Auto-Detect**. When Auto-Detect finds nothing, it says where it looked.
 
-Errors as you type come from the toolchain's language server, `prismio lsp`, which the plugin starts with that compiler (see [Set up your editor](/guides/editors)). The setting **Use the Prismio language server**, just below the compiler path, turns it off; with it off the plugin shows no compiler errors. The plugin's own completion, navigation and documentation are still its own and are moving to the server one feature at a time.
-
-Completion and error checking come from the compiler you pick, so a newer or older compiler shows its own functions and methods. There is nothing else to configure.
+Everything that needs to understand the language comes from the toolchain's language server, `prismio lsp`, which the plugin starts with that compiler (see [Set up your editor](/guides/editors)): errors, hover, completion, parameter and type hints, Go to Declaration, Find Usages, rename, the structure view, Go to Symbol, the import quick fix and Reformat Code. The plugin keeps no copy of the language, so a newer or older compiler shows its own functions, methods and errors, and there is nothing else to configure. The setting **Use the Prismio language server**, just below the compiler path, turns the server off; with it off the plugin keeps highlighting, folding, typing and running, and shows no compiler errors or completion.
 
 ## Start a project
 
@@ -57,9 +55,16 @@ The run menu is built from your `build.ums`: a **Run** entry for each executable
 
 Errors in the output are links: click `src/main.psm:12:5` to jump to that line. Output colors, such as a program's [`std.term`](/stdlib/term) styling, show in the IDE console when your toolchain supports them.
 
-## Errors as you type
+## Writing and navigating
 
 The compiler checks your code as you type, including changes you have not saved, and marks problems in the file. On a missing name, Alt+Enter offers to add the `import` for it. A file that belongs to a larger program is checked as part of that program. If an error in another file stops the check before it reaches yours, one note says so.
+
+- **Ctrl+Q** (or hover) shows a declaration's signature and its comment; **Cmd+P** inside a call lists the overloads and bolds the parameter you are on; the editor shows the type of a `let` and the name of each parameter at a call.
+- **Cmd+B** or Cmd+click goes to a declaration. For a name from the standard library it opens the library's source (a read-only copy the language server writes out of the compiled module), and from an `import std.io` line it opens that module.
+- **Alt+F7** lists usages, **Shift+F6** renames a declaration and every use of it, and the structure view and **Cmd+Alt+O** (Go to Symbol) list what a file and a project declare.
+- **Reformat Code** (Cmd+Alt+L) runs `prismio fmt`, so it formats the way the command line and every other editor do.
+
+A function with a syntax error in it is not analysed: until the line is finished, hover, hints and completion in the rest of that function are missing.
 
 ## Documentation comments
 
@@ -76,15 +81,14 @@ fn nextId(current: Int) -> Int {
 
 The compiler itself treats these as ordinary comments; only the editor reads them as documentation. The plugin turns on the IDE's **Render documentation comments** setting the first time it runs, so these comments show rendered instead of as source. That setting is global, so it applies to every language, and you can turn it off under **Settings | Editor | General | Appearance**; the plugin will not turn it back on.
 
-Formatting treats `/** */` like `/* */`, and keeps a comment's leading stars lined up.
-
-An `if` that has an `else` is formatted over several lines, one branch to a block, with `} else {` kept together; an `if` with no `else` is left as you wrote it, on one line or several.
+Formatting treats `/** */` like `/* */`, and keeps a comment's leading stars lined up. An `if` that has an `else` is formatted over several lines, one branch to a block, with `} else {` kept together; an `if` with no `else` is left as you wrote it.
 
 ## Not available yet
 
 - Only IntelliJ IDEA and CLion have been used by hand. WebStorm, RustRover and the rest of the 2026.2 IDEs pass the compatibility check but are not confirmed.
 - Where an IDE shows no Name field of its own (CLion and others), the New Project dialog lists Name below Location, not above it.
-- The plugin shows what the compiler reports and adds no checks of its own.
+- Colours of names come from the lexer, not the compiler's semantic tokens, so a name can change colour a moment after the first answer.
+- A function with a syntax error is dropped from the analysis as a whole (see above); it is a known limit of the compiler's parser, listed in its known issues.
 - Only a manifest named `build.ums` is recognised.
 
 For how the plugin works and how to contribute to it, see the [developer documentation](https://developers.prismio.org/tooling/intellij-plugin).

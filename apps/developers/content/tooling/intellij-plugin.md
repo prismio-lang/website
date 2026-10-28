@@ -1,14 +1,14 @@
 ---
 title: The IntelliJ plugin
-description: How the Prismio plugin for JetBrains IDEs finds a compiler, checks files through it, builds run configurations, and creates projects, and what must change with the compiler.
+description: How the Prismio plugin for JetBrains IDEs finds a compiler, talks to its language server, builds run configurations and creates projects, and the little that must change with the compiler.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-10-02"
+version: "0.2.0"
+lastUpdated: "2026-10-29"
 tags: [ide, intellij, plugin, tooling]
-related: [tooling/ide-protocol, tooling/ums-overview, tooling/compiler-host-and-promotion, compiler/diagnostics, start/repository-tour]
+related: [tooling/language-server, tooling/ide-protocol, tooling/ums-overview, tooling/compiler-host-and-promotion, compiler/diagnostics, start/repository-tour]
 ---
 
-The plugin is a separate repository, `jetbrains-plugin`, beside the compiler. It reads the compiler's behaviour rather than linking it: errors come from `prismio check`, the standard library from the toolchain's files, and projects from the same files `prismio init` writes. That makes it fragile in one direction only: when the compiler changes, a table in the plugin may be stale and nothing fails until someone looks.
+The plugin is a separate repository, `jetbrains-plugin`, beside the compiler, and it is a client of [the language server](/tooling/language-server): `prismio lsp`, started through the platform's LSP client. Errors, hover, completion, hints, parameter info, definitions (into the library too), usages, rename, the outline, Go to Symbol, the import quick fix and Reformat Code are the compiler's answers, so a language change reaches the editor with the toolchain. What stays in the plugin is what must answer before a server can (colours, brackets, typing, indentation) and what is the IDE's own (run configurations, the project wizard, the manifest's colours). It was fifteen thousand lines of Java that re-implemented the language and is eight thousand now.
 
 Users of the plugin should read [the user guide](https://docs.prismio.org/guides/intellij). This page is for changing it.
 
@@ -16,31 +16,30 @@ Users of the plugin should read [the user guide](https://docs.prismio.org/guides
 
 ```bash
 cd ../jetbrains-plugin
-./gradlew test --offline -Dprismio.checkout=/path/to/prismio   # the corpus tests need a checkout
+./gradlew test --offline -Dprismio.checkout=/path/to/prismio -Dprismio.compiler=/path/to/toolchain/bin/gen   # most tests need both
 ./gradlew verifyPlugin buildPlugin --offline                    # compatibility, then the zip
 ./gradlew verifyPlugin --offline -Pprismio.verifyIdes="/path/CLion.app:/path/WebStorm.app"   # more IDEs
 ```
 
-It targets IntelliJ Platform 2026.2.1 with a Java 26 toolchain emitting Java 25 bytecode. JFlex and Grammar-Kit are not available offline, so neither is used. Without `-Dprismio.checkout` the corpus tests skip silently and a green run proves less than it looks.
+It targets IntelliJ Platform 2026.2.1 with a Java 26 toolchain emitting Java 25 bytecode. JFlex and Grammar-Kit are not available offline, so neither is used. Without `-Dprismio.checkout` and `-Dprismio.compiler` the corpus and server tests skip silently and a green run proves less than it looks. The compiler must not be named `prismio` (a launcher forwards by that name); the tests set `PRISMIO_INTERNAL_HOSTED`.
 
 `verifyPlugin` runs against two IDEA builds by default, plus any IDE installs named in `-Pprismio.verifyIdes` (paths separated by `:`; the property is optional so a contributor with one IDE still builds). The plugin claims every JetBrains IDE, so run it against the IDEs you have before a release: it is the only thing that says a platform API exists there. It is the gate for API use: an `@ApiStatus.Experimental` API is a warning, an `@ApiStatus.Internal` one fails the build. The plugin has six experimental warnings, all from `InlineDocumentationProvider`, which has no stable replacement. Do not reach for an internal class to get a feature; there was one (see [documentation comments](#documentation-comments)).
 
 ## What must follow the compiler
 
-Both lexers are hand-written and there is no generated source. A contextual keyword (`private`, `dyn`, `pin`, `produce`) is reserved in one position and an identifier in another, which a regular expression cannot decide.
+Both lexers are hand-written and there is no generated source. A contextual keyword (`private`, `dyn`, `pin`, `produce`) is reserved in one position and an identifier in another, which a regular expression cannot decide. The lexer has to colour a file before any server answers, so it keeps tables, and a test keeps them honest.
 
 | Plugin file | Follows |
 |---|---|
 | `lexer/PrismioLexer.java` | `src/lexer/scanner.psm` |
-| `lang/PrismioWords.java` | `src/lexer/token.psm`, `src/ast/types.psm`, `src/parse/decl.psm` |
+| `lang/PrismioWords.java` | `prismio dump-tokens`: `PrismioTokenTablesTest` fails when they differ |
 | `ums/UmsLexer.java` | `ums/parser/lexer.psm` |
 | `ums/UmsWords.java` | `ums/model/lowering.psm` |
 | `wizard/PrismioProjectStep.java` | `initUmsProject` in `src/project/ums_cli.psm` |
-| `symbols/CompilerIntrinsics.java` | `src/sema/vec.psm`, `array.psm`, `channel.psm` |
 
-`PrismioLexerCorpusTest` lexes every `.psm` and `.ums` in a checkout and fails on a bad character or an offset gap; `PrismioFormatterTest` reformats each file and asserts the token stream is unchanged. Run both after a change to the scanner or to syntax. `CompilerIntrinsics` is the one table that checks itself: it probes the compiler once per binary, and a member that compiler rejects is not offered.
+`PrismioTokenTablesTest` compares the keywords, the contextual words and the built-in types with the compiler's own and lexes every operator and separator it lists; it found that `...` lexed as a range and a dot. `PrismioLexerCorpusTest` lexes every `.psm` and `.ums` in a checkout and fails on a bad character or an offset gap. Run both after a change to the scanner or to syntax. A change to anything else (a declaration form, a call shape) costs the plugin nothing, provided the compiler's index names it.
 
-The PSI is a flat token list. A `PsiReferenceContributor` is never asked about a bare leaf, so identifiers have their own PSI class through `lang.ast.factory`; references, Find Usages and Rename are built on that.
+The PSI is a flat token list, and nothing in it resolves a name: there is no reference, no scope resolver and no type inference in the plugin.
 
 ## Finding the compiler
 
@@ -54,19 +53,18 @@ The PSI is a flat token list. A `PsiReferenceContributor` is never asked about a
 
 Two rules are deliberate. A project-local compiler runs on every edit, before the user has done anything but open the project, so it is never used in a project the IDE does not trust: a repository can commit a `.prismio/`. And `PATH`, `PRISMIO` and `PRISMIO_HOME` are read with `EnvironmentUtil`, not `System.getenv`, because an IDE started from the Dock has launchd's environment and never sees what a shell profile added. `detectInstalledCompiler()` is steps 3 to 5 with no project, which is what the New Project wizard and Auto-Detect use; Auto-Detect deliberately ignores the saved path, or it could only ever return it.
 
-The standard library is found from the compiler's location and never configured: a checkout's `std/` of sources, or an installed toolchain's `stdlib/` of `.plib` files, reached through any symlink. `StdlibIndex` reads either (`.psm` winning) and rebuilds when a fingerprint of the directory changes. A `.plib` carries its interface source, so the plugin parses the same text the compiler does and hardcodes no member names. A std path in `PrismioProjectSettings` still exists, for tests, and has no UI.
+The standard library is the compiler's: the server reads it from the toolchain that started it, and the plugin keeps no index of it. (A project setting for a library path used to exist, for tests; it is gone with the code that read it.)
 
-## Checking a file
+## The language server
 
-`PrismioExternalAnnotator` runs `prismio check <entry> --diagnostic-format=json --overlay <file> <buffer> [--module m]`, as [the IDE protocol](/tooling/ide-protocol) describes. The details that are the plugin's own:
+`io.prismio.lsp` is a `LspServerSupportProvider` (loaded only where the platform has an LSP client) that starts the compiler's `prismio lsp` with `PRISMIO_INTERNAL_HOSTED=1`, so a project's own host cannot take it over. Which program a file belongs to, the unsaved buffers, the cancellation and the timeouts are the server's ([the language server](/tooling/language-server)); the plugin's part is small.
 
-- **The buffer is a temp file outside the source tree.** A file beside the sources would be one more module to any `import pkg.*` of that directory, in this check and in a build running meanwhile.
-- **Output goes to a file, not a pipe.** A long report fills a pipe, the compiler blocks writing it, and the timeout then discards everything.
-- **Which program?** `PrismioCheckTarget.plan` returns, in order: the file itself if it declares `main`; `std.<leaf>` for a module of a standard-library directory (recognised by `io.psm` and `string.psm` beside it, so a project folder called `std` is not given the library's access); the `entry` of each target in the nearest `build.ums`; any program in the file's directory or an ancestor that imports it by its module name. With no manifest, the search stops at the project directory, and a file outside any project is looked for in its own folder only. The file alone is the last resort.
-- **A program that never reads the file** answers P1075 and the next is tried. A result is cached per file and dropped on the same signal.
-- **Launcher status is not the file's.** P1077, P1052, P1064 and P1065 describe which compiler serves the project, not the file, and are dropped. A compiler that answers P1026 for `--overlay` predates the flag, and one banner says so instead of showing its errors.
-- **Errors elsewhere** in the program may stop the check before it reaches this file; one note says so rather than a mark on the file.
-- **Cancel and timeout.** The check polls for cancellation every 50 ms and stops after 15 s. Both kill the process and its descendants, because the launcher forwards to a compiler of its own and destroying only the one started leaves the other running.
+- **`PrismioLspFeatures.SERVED`** lists the server's features the editor uses, by the platform's name for each (`diagnostics`, `hover`, `completion`, `goToDefinition`, `findReferences`, `rename`, `documentSymbol`, `workspaceSymbol`, `documentHighlights`, `formatting`...). The platform client has a customizer for everything the server advertises, so a feature the plugin still answers itself is switched off until it is deleted, and two answers to one question never meet.
+- **Three platform defaults are plain text only**: `LspRenameSupport.shouldRunRename`, `LspDocumentHighlightsSupport.shouldAskServerForDocumentHighlights` and `LspFormattingSupport.shouldFormatThisFileExclusivelyByServer` are true for text and TextMate files and false for any other language. A test that talks to the server directly cannot see it: Rename was greyed out in a real IDE until `PrismioLspFeatures` said "a Prismio file" for each (`PrismioLspFeaturesTest`).
+- **The setting** *Use the Prismio language server* starts and stops the server live (a settings topic); with it off the plugin keeps highlighting, folding, typing and running.
+- **A definition in the library** opens the source the server wrote out of the `.plib` into its scratch directory (`prismio library-source`); that file is read-only in effect, since it is regenerated.
+
+The tests are `PrismioServer*Test` (hover, hints and parameter info, completion, navigation: each asks the server what the plugin's own Java used to answer, so the plugin's old test cases are the acceptance), and the differentials a feature was held to before its Java was deleted are in Git history. Use the IDE too: `./gradlew --offline -I init.gradle runIde` with an init script that sets `args` of `runIde` to a project, and `PRISMIO=<toolchain>/bin/prismio` in the environment. It found Rename, usage highlights and server formatting off, and two noisy hints (`items:` before a receiver, `value:` on `println`) that every test had passed.
 
 ## Run configurations
 
@@ -101,12 +99,12 @@ The files are `build.ums`, `src/main.psm` and `.gitignore` containing `.prismio/
 
 The compiler has no documentation syntax. The scanner skips every comment, `/** */` included, so the plugin's lexer makes the rule: `/**` followed by something other than `/` or `*` is a `DOC_COMMENT`, so `/**/` and `/***/` stay ordinary block comments. `///` is read as prose by the same convention. Anything that looks for comments must handle both token types, which is the easy thing to miss: the formatter, the Enter handler and several token scans once recognised only `BLOCK_COMMENT`.
 
-**Reformat Code and range formatting go to the server**, which runs `prismio fmt`, so the IDE, the command line and every other editor format by the same rules (`formatting` is in `PrismioLspFeatures.SERVED`). `PrismioBlock` stays, and is the one place a feature is not moved by deleting the Java: it answers the indent of the line you are typing on, which a server cannot, and it formats when the server is off or no compiler is found. The two must agree, so a rule added to one is added to the other and `PrismioFormatterTest` holds the Java side to the same cases as the compiler's `fmt` fixture, including that an `if` with an `else` is written over several lines. `PrismioEnterHandler` sets the new line's indent and does not add to the one the platform already gave it.
+**Reformat Code and range formatting go to the server**, which runs `prismio fmt`, so the IDE, the command line and every other editor format by the same rules. `PrismioBlock` is an indenter and does not space tokens: it answers the indent of the line being typed, which a server cannot, and indents when the server is off, leaving the white space between two tokens as written. It once had spacing rules of its own and changed 19 of 217 files that `prismio fmt` had formatted; `PrismioFormatterDifferentialTest` holds it to changing none. `PrismioEnterHandler` sets the new line's indent and does not add to the one the platform already gave it.
 
-`PrismioBlockCommentPostFormatProcessor` indents the lines inside a multi-line comment whose opener is alone on its line, and keeps a comment with a star on every line aligned one column in under the opener. It changes a comment's text, so a comment already in that shape must come out unchanged; the checkout formatter test fails on a flattened starred comment.
+`PrismioBlockCommentPostFormatProcessor` indents the lines inside a multi-line comment whose opener is alone on its line, and keeps a comment with a star on every line aligned one column in under the opener. It changes a comment's text, so a comment already in that shape must come out unchanged; `PrismioFormatterTest` fails on a flattened starred comment.
 
 Rendering is IntelliJ's global "Render documentation comments" setting. The only per-editor switch, `DocRenderManager`, is `@ApiStatus.Internal` and `verifyPlugin` fails on it, so the plugin sets the global setting once, guarded by a stored flag, and never again; a user who turns it off keeps it off.
 
 ## Before a release
 
-Run the tests with a checkout, `verifyPlugin`, and `buildPlugin`; read the verifier's output rather than its exit code, since an experimental warning and a deprecated API look alike in a summary. Check the version in `build.gradle.kts` is not one already on the Marketplace. The plugin installs only in 2026.2 or newer, so a 2026.1 IDE (the PyCharm and Rider installs a contributor may have) cannot load it and is not a test target. The New Project dialog is the one place the IDEs differ and the verifier cannot see, so open it in IDEA and in CLion by hand: a missing row looks like a pass to the verifier.
+Run the tests with a checkout and a compiler, `verifyPlugin`, and `buildPlugin`; open a project in `runIde` and use hover, completion, Go to Declaration, Rename and Reformat Code once; read the verifier's output rather than its exit code, since an experimental warning and a deprecated API look alike in a summary. Check the version in `build.gradle.kts` is not one already on the Marketplace. The plugin installs only in 2026.2 or newer, so a 2026.1 IDE (the PyCharm and Rider installs a contributor may have) cannot load it and is not a test target. The New Project dialog is the one place the IDEs differ and the verifier cannot see, so open it in IDEA and in CLion by hand: a missing row looks like a pass to the verifier.

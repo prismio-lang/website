@@ -3,7 +3,7 @@ title: The VS Code extension
 description: How the Prismio extension for VS Code is built, why it is under 150 lines of TypeScript, how its grammar is generated, and how to test it in a real VS Code.
 status: stable
 version: "0.2.0"
-lastUpdated: "2026-10-26"
+lastUpdated: "2026-10-29"
 tags: [vscode, editor, lsp, tooling]
 related: [tooling/language-server, tooling/ide-protocol, tooling/intellij-plugin, compiler/cli]
 ---
@@ -24,6 +24,8 @@ PRISMIO=/path/to/prismio npm test
 ok   the sample program is clean, then an error shows with its code
 ok   hover shows the signature and the comment, across files
 ok   go to definition crosses files
+ok   go to definition reaches the library, whose source the server writes out
+ok   find references lists the declaration and the uses
 ok   completion after a dot lists the members
 ok   the outline lists the functions
 ok   rename changes every use
@@ -32,7 +34,7 @@ ok   semantic tokens colour the declarations
 ok   tasks come from build.ums
 ```
 
-Nine checks, run in VS Code 1.143, through `vscode.executeHoverProvider`, `executeDefinitionProvider`, `executeCompletionItemProvider`, `executeDocumentSymbolProvider`, `executeDocumentRenameProvider`, `executeFormatDocumentProvider` and `provideDocumentSemanticTokens`, so a feature the server answers and the client never wired up fails here.
+Eleven checks, run in VS Code 1.143, through `vscode.executeHoverProvider`, `executeDefinitionProvider`, `executeReferenceProvider`, `executeCompletionItemProvider`, `executeDocumentSymbolProvider`, `executeDocumentRenameProvider`, `executeFormatDocumentProvider` and `provideDocumentSemanticTokens`, so a feature the server answers and the client never wired up fails here.
 
 ## What the extension does
 
@@ -62,4 +64,4 @@ A TextMate grammar cannot see context, so a contextual keyword is coloured only 
 - `npm run package` builds the `.vsix` (`out/test` is left out by `.vscodeignore`).
 - `test/runTests.ts` uses the installed VS Code (`VSCODE_PATH` names another). It writes `prismio.path` into the demo copy's settings, so the test needs `PRISMIO`, not a `prismio` on `PATH`.
 - Position encoding is negotiated by the client library; the server converts between the compiler's byte columns and it in one module.
-- Not done: a grammar for `build.ums` (it has the language configuration, and the server's diagnostics and completion), publishing to the Marketplace, and Windows.
+- Not done: a grammar for `build.ums` (it has the language configuration, and the server's diagnostics and completion), publishing to the Marketplace (an account and a token the maintainer holds; the `.vsix` builds), and the extension itself on Windows (the server it starts has been run there, see [the language server](/tooling/language-server#windows)). The end-to-end suite is automated: nobody has typed in it by hand yet, which is the step before publishing.
