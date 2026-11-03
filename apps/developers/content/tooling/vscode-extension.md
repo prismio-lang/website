@@ -43,6 +43,7 @@ Eleven checks, run in VS Code 1.143, through `vscode.executeHoverProvider`, `exe
 | `src/extension.ts` | finds `prismio` (the `prismio.path` setting, then `PATH`, then `~/.prismio/bin`), starts `prismio lsp` through `vscode-languageclient`, restarts it on request or when the setting changes |
 | `syntaxes/prismio.tmLanguage.json` | the TextMate grammar, **generated** |
 | `language-configuration.json` | comments, brackets, auto-closing pairs, indentation |
+| `images/` | the extension's logo (`icon.png`, 128 px, what the Marketplace shows), the `.psm` file icon (`psm.png`) and the `build.ums` one (`ums.svg`), contributed as each language's `icon`, which the default file icon theme shows in the explorer and on tabs; `test/grammar.test.mjs` fails if one is missing or the logo is not 128 px. The pictures are the website's logo (`apps/web/public/icons/prismio.png`) and the IntelliJ plugin's `build.ums` mark |
 | the task provider | `build`, `test`, `run <target>` and every `command` of `build.ums` (read by a line match, not a parse: the manifest's own validator is the toolchain's, and a wrong guess offers one task too many) |
 | `prismio.debugTarget` | builds in the debug profile and starts CodeLLDB, or `cppdbg` with LLDB |
 

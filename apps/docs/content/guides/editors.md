@@ -1,14 +1,14 @@
 ---
 title: Set up your editor
-description: Get errors as you type, completion, hover, go to definition, rename and formatting in VS Code, IntelliJ and any editor that speaks the Language Server Protocol.
+description: Get errors as you type, completion, hover, go to definition, rename and formatting in VS Code and the JetBrains IDEs.
 status: stable
 version: "0.2.0"
-lastUpdated: "2026-10-29"
+lastUpdated: "2026-11-03"
 tags: [guide, editor, lsp, vscode, intellij, formatting]
 related: [guides/intellij, start/installation, compiler/cli, compiler/diagnostics]
 ---
 
-Without editor support you write a file, switch to a terminal, run `prismio check`, and read the errors there. The Prismio toolchain includes a language server, `prismio lsp`, that does what that terminal does while you type, and answers the other things an editor asks: what is the type of this, where is it declared, what can I write after the dot. Every editor below is a thin client of the same server, so they all know exactly what your compiler knows.
+Without editor support you write a file, switch to a terminal, run `prismio check`, and read the errors there. The Prismio toolchain includes a language server, `prismio lsp`, that does what that terminal does while you type, and answers the other things an editor asks: what is the type of this, where is it declared, what can I write after the dot. Both editors below are thin clients of the same server, so they all know exactly what your compiler knows.
 
 You need nothing but the toolchain: [install it](/start/installation), and check that the server is there:
 
@@ -26,23 +26,13 @@ Install the **Prismio** extension from its `.vsix` (it is built from the `vscode
 code --install-extension prismio-0.1.0.vsix
 ```
 
-Open a folder with a `build.ums` or any `.psm` file. The extension finds `prismio` on your `PATH`, then in `~/.prismio/bin`; to use another one, set `prismio.path`. After installing a newer toolchain, run **Prismio: Restart Language Server** from the command palette.
+Open a folder with a `build.ums` or any `.psm` file; `.psm` files carry the Prismio logo in the explorer and on their tabs, and `build.ums` the manifest's mark. The extension finds `prismio` on your `PATH`, then in `~/.prismio/bin`; to use another one, set `prismio.path`. After installing a newer toolchain, run **Prismio: Restart Language Server** from the command palette.
 
 You get errors as you type (with the compiler's `P####` codes), hover, go to definition (into the standard library's source too), find references, rename, completion, signature help, inlay hints, semantic colours, folding, the outline, the import quick fix and format document. The **Tasks** menu lists `build`, `test`, `run <target>` and every `command` your `build.ums` declares; **Prismio: Build and Debug a Target** builds in the debug profile and starts CodeLLDB (or `cppdbg` with LLDB) on the result.
 
 ## IntelliJ and other JetBrains IDEs
 
 The plugin starts the same server through the IDE's own language client, and everything it shows about the language (errors, completion, hover, hints, navigation, rename, formatting) is the server's. See [Use Prismio in IntelliJ](/guides/intellij) for installing it; the setting **Use the Prismio language server** (on by default) is under **Settings | Languages & Frameworks | Prismio**.
-
-## Any other editor
-
-Start `prismio lsp` over standard input and output, with no arguments, and speak LSP 3.17. The server asks for nothing beyond what the protocol requires:
-
-- send `textDocument/didOpen` for each `.psm` and `build.ums`, and `didChange` with the **whole text** (`contentChanges[-1].text`: it is a full-synchronisation server);
-- offer `utf-8` in `general.positionEncodings` if you can count in bytes, or the server counts in UTF-16;
-- forward `workspace/didChangeWatchedFiles` for `**/*.psm` and `**/*.ums`, so an edit made outside the editor (a branch switch, a formatter) is checked.
-
-Do not hard-code where the server is: `prismio lsp` finds it. The [developer page](https://developers.prismio.org/tooling/language-server) has the whole contract.
 
 ## Format on save
 

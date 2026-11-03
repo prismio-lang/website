@@ -62,7 +62,7 @@ The compiler checks your code as you type, including changes you have not saved,
 - **Ctrl+Q** (or hover) shows a declaration's signature and its comment; **Cmd+P** inside a call lists the overloads and bolds the parameter you are on; the editor shows the type of a `let` and the name of each parameter at a call.
 - **Cmd+B** or Cmd+click goes to a declaration. For a name from the standard library it opens the library's source (a read-only copy the language server writes out of the compiled module), and from an `import std.io` line it opens that module.
 - **Alt+F7** lists usages, **Shift+F6** renames a declaration and every use of it, and the structure view and **Cmd+Alt+O** (Go to Symbol) list what a file and a project declare.
-- **Reformat Code** (Cmd+Alt+L) runs `prismio fmt`, so it formats the way the command line and every other editor do.
+- **Reformat Code** (Cmd+Alt+L) runs `prismio fmt`, so it formats the way the command line and VS Code do.
 
 A function with a syntax error in it is not analysed: until the line is finished, hover, hints and completion in the rest of that function are missing.
 
