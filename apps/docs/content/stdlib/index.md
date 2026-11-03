@@ -30,6 +30,7 @@ Prismio ships twenty-one standard-library modules:
 | [`std.mem`](/stdlib/mem) | `Buffer`, a byte buffer with typed reads and writes; `alloc`, `realloc` and `free`; `Arena` |
 | [`std.raw`](/stdlib/raw) | volatile and atomic access to an address, a memory barrier, unaligned access, byte order, a Float's bits; no C runtime |
 | [`std.port`](/stdlib/port), [`std.asm`](/stdlib/asm) | x86 port I/O, and inline assembly written where it runs |
+| [`std.syscall`](/stdlib/syscall) | the system-call instruction, and Linux's and macOS's calls by name |
 | [`std.option`](/stdlib/option) | the functions that read a `T?` (`unwrapOr`, `expect`, `map`, `andThen`, `okOr`, and the call behind `??`), `Result<T, E>` and its methods |
 | [`std.term`](/stdlib/term) | terminal colours and styles |
 | `std.key`, `std.ord`, `std.copy`, `std.eq`, `std.iter`, `std.display`, [`std.default`](/language/traits#a-types-own-default) | the `Key`, `Ord`, `Copy`, `Eq`, `Iterator`, `Display` and `Default` traits |

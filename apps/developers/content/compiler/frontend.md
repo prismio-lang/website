@@ -477,6 +477,22 @@ to write instead from `semaBuiltinSpelling`. Add a builtin and its spelling goes
 instruction stream: their declarations in `std/asm.psm` are placeholders and `semaStdAsmBuiltin` lowers a call
 to the builtin in place, only when the callee resolves to `std.asm`'s declaration.
 
+`__builtin_syscall(number, a0..a5) -> I64` is the same family (`syscallBuiltin` in `common/mem_builtins.psm`),
+always seven `U64` operands, with the instruction sequence picked per target by `syscallAsmText` and
+`syscallConstraints` from `targetOsCode` and `targetArchCode`: x86_64 passes in rax, rdi, rsi, rdx, r10, r8, r9;
+arm64 Linux in x8 and x0-x5; arm64 macOS in x16 and x0-x5. The result shares its register with the first input
+(`0` in the constraint string). macOS reports failure in the carry flag, so its sequences end by negating the
+result when it is set, and a failure is `-errno` on every target. macOS also writes a second result in rdx or
+x1, so that register is clobbered and its argument travels in a free register (`r`) and is moved in by the
+sequence, because LLVM rejects an input that is also a clobber. A target with no convention answers `-38`
+without emitting an instruction. A function that calls the builtin is emitted per program, like one that asks
+the target (`functionAsksTarget`), because its numbers and sequence differ by target.
+
+Platform blocks (`linux { }`, `macos { }`, `windows { }`) are resolved in the parser, not later: a matching one in a
+function becomes `IF_STATEMENT` with a literal `true` condition, a non-matching one is parsed and replaced by an
+`ERROR_NODE` that `parseBlock` skips, and at the top of a file `parseModule` consumes the braces and drops what is
+parsed inside a block for another system (`platformDepth`, `platformSkip`).
+
 **Conditions, `is`/`not`, nested functions, closure blocks.** `parseCondition` (`parse/stmt.psm`) reads an `if` or
 `while` condition with `allowStructLit` off, so the `{` is the body; `parseBracketed` turns it back on inside
 parentheses, call arguments, indexes and literals. `is`, `is not` and `not` are keywords read into the `==`,
