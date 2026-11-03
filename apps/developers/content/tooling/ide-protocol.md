@@ -30,7 +30,7 @@ message, source file, and source range according to the current protocol.
 
 The same `check` also gives an editor what it needs to answer a question about the program, and four other commands exist for editors. The full contract is `IDE_PROTOCOL.md` in the compiler repository; what each is for:
 
-- **`check --partial`** keeps type checking a program that does not parse, over the declarations that did. A file open in an editor does not parse most of the time it is being edited; without this the editor would show a syntax error and nothing else.
+- **`check --partial`** keeps type checking a program that does not parse, over the declarations and statements that did: a statement that cannot be read is dropped on its own, so the rest of its function keeps its names, hover and completion. A file open in an editor does not parse most of the time it is being edited; without this the editor would show a syntax error and nothing else.
 - **`check --emit-index <file>`** writes JSON Lines (`file`, `decl`, `ref`, `arg`, `unresolved`, `stats`): every declaration with its signature, type and comment, and every use of a name with the declaration it resolves to. Hover, definition, references, rename, symbols, inlay hints and semantic tokens are reads of it. A run that is killed leaves no `stats` line, so a reader never takes half an index.
 - **`check ... --complete <file> <line> <column>`** with the placeholder trick: the client writes `ixcursor__` where the word being typed starts, and the compiler lists what could stand there (members of the type before a `.`, names in scope, a module's contents). No list of library names is kept anywhere but the compiler.
 - **`check build.ums`** is the manifest language's own check, with the same JSON.

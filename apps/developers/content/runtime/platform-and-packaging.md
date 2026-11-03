@@ -124,8 +124,10 @@ as a compiler source that `build.ums` and both bootstrap scripts must list, and 
 the compiler.
 
 **Packaging.** `tools/package.py --freestanding-target <triple>` (repeatable) adds a `.plib` section for
-that triple to each module in `FREESTANDING_STD` and nothing to the others, and copies the failure core to
-`lib/runtime/freestanding/panic.c`. No sysroot is needed, because the triple has no C library to compile
+that triple to each module in `FREESTANDING_STD` and nothing to the others, and copies the rest of the freestanding
+sources (`libc.c`, `runtime.c`, `lang_runtime.c` and the two headers) beside the failure core. The failure core,
+`lib/runtime/freestanding/panic.c`, is in every package whether or not a triple was named, as it is in a project's own
+layout: a freestanding program that fails links it. No sysroot is needed, because the triple has no C library to compile
 against. `tools/check_source_lists.py` fails when `FREESTANDING_STD` and `freestandingSafeModule` disagree.
 The dev-loop toolchain that `prismio build` leaves beside the project host does not carry the failure core
 or any bare-metal section yet; a build from a checkout finds both in the checkout.
