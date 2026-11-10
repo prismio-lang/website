@@ -19,8 +19,8 @@ $P --version
 ```
 
 ```text
-prismio 0.1.0
-llvm 23.1.1
+prismio 0.2.0
+llvm 23.1.5
 compiler ~/prismio/.prismio/build/debug
 stdlib ./std
 ```
@@ -29,7 +29,7 @@ stdlib ./std
 
 ```text
 Using local toolchain: ~/prismio/.prismio/build/debug/prismio
-prismio 0.1.0
+prismio 0.2.0
 ...
 ```
 
@@ -77,7 +77,7 @@ $P dump-ast bare.psm
 ```
 
 ```text
-{"format":"aif-ast","version":1,"source":"bare.psm","compiler":"0.1.0","files":[{"id":0,"path":"bare.psm"}],"decls":[{"k":"FUNCTION","s1":"add","s2":"add__Int_Int", ...
+{"format":"aif-ast","version":1,"source":"bare.psm","compiler":"0.2.0","files":[{"id":0,"path":"bare.psm"}],"decls":[{"k":"FUNCTION","s1":"add","s2":"add__Int_Int", ...
 ```
 
 If `check` and `dump-ast` disagree — one accepts a program the other's serialization garbles — the dump serializer or the analysis-only driver path is the suspect, not sema itself.

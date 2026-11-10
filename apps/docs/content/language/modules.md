@@ -1,9 +1,9 @@
 ---
 title: Modules and imports
-description: Resolve Prismio 0.1 dotted file imports, wildcard imports, cycles, and declaration names.
+description: Resolve Prismio 0.2 dotted file imports, wildcard imports, cycles, and declaration names.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-10-07"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [modules, imports, name-resolution]
 related: [guides/modules, specification/name-resolution, package-manager]
 ---
@@ -358,7 +358,7 @@ import {decode, encode} from protocol
 
 ## Not implemented
 
-Prismio 0.1 has no re-exports. A module that imports another does not pass those names on to *its* importers — see [imports are not transitive](#imports-are-not-transitive) — so a composition root that only re-imports its parts gives its own importers nothing. Name the modules you use.
+Prismio 0.2 has no re-exports. A module that imports another does not pass those names on to *its* importers — see [imports are not transitive](#imports-are-not-transitive) — so a composition root that only re-imports its parts gives its own importers nothing. Name the modules you use.
 
 Visibility extends to globals, structs, struct fields and enums. Qualifiers do not extend to types, enums or globals.
 

@@ -2,7 +2,7 @@
 title: Integer width mismatch
 description: Fix Prismio operators applied to integers of different signedness or bit widths.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-08-09"
 tags: [error, integers, casts, operators]
 related: [language/types, language/operators, errors/type-mismatch]

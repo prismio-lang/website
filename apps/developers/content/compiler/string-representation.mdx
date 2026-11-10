@@ -391,7 +391,7 @@ data, so teardown handed `.rodata` to the deallocator. It is now copied into an
 owned or inline value first. And `strSplit`, `strSplitOn`,
 `strSplitWhitespace` and `strLines` keep a part of twelve bytes or fewer in the
 pair rather than allocating it, and so does `strClone`. That last one matters
-beyond the allocation: a `Map<String, V>` stores its keys through it, and a heap
+beyond the allocation: a `HashMap<String, V>` stores its keys through it, and a heap
 copy of a short key never matched an inline lookup key bit for bit, so every
 successful probe fell through to `memcmp` -- 47,992 of them in `word_frequency`,
 and none now.

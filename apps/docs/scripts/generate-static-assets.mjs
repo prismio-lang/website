@@ -41,7 +41,7 @@ try {
     const site = {
         name: "Prismio Documentation",
         siteUrl: "https://docs.prismio.org",
-        currentVersion: "0.1.0",
+        currentVersion: "0.2.0",
     };
 
     const groups = docs.reduce((acc, doc) => {
@@ -63,7 +63,7 @@ try {
         .join("\n\n");
 
     const curatedLinks = [
-        { title: "Release baseline", href: `${site.siteUrl}/releases/0.1.0` },
+        { title: "Latest release", href: `${site.siteUrl}/releases/0.2.0` },
         { title: "Formal specification", href: `${site.siteUrl}/specification` },
         { title: "Error index", href: `${site.siteUrl}/errors` },
     ];
@@ -92,7 +92,7 @@ try {
         )
         .join("\n\n---\n\n");
 
-    const headerNote = "full documentation corpus\n\nThis Markdown-first export is generated from the same content records as docs.prismio.org. “experimental” means implemented but changeable; “planned” means the feature is not accepted by compiler 0.1.0.";
+    const headerNote = "full documentation corpus\n\nThis Markdown-first export is generated from the same content records as docs.prismio.org. “experimental” means implemented but changeable; “planned” means the feature is not accepted by compiler 0.2.0.";
     const llmsFullTxt = `# Prismio ${site.currentVersion} ${headerNote}\n\n${records}\n`;
     writeFileSync(join(publicDir, "llms-full.txt"), llmsFullTxt);
     console.log(`[static-assets] Generated public/llms-full.txt (${(llmsFullTxt.length / 1024).toFixed(2)} KB)`);

@@ -2,7 +2,7 @@
 title: Multiple compiler errors
 description: Understand Prismio's recovered diagnostics and final abort count after several independent errors.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-08-09"
 tags: [error, diagnostics, recovery, cascade]
 related: [compiler/diagnostics, errors/type-mismatch, errors/unexpected-top-level-token]

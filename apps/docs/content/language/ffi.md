@@ -1,9 +1,9 @@
 ---
 title: Foreign function declarations
-description: Prismio 0.1 extern fn and extern let syntax, C ABI types, ownership contracts, and globals defined in C.
+description: Prismio 0.2 extern fn and extern let syntax, C ABI types, ownership contracts, and globals defined in C.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-09-30"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [ffi, extern, c-abi, ownership-contracts, globals]
 related: [guides/calling-c, guides/ffi, cookbook/c-ffi, specification/behavior]
 ---
@@ -28,7 +28,7 @@ Every declared parameter and return type must match the actual foreign function'
 
 Use exact-width integer types for C interfaces where the header uses fixed widths. `Isize` and `Usize` follow the selected target's pointer width. `Char` is byte-sized. `String` is Prismio runtime-managed data, not automatically interchangeable with every C string convention.
 
-Raw `Ptr` is available for opaque foreign addresses. Because Prismio 0.1 has no typed pointer dereference or general unsafe block, place pointer operations behind small extern declarations.
+Raw `Ptr` is available for opaque foreign addresses. A raw `Ptr` cannot be read through. To read or write the memory behind an address, use the typed [`Ptr<T>`](/language/pointers); Prismio has no general unsafe block, so keep that code behind small extern declarations.
 
 ## Parameter ownership contracts
 
@@ -209,3 +209,38 @@ Keep foreign calls narrow, validate values before crossing the boundary, transla
 Foreign callbacks, C variadics, platform structure packing, and concurrency require additional ABI rules that are not defined as a stable language feature in 0.1.
 
 C++ name mangling, automatic header generation, Rust/Python bindings, dynamic library manifests, and a stable cross-version Prismio ABI are not implemented.
+
+## Variadic and overloaded externs
+
+A C function that ends in `...` is declared with a bare `...` after its named parameters. Each extra argument at a call is a number, a character, a `Bool`, a pointer or a `String`; the compiler declares the function variadic, so every target passes the extras the way a C compiler would (on Apple's arm64 they go on the stack), and applies C's default promotions: a `Bool`, a `Char` and an 8- or 16-bit integer travel as an `int`, signed or unsigned by their own type. A `String` is handed over as a C string for the length of the call, as a `String borrow` parameter is.
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+import std.mem
+import std.raw
+import std.string
+
+extern fn snprintf(buffer: Ptr, size: Usize, format: String borrow, ...) -> Int
+
+fn main() -> Int {
+    let block = alloc(64)
+    let buffer = pointerAt(block)
+    snprintf(buffer, 64, "%d-%s-%.1f", 7, "text", 2.5)
+    println(stringFromCString(buffer))
+    free(block)
+    return 0
+}
+```
+
+A pack (`...args: Int`) is not a C vararg and is refused on an `extern fn`.
+
+One C symbol can be declared more than once at different parameter types, and a call picks by its arguments. A kernel header's `foo(int)` and `foo(const char *)` are both ways into the same function:
+
+```prismio
+extern fn strlen(text: String borrow) -> Usize
+extern fn strlen(block: Ptr) -> Usize
+```
+
+Two declarations whose parameters are written alike are one declaration, so two modules may each declare the externs they use. For the address of a function (an operations table, a callback) and a pointer to a string literal, see `functionAddress("name")` and `cString("literal")` in `std.raw`.
+

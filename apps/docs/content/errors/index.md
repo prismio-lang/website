@@ -1,8 +1,8 @@
 ---
 title: Compiler error reference
-description: Permanent, searchable documentation pages for every distinct failure class covered by the Prismio 0.1 negative compiler suite.
+description: Permanent, searchable documentation pages for every distinct failure class covered by the Prismio 0.2 negative compiler suite.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-30"
 tags: [errors, diagnostics, troubleshooting, index]
 related: [compiler/diagnostics, specification/conformance, language]

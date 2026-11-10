@@ -2,7 +2,7 @@
 title: Missing return
 description: Fix Prismio value-returning functions that can reach the end without returning.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-08-09"
 tags: [error, return, control-flow, functions]
 related: [language/functions, language/control-flow, errors/unreachable-code]

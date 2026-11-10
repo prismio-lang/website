@@ -1,9 +1,9 @@
 ---
 title: Compiler targets and platforms
-description: Supported host platforms, LLVM target behavior, and experimental WebAssembly status for Prismio 0.1.
+description: Supported host platforms, LLVM target behavior, and experimental WebAssembly status for Prismio 0.2.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-10-02"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [compiler, targets, windows, macos, linux, wasm]
 related: [start/installation, compiler/cli, guides/freestanding, roadmap]
 ---
@@ -66,7 +66,7 @@ Ubuntu 20.04, Debian 11 and RHEL 8.
 
 ## LLVM requirement
 
-LLVM 23.1.1 is the pinned backend line. A platform's default Clang may use another LLVM IR dialect/version and is not automatically interchangeable. The repository setup scripts identify the correct toolchain.
+LLVM 23.1.5 is the pinned backend line. A platform's default Clang may use another LLVM IR dialect/version and is not automatically interchangeable. The repository setup scripts identify the correct toolchain.
 
 ## Which targets `--target` accepts
 

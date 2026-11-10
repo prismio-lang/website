@@ -1,10 +1,10 @@
 ---
 title: Standard input
-description: The std.input module — reading what is piped into a program a line at a time, one line on demand, or all at once.
+description: The std.input module — reading what is piped into a program as lines, tokens or bytes, one at a time or all at once, with one cursor under all of them.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-10-07"
-tags: [standard-library, input, io, lines, readLine]
+version: "0.2.0"
+lastUpdated: "2026-11-10"
+tags: [standard-library, input, io, lines, tokens, bytes, readLine, readToken]
 related: [stdlib/io, stdlib/filesystem, stdlib/option, cookbook/cli-arguments]
 ---
 
@@ -46,25 +46,102 @@ The input has four lines. The empty third line is a line, and the last one count
 | --- | --- | --- |
 | `inputLines()` | an iterator of `String`, for `for line in` | every line, in order — the usual case |
 | `readLine()` | `String?`: the next line, or `none` at the end of input | one line on demand: a header, a prompt's answer |
-| `readLineOr(fallback)` | `String`: the next line, or `fallback` at the end of input | a line you can do without checking for the end |
 | `prompt(text)` | `String?`: `text` is written first, then a line is read | asking a question |
 | `readInt()`, `readFloat()` | `Int?`, `Float?`: the next line as a number | a count or a measurement on a line of its own |
+| `readIntResult()`, `readFloatResult()` | `Result<Int?, InputError>`, `Result<Float?, InputError>` | telling a number, the end of input, a line that is not a number and a failing descriptor apart |
 | `readLines()` | `Vec<String>`: every line not yet read | input you want all of, at once, as lines |
-| `readWords()` | `Vec<String>`: the rest of the input split at spaces, tabs and line ends | a list of tokens, however they are laid out |
+| `tokens()` | an iterator of `String`, for `for token in` | whitespace-separated values, read as the loop reaches them |
+| `readToken()` | `String?`: the next token, or `none` | one value on demand, wherever the line breaks fall |
+| `readTokens()` | `Vec<String>`: every token not yet read | a small list of tokens, all at once |
 | `readAll()` | `String`: everything not yet read, terminators included | input that is one document rather than lines |
-| `atEndOfInput()` | `Bool`: whether there is no line left | a loop that reads a line at a time |
-| `readBytes(count)` | `String`: the next `count` bytes, fewer if the input ends first | a body whose length a header announced |
+| `readByte()` | `U8?`: the next byte, or `none` | a binary format, a byte at a time |
+| `readBytes(count)` | `Vec<U8>`: the next `count` bytes, fewer if the input ends first | a fixed-size record |
+| `readAllBytes()` | `Vec<U8>`: everything not yet read, byte for byte | binary input, or input that is not text |
+| `readText(count)` | `String`: `readBytes(count)` as text | a body whose length a header announced |
 | `waitForInput(milliseconds)` | `Bool`: whether a read would not wait | acting on a burst of input once, not on each piece |
 
-There is no `stdin` value to call them on: a process has one standard input, so each is a function of its own. `stdin.lines()` from 0.1 is `inputLines()` now, and `stdin.isAtEnd` is `atEndOfInput()`.
+There is no `stdin` value to call them on: a process has one standard input, so each is a function of its own. There is no fallback variant of any of them — `??` is the fallback, as in `readLine() ?? "stranger"` — and no `atEndOfInput()`: ask for the next item and `none` says the input is over, or let a `for` loop end on its own.
 
 **A line never carries its terminator.** `\n` and `\r\n` both end a line, and neither is part of it. A last line with no terminator is still a line, so `"a\nb"` and `"a\nb\n"` are the same two lines, and an empty input has none.
 
-**The reads share one buffer, so they can be mixed.** `readLine` followed by `readAll` gives the rest of the input after that line.
+**A token is a run of anything but space, tab, `\n` and `\r`**, the whitespace `trim` and `splitWhitespace` mean. Looking for one skips the whitespace before it, line ends included, and the byte after it is left unread: `readToken()` followed by `readLine()` gives the rest of that line, the way `cin >> x` followed by `getline` does.
+
+**All of them share one cursor, so they can be mixed.** Each begins exactly where the one before stopped: a `readLine` followed by `readAllBytes` gives the rest of the input after that line, and a `readToken` followed by `readAll` gives what comes after the token. There is one 64 KiB buffer behind them, and no call has a buffer of its own.
+
+### Numbers, a token at a time
+
+`readInt` reads a *line*. For input laid out in tokens — a count, then that many values on lines of their own or all on one — read the tokens and convert them. `tokens()` reads one when the loop reaches it, so the whole input is never held:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.input
+import std.io
+import std.option
+import std.string
+
+// Input: a count, then that many numbers, wherever the line breaks fall.
+fn main() {
+    let count = (readToken() ?? "0").parseInt() ?? 0
+    let mut sum = 0
+    let mut seen = 0
+    for token in tokens() {
+        if (seen == count) { break }
+        sum = sum + (token.parseInt() ?? 0)
+        seen = seen + 1
+    }
+    println(sum)
+}
+```
+
+```text
+$ printf '5\n10 20 30\n40 50\n' | ./sum
+150
+```
+
+### When the difference matters
+
+`readInt()` is `none` at the end of input and also for a line that is not a number. That is the right amount of detail for a script, and `readInt() ?? 18` is all it takes. A program that must tell them apart asks for `readIntResult()`, which keeps four outcomes distinct:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.input
+import std.io
+import std.option
+import std.string
+
+fn main() {
+    loop {
+        match (readIntResult()) {
+            Result.Ok(value) => {
+                if (value == none) { break }
+                println("number: ", value ?? 0)
+            }
+            Result.Err(problem) => {
+                match (problem) {
+                    InputError.NotANumber => { println("skipped a line that is not a number") }
+                    InputError.Io => {
+                        eprintln("standard input failed")
+                        break
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+```text
+$ printf '12\nhello\n7\n' | ./numbers
+number: 12
+skipped a line that is not a number
+number: 7
+```
+
+`Ok(none)` is the end of input, `Err(NotANumber)` is a line that was read and is not a number (consumed, as `readInt` consumes it), and `Err(Io)` is the descriptor failing, which `readInt` and `readLine` cannot tell from the end. `readFloatResult()` is the same for a `Float`.
 
 ### Length-prefixed messages
 
-`readBytes` reads through the same buffer as the lines, so a header can be read with `readLine` and the body it announced with `readBytes`. That is how the Language Server Protocol frames its messages: `Content-Length: 12`, a blank line, then exactly twelve bytes — which may themselves contain newlines, so a line-based read would have changed them.
+`readText` and `readBytes` read through the same buffer as the lines, so a header can be read with `readLine` and the body it announced with either one: `readText` when the body is text, `readBytes` when it is not. That is how the Language Server Protocol frames its messages: `Content-Length: 12`, a blank line, then exactly twelve bytes — which may themselves contain newlines, so a line-based read would have changed them.
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -77,7 +154,7 @@ fn main() -> Int {
     let header = readLine()
     let blank = readLine()
     let length = expect(header).replaceAll("Content-Length: ", "").parseInt().unwrapOr(0)
-    let body = readBytes(length)
+    let body = readText(length)
     println(body.length)
     return 0
 }
@@ -88,7 +165,7 @@ $ printf 'Content-Length: 11\r\n\r\nhello\nworld' | ./message
 11
 ```
 
-A `String` ends at its first NUL byte, so binary input is cut there; a protocol that frames *text* by length is unaffected. To wait for input *and* something else — a child's output, say — use [`waitReadable`](/stdlib/poll) with descriptor `0`; it counts bytes already in the buffer as ready, which `waitForInput` does too.
+A `String` ends at its first NUL byte, so `readText` cuts there (the bytes are still consumed); `readBytes` returns a `Vec<U8>` and keeps every byte, NUL and invalid UTF-8 included. To wait for input *and* something else — a child's output, say — use [`waitReadable`](/stdlib/poll) with descriptor `0`; it counts bytes already in the buffer as ready, which `waitForInput` does too.
 
 ### An optional line prints, and has a fallback
 
@@ -129,7 +206,7 @@ import std.string
 
 // Reads a name and an age, each on a line of its own.
 fn main() {
-    let name = readLineOr("stranger")
+    let name = readLine() ?? "stranger"
     let age = readInt() ?? 0
     println("hello, ${name}")
     println("next year:", age + 1)
@@ -176,9 +253,11 @@ Every line is released when the loop moves on: the counting example above measur
 
 ## Limits
 
-- **Text only.** A line is a `String`, and text after a NUL byte in a line is not part of it. There is no byte-oriented read.
-- **One reader at a time.** The buffer is not locked. Reading standard input from two tasks at once is undefined.
+- **The text reads stop at a NUL.** A line, a token and the text from `readText` are `String`s, and text after a NUL byte is not part of them. `readByte`, `readBytes` and `readAllBytes` keep everything.
+- **One call returns at most 2 GiB - 1 bytes** of `readBytes` or `readAllBytes`; call again for the rest.
+- **Each call is atomic; a pair of calls is not.** Two tasks reading at once never tear or repeat an item — each line, token or byte goes to exactly one of them — but `inputLines()` asks "is there another?" and then takes, and the other task can take what the first one found. Give the input to one task.
 - **The descriptor directly bypasses the buffer.** `Stream { descriptor: 0 }.readAll()` from [`std.process`](/stdlib/process) reads descriptor 0 itself and skips whatever these reads have already buffered. Use one or the other.
+- **Output is not buffered, so a prompt is already on screen.** `print` writes straight to descriptor 1; there is nothing for `prompt(text)` to flush before it blocks.
 - No line editing. `prompt(text)` writes the text and reads a line; nothing edits it.
 
 To read a *file* a line at a time, use [`readLines`](/stdlib/filesystem#reading-a-file-a-line-at-a-time) from `std.fs`, which uses the same reader.

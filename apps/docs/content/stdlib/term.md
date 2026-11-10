@@ -2,7 +2,7 @@
 title: Terminal colors
 description: The std.term module — colour, bold, underline and other terminal styles as String methods, and whether stdout will show them.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-10-02"
 tags: [standard-library, terminal, color, ansi, console]
 related: [stdlib/io, stdlib/strings, language/lexical-structure]

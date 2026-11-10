@@ -1,8 +1,8 @@
 ---
 title: Memory and ownership model
-description: Formal draft rules for Prismio 0.1 moves, borrows, drops, Vec slices, collections, arrays, and AIF allocation tiers.
+description: Formal draft rules for Prismio 0.2 moves, borrows, drops, Vec slices, collections, arrays, and AIF allocation tiers.
 status: experimental
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-24"
 tags: [specification, memory-model, ownership, aif]
 related: [language/ownership-and-borrowing, compiler/aif, specification/behavior]

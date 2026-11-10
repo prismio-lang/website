@@ -2,7 +2,7 @@
 title: Enums
 description: Define enums with payloads, struct variants, explicit discriminants and representation types, and codesets for aliased numeric constants.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-10-22"
 tags: [enums, variants, nominal-types]
 related: [language/pattern-matching, language/types, language/conversions, language/modules, specification/evaluation]

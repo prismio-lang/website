@@ -412,7 +412,7 @@ existing spelling. It is gated on `allowStructLit` as a struct literal is, so a 
 ends at `{` is never read as one. Like `DEFAULT_EXPR`, the kind is appended to `NodeKind` so the
 seed's ordinals do not move, and it never survives sema.
 
-**`Map<String, Int>()`** needs nothing from the parser: `Name<args>(...)` was already a call
+**`HashMap<String, Int>()`** needs nothing from the parser: `Name<args>(...)` was already a call
 with explicit type arguments on `child3`. Sema decides that `Name` is a type
 (`semaTypeCall`).
 

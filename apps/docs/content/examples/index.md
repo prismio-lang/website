@@ -1,14 +1,14 @@
 ---
 title: Verified examples
-description: Small, focused Prismio 0.1 programs categorized by language feature and checked against the compiler.
+description: Small, focused Prismio 0.2 programs categorized by language feature and checked against the compiler.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-08-09"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [examples, verified, learning]
 related: [tutorials/first-program, examples/control-flow, examples/owned-data]
 ---
 
-Examples in this section are complete programs designed to compile with Prismio 0.1.0. The documentation verification script extracts fences marked `prismio-check: pass` and compiles them with the selected local compiler.
+Examples in this section are complete programs designed to compile with Prismio 0.2.0. The documentation verification script extracts fences marked `prismio-check: pass` and compiles them with the selected local compiler.
 
 Unlike a reference fragment, a verified example includes every required declaration and an entry `main`, uses no proposed syntax, and can be copied into one `.psm` file. Expected output or exit behavior is documented next to the program.
 

@@ -2,7 +2,7 @@
 title: Filesystem API
 description: The std.fs module — reading, writing and appending files, reading one a line at a time, listing and removing directories, renaming, and asking what a path is.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-27"
 tags: [standard-library, filesystem, paths]
 related: [stdlib, stdlib/input, stdlib/time, stdlib/process, stdlib/strings, language/ffi]

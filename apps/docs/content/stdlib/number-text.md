@@ -2,7 +2,7 @@
 title: Number text
 description: The std.number_text module -- printing and converting to text an integer wider than 64 bits and the floats F16, F32, BF16 and F128.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-10-21"
 tags: [standard-library, print, integers, floats, arbitrary-width]
 related: [language/types, language/conversions, stdlib/io, stdlib/display]

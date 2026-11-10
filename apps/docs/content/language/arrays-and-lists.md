@@ -1,9 +1,9 @@
 ---
 title: Arrays, vectors, and slices
-description: Fixed stack arrays, the growable Vec<T>, and bounds-checked slices in Prismio 0.1 — which to choose, how each is owned, and how to view part of one.
+description: Fixed stack arrays, the growable Vec<T>, and bounds-checked slices in Prismio 0.2 — which to choose, how each is owned, and how to view part of one.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-10-08"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [arrays, vec, slices, collections, indexing]
 related: [language/types, language/ownership-and-borrowing, stdlib/vec]
 ---
@@ -399,7 +399,7 @@ Programmer-directed SoA data views are experimental. For an eligible flat struct
 
 ## Not available yet
 
-These are not in Prismio 0.1. Each is planned, and this page will say so when one ships.
+These are not in Prismio 0.2. Each is planned, and this page will say so when one ships.
 
 | Missing | Use today |
 | --- | --- |
@@ -412,8 +412,8 @@ These are not in Prismio 0.1. Each is planned, and this page will say so when on
 | **Chunked vectors** — `Vec<T, N>` and `Vec<T, Chunk>`, whose elements never move as they grow | `Vec<T>` |
 | **A moving `pop`/`removeAt`** — handing the element out rather than a copy, so a `T` without `Copy` can be popped | read the last element with `v[v.length - 1]`, then `truncate` |
 | **`VecDeque<T>`**, a double-ended queue | a `Vec<T>` used as a stack, or with a moving head index |
-| **Sets** — `Set<T>` / a hash set | `Map<T, Bool>` from [std.map](/stdlib/map) |
-| **A sorted map** (B-tree) | `Map<K, V>`, sorting its keys when order matters |
+| **Iterating a `HashSet`** — `for x in set`, `keys()` | keep the keys in a `Vec<T>` beside it, or use a `HashMap<T, Bool>` when you need to walk them |
+| **A sorted map** (B-tree) | `HashMap<K, V>`, sorting its keys when order matters |
 | **A priority queue** (binary heap) | a `Vec<T>` kept sorted with `sort`, or scanned for the minimum |
 | **A linked list** | `Vec<T>`, or an enum with a payload for a recursive structure |
 | **Comprehensions** (`[x * 2 for x in xs]`) | a loop that pushes into a `Vec<T>` |

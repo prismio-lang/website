@@ -2,8 +2,8 @@
 title: Concurrency
 description: Tasks, blocking typed channels, how AIF models thread affinity, and which concurrency features are still absent.
 status: experimental
-version: "0.1.0"
-lastUpdated: "2026-09-30"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [concurrency, tasks, threads, spawn, join, channels, aif, async, await, scope]
 related: [language/async-await, stdlib/concurrency, specification/memory-model, guides/memory-and-aif, roadmap]
 ---
@@ -252,6 +252,6 @@ None of the following exist yet, in the language or in the importable standard l
   nothing leaks — but the value is gone
 - an executor, a thread pool the language manages for you, or work stealing
 
-Foreign C functions may expose platform concurrency directly. Prismio 0.1 does not define
+Foreign C functions may expose platform concurrency directly. Prismio 0.2 does not define
 thread-safety or data-race rules for that path, and such use is outside the specified language
 model.

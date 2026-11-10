@@ -1,20 +1,24 @@
 ---
-title: Prismio 0.1 overview
-description: What Prismio is, what the self-hosted 0.1 compiler implements, and which capabilities are still planned.
+title: Prismio 0.2 overview
+description: What Prismio is, what the self-hosted 0.2 compiler implements, and which capabilities are still planned.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-09-27"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [overview, status, compiler]
-related: [start/installation, language, compiler/overview, roadmap]
+related: [start/installation, language, compiler/overview, roadmap, releases/0.2.0]
 ---
 
 Prismio is a statically typed systems language that compiles through LLVM. Its compiler is written in Prismio: the lexer, parser, semantic analysis, allocation inference, import resolver, and LLVM IR generator all live in `.psm` source.
 
-Version 0.1 is an active-development release, not a compatibility promise. “Implemented” on this site means the feature exists in the audited 0.1.0 compiler; it does not mean the syntax or ABI is stable.
+Version 0.2 is an active-development release, not a compatibility promise. “Implemented” on this site means the feature exists in the audited 0.2.0 compiler; it does not mean the syntax or ABI is stable.
+
+## What is new in 0.2
+
+Prismio 0.2.0 adds `async fn`, `await`, `scope { }` and `spawn { }`; `prismio lsp` and `prismio fmt`; freestanding builds with `std.syscall`; integers of any width; and `std.json` and `HashSet`. `T?` replaces `Option<T>` and `HashMap` replaces `Map`. The [release notes](/releases/0.2.0) list everything, and [migrating from 0.1](/migration/0.1-to-0.2) lists what to change in an existing program.
 
 ## Design at a glance
 
-Prismio combines explicit static types and predictable native compilation with ownership-aware handling of runtime data. Its source is intentionally small and statement-oriented in 0.1: declarations and control flow are conventional, while memory behavior is expressed at function boundaries with default borrows, `sink`, `inout`, and experimental allocation inference.
+Prismio combines explicit static types and predictable native compilation with ownership-aware handling of runtime data. Its source is intentionally small and statement-oriented in 0.2: declarations and control flow are conventional, while memory behavior is expressed at function boundaries with default borrows, `sink`, `inout`, and experimental allocation inference.
 
 The compiler pipeline is self-hosted. A trusted seed builds the Prismio source into a new compiler generation, and later generations are compared to establish a fixed point. This makes the compiler source an important part of the language's executable definition.
 
@@ -58,7 +62,7 @@ fn main() -> Int {
 
 `Counter` is a nominal, move-only struct. `increment` receives a mutable borrow, while the ordinary `read` parameter borrows read-only by default. The caller remains the owner through both calls.
 
-## Memory model in 0.1
+## Memory model in 0.2
 
 Integers, floats, booleans, byte characters, raw pointer values, fieldless enums, and arrays use copy behavior. Strings, vectors, and structs are move-only. Moving one of those values into a new owned location invalidates the source binding.
 
@@ -66,7 +70,7 @@ The Adaptive Inference Framework can select an implementation tier and exposes e
 
 ## Not implemented
 
-User-written lifetime syntax, exceptions, macros, `async`/`await`, and a package *registry* are not implemented. Generics, payload-carrying enum variants, optionals (`T?`) and `Result`, method-call syntax, `impl` blocks, generic traits with structural arguments and multiple bounds per type parameter, closures and closure bounds, slices, module namespacing and visibility, tasks, blocking typed channels, and the UMS package manifest all are. The pages for what remains missing are retained as roadmap contracts and are visibly marked **Coming Soon**.
+User-written lifetime syntax, exceptions, macros, and a package *registry* are not implemented, and `async`/`await` runs each task on an operating-system thread rather than a scheduler. Generics, payload-carrying enum variants, optionals (`T?`) and `Result`, method-call syntax, `impl` blocks, generic traits with structural arguments and multiple bounds per type parameter, closures and closure bounds, slices, module namespacing and visibility, tasks, `async fn` with `await` and `scope { }`, blocking typed channels, freestanding builds, a language server and formatter, and the UMS package manifest all are. The pages for what remains missing are retained as roadmap contracts and are visibly marked **Coming Soon**.
 
 The twenty standard modules — `std.io`, `std.input`, `std.string`, `std.fs`, `std.process`, `std.time`, `std.math`, `std.vec`, `std.map`, `std.option` and the rest — are ordinary importable modules; `std.io` is an import rather than a prelude, so a program that names no I/O carries none. See [Standard library status](/stdlib) before assuming a module exists.
 
@@ -83,6 +87,6 @@ This separation matters for search engines and AI tools: an aspirational keyword
 
 ## Source of truth
 
-The language-reference pages describe accepted source syntax. The [draft specification](/specification) records compiler-derived rules more precisely. When either conflicts with compiler behavior in 0.1.0, the tested compiler implementation wins and the discrepancy is a documentation bug.
+The language-reference pages describe accepted source syntax. The [draft specification](/specification) records compiler-derived rules more precisely. When either conflicts with compiler behavior in 0.2.0, the tested compiler implementation wins and the discrepancy is a documentation bug.
 
 For day-to-day use, follow the current version badge and page status. For compiler changes, update implementation, positive and negative tests, reference prose, error pages, and specification together so the site remains one source of truth.

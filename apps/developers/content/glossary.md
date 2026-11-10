@@ -30,7 +30,7 @@ related: [compiler/overview, aif/overview, llvm/overview]
 
 **flattening** — Import behavior that combines resolved syntax trees into one program namespace rather than preserving file-qualified modules.
 
-**implemented** — Present in the audited Prismio 0.1.0 compiler. This label does not imply API stability.
+**implemented** — Present in the audited Prismio 0.2.0 compiler. This label does not imply API stability.
 
 **implementation-defined** — Behavior selected and documented by an implementation rather than fixed identically by the language specification.
 
@@ -60,6 +60,6 @@ related: [compiler/overview, aif/overview, llvm/overview]
 
 **wildcard import** — `path.*`, which imports sorted direct `.psm` children of a directory without recursion.
 
-**Coming Soon** — Designed or documented for roadmap continuity but not accepted end to end by the 0.1 compiler.
+**Coming Soon** — Designed or documented for roadmap continuity but not accepted end to end by the 0.2 compiler.
 
 **draft** — Compiler-derived documentation/specification that is not yet frozen as an independent stable language standard.

@@ -2,7 +2,7 @@
 title: Region budget exceeded
 description: Fix a Prismio region pin(bytes) whose converged AIF estimate exceeds the asserted memory budget.
 status: experimental
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-08-09"
 tags: [error, region, budget, aif]
 related: [language/annotations, compiler/aif, errors/refuted-pin]

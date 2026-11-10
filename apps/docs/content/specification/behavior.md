@@ -1,15 +1,15 @@
 ---
 title: Undefined and implementation-defined behavior
-description: Boundaries where Prismio 0.1 rejects code, checks at runtime, or does not yet define portable behavior.
+description: Boundaries where Prismio 0.2 rejects code, checks at runtime, or does not yet define portable behavior.
 status: stable
 draft: true
-version: "0.1.0"
-lastUpdated: "2026-10-08"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [specification, undefined-behavior, portability, safety]
 related: [specification/memory-model, compiler/targets, language/ffi]
 ---
 
-Prismio 0.1 aims to reject known type and ownership violations, but it does not yet publish a complete undefined-behavior taxonomy. This page identifies portability boundaries so documentation does not imply guarantees absent from the compiler and runtime.
+Prismio 0.2 aims to reject known type and ownership violations, but it does not yet publish a complete undefined-behavior taxonomy. This page identifies portability boundaries so documentation does not imply guarantees absent from the compiler and runtime.
 
 ## Static rejection
 

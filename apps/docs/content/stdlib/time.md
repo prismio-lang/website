@@ -2,7 +2,7 @@
 title: Time
 description: The std.time module — measuring how long something took, spans of time as Duration, the wall clock, and sleeping.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-27"
 tags: [standard-library, time, duration, clock, sleep]
 related: [stdlib, stdlib/filesystem, language/types, roadmap]

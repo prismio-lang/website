@@ -1,14 +1,14 @@
 ---
 title: Ownership and borrowing
-description: Move-only values, default borrows, sink transfers, inout mutation, drop, and loop restrictions in Prismio 0.1.
+description: Move-only values, default borrows, sink transfers, inout mutation, drop, and loop restrictions in Prismio 0.2.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-09-24"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [ownership, borrowing, move, sink, inout]
 related: [language/functions, language/annotations, specification/memory-model, errors/use-after-move]
 ---
 
-Ownership determines which binding is responsible for move-only data and when an operation may read, mutate, transfer, or destroy it. Prismio 0.1 applies these checks without source-level reference syntax.
+Ownership determines which binding is responsible for move-only data and when an operation may read, mutate, transfer, or destroy it. Prismio 0.2 applies these checks without source-level reference syntax.
 
 Strings, lists, and structs are move-only. Optional wrappers around owned reference-shaped values preserve that ownership. Scalars, raw pointer values, fieldless enums, and arrays of a known length are copied as values in the current model. A `[T]` parameter is the exception among arrays: it is a view of the caller's array, so a store through it writes the caller's elements — see [copies and views](/language/arrays-and-lists#copies-and-views).
 
@@ -65,7 +65,7 @@ The signature contains no `borrow` keyword for ordinary Prismio functions. Borro
 
 A borrowed parameter may inspect its value and pass another borrow to an ordinary parameter. It cannot transfer ownership into a new owning location, send the value to `sink`, or call `drop` on the borrowed owner.
 
-This call-scoped rule is narrower than a general reference/lifetime system. Prismio 0.1 does not let a function return a reference to its parameter or store a first-class borrow for later use.
+This call-scoped rule is narrower than a general reference/lifetime system. Prismio 0.2 does not let a function return a reference to its parameter or store a first-class borrow for later use.
 
 ## Transfer with sink
 
@@ -161,11 +161,11 @@ The release is withheld where it cannot be proven safe -- when the callee may ha
 
 The experimental Adaptive Inference Framework may choose stack, region, reference-counted, or traced strategies based on analysis and annotations. These strategies are implementation mechanisms; they do not remove source-level ownership rules.
 
-Prismio 0.1 should not yet be described as having a complete formally proven borrow checker or universal leak-freedom guarantee. Foreign code, raw pointers, experimental allocation tiers, and incomplete semantics remain boundaries where contracts matter.
+Prismio 0.2 should not yet be described as having a complete formally proven borrow checker or universal leak-freedom guarantee. Foreign code, raw pointers, experimental allocation tiers, and incomplete semantics remain boundaries where contracts matter.
 
 ## Loops and conditional moves
 
-Moving an outer binding from within a loop is rejected because later iterations could observe it as moved. Prismio 0.1 has no explicit reference syntax, borrow blocks, user-written lifetimes, or general flow-sensitive alias model.
+Moving an outer binding from within a loop is rejected because later iterations could observe it as moved. Prismio 0.2 has no explicit reference syntax, borrow blocks, user-written lifetimes, or general flow-sensitive alias model.
 
 <!-- prismio-check: fail -->
 ```prismio

@@ -2,15 +2,15 @@
 title: Roadmap and feature status
 description: Implementation status for current and planned Prismio language, tooling, platform, and library capabilities.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-10-21"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [roadmap, status, coming-soon]
-related: [start/overview, releases/0.1.0, faq]
+related: [start/overview, releases/0.2.0, faq]
 ---
 
-This page distinguishes shipped compiler behavior from intent. It does not assign release dates.
+This page distinguishes shipped compiler behavior from intent. It assigns no dates to features. The one date is the next release's target: **0.3.0 is planned for 5 January 2027**, a target and not a promise.
 
-| Area | 0.1 status |
+| Area | 0.2 status |
 | --- | --- |
 | Self-hosted frontend and LLVM backend | Implemented |
 | Native Windows, macOS, and Linux CI | Implemented |
@@ -23,7 +23,9 @@ This page distinguishes shipped compiler behavior from intent. It does not assig
 | Integers of any width (`Int<N>`, `UInt<N>`) and the float types `F16`, `F32`, `F64`, `F128`, `BF16` | Implemented |
 | The standard traits (`Eq`, `Ord`, `Copy`, `Default`, `Display`, `Key`) for an unnamed-width `Int<N>` and for `F16`, `F32`, `BF16`, `F128`; `print` of those floats without `import std.number_text`; `std.math` on `F32`; a `Vec` of integers wider than 64 bits | Coming Soon |
 | Random numbers, checked integer arithmetic | Coming Soon |
-| Standard input (`std.input`): lines, one line, or everything | Implemented |
+| Standard input (`std.input`): lines, tokens, bytes, and `Result` parsing | Implemented |
+| JSON (`std.json`): a strict RFC 8259 reader and a writer | Implemented |
+| Waiting on several descriptors (`std.poll`), `Child.tryWait()` | Implemented |
 | Time (`std.time`): `Instant`, `Duration`, the wall clock, `sleep` | Implemented |
 | Calendar dates, time zones, timers | Coming Soon |
 | Files (`std.fs`): read, write, append, a line at a time, list, rename, remove, metadata | Implemented |
@@ -31,7 +33,7 @@ This page distinguishes shipped compiler behavior from intent. It does not assig
 | `panic`, `unreachable`, `assert`, `exit` | Implemented |
 | A `Never` return type for a function that always fails | Coming Soon |
 | Growing text in a struct field (`StringBuilder`) | Implemented |
-| `Map` removal and methods (`m.get`, `m.remove`, `m[k]`, …) | Implemented |
+| `HashMap` removal and methods (`m.get`, `m.remove`, `m[k]`, …) | Implemented |
 | Optional and `Result` methods (`unwrapOr`, `expect`, `map`, `andThen`, …) | Implemented |
 | None-coalescing `a ?? b` | Implemented |
 | `from std import {io, vec}`, the import group with the directory first | Implemented |
@@ -49,11 +51,12 @@ This page distinguishes shipped compiler behavior from intent. It does not assig
 | Arrays returned by value (`-> Array<T, N>`) and stored in struct fields | Implemented |
 | Fixed-length array parameters, compiled once per length; array fields in generic structs and enum payloads | Coming Soon |
 | Chunked `Vec<T, N>` and `Vec<T, Chunk>`, slices of arrays | Coming Soon |
-| More collections: `VecDeque<T>`, sets, a sorted map, a priority queue, a linked list | Coming Soon |
+| `HashSet<K>` (`insert`, `contains`, `remove`) | Implemented |
+| More collections: `VecDeque<T>`, a sorted map, a priority queue, a linked list | Coming Soon |
 | Programmer-directed AoS↔SoA data views | Experimental (conversion, checked reads, mutation and round trip implemented) |
 | `else if` chains, `while`, `loop`, `repeat(n)` | Implemented |
 | Ranges `a..b` (end included) and `a..<b`, with `step` | Implemented |
-| `for` over String, Vec, Slice, arrays, Map and `Iterator` types, with `(index, element)` | Implemented |
+| `for` over String, Vec, Slice, arrays, HashMap and `Iterator` types, with `(index, element)` | Implemented |
 | Labelled loops: `outer@ for …`, `break@outer`, `continue@outer` | Implemented |
 | Descending ranges (`10..0` counts down) | Implemented |
 | `break` with a value, `if`/`match` as expressions | Coming Soon |
@@ -71,13 +74,17 @@ This page distinguishes shipped compiler behavior from intent. It does not assig
 | Blocking typed channels: `Channel<T>`, `for msg in c` | Implemented |
 | Plain-data messages copied rather than boxed | Implemented |
 | `select` over channels, non-blocking send and receive | Coming Soon |
-| An `await` that gives its thread back, atomics, synchronization types | Coming Soon |
+| Typed pointers (`Ptr<T>`), volatile access, and pointer atomics with an explicit memory ordering (`std.raw`) | Experimental |
+| An `await` that gives its thread back, mutexes and other synchronization types | Coming Soon |
 | Macros and compiler plug-ins | Coming Soon |
 | Package manifest (`build.ums`) with profiles, project commands, native C sources, a lockfile and path dependencies | Implemented |
 | Package registry and version solving | Coming Soon |
 | Importing modules from a path dependency | Coming Soon |
 | C++ sources in `native`, and static or shared library targets | Coming Soon |
-| Formatter, linter, and language server | Coming Soon |
+| Language server (`prismio lsp`) and formatter (`prismio fmt`) | Implemented |
+| Freestanding builds (`--freestanding`) and system calls (`std.syscall`) | Experimental |
+| Platform blocks (`linux { }`, `macos { }`, `windows { }`) | Implemented |
+| A linter | Coming Soon |
 | Android and iOS toolchains | Coming Soon |
 
 The twenty standard modules, from `std.io` and `std.input` to `std.time` and `std.math`, are ordinary

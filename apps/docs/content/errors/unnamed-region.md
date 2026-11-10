@@ -2,7 +2,7 @@
 title: Region requires a name
 description: Fix a Prismio AIF region block declared without its required identifier.
 status: experimental
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-08-09"
 tags: [error, region, aif, syntax]
 related: [language/annotations, compiler/aif, errors/region-budget-exceeded]

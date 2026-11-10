@@ -2,8 +2,8 @@
 title: Optionals
 description: T? is a T or none. A scalar's T? is a value that costs no allocation; a reference's is a nullable pointer. Testing, ??, expect, unwrapOr, containers and printing.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-10-07"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [optional, nullable, none, coalescing, expect, unwrapOr]
 related: [language/types, language/conversions, language/structs, errors/optional-needs-unwrap, stdlib/option]
 ---
@@ -155,7 +155,7 @@ fn main() {
 
 ## In containers, and printing
 
-A scalar `T?` goes in a `Vec`, a slice, an array or a `Map` value like any
+A scalar `T?` goes in a `Vec`, a slice, an array or a `HashMap` value like any
 scalar, with no allocation per element. The standard library knows about it:
 `contains`, `indexOf`, `sort` (`none` sorts first), `clone` and `pop` work on a
 `Vec<Int?>`, and `println` writes the value or `none`.
@@ -247,7 +247,7 @@ A `T?` says a value may be absent and not why. When the reason matters, return a
 [`Result<T, E>`](/stdlib/option#result), and turn between the two with `ok()` and `err()` (a
 `Result` to an optional) and `okOr(error)` (an optional to a `Result`).
 
-## Not in 0.1
+## Not in 0.2
 
 - optional chaining such as `value?.field`: test with `!= none` and read through
   `expect`, or use `??`;
@@ -255,5 +255,5 @@ A `T?` says a value may be absent and not why. When the reason matters, return a
 - `if let`, flow narrowing after a comparison, and `match` on a `T?`: compare with
   `none` and read the value with `expect(o)`;
 - `T??`, and `Channel<Int?>`: a channel carries references;
-- a `Map` whose value is an owned `T?` (`String?`), for the reason a `Map`'s
+- a `HashMap` whose value is an owned `T?` (`String?`), for the reason a `HashMap`'s
   value may not be an owned type yet.

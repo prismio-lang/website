@@ -1,3 +1,4 @@
+import { PRISMIO_VERSION } from "@prismio/utils";
 import type { DocStatus } from "../../types";
 
 interface StatusConfig {
@@ -13,7 +14,7 @@ interface StatusConfig {
 const statusConfig: Record<DocStatus, StatusConfig> = {
     stable: {
         label: "Stable",
-        summary: "Available in the audited Prismio v0.1.0 compiler.",
+        summary: `Available in the audited Prismio ${PRISMIO_VERSION} compiler.`,
         colors: {
             eyebrowText: "text-emerald-700 dark:text-emerald-500",
             cardBg: "bg-emerald-50 dark:bg-emerald-500/10",
@@ -22,7 +23,7 @@ const statusConfig: Record<DocStatus, StatusConfig> = {
     },
     experimental: {
         label: "Experimental",
-        summary: "Present in Prismio v0.1.0, but its interface, syntax, or semantics may change substantially before v1.0.0 stabilization.",
+        summary: `Present in Prismio ${PRISMIO_VERSION}, but its interface, syntax, or semantics may change substantially before v1.0.0 stabilization.`,
         colors: {
             eyebrowText: "text-amber-700 dark:text-amber-500",
             cardBg: "bg-amber-50 dark:bg-amber-500/10",
@@ -31,7 +32,7 @@ const statusConfig: Record<DocStatus, StatusConfig> = {
     },
     planned: {
         label: "Planned",
-        summary: "Planned for a future release; not implemented in Prismio v0.1.0. Illustrative syntax on this page does not compile.",
+        summary: `Planned for a future release; not implemented in Prismio ${PRISMIO_VERSION}. Illustrative syntax on this page does not compile.`,
         colors: {
             eyebrowText: "text-fuchsia-700 dark:text-fuchsia-500",
             cardBg: "bg-fuchsia-50 dark:bg-fuchsia-500/10",

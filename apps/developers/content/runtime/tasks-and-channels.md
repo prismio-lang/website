@@ -152,14 +152,14 @@ concurrency workloads are `parallel_reduction` and `channel_pipeline` in
 
 ## Channels
 
-`Channel<T>` is a compiler-supported typed blocking channel. The runtime uses a bounded ring with
-mutex and condition-variable coordination. Send can block while full; receive blocks until a value
-arrives or the channel closes. Channel ownership rules determine whether an element is copied,
-moved, or shared.
+`Channel<T>` is a compiler-supported typed blocking channel. The runtime uses a bounded lock-free
+ring, with a mutex and condition variables only for a thread that has to sleep. Send can block while
+full; receive blocks until a value arrives or the channel closes. Channel ownership rules determine
+whether an element is copied, moved, or shared.
 
-The current implementation is a general synchronized channel, not a topology-specialized SPSC,
-MPSC, or lock-free queue. User-facing atomics, mutex types, memory orderings, async functions, and
-nonblocking I/O are not exposed.
+The current implementation is one general multi-producer, multi-consumer queue, not specialized by
+topology. User-facing atomics, mutex types, memory orderings, async functions, and nonblocking I/O are
+not exposed.
 
 Tests must cover successful transfer, close behavior, task results, moved arguments, join ordering,
 and memory release. Concurrency failures require stress and sanitizer runs in addition to
@@ -200,31 +200,39 @@ whose value may overlap the enclosing scope.
 
 ## Channel runtime
 
-`chan_new(capacity)` allocates the queue, mutex, and condition variables. Capacity controls
-bounded buffering; a capacity below 1 is raised to 1.
+`chan_new(capacity)` allocates the channel, its mutex and its condition variables; the first message
+allocates the ring. Capacity controls bounded buffering; a capacity below 1 is raised to 1.
 
-`chan_send` locks the channel, waits while the buffer is full, fails after close, enqueues one
-erased message, signals a receiver, and unlocks. `chan_recv` waits while empty and open; after
-close it drains queued messages before returning the closed/empty result. `chan_close` marks
-closed and wakes both senders and receivers.
+The ring is Vyukov's bounded queue. `tail` and `head` count messages for the channel's whole life,
+each on its own cache line, and each slot holds a stamp in front of its message saying whose turn it is:
+`2 * pos` for the sender of `pos`, `2 * pos + 1` for its receiver, and `2 * (pos + cap)` once it has gone
+round. A side claims a position by compare-and-swap on its own counter, and the stamp store publishes.
+
+`chan_send` claims, waiting while the ring is full and failing after close, then writes one message and
+publishes it. `chan_recv` claims, waiting while the ring is empty and open; after close it drains queued
+messages before returning the closed/empty result. A thread that cannot claim backs off for a few
+microseconds and then sleeps. A sleeper counts itself and looks again, and a publisher looks at the count,
+so a message with nobody asleep makes no system call. `chan_close` sets a bit in `tail`, which makes a
+claim and a close one atomic order, and wakes both senders and receivers.
 
 `chan_share` returns the same pointer rather than counting handles: the contract is that the
 creator closes, joins every task it shared with, then frees, so a count would only add cost.
 `chan_free` destroys the mutex, condition variables, and queue unconditionally, and assumes no
-waiters remain; the join before it is what makes that true. `chan_len` reads the current queue
-length under the lock.
+waiters remain; the join before it is what makes that true. `chan_len` is `tail - head`, a snapshot of
+two counters.
 
 The compiler's `Channel<T>` type preserves the element type even though C stores `void *`. A
 pointer channel moves one owned value per slot. A plain-data channel uses `chan_send_copy` and
-`chan_recv_copy` instead, over `bytes` — a ring of `cap` messages of `elem_size` bytes that sits
-beside `slots`, allocated lazily by whichever copy call runs first and freed by `chan_free`. A
-channel is one kind or the other for its whole life (the element type decides), so the two rings
-share `head` and `len`, and the wrap is a compare rather than a `%`.
+`chan_recv_copy` instead, with slots of `elem_size` bytes rather than a pointer's. A channel is one kind or
+the other for its whole life (the element type decides), and whichever call runs first allocates the
+ring, which `chan_free` frees.
 
-Things tried on this ring and measured as no gain: counting waiters to skip signals, a lock-free
-SPSC ring, and spinning before parking (at best 3% with 1024 relax iterations; 40-60% slower past
-that, or with `sched_yield`). macOS mutexes are first-fit by default since 10.14, so the lock policy
-is not a lever either.
+Measured on the mutex ring this replaced, with no gain on `channel_pipeline`: counting waiters to skip
+signals, a lock-free SPSC ring, and spinning before parking (at best 3% with 1024 relax iterations; 40-60%
+slower past that, or with `sched_yield`). The case those missed was `graph_churn_transfer`, with bigger
+messages and stages that do more work between them: 0.52x with this ring. What `channel_pipeline` needed was
+a pause before looking again at a slot that was not ready, two spins a slot up to 128: 0.533 ms against 2.60 on the
+old ring, with half the CPU.
 
 Concurrency tests should include capacity one and larger buffers, blocked sender/receiver wakeups,
 close while blocked, close after queued sends, multiple producers/consumers, task result ownership,

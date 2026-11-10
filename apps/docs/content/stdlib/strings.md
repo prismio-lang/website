@@ -2,7 +2,7 @@
 title: Strings
 description: The String type, its operators, and the std.string method surface -- length, indexing, comparison, concatenation, slicing, iteration, searching, and parsing.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-30"
 tags: [standard-library, strings, operators, methods, ownership]
 related: [language/operators, language/methods, language/ownership-and-borrowing, language/control-flow]

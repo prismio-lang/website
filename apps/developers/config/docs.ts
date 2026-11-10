@@ -7,7 +7,7 @@ export const docsConfig: DocsAppConfig = {
         titleSuffix: "Prismio Developers",
         titleDefault: "Prismio Developers",
         description: "Implementation reference for the self-hosted Prismio compiler, AIF, LLVM backend, runtime, and UMS.",
-        currentVersion: "0.1.0",
+        currentVersion: "0.2.0",
         author: "Saksham Jaiswal",
         authorURL: "https://saksham1319.vercel.app",
         email: "saksham6975@gmail.com",
@@ -39,7 +39,7 @@ export const docsConfig: DocsAppConfig = {
     },
     home: {
         badge: {
-            versionText: "Prismio 0.1.0",
+            versionText: "Prismio 0.2.0",
             tagline: "Compiler-audited developer reference",
         },
         hero: {
@@ -50,8 +50,8 @@ export const docsConfig: DocsAppConfig = {
                 href: "/start",
             },
             secondaryCta: {
-                text: "Read the 0.1.0 baseline",
-                href: "/releases/0.1.0",
+                text: "Read the 0.2.0 release record",
+                href: "/releases/0.2.0",
             },
         },
         statusFacts: [
@@ -79,7 +79,7 @@ export const docsConfig: DocsAppConfig = {
             ],
         },
         footer: {
-            tagline: "Prismio 0.1.0 implementation reference · Updated 8 Sep 2026",
+            tagline: "Prismio 0.2.0 implementation reference · Released 10 Nov 2026",
             links: [
                 { href: "/glossary", label: "Glossary" },
                 { href: "/faq", label: "FAQ" },
@@ -204,6 +204,7 @@ export const docsConfig: DocsAppConfig = {
                 { label: "Glossary", href: "/glossary" },
                 { label: "Migration guides", href: "/migration" },
                 { label: "Releases", href: "/releases" },
+                { label: "Prismio 0.2.0", href: "/releases/0.2.0" },
                 { label: "Prismio 0.1.0", href: "/releases/0.1.0" },
                 { label: "Engineering roadmap", href: "/roadmap" },
                 { label: "Security and compatibility", href: "/project/security-and-compatibility" },

@@ -1,10 +1,10 @@
 ---
 title: Name and import resolution
-description: Scope, shadowing, overload, field, variant, and source-import resolution rules for Prismio 0.1.
+description: Scope, shadowing, overload, field, variant, and source-import resolution rules for Prismio 0.2.
 status: stable
 draft: true
-version: "0.1.0"
-lastUpdated: "2026-08-09"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [specification, name-resolution, scope, imports]
 related: [language/modules, language/variables, language/functions]
 ---
@@ -43,7 +43,7 @@ The program entry point is a top-level `main` declaration. Top-level executable 
 
 Fields resolve nominally against the receiver's struct declaration. Enum variants resolve through `EnumName.VariantName`. A method call `x.f(a)` resolves as the call `f(x, a)`, so an `impl` block is a naming construct over ordinary functions rather than a second dispatch mechanism; a trait bound is checked against the implementations in scope.
 
-Prismio 0.1 has no alias import or selective import.
+Prismio 0.2 has [import aliases](/language/modules#import-aliases) (`import std.io as io`) and import groups (`import {io, string} from std`), but no selective import of an individual declaration from a module.
 
 A qualified call `m.f(a)` is read as a module qualifier when `m` is not a local binding and some declaration of `f` was parsed from the module whose import path is `m`. A local binding of that name takes precedence, which is what keeps `receiver.method(a)` a method call.
 

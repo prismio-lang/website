@@ -1,9 +1,9 @@
 ---
 title: Hello, Prismio
-description: Compile and run a minimal Prismio 0.1 program.
+description: Compile and run a minimal Prismio 0.2 program.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-10-07"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [getting-started, hello-world, run]
 related: [start/build-and-run, language/functions, stdlib/io]
 ---
@@ -86,6 +86,6 @@ This `main` says `-> Int` and `return 0` out loud, which is the same program. Th
 - Writing top-level calls is invalid; executable statements belong inside a function.
 - Omitting `return` from an `Int`-returning function other than `main` fails definite-return analysis. `main` alone may end without one: it returns 0.
 - Integer output has exact overloads for every built-in signed and unsigned width; arithmetic and assignment still do not widen integers implicitly.
-- Copying a command-line signature from another language may fail because 0.1 documents `main()` without argument parameters.
+- Copying a command-line signature from another language may fail because this page documents `main()` without argument parameters.
 
 Continue with the [first complete program](/tutorials/first-program) to add a helper function, mutable state, and a half-open range loop.

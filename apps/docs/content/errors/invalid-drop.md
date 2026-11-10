@@ -2,7 +2,7 @@
 title: drop requires an owned move-only value
 description: Fix Prismio drop calls applied to arrays, scalars, enums, borrows, or other non-owned operands.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-08-09"
 tags: [error, drop, ownership, array]
 related: [language/ownership-and-borrowing, language/arrays-and-lists, errors/move-from-borrow]

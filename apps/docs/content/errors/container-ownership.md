@@ -2,7 +2,7 @@
 title: Container ownership transfer
 description: Fix a Prismio Vec insertion that reuses a moved element or moves from a borrowed parameter.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-24"
 tags: [error, vec, container, ownership, sink]
 related: [stdlib/vec, language/ownership-and-borrowing, errors/use-after-move]

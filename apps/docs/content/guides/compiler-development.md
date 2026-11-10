@@ -2,8 +2,8 @@
 title: Develop the self-hosted compiler
 description: Work on Prismio's self-hosted compiler with generation builds, fixed-point checks, and the regression suite.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-10-02"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [guide, compiler, self-hosting, testing]
 related: [compiler/overview, compiler/bootstrap, specification/conformance]
 ---
@@ -107,7 +107,7 @@ cmp /tmp/a.ll /tmp/b.ll
 
 If generations diverge:
 
-1. reproduce with one host and pinned LLVM 23.1.1;
+1. reproduce with one host and pinned LLVM 23.1.5;
 2. emit `.ll` for the compiler build;
 3. locate the first changed function or global;
 4. reduce the change to a small Prismio program;

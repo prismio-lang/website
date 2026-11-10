@@ -2,7 +2,7 @@
 title: Private or internal declaration
 description: Fix Prismio uses of a function, global, struct, enum or struct field from outside the file or package that declares it.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-10-15"
 tags: [error, visibility, modules, private, internal]
 related: [language/modules, language/methods, specification/name-resolution]

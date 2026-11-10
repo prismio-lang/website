@@ -41,7 +41,7 @@ try {
     const site = {
         name: "Prismio Developers",
         siteUrl: "https://developers.prismio.org",
-        currentVersion: "0.1.0",
+        currentVersion: "0.2.0",
     };
 
     const groups = docs.reduce((acc, doc) => {
@@ -67,7 +67,7 @@ try {
         { title: "Compiler architecture", href: `${site.siteUrl}/compiler/overview` },
         { title: "AIF internals", href: `${site.siteUrl}/compiler/aif-internals` },
         { title: "LLVM backend", href: `${site.siteUrl}/llvm/overview` },
-        { title: "Release baseline", href: `${site.siteUrl}/releases/0.1.0` },
+        { title: "Latest release", href: `${site.siteUrl}/releases/0.2.0` },
     ];
     const linksText = curatedLinks.map((link) => `- ${link.title}: ${link.href}`).join("\n");
     const summary = `Source-linked implementation documentation for Prismio ${site.currentVersion}, derived from the self-hosted compiler, runtime, UMS, tests, and benchmark evidence. Experimental pages describe implemented but changeable policy; unsupported capabilities are not accepted compiler behavior.`;
@@ -94,7 +94,7 @@ try {
         )
         .join("\n\n---\n\n");
 
-    const headerNote = "developer reference corpus\n\nThis Markdown-first export is generated from the same implementation records as developers.prismio.org. “experimental” means implemented but changeable; “planned” means the capability is not accepted by compiler 0.1.0.";
+    const headerNote = "developer reference corpus\n\nThis Markdown-first export is generated from the same implementation records as developers.prismio.org. “experimental” means implemented but changeable; “planned” means the capability is not accepted by compiler 0.2.0.";
     const llmsFullTxt = `# Prismio ${site.currentVersion} ${headerNote}\n\n${records}\n`;
     writeFileSync(join(publicDir, "llms-full.txt"), llmsFullTxt);
     console.log(`[static-assets] Generated public/llms-full.txt (${(llmsFullTxt.length / 1024).toFixed(2)} KB)`);

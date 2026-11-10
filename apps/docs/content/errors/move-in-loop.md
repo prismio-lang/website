@@ -2,7 +2,7 @@
 title: Move inside a loop
 description: Fix Prismio ownership transfers that would repeat for an outer binding across loop iterations.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-23"
 tags: [error, ownership, loop, move]
 related: [language/ownership-and-borrowing, language/control-flow, errors/use-after-move]

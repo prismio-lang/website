@@ -2,8 +2,8 @@
 title: Process and arguments
 description: The std.process module — command-line arguments, environment variables, the process id, starting other programs and talking to them through pipes.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-09-25"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [standard-library, process, arguments, ffi]
 related: [stdlib, stdlib/platform, stdlib/filesystem, cookbook/cli-arguments, language/ffi]
 ---
@@ -17,7 +17,8 @@ related: [stdlib, stdlib/platform, stdlib/filesystem, cookbook/cli-arguments, la
 | Spelling | Answers |
 |---|---|
 | `process.args.count` | how many arguments, including the program name at index 0 |
-| `process.args[index]` | the argument as a string the caller owns, and `""` outside `[0, count)` |
+| `process.args[index]` | the argument as a view of `argv`, allocating nothing, and `""` outside `[0, count)` |
+| `process.args.overwrite(index, offset, text)` | writes `text` over the argument in place and answers `true`, or changes nothing and answers `false` when `index` is not an argument, the bytes do not fit inside it, or `text` holds a NUL |
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -81,7 +82,7 @@ fn main() {
 
 `std.process` reads the arguments straight out of the runtime's `argc` and `argv` globals, which it names with [`extern let`](/language/ffi#foreign-globals). An argument is therefore a pointer **into** the block the operating system handed the process at startup. Nothing allocated it, and nothing may free it.
 
-Handing out that pointer as a `String` would make one `String` in your program unlike every other: one that must never be released. `process.args[i]` returns a copy instead, so the obvious call is the safe one, and one small allocation on a path that runs once per program is not worth the hazard.
+So `process.args[i]` hands out that pointer and no copy, as a `String` of the same class as a literal: it allocates nothing, a `Vec` or a field can hold it, and nothing releases it. It stays valid for the life of the process. Call `.clone()` for bytes of your own, which is only needed if something calls `overwrite` on that argument. `process.args.overwrite` is the one way to change an argument, and every condition is checked before a byte moves, since the block's size is fixed.
 
 The same distinction is what an FFI return contract states. A C function that returns a pointer into memory it does not own is `alias`; declaring it `produce(...)` would not leak, it would hand that memory to the deallocator — the mistake the `produce(rt_free)` declarations in [`std.fs`](/stdlib/filesystem) invite by habit.
 

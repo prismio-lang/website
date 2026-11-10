@@ -2,7 +2,7 @@
 title: Math
 description: The std.math module — square roots, rounding, powers, logarithms and trigonometry on Float, integer powers and divisors, and every numeric type's limits.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-30"
 tags: [standard-library, math, float, integers, ieee-754, trigonometry]
 related: [stdlib, language/types, language/operators, specification/behavior]

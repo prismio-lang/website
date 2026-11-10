@@ -54,6 +54,8 @@ Everything else answers `-32601`. Capabilities are advertised only for what work
 
 **A definition in the library** is a position in the source a compiled module carries. A `.plib` is binary (its header holds NUL bytes, which a Prismio `String` cannot), so the server asks the compiler for the text, `prismio library-source <file.plib> <module>`, writes it once into its scratch directory as `stdlib/<name>.psm`, and answers with that file. An `import std.io` resolves to the same file.
 
+**Completion is ordered and trimmed, not listed.** Each item carries a `sortText` from the compiler's `rank`: a type's own members before a free function that takes the value first (offered as a method, its receiver left out of the call), a local before the program's names before the library's, and library names from a module the file does not import last, with the import attached. A `private` or `internal` declaration is offered only where the language lets the file name it, the `__builtin_*` functions only to a file of the library, and the machine-level modules (`std.raw`, `std.asm`, `std.port`, `std.syscall`) only to a document that imports them. Overloads are one item; a function is inserted as a snippet with a placeholder for each parameter, and a struct literal's field name completes to the fields not yet set (the server writes the placeholder as `ixcursor__: 0`). The details are in `IDE_PROTOCOL.md`.
+
 **Hints name what was written.** A parameter-name hint is given for an argument the author wrote, in a function of more than one parameter: not the receiver of `xs.contains(3)` (written before the dot), not a call sema made up (`println(x)` is split into one write per value), and not the one parameter of `println(value)`.
 
 ## Which program a file belongs to

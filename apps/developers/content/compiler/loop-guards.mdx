@@ -177,7 +177,7 @@ table also keeps a verdict per **source name**, safe only when every function
 carrying the name is, and a call falls back to it when it has no resolved symbol.
 Keying by name alone made one unsafe overload poison every call spelled the same
 way: `Buffer.eq` calls an extern, so in any program importing `std.mem` every
-`Map` probe -- whose `eq` is an Int comparison -- lost its guard, and one closure
+`HashMap` probe -- whose `eq` is an Int comparison -- lost its guard, and one closure
 that pushes took the guard from every closure call.
 
 Only functions the program can reach are judged at all: the standard-library

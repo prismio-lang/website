@@ -2,7 +2,7 @@
 title: Aliased unique parameters
 description: Fix a Prismio call that passes one value to two parameters both asserting unique no-alias access.
 status: experimental
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-08-09"
 tags: [error, unique, alias, aif]
 related: [language/annotations, language/ownership-and-borrowing, compiler/aif]

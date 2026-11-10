@@ -2,7 +2,7 @@
 title: Wrong number of arguments
 description: Fix Prismio calls whose argument count does not match a builtin, function, or overload.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-10"
 tags: [error, functions, arguments, arity]
 related: [language/functions, errors/duplicate-overload, specification/name-resolution]

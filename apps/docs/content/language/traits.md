@@ -2,8 +2,8 @@
 title: Traits and bounds
 description: Prismio traits -- generic trait declarations, structural trait arguments, impl Trait for Type, and bounds checked statically at instantiation.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-09-18"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [traits, bounds, generics, impl, Self]
 related: [language/methods, language/generics, language/functions]
 ---
@@ -454,7 +454,7 @@ fn main() -> Int {
 | the body picks one type, statically dispatched | `impl Trait` in the return type |
 | one function to return several types | `dyn Trait` |
 
-### Limits in 0.1
+### Limits in 0.2
 
 - The concrete type behind a return-position `impl Trait` has to be apparent in
   the `return` itself: a struct literal, or a call to a function whose return
@@ -558,7 +558,7 @@ module, because there is no prelude.
 | `std.display` | `Display` | `show`, a value's text |
 | `std.iter` | `Iterator` | `for ... in` over your own type |
 | `std.copy` | `Copy` | a value that may be duplicated |
-| `std.key` | `Key` | what `Map` requires of a key |
+| `std.key` | `Key` | what `HashMap` requires of a key |
 | `std.default` | `Default` | `T.default()`, a type's own starting value |
 
 ### A type's own default
@@ -1035,7 +1035,7 @@ fn main() -> Int {
 }
 ```
 
-## Not in 0.1
+## Not in 0.2
 
 - Generic methods declared by a trait.
 

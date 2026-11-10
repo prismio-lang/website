@@ -2,8 +2,8 @@
 title: Freestanding programs
 description: Build a Prismio kernel that runs with no operating system and no C library, write its boot code, serial output and panic hook in Prismio, declare it in build.ums, and boot it under QEMU.
 status: experimental
-version: "0.1.0"
-lastUpdated: "2026-10-08"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [guide, freestanding, kernel, bare-metal, qemu, native, assembly, atomics]
 related: [guides/freestanding-benchmarks, language/low-level, guides/calling-c, language/ffi, compiler/cli, compiler/targets, package-manager]
 ---
@@ -18,7 +18,7 @@ The language core needs no runtime at all: integer and float arithmetic, `if` an
 
 On top of that, [low-level programming](/language/low-level) gives it what hardware needs: volatile access to a device register, atomics, inline assembly, x86 port I/O, a way to name a function with a plain symbol (`export`), to strip its prologue (`naked`) and to place it in a section, and `repr(C)` and `packed` structs.
 
-`Vec`, `String`, `Map` and [`std.mem`](/stdlib/mem) work too, once the program says where memory comes from: it defines `prismio_alloc`, `prismio_realloc` and `prismio_free`, and the build compiles Prismio's runtime for the program's target with no C library under it. [Memory and buffers](/stdlib/mem#in-a-freestanding-program) has the three functions and a bump allocator to start from. A program that imports none of these links no runtime at all.
+`Vec`, `String`, `HashMap` and [`std.mem`](/stdlib/mem) work too, once the program says where memory comes from: it defines `prismio_alloc`, `prismio_realloc` and `prismio_free`, and the build compiles Prismio's runtime for the program's target with no C library under it. [Memory and buffers](/stdlib/mem#in-a-freestanding-program) has the three functions and a bump allocator to start from. A program that imports none of these links no runtime at all.
 
 What talks to the system is out: a freestanding program may import every `std` module but `std.io`, `std.display`, `std.input`, `std.fs`, `std.process`, `std.time`, `std.term` and `std.math`.
 

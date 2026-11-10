@@ -2,7 +2,7 @@
 title: Unicode
 description: Terminal width, grapheme clusters and NFC/NFD normalization for Prismio strings.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-26"
 tags: [standard-library, unicode, text, normalization, width]
 related: [stdlib/strings, language/operators]

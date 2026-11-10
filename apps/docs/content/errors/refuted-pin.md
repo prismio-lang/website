@@ -2,7 +2,7 @@
 title: Refuted AIF tier pin
 description: Fix a Prismio pin(Tn) assertion that conflicts with converged allocation analysis.
 status: experimental
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-08-23"
 tags: [error, aif, pin, allocation-tier]
 related: [language/annotations, compiler/aif, errors/region-budget-exceeded]

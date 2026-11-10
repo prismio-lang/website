@@ -1,9 +1,9 @@
 ---
 title: Grammar reference
-description: Compact EBNF-style grammar for declarations, statements, types, and expressions accepted by Prismio 0.1.
+description: Compact EBNF-style grammar for declarations, statements, types, and expressions accepted by Prismio 0.2.
 status: stable
 draft: true
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-28"
 tags: [specification, grammar, ebnf, parser]
 related: [language/lexical-structure, specification/evaluation, specification/conformance]

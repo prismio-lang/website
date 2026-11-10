@@ -1,9 +1,9 @@
 ---
 title: Types
-description: Primitive, numeric, aggregate, optional, and inferred types in Prismio 0.1, including integers of any width and the five float types.
+description: Primitive, numeric, aggregate, optional, and inferred types in Prismio 0.2, including integers of any width and the five float types.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-10-21"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [types, integers, arbitrary-width, floats, bool, string]
 related: [stdlib/number-text, language/arrays-and-lists, language/structs, language/optionals, language/conversions, specification/type-system]
 ---
@@ -146,7 +146,7 @@ fn main() -> Int {
 }
 ```
 
-**What a wide integer cannot be, yet.** `Int<N>` and `UInt<N>` for an `N` that has no name do not implement the standard traits (`Eq`, `Ord`, `Copy`, `Default`, `Display`, `Key`): the trait implementations are written per type, and only the module that declares a trait or a type may implement one for the other. So they cannot be `Map` keys or `sort`ed through the trait-bounded APIs, though every operator works on them directly. A `Vec` also cannot hold an integer wider than 64 bits; wrap it in a struct. The open items are on the [roadmap](/roadmap).
+**What a wide integer cannot be, yet.** `Int<N>` and `UInt<N>` for an `N` that has no name do not implement the standard traits (`Eq`, `Ord`, `Copy`, `Default`, `Display`, `Key`): the trait implementations are written per type, and only the module that declares a trait or a type may implement one for the other. So they cannot be `HashMap` keys or `sort`ed through the trait-bounded APIs, though every operator works on them directly. A `Vec` also cannot hold an integer wider than 64 bits; wrap it in a struct. The open items are on the [roadmap](/roadmap).
 
 ## Floating point
 
@@ -269,7 +269,7 @@ Function calls add parameter modes: an ordinary parameter borrows move-only data
 
 ## Types not implemented
 
-Prismio 0.1 has no tuples, user-defined type aliases, union types, function types (a
+Prismio 0.2 has no tuples, user-defined type aliases, union types, function types (a
 [closure](/language/closures) is passed as a generic `F`), arbitrary reference types, or
 user-written lifetime types. An array's length is written on a local `let`, a return type or a
 struct field; a parameter of one fixed length (`xs: Array<Int, 4>`) is not available yet — a `[T]`

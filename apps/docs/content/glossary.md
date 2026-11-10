@@ -2,8 +2,8 @@
 title: Prismio glossary
 description: Canonical definitions for Prismio compiler, type-system, ownership, module, and AIF terminology.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-08-09"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [glossary, terminology, definitions]
 related: [language, specification, compiler/aif]
 ---
@@ -14,9 +14,9 @@ related: [language, specification, compiler/aif]
 
 **borrow** — Temporary access that does not transfer ownership. Ordinary move-only parameters borrow by default.
 
-**copy value** — A value whose assignment leaves the source usable. In 0.1 this includes scalars, raw pointer values, fieldless enums, and arrays.
+**copy value** — A value whose assignment leaves the source usable. In 0.2 this includes scalars, raw pointer values, fieldless enums, and arrays.
 
-**declaration** — A top-level import, global binding, function, extern function, struct, or enum accepted by the 0.1 grammar.
+**declaration** — A top-level import, global binding, function, extern function, struct, or enum accepted by the 0.2 grammar.
 
 **entry module** — The source file passed to `build`, `run`, or analysis. Its directory anchors import resolution.
 
@@ -30,7 +30,7 @@ related: [language, specification, compiler/aif]
 
 **flattening** — Import behavior that combines resolved syntax trees into one program namespace rather than preserving file-qualified modules.
 
-**implemented** — Present in the audited Prismio 0.1.0 compiler. This label does not imply API stability.
+**implemented** — Present in the audited Prismio 0.2.0 compiler. This label does not imply API stability.
 
 **implementation-defined** — Behavior selected and documented by an implementation rather than fixed identically by the language specification.
 
@@ -60,6 +60,6 @@ related: [language, specification, compiler/aif]
 
 **wildcard import** — `path.*`, which imports sorted direct `.psm` children of a directory without recursion.
 
-**Coming Soon** — Designed or documented for roadmap continuity but not accepted end to end by the 0.1 compiler.
+**Coming Soon** — Designed or documented for roadmap continuity but not accepted end to end by the 0.2 compiler.
 
 **draft** — Compiler-derived documentation/specification that is not yet frozen as an independent stable language standard.

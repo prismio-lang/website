@@ -2,14 +2,15 @@
 title: Releases and documentation versions
 description: Prismio release notes, current language version, and architecture for retaining older documentation.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-10-02"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [releases, versioning, changelog]
-related: [releases/0.1.0, migration, project/security-and-compatibility]
+related: [releases/0.2.0, releases/0.1.0, migration, project/security-and-compatibility]
 ---
 
-**Current documented language and compiler version: 0.1.0.**
+**Current documented language and compiler version: 0.2.0.**
 
+- [Prismio 0.2.0](/releases/0.2.0) — published 2026-11-10
 - [Prismio 0.1.0](/releases/0.1.0) — the first release, published 2026-10-02
 
 Current reference URLs are unprefixed and carry machine-readable `version` metadata. At the first compatibility-breaking documentation release, the previous tree will be retained under `/versions/<version>/`, and a version selector will link current and archived copies. Canonical URLs will keep search engines from treating identical latest/versioned pages as duplicates.

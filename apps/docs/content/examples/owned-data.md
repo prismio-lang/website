@@ -2,7 +2,7 @@
 title: "Example: borrow and consume a struct"
 description: A complete Prismio program demonstrating default borrowing, inout mutation, and a sink ownership transfer.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-08-09"
 tags: [example, ownership, struct, sink, inout]
 related: [language/ownership-and-borrowing, language/functions, tutorials/data-model]

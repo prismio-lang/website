@@ -47,12 +47,12 @@ LLVM a fact (`llvm.assume`) that std's own data keeps and no analysis can see. I
 **std-only** (`P4001`: "internal to the standard library") and, unlike every builtin above, **unchecked and
 undefined when the fact is false**: that is the point, since the check it makes redundant is the cost. A
 program cannot call it, and std uses it only where an invariant is written on the structure and kept by
-every function in the file. `Map` is the case. Its probe table has a power-of-two length, so
+every function in the file. `HashMap` is the case. Its probe table has a power-of-two length, so
 `at & mask` is below `slots.length`, and an index read out of `slots` is below `entryKeys.length`.
 A bounds check on each `Vec` read there grew `mapProbe` past what LLVM inlines and cost `key_value_update`
 1.13x, so `std/map.psm` states the check's own unsigned compare before the access
 (`__builtin_assume((at as U32) < (list_len(m.slots) as U32))`) and LLVM folds the check away. This
-needs `Map`'s columns to be `private` -- a program that pushed to one would break the promise without
+needs `HashMap`'s columns to be `private` -- a program that pushed to one would break the promise without
 the compiler seeing it. It is the shape C++ gives `[[assume]]` and Rust gives
 `core::hint::assert_unchecked`, kept to the library that can prove the invariant. The AIF contract is
 `borrow` for its operand (`src/aif/contracts.psm`, `tools/aif_oracle/aif.py`), and the flat-loop matcher
@@ -164,14 +164,14 @@ leaks or violations.
 | Module | Covers |
 | --- | --- |
 | `std.io` | `print` / `println` overloads, several values in one call, and `eprint` / `eprintln` for stderr |
-| `std.input` | Standard input as plain functions: `inputLines()`, `readLine()`, `readLineOr()`, `readInt()`, `readFloat()`, `readLines()`, `readWords()`, `readAll()`, `prompt()`, `atEndOfInput()` |
+| `std.input` | Standard input as plain functions, over one cursor: lines (`inputLines()`, `readLine()`, `readLines()`, `prompt()`, `readInt()`, `readFloat()`, and `readIntResult()` / `readFloatResult()` returning `Result<T?, InputError>`), tokens (`tokens()`, `readToken()`, `readTokens()`), bytes (`readByte()`, `readBytes(count)`, `readAllBytes()` as `Vec<U8>`), `readText(count)`, `readAll()` and `waitForInput()` |
 | `std.time` | `Instant.now()` and `elapsed()` on the monotonic clock, `Duration`, `unixTime()`, `sleep(duration)` |
 | `std.string` | Strings, characters, parsing, `StringBuilder`, **and the `String` operators** |
 | `std.unicode` | Terminal width and grapheme clusters; separate so programs that never lay out a column do not carry its 17 KB of tables |
 | `std.fs` | Files, paths, `readLines`, `listDirectory`, `appendFile`, `rename`, `removeDirectory`, `metadata` |
 | `std.process` | Arguments, environment variables (`process.env`, `setEnv`, `removeEnv`), `process.pid`, subprocesses |
 | `std.platform` | The target's operating system, architecture, and ABI environment, answered at compile time |
-| `std.map` | `Map<K, V>`: `get`, `set`, `has`, `remove`, `clear`, `m[k]`, `length`, `keys()`, `values()`, `keyAt` / `valueAt` |
+| `std.map` | `HashMap<K, V>`: `get`, `set`, `has`, `remove`, `clear`, `m[k]`, `length`, `keys()`, `values()`, `keyAt` / `valueAt` |
 | `std.option` | Generic functions over `T?` (`unwrapOr`, `expect` with a message, `okOr`, `map`, `andThen`, and `optionCoalesce`, which `a ?? b` is), and `Result<T, E>` with its `map`, `andThen`, `mapErr`, `unwrapOr`, `expect`, `ok`, `err` family |
 | `std.vec` | `Vec<T>`'s library methods (`get`, `contains`, `indexOf`, `lastIndexOf`, `countOf`, `min`, `max`, `find`, `indexWhere`, `fold`, `forEach`, `pop`, `removeAt`, `removeFirst`, `swapRemove`, `extend`, `retain`, `dedup`, `fill`, `reverse`, `clone`, `sort`, `sortBy`, `sorted`, `reversed`, `take`, `skip`, `concat`, `startsWith`, `endsWith`, `filter`, `binarySearch`), the same reads and in-place changes over an `Array<T, N>` (the length passed beside it, which the compiler supplies for a call) and over a `Slice<T>`, `toVec`, **the Vec literal** `[a, b, c]`, `Vec<T>.withCapacity(n)`, and `Vec<T>.filled(n, x)` (a scalar `T` needs no import; any other goes through `vecFilled`) |
 | `std.mem` | `Buffer` (a byte `Vec<U8>` with bounds-checked typed reads and writes, `b[i]`, `fill`, `copyFrom`, `slice`, `resize`, `append`, `indexOf`, `toString`, `==`), manual memory on `Usize` addresses (`alloc`, `allocZeroed`, `realloc`, `free`, `copy`, `fill`, `compare`, `loadU8..U64`, `storeU8..U64`), and `Arena` |
@@ -531,7 +531,9 @@ until a seed that does not reference them is published.
 | `proc_env_set` `proc_env_remove` `proc_pid` | `process.setEnv` `removeEnv` `pid` | `borrow`; → `Int` |
 | `time_monotonic_nanos` `time_unix_nanos` `time_sleep_nanos` | `Instant.now()` `unixTime()` `sleep` | → `I64` nanoseconds; POSIX `clock_gettime` / `nanosleep`, Windows `QueryPerformanceCounter` / `GetSystemTimePreciseAsFileTime` / `Sleep` |
 | `io_stdin_has_line` `io_stdin_take_line` `io_stdin_read_all` | `inputLines()` `readLine()` `readAll()` | The last two → `produce(rt_free)`, `""` at end of input (never a literal) |
-| `io_stdin_take_bytes` `io_stdin_ready` | `readBytes` `waitForInput` | `io_stdin_take_bytes` → `produce(rt_free)`: exactly `count` bytes through the line reader's buffer, fewer at end of input. `io_stdin_ready` → `Int` (1 when a read would not wait), over the same poll as `poll_wait` |
+| `io_stdin_has_token` `io_stdin_take_token` | `readToken` `tokens` `readTokens` | `io_stdin_take_token` → `produce(rt_free)`: a run of non-whitespace bytes, found across buffer fills; the byte after it stays unread |
+| `io_stdin_read_byte` `io_stdin_read_into` | `readByte` `readBytes` `readAllBytes` | `io_stdin_read_byte` → `Int`, -1 at the end. `io_stdin_read_into(bytes: Vec<U8> borrow, count)` resizes an empty `Vec<U8>` through `mem_bytes_resize` and copies raw bytes in (a negative count means all that remain); no NUL or UTF-8 rule applies |
+| `io_stdin_take_text` `io_stdin_failed` `io_stdin_ready` | `readText` `readIntResult` `waitForInput` | `io_stdin_take_text` → `produce(rt_free)`: exactly `count` bytes as a String, cut at a NUL, all consumed. `io_stdin_failed` → `Int` (1 when the descriptor errored, as opposed to ending). `io_stdin_ready` → `Int` (1 when a read would not wait), over the same poll as `poll_wait`. Every `io_stdin_*` call holds one lock for its duration |
 | `mem_alloc` `mem_alloc_zeroed` `mem_realloc` `mem_free` | `alloc` `allocZeroed` `realloc` `free` | `Usize` in and out, so no contract: the address is a number Prismio never releases. On `rt_base_alloc`/`rt_free`, so `--verify` counts them; never 0, exhaustion exits |
 | `mem_copy` `mem_fill` `mem_compare` | `copy` `fill` `compare` | `memmove`, `memset`, `memcmp` (normalised to −1/0/1) |
 | `mem_bytes_data` `mem_bytes_address` | `b.address`, and the checked address behind `b[i]` and `b.readU32LE` … `b.writeFloatBE` | `borrow` on the `Vec<U8>`; curated. The access itself is `__builtin_mem_uload`/`ustore`, unaligned and tagged as byte storage so a store does not make LLVM reload the header; big-endian is `__builtin_swap_bytes`, a Float `__builtin_float_bits` |

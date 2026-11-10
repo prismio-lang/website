@@ -1,8 +1,8 @@
 ---
 title: Adaptive Inference Framework
-description: Architecture and CLI of Prismio 0.1 AIF allocation tiers, constraints, reports, and runtime verification.
+description: Architecture and CLI of Prismio 0.2 AIF allocation tiers, constraints, reports, and runtime verification.
 status: experimental
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-08-09"
 tags: [compiler, aif, memory, allocation]
 related: [guides/memory-and-aif, language/annotations, specification/memory-model]

@@ -1,9 +1,9 @@
 ---
 title: Compiler architecture
-description: The self-hosted Prismio 0.1 pipeline from source and imports through semantics, AIF, LLVM IR, and native linking.
+description: The self-hosted Prismio 0.2 pipeline from source and imports through semantics, AIF, LLVM IR, and native linking.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-09-09"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [compiler, architecture, self-hosting, llvm]
 related: [compiler/bootstrap, compiler/aif, specification/conformance]
 ---
@@ -69,7 +69,7 @@ The compiler sources are organized by stage under `src/`: `lexer`, `parse`, `ast
 
 This stage-oriented layout is a maintenance contract: language changes should enter through the earliest appropriate layer and be reflected in later layers, tests, diagnostics, specification, and documentation.
 
-LLVM **23.1.1** is the supported backend line. Generated modules are verified before artifact emission. The build driver embeds the runtime/toolchain sources needed to link ordinary programs.
+LLVM **23.1.5** is the supported backend line. Generated modules are verified before artifact emission. The build driver embeds the runtime/toolchain sources needed to link ordinary programs.
 
 Using a materially different LLVM line can fail even when a system `clang` exists, because textual/bitcode expectations and C API availability evolve. The setup scripts select the pinned toolchain.
 

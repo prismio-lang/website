@@ -2,7 +2,7 @@
 title: Optional functions and Result
 description: The std.option module — the functions that read a T? (unwrapOr, expect with a message, map, andThen, okOr, and the call behind ??) and Result<T, E> for failure, with their methods and representation.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-10-07"
 tags: [standard-library, option, optional, result, errors, generics]
 related: [language/error-handling, language/enums, language/generics, language/closures]

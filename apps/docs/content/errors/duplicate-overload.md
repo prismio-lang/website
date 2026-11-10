@@ -2,7 +2,7 @@
 title: Duplicate function overload
 description: Fix Prismio functions that repeat the same name and parameter types.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-08-09"
 tags: [error, functions, overloads, duplicate]
 related: [language/functions, specification/name-resolution, errors/wrong-arity]

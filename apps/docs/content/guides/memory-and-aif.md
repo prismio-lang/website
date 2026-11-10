@@ -2,7 +2,7 @@
 title: Choose memory intent with AIF
 description: Guide to Prismio ownership, allocation inference, regions, unique values, pinning, and verification.
 status: experimental
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-08-27"
 tags: [guide, memory, aif, ownership]
 related: [language/ownership-and-borrowing, language/annotations, compiler/aif, specification/memory-model]

@@ -2,13 +2,13 @@
 title: Methods and impl blocks
 description: Method call syntax and concrete or generic impl blocks in Prismio -- x.f(a) is f(x, a), and an impl block is where the free function is written.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-10-09"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [methods, impl, receiver, self, overloads]
 related: [language/functions, language/traits, language/structs]
 ---
 
-Prismio 0.1 has method call syntax and `impl` blocks. It does not have dynamic
+Prismio 0.2 has method call syntax and `impl` blocks. It does not have dynamic
 dispatch, and the two facts are connected: a method call is rewritten into an
 ordinary call before overload resolution runs, so there is only one dispatch
 mechanism in the language and it is the one [overloads](/language/functions) already use.
@@ -232,8 +232,8 @@ impl Point {
 
 fn main() -> Int {
     let p = Point(3, 4)                       // Point.new(3, 4)
-    let seen = Map<String, Int>()             // Map<String, Int>.new()
-    let empty: Map<String, Int> = Map()       // <String, Int> from the annotation
+    let seen = HashMap<String, Int>()             // HashMap<String, Int>.new()
+    let empty: HashMap<String, Int> = HashMap()       // <String, Int> from the annotation
     let mut words = Vec<String>()             // an empty Vec, as `[]` is
     words.push("hi")
     println(p.x + p.y + seen.length + empty.length + words.length)   // 8
@@ -241,7 +241,7 @@ fn main() -> Int {
 }
 ```
 
-A type with no `new` is an error that says so, rather than an unknown function. A generic type's arguments come from the call's own arguments, from the call's written `<...>`, or from the annotation it is assigned to — `let m = Map()` has none of the three and is *`Map()` needs its type arguments*.
+A type with no `new` is an error that says so, rather than an unknown function. A generic type's arguments come from the call's own arguments, from the call's written `<...>`, or from the annotation it is assigned to — `let m = HashMap()` has none of the three and is *`HashMap()` needs its type arguments*.
 
 ### `self`
 
@@ -385,7 +385,7 @@ A struct can be indexed like a `Vec` by giving it two methods:
 | `x[i]` | `x.at(i)` |
 | `x[i] = v` | `x.set(i, v)` |
 
-`set` changes the value, so it takes `inout self`, and the struct has to be in a `let mut`. A struct with an `at` and no `set` can be read by index but not assigned to: `x[i] = v` is an error that says to write a `set`. The index can be any type the method takes, which is how `m["key"]` reads a [`Map`](/stdlib/map). A generic struct's `set` is not reached this way yet, so a `Map` is still written with `m.set(key, value)`.
+`set` changes the value, so it takes `inout self`, and the struct has to be in a `let mut`. A struct with an `at` and no `set` can be read by index but not assigned to: `x[i] = v` is an error that says to write a `set`. The index can be any type the method takes, which is how `m["key"]` reads a [`HashMap`](/stdlib/map). A generic struct's `set` is not reached this way yet, so a `HashMap` is still written with `m.set(key, value)`.
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -441,9 +441,9 @@ than an overload.
 ## Chained calls and temporaries
 
 Chaining works, and one wrinkle is worth knowing about: an intermediate result in a
-chain is an owned temporary passed straight into the next call, and Prismio 0.1
-does not always release it. `a.toUpper().reverse()` allocates a string for
-`toUpper` that is not freed until the process exits.
+chain is an owned temporary passed straight into the next call, and Prismio 0.2
+releases it once that call has read it: `a.toUpper().reverse()` allocates a string for
+`toUpper` and frees it after `reverse` has run (`--verify` reports 0 leaked).
 
 The one place this does *not* apply is a chain of `+`, which is flattened into a
 single call precisely so that it has no intermediate — see

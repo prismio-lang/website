@@ -1,9 +1,9 @@
 ---
 title: Compiler diagnostics
-description: Prismio 0.1 error rendering, recovery, warnings and notes, source spans, and the permanent codes the driver and project commands report.
+description: Prismio 0.2 error rendering, recovery, warnings and notes, source spans, and the permanent codes the driver and project commands report.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-09-30"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [compiler, diagnostics, errors, warnings]
 related: [errors, specification/conformance, compiler/cli, package-manager, guides/calling-c]
 ---
@@ -193,7 +193,7 @@ These come from `prismio build`, `run`, `test`, `clean` and the commands a manif
 | `P1062` | error | a project command cannot be named `x` | The name is a built-in and built-ins win. Rename the command in `build.ums` |
 | `P1078` | error | this project needs Prismio X, and this compiler is Y | The manifest's `prismio` is newer than the compiler. Install a newer Prismio, or lower it |
 | `P1080` | error | this project declares no target named `x` | The note lists the declared targets |
-| `P1081` | warning | dependencies are resolved and locked, but Prismio 0.1 does not import from them yet | Vendor the source beneath your entry module and import it by its dotted path |
+| `P1081` | warning | dependencies are resolved and locked, but Prismio 0.2 does not import from them yet | Vendor the source beneath your entry module and import it by its dotted path |
 | `P1082` | error | could not write `prismio.lock` | The manifest's directory is not writable |
 | `P1084` | error | `--` passes arguments to the program `run` starts, and `x` starts none | Use `--` only with `run` |
 | `P1085` | error | `clean` acts on the whole profile and takes no target | Run `prismio clean` alone |

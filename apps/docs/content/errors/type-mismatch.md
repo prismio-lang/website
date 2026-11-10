@@ -2,7 +2,7 @@
 title: Type mismatch
 description: Fix Prismio diagnostics where an initializer, argument, assignment, or return has the wrong type.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-18"
 tags: [error, type-mismatch, type-system]
 related: [language/types, specification/type-system, errors/integer-width-mismatch]

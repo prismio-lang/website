@@ -2,7 +2,7 @@
 title: "Example: optional linked nodes"
 description: A complete Prismio program constructing and checking an optional struct field.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-30"
 tags: [example, optional, none, struct]
 related: [language/optionals, language/structs, errors/optional-needs-unwrap]

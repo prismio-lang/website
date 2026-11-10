@@ -1,9 +1,9 @@
 ---
 title: Operators and casts
-description: Prismio 0.1 arithmetic, comparison, logical, bitwise, shift, unary, assignment, and cast operators.
+description: Prismio 0.2 arithmetic, comparison, logical, bitwise, shift, unary, assignment, and cast operators.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-10-07"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [operators, precedence, casts, bitwise]
 related: [language/types, specification/evaluation, errors/integer-width-mismatch]
 ---
@@ -201,7 +201,7 @@ Both sides of `+` must be Strings. Nothing is promoted implicitly, so write
 
 ## No user-defined operator overloading
 
-Prismio 0.1 has [traits](/language/traits) and [`impl` blocks](/language/methods),
+Prismio 0.2 has [traits](/language/traits) and [`impl` blocks](/language/methods),
 but a trait cannot give a type an operator: the String operators above are compiler
 desugarings for one built-in type, not an overloadable protocol. Structs and lists
 do not acquire arithmetic or comparison behavior merely because their fields or

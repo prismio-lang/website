@@ -2,7 +2,7 @@
 title: Error handling
 description: Signalling failure in Prismio with Result and optionals, and stopping the program with panic, assert, unreachable and exit.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-10-07"
 tags: [errors, result, optional, enums]
 related: [stdlib/option, language/enums, language/optionals, language/generics, language/control-flow]
@@ -113,7 +113,7 @@ match (half(n)) {
 
 A propagation operator needs a defined interaction with ownership and with cleanup during a non-local exit. Neither is specified, so the syntax is not provided rather than provided provisionally.
 
-## Limits in 0.1
+## Limits in 0.2
 
 - **No bare `unwrap`.** [`unwrapOr`](/stdlib/option) takes a fallback, so the absent case is handled at the use site, and `expect(message)` stops the program with a message you had to write. There is deliberately no accessor that does either silently.
 - **Type arguments come from the context when the value cannot supply them.** `Result.Ok(5)` infers `T` from `5` but cannot infer `E` from anything it carries, so it takes both from the annotation, return type, field or parameter it meets. With none of those, as in `let r = Result.Ok(5)`, write them out: `Result<Int, String>.Ok(5)`. The compiler says so by name.

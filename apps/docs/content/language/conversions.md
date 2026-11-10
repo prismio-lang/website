@@ -2,7 +2,7 @@
 title: Conversions
 description: One operator, `as`, converts between types. `x as T` cannot fail; `x as T?` can, and answers `none` instead of guessing. Numbers, text, Bool, Char and enums.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-30"
 tags: [conversions, casts, as, optionals, parsing, enums]
 related: [language/operators, language/optionals, language/types, language/enums, stdlib/strings]

@@ -1,8 +1,8 @@
 ---
 title: Wrap a C function
-description: Create a narrow Prismio 0.1 module around a C ABI function and state its ownership contract.
+description: Create a narrow Prismio 0.2 module around a C ABI function and state its ownership contract.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-30"
 tags: [cookbook, c, ffi, ownership]
 related: [guides/calling-c, guides/ffi, language/ffi, specification/behavior]

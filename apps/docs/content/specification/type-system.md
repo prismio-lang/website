@@ -1,9 +1,9 @@
 ---
 title: Type-system rules
-description: Prismio 0.1 type categories, inference, compatibility, optional types, overloads, and explicit conversions.
+description: Prismio 0.2 type categories, inference, compatibility, optional types, overloads, and explicit conversions.
 status: stable
 draft: true
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-30"
 tags: [specification, type-system, inference, conversion]
 related: [language/types, language/functions, specification/memory-model]

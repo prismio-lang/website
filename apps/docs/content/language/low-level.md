@@ -2,7 +2,7 @@
 title: Low-level programming
 description: Memory through an integer address, volatile and atomic access, inline assembly, x86 port I/O, export, naked and section on functions, and repr(C) and packed on structs, for code that talks to hardware.
 status: experimental
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-10-14"
 tags: [low-level, volatile, atomics, assembly, repr-c, packed, export, naked, freestanding]
 related: [guides/freestanding, language/pointers, stdlib/raw, stdlib/port, stdlib/asm, stdlib/mem, language/ffi, language/types, language/structs, language/functions, language/annotations]

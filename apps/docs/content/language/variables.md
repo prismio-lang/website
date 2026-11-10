@@ -1,9 +1,9 @@
 ---
 title: Variables and bindings
-description: Declare local and global bindings, type annotations, default values, mutability, shadowing, and initialization in Prismio 0.1.
+description: Declare local and global bindings, type annotations, default values, mutability, shadowing, and initialization in Prismio 0.2.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-09-24"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [variables, let, mutability, scope]
 related: [language/types, language/control-flow, errors/immutable-assignment]
 ---
@@ -44,7 +44,7 @@ let bytes: [U8] = [80, 83, 77]
 let pointer: Ptr? = none
 ```
 
-An annotation without an initializer is accepted by the current compiler and allocates storage, but 0.1 does not implement a complete definite-initialization analysis for later reads. Prefer initializing a binding at its declaration — with [`default`](#default-values) when there is no better value yet. Reading annotation-only storage before assigning it can expose unspecified backend data and should not be used as a language feature. (Three annotation-only forms are defined: `let v: Vec<T>` is an empty Vec, `let m: Map<K, V>` is an empty Map, and `let a: Array<T, N>` of numbers is zeroed.)
+An annotation without an initializer allocates storage, and the compiler rejects a read of it that may happen before an assignment (`` `x` may be used before it is assigned ``). Prefer initializing a binding at its declaration — with [`default`](#default-values) when there is no better value yet. (Three annotation-only forms are defined and may be read at once: `let v: Vec<T>` is an empty Vec, `let m: HashMap<K, V>` is an empty HashMap, and `let a: Array<T, N>` of numbers is zeroed.)
 
 ## Default values
 
@@ -95,7 +95,7 @@ How paths are counted:
 - **An immutable `let` takes one assignment.** `let r: Int` then `r = 1` is fine; a second assignment, or one a loop could repeat, is an error that suggests `let mut`. `let mut` may be assigned as often as you like.
 - **A field is not the struct.** Assigning `p.x` of an unassigned struct is a read of `p`; assign the whole value.
 
-An array, a `Vec` and a `Map` declared without a value keep their usual empty or zeroed start.
+An array, a `Vec` and a `HashMap` declared without a value keep their usual empty or zeroed start.
 
 `default` is the value of whatever type its context expects:
 
@@ -127,7 +127,7 @@ fn main() -> Int {
 | `Vec<T>` | `[]` |
 | `Array<T, N>` | `N` defaults of `T` (up to 64 elements, or any length of numbers in a `let`) |
 | `T?` | `none` |
-| `Map<K, V>` | an empty map |
+| `HashMap<K, V>` | an empty map |
 | a struct | the struct with every field set to its field type's default |
 
 It is resolved where a type is already known: a `let` with an annotation, a `return`, a struct field, or an assignment. It works inside generic code — `let x: T = default` is resolved separately for each type `T` is instantiated with.

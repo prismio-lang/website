@@ -1,10 +1,10 @@
 ---
 title: Evaluation and control-flow semantics
-description: Expression ordering, short circuiting, assignments, loops, matches, returns, and unreachable behavior in Prismio 0.1.
+description: Expression ordering, short circuiting, assignments, loops, matches, returns, and unreachable behavior in Prismio 0.2.
 status: stable
 draft: true
-version: "0.1.0"
-lastUpdated: "2026-09-25"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [specification, evaluation, control-flow, precedence]
 related: [language/operators, language/control-flow, language/pattern-matching]
 ---
@@ -39,7 +39,7 @@ Compound assignment is not a general member/index place operation in 0.1.
 
 A range `for` evaluates its start, end and step once each, in that order, before the first test, and visits integer values from the start towards the end: increasing when the start is at most the end, decreasing otherwise. `start..end` includes `end`; `start..<end` stops before it, so `a..<a` runs zero iterations and `a..a` one. With `step k` it visits every `k`-th value in that direction; the step must be positive, a literal one that is not being a compile-time error and a computed one a run-time error when the loop is entered. A range that ends at the largest or the smallest `Int` ends there rather than wrapping. A `repeat(n)` count is not a range: it never decreases, and a count of zero or less runs zero iterations.
 
-A collection `for` evaluates the collection once. An expression that is not a name or a field is kept for the duration of the loop and released at the end of the enclosing block. The loop visits the elements present when it began, by index, in order; a `Map` in insertion order; an `Iterator` by `hasNext` and `next` until `hasNext` answers false.
+A collection `for` evaluates the collection once. An expression that is not a name or a field is kept for the duration of the loop and released at the end of the enclosing block. The loop visits the elements present when it began, by index, in order; a `HashMap` in insertion order; an `Iterator` by `hasNext` and `next` until `hasNext` answers false.
 
 An `if` condition and a `while` condition must be `Bool`. Branch and loop bodies establish lexical scopes.
 

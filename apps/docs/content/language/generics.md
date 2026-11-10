@@ -2,8 +2,8 @@
 title: Generics
 description: Generic functions and types in Prismio, type argument inference, and the monomorphization that makes them free at runtime.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-09-27"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [generics, type-parameters, monomorphization]
 related: [language/traits, language/functions, language/structs, stdlib/map]
 ---
@@ -148,7 +148,7 @@ A template's body is checked once for each set of type arguments it is used with
 not once at its declaration. Trait bounds are checked first, and an operation the
 body performs must be valid for the type actually substituted.
 
-For example, `Map<K: Key, V>` in [the standard library](/stdlib/map) rejects a
+For example, `HashMap<K: Key, V>` in [the standard library](/stdlib/map) rejects a
 key type without a `Key` implementation. The error appears at the instantiation,
 naming the use that caused it rather than blaming the generic declaration.
 
@@ -195,7 +195,7 @@ Recursion itself is fine — it is recursion that *grows the type* that cannot
 work. `fn count<T>(v: T, n: Int) -> Int` calling itself with the same `T`
 instantiates once.
 
-## Limits in 0.1
+## Limits in 0.2
 
 - Type parameters may carry one or more [trait bounds](/language/traits), joined
   with `+`, or after the signature in a `where` clause. See

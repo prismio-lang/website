@@ -2,7 +2,7 @@
 title: Display and printing
 description: The std.display module -- the Display trait that gives a type its text, and print, println, eprint and eprintln for every type that has it, optionals included.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-10-07"
 tags: [standard-library, display, print, trait, optional]
 related: [stdlib/io, stdlib/option, stdlib/term, language/traits]

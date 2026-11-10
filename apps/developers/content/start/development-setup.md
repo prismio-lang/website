@@ -22,7 +22,7 @@ repository root: the bootstrap scripts resolve `src`, `runtime`, `bootstrap`, an
 - Git and ordinary shell tooling.
 
 **The LLVM a compiler is built against belongs to the checkout, not to the machine.**
-`tools/setup_llvm.py` downloads LLVM 23.1.1, checks the archive against a SHA-256 recorded in the
+`tools/setup_llvm.py` downloads LLVM 23.1.5, checks the archive against a SHA-256 recorded in the
 script, and prepares it under `third_party/llvm`. It does not look at Homebrew, apt or
 `llvm-config`. The download resumes after a stall or a dropped connection, and running the script
 again once setup has finished does nothing.

@@ -2,8 +2,8 @@
 title: Control flow
 description: Branch with if and else if, loop with while, loop, repeat and for over ranges and collections, and leave nested loops with labels.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-09-27"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [control-flow, if, loops, ranges, labels, return]
 related: [language/pattern-matching, language/functions, language/arrays-and-lists, specification/evaluation]
 ---
@@ -243,7 +243,7 @@ Without a range operator, `for` visits the elements of a collection:
 | `Vec<T>` | each element | index, element |
 | `Slice<T>` | each element of the view | index, element |
 | `Array<T, N>`, `[T]` with a known length | each element | index, element |
-| `Map<K, V>` | each key, in insertion order | key, value |
+| `HashMap<K, V>` | each key, in insertion order | key, value |
 | a type implementing [`Iterator`](/language/traits) | each `next()` | — |
 
 <!-- prismio-check: pass -->
@@ -264,7 +264,7 @@ fn main() -> Int {
     for score in scores { total += score }
     println(total)
 
-    let ages: Map<String, Int> = { "ann": 31, "bob": 42 }
+    let ages: HashMap<String, Int> = { "ann": 31, "bob": 42 }
     for (name, age) in ages {
         println(name.concat(" is ", age.toString()))
     }

@@ -1,14 +1,14 @@
 ---
 title: Functions and parameters
-description: Declare Prismio 0.1 functions, return values, overloads, and borrow, sink, or inout parameters.
+description: Declare Prismio 0.2 functions, return values, overloads, and borrow, sink, or inout parameters.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-09-28"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [functions, parameters, returns, overloads, cold, hot, inlining, noreturn, const]
 related: [language/ownership-and-borrowing, language/ffi, errors/wrong-arity]
 ---
 
-A function has a name, zero or more typed parameters, an optional return type, and a block body. Functions are top-level declarations; Prismio 0.1 does not nest named functions inside blocks.
+A function has a name, zero or more typed parameters, an optional return type, and a block body. Functions are top-level declarations, and a named function may also be declared inside another function's body, where only that body can call it.
 
 ```prismio
 fn add(left: Int, right: Int) -> Int {
@@ -254,7 +254,7 @@ changes where code is placed, never what it does: removing every `cold` leaves a
 program with the same behaviour.
 
 Use it for paths that are rare **at run time**, not merely long. The standard
-library marks the insert half of `Map.set`; marking a hot function cold moves its
+library marks the insert half of `HashMap.set`; marking a hot function cold moves its
 callers' fast path the wrong way.
 
 ## Inlining
@@ -325,7 +325,7 @@ error[P3201]: `hot` is written twice
 
 Use `inline(always)` sparingly. Inlining a large function into many callers grows the program, and
 the compiler's own choice is better than a guess for most code. The standard library marks the probe
-of `Map`, which every lookup and update runs in a loop.
+of `HashMap`, which every lookup and update runs in a loop.
 
 ## Hot functions
 

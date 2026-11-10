@@ -3,26 +3,28 @@ title: Engineering roadmap
 description: Evidence-backed Prismio compiler, AIF, runtime, tooling, and standard-surface priorities without invented release dates.
 status: stable
 draft: true
-version: "0.1.0"
-lastUpdated: "2026-09-27"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [roadmap, compiler, status]
-related: [start, releases/0.1.0, performance/investigation-method]
+related: [start, releases/0.2.0, performance/investigation-method]
 ---
 
 This roadmap distinguishes shipped behavior, measured problems, and proposed engineering work. It
-does not assign release dates.
+assigns no dates to features. The one date is the next release's target, 0.3.0 on 5 January 2027, which is a target and not a commitment.
 
 ## Established baseline
 
 - Self-hosted frontend, semantic analysis, AIF, and LLVM 23 backend.
 - Native artifacts, direct C ABI integration, debug information, JSON diagnostics, and UMS projects.
 - Generics, traits, associated items, trait objects, `impl Trait`, closures, payload enums, slices,
-  DataView, native tasks, and blocking typed channels.
+  DataView, native tasks, `async fn` with `await` and `scope { }`, and blocking typed channels.
+- A language server (`prismio lsp`), a formatter (`prismio fmt`), and a semantic index for editors.
+- Freestanding builds, `std.syscall`, platform blocks, and typed pointers with atomics.
 - AIF storage plans, explanations, manifests, runtime verification, and an independent oracle.
 - A standard library a command-line program can be written with: standard input, files and line
-  readers, the environment, clocks, math, `StringBuilder`, and `Map` and `Result` methods, and the functions over `T?`
+  readers, the environment, clocks, math, `StringBuilder`, and `HashMap` and `Result` methods, and the functions over `T?`
   (done 2026-09-25).
-- A 78-workload cross-language benchmark catalog with 63 implemented workloads.
+- An 86-workload cross-language benchmark catalog with 71 implemented workloads, plus a 20-workload freestanding suite.
 
 ## Foundational memory work
 
@@ -59,12 +61,12 @@ self-hosting fixed-point agreement. Rejected candidates are recorded, with their
 ## Unsupported surface
 
 Chunked vectors (`Vec<T, N>`, `Vec<T, Chunk>`) are designed in the compiler repository's
-`COLLECTIONS.md` (step 4) and deliberately not started for 0.1; the parser refuses `Vec<T, N>` with
+`COLLECTIONS.md` (step 4) and deliberately not started for 0.2; the parser refuses `Vec<T, N>` with
 `P3006` until they exist. Of `Array<T, N>` (step 3), returns and struct fields are built; still
 open are `[T]` parameters compiled once per length, array fields in generic structs and enum
 payloads (refused in `semaCheckArrayLengthPositions`), and copies of nested or owning arrays.
 `Slice<T>` layouts and slices of arrays are step 5. The benchmark catalog records missing deques and ordered containers, priority queues,
-regex, JSON, generic serialization, user-facing atomics and locks, work stealing, async I/O,
+regex, generic serialization, locks and safe synchronization types, work stealing, async I/O,
 sockets, memory-mapped files, explicit SIMD types, and custom collection allocators.
 
 Missing does not mean scheduled. A feature becomes a roadmap commitment only when its semantics,
@@ -83,4 +85,4 @@ target support additionally requires a runtime, SDK/link strategy, tests, and a 
 A proposed item should name its current reproducer or measurement, exact source owner, unsafe or
 compatibility boundary, smallest discriminating test, and removal/rollback plan. Move it to the
 implemented baseline only after the ordinary compiler path uses it and the release gate proves it.
-Keep dates out until a release owner and verified artifact exist.
+Keep dates out until a release owner and verified artifact exist. The 0.3.0 date above is a target and may move.

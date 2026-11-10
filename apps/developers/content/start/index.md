@@ -28,8 +28,8 @@ prismio --version
 
 ```text
 Using local toolchain: ~/prismio/.prismio/build/debug/prismio
-prismio 0.1.0
-llvm 23.1.1
+prismio 0.2.0
+llvm 23.1.5
 compiler ~/prismio/.prismio/build/debug
 stdlib ~/prismio/.prismio/build/stdlib
 ```

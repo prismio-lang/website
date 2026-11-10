@@ -2,7 +2,7 @@
 title: Calling C from Prismio
 description: Compile your own C into a Prismio program with a native block in build.ums, call it through extern fn, and see when the object cache rebuilds it.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-30"
 tags: [guide, ffi, c, native, build, ums]
 related: [guides/ffi, language/ffi, package-manager, cookbook/c-ffi, compiler/cli]

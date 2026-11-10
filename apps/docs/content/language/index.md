@@ -1,14 +1,14 @@
 ---
 title: Language reference
-description: Canonical reference for syntax and behavior accepted by the Prismio 0.1 compiler.
+description: Canonical reference for syntax and behavior accepted by the Prismio 0.2 compiler.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-08-30"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [language, reference, syntax]
 related: [specification, start/overview, examples]
 ---
 
-This reference describes the language accepted by Prismio 0.1.0. It is written from the compiler, runtime, and test suite rather than from proposals, so an example labeled as implemented is intended to compile with the released language surface.
+This reference describes the language accepted by Prismio 0.2.0. It is written from the compiler, runtime, and test suite rather than from proposals, so an example labeled as implemented is intended to compile with the released language surface.
 
 Every reference page carries a status:
 
@@ -53,10 +53,10 @@ fn main() -> Int {
 
 ## Implemented language areas
 
-Prismio 0.1 includes:
+Prismio 0.2 includes:
 
 - statically typed local and global bindings;
-- exact-width signed and unsigned integers, a 64-bit float, booleans, byte characters, strings, and raw pointers;
+- exact-width signed and unsigned integers, `Int<N>` and `UInt<N>` of any width, five float types, booleans, byte characters, strings, and raw pointers;
 - named functions, exact-type overloads, and foreign function declarations;
 - method call syntax and `impl` blocks over concrete types;
 - generic traits, structural trait arguments, `impl Trait for Type`, and multiple bounds per type parameter, checked at instantiation;
@@ -64,8 +64,9 @@ Prismio 0.1 includes:
 - closures, `|x: Int| x + 1`, lowered to a struct and a `call` function;
 - nominal structs and fieldless enums;
 - fixed stack arrays and owned runtime lists;
-- nullable reference-shaped values;
+- `T?` optionals, the only optional type, with `??` to supply a fallback;
 - `if`, `while`, `loop`, integer ranges, and statement-form `match`;
+- [`async fn`, `await`, `scope { }` and `spawn { }`](/language/async-await) for code that waits;
 - move tracking for strings, lists, and structs, with default borrows, `sink`, `inout`, and `drop`;
 - dotted and wildcard imports relative to the entry file;
 - experimental allocation-inference annotations and regions; and

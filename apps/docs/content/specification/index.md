@@ -1,15 +1,15 @@
 ---
 title: Prismio language specification
-description: Draft compiler-derived specification for Prismio 0.1 syntax, semantics, types, names, memory, and conformance.
+description: Draft compiler-derived specification for Prismio 0.2 syntax, semantics, types, names, memory, and conformance.
 status: stable
 draft: true
-version: "0.1.0"
-lastUpdated: "2026-08-09"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [specification, semantics, normative]
 related: [language, specification/conformance, releases/0.1.0]
 ---
 
-This section is the canonical **draft specification for Prismio 0.1.0**. It is derived from the self-hosted lexer, parser, semantic analyzer, AIF pass, LLVM code generator, and regression suite.
+This section is the canonical **draft specification for Prismio 0.2.0**. It is derived from the self-hosted lexer, parser, semantic analyzer, AIF pass, LLVM code generator, and regression suite.
 
 Normative words such as “must” describe behavior expected of a conforming 0.1 implementation. Because 0.1 predates a frozen language standard, tested compiler behavior takes precedence when this text and the compiler disagree. Report that disagreement as a specification defect.
 

@@ -2,7 +2,7 @@
 title: Expected a declaration
 description: Fix unexpected tokens at Prismio top level and understand parser recovery.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-08-09"
 tags: [error, syntax, parser, declaration]
 related: [language/lexical-structure, specification/grammar, errors/unclosed-block]

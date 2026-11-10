@@ -1,9 +1,9 @@
 ---
 title: Structs
-description: Define, construct, access, mutate, and transfer nominal struct values in Prismio 0.1.
+description: Define, construct, access, mutate, and transfer nominal struct values in Prismio 0.2.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-09-18"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [structs, fields, aggregate-types]
 related: [language/types, language/ownership-and-borrowing, language/optionals]
 ---
@@ -106,7 +106,7 @@ Field assignment requires an assignable value of that field type. Compound assig
 request.retry_count = request.retry_count + 1
 ```
 
-Prismio 0.1 permits field assignment through a struct binding even when that binding was not declared `mut`; `mut` is enforced for direct binding reassignment. This distinction is current compiler behavior and may be tightened in a later language version.
+Prismio 0.2 permits field assignment through a struct binding even when that binding was not declared `mut`; `mut` is enforced for direct binding reassignment. This distinction is current compiler behavior and may be tightened in a later language version.
 
 An optional struct must be unwrapped before member access. Comparing it with `none` does not flow-narrow the expression; call `expect` and access the result.
 

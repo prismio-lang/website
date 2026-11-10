@@ -2,7 +2,7 @@
 title: Console I/O
 description: print, println, eprint and eprintln -- variadic, over every builtin type and the optional of each, written in Prismio source.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-10-28"
 tags: [standard-library, io, print, console]
 related: [start/hello-world, stdlib, stdlib/input, stdlib/filesystem, language/ffi]

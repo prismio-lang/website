@@ -1,9 +1,9 @@
 ---
 title: Lexical structure
-description: Prismio 0.1 identifiers, comments, literals, punctuation, and reserved words.
+description: Prismio 0.2 identifiers, comments, literals, punctuation, and reserved words.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-10-09"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [lexer, comments, literals, keywords]
 related: [specification/grammar, language/operators, language/types]
 ---
@@ -330,7 +330,7 @@ fn main() -> Int {
 }
 ```
 
-This program is invalid because the 0.1 lexer does not allow the NUL escape inside a string. The same escape is valid in a `Char` literal.
+This program is invalid because the 0.2 lexer does not allow the NUL escape inside a string. The same escape is valid in a `Char` literal.
 
 **Bidirectional controls must be escaped (P2002).** The overrides and isolates, U+202A to U+202E and U+2066 to U+2069, change the order in which a line is *displayed* without changing its bytes. Written raw in a comment or a string, one can make an editor or a code review show code that is not the code that compiles — the attack known as Trojan Source (CVE-2021-42574). The lexer refuses them, and the diagnostic shows the character as `�` rather than letting the terminal apply it:
 

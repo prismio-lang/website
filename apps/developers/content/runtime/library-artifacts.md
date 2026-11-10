@@ -55,7 +55,7 @@ then, per section:
         ...           verify bitcode          (--verify build)
 ```
 
-**The interface section is source text, and that is not laziness.** Generic bodies must be instantiated against the importing program's concrete types, so the frontend still parses them; `Map<String, Int>` in an application cannot have been compiled into the library. Codegen suppresses the original non-generic definitions, which arrive instead from whichever code section the build selected.
+**The interface section is source text, and that is not laziness.** Generic bodies must be instantiated against the importing program's concrete types, so the frontend still parses them; `HashMap<String, Int>` in an application cannot have been compiled into the library. Codegen suppresses the original non-generic definitions, which arrive instead from whichever code section the build selected.
 
 **One code section per packaged target.** The section whose triple is empty is the host the toolchain was packaged on, which is how a build with no `--target` asks for it; a build with `--target T` takes the section named exactly `T` — the same split, and the same spelling, as `lib/runtime/` against `lib/runtime/<triple>/`. `tools/package.py --target T --sysroot T=<path>` adds both halves for `T`; a project toolchain built by `prismio build` carries the host section only.
 

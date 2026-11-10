@@ -201,8 +201,8 @@ Two rewrites learned this in 0.1.0:
   or not anything called the generic. It skips a declaration with `genericInfo`; a generic's
   instantiations are concrete functions with symbols of their own and are compared as such
   (`tests/test_252_names_beside_std_generics.psm`).
-- **The index rewrite** turns `m[k]` on a struct into `at(m, k)`. `Map`'s `at` is a template of
-  `impl<K, V> Map<K, V>`, so the rewrite asks `monoHasTemplate(module, "at", …)` as well as
+- **The index rewrite** turns `m[k]` on a struct into `at(m, k)`. `HashMap`'s `at` is a template of
+  `impl<K, V> HashMap<K, V>`, so the rewrite asks `monoHasTemplate(module, "at", …)` as well as
   `semaDeclaresFunction("at")`; and the index is no longer required to be an `Int` before the
   struct's `at` is consulted, since a map's key need not be one.
 

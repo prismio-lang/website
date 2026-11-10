@@ -2,7 +2,7 @@
 title: Read command-line arguments
 description: Read the arguments a user passes to your program with process.args, and pass them from prismio run after a double dash.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-30"
 tags: [cookbook, cli, arguments, process]
 related: [stdlib/process, compiler/cli, package-manager]

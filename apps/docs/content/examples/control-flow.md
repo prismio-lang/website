@@ -2,7 +2,7 @@
 title: "Example: classify a range"
 description: A complete Prismio program using a for range, modulo, conditions, and mutable accumulation.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-23"
 tags: [example, loop, if, modulo]
 related: [language/control-flow, language/operators, tutorials/first-program]

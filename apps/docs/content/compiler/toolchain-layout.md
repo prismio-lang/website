@@ -2,8 +2,8 @@
 title: Toolchain layout
 description: What an installed Prismio toolchain contains, why a compiler is a directory rather than a file, and how to read a missing-module error.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-09-30"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [installation, packaging, runtime, stdlib]
 related: [start/installation, compiler/overview, compiler/bootstrap, stdlib]
 ---
@@ -23,7 +23,7 @@ There is no hardcoded installation prefix and no environment variable to set. Mo
 
 ## Where LLVM is
 
-LLVM is inside the compiler, not next to it. On macOS and Linux, `bin/prismio` links the pinned LLVM 23.1.1 statically. It optimizes a program and generates its machine code in the same process, so the prefix needs no LLVM installed on the machine, and a `brew upgrade` or distribution update cannot change what it builds. Windows is the exception: the compiler loads LLVM from `LLVM-C.dll` in its own `bin/` directory.
+LLVM is inside the compiler, not next to it. On macOS and Linux, `bin/prismio` links the pinned LLVM 23.1.5 statically. It optimizes a program and generates its machine code in the same process, so the prefix needs no LLVM installed on the machine, and a `brew upgrade` or distribution update cannot change what it builds. Windows is the exception: the compiler loads LLVM from `LLVM-C.dll` in its own `bin/` directory.
 
 The one outside tool a build runs is the system's linker, and only for the last step: linking the finished object with the platform's C library. On macOS and Linux that is `cc`. On Windows it is Visual Studio's `link.exe`, found through `vswhere` together with the newest Windows SDK, so no developer prompt is needed. A cross build uses `clang`, because the driver has to accept `--target`. That is the same arrangement `rustc` uses. Set `PRISMIO_CC` to choose a different driver. On macOS the driver is asked only once what linker command it would run; later builds run `ld` with that command directly, which saves about 10 ms a build, and an Xcode update or an `xcode-select` switch is noticed and asks again. `PRISMIO_LINK_CACHE=0` turns that off.
 
@@ -42,7 +42,7 @@ Two consequences are worth knowing:
 
 Each standard-library module installs as one compiled artifact — `stdlib/map.plib` for `std.map`. A PLIB holds two things: the module's **interface**, which the frontend still parses, and its compiled **bitcode**, which joins the same merge as the runtime.
 
-The interface is still source text because generics have to be instantiated against your concrete types — `Map<String, Int>` in your program cannot be pre-compiled in the library. Non-generic definitions come from the bitcode.
+The interface is still source text because generics have to be instantiated against your concrete types — `HashMap<String, Int>` in your program cannot be pre-compiled in the library. Non-generic definitions come from the bitcode.
 
 The directory is flattened: `std.map` lives at `stdlib/map.plib`, with no `std/` component on disk. Never derive a module's logical name from its path.
 

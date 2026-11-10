@@ -1,9 +1,9 @@
 ---
 title: Call C with ownership contracts
-description: Declare C ABI functions and document pointer ownership at the Prismio 0.1 FFI boundary.
+description: Declare C ABI functions and document pointer ownership at the Prismio 0.2 FFI boundary.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-09-30"
+version: "0.2.0"
+lastUpdated: "2026-11-10"
 tags: [guide, ffi, c-abi, ownership]
 related: [guides/calling-c, language/ffi, cookbook/c-ffi, specification/memory-model]
 ---
@@ -93,6 +93,6 @@ Compile a test build with `--verify` where applicable. Verification can observe 
 - Do not assume a foreign allocator can be paired with a different deallocator.
 - Re-test declarations for every target architecture and operating system.
 
-The linker must still be able to resolve every external symbol. Prismio 0.1 does not have a manifest-level library-dependency declaration.
+The linker must still be able to resolve every external symbol. Prismio 0.2 does not have a manifest-level library-dependency declaration.
 
 Automatic header generation, callbacks, source-level C variadics, dynamic library manifests, Rust/Python binding generation, and a stable Prismio ABI are Coming Soon or unspecified—not hidden capabilities.

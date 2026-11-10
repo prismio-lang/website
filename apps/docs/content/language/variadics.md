@@ -55,7 +55,7 @@ fn main() -> Int {
 
 - A **set** pack takes any number of arguments, each a type from the set, in any order, and they may differ from one another. Zero is allowed.
 - A **sequence** pack takes that sequence **in that order, repeated any number of times** (zero included). Exactly one group needs no pack: write the parameters.
-- The pack is the last parameter. `extern fn` cannot have one.
+- The pack is the last parameter. `extern fn` cannot have one; C's `...` is a different thing, a bare `...` after an extern's named parameters (see [Variadic and overloaded externs](/language/ffi#variadic-and-overloaded-externs)).
 
 ```prismio
 typelist Row (Int, String, Bool)

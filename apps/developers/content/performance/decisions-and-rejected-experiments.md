@@ -398,6 +398,21 @@ view and a five-byte inline string are the same key, and `test_147` pins every l
 
 ## Concurrency
 
+### A lock per message was the pipeline's cost
+
+`graph_churn_transfer`'s stages spent 211 of about 700 samples in `psynch_mutexwait` and `psynch_mutexdrop`. Spinning in
+front of that lock gave 0.58x there and 7.6x on `channel_pipeline`: a small message then contends for the lock every time. The
+channel is now Vyukov's bounded queue with the stamp beside the message, and sleeping only behind the lock:
+28.66 to 14.77 ms wall, 68.2 to 45.4 ms CPU, 0.51x of C++ and 0.62x of Rust. Keeping the stamps in an array of their own
+was 3.43 ms on `channel_pipeline` against 2.82 in the slot. A capacity of 1 needs doubled stamps, since `pos + 1` otherwise means both
+"full for this receiver" and "empty for the next sender".
+
+That ring alone left `channel_pipeline` at 2.9 ms, with three cores busy throughout. A look at a slot not ready takes its cache
+line from the side about to write it, so leaving it alone lets a batch build: in a C model 2.52 ms with no pause, 1.19 at 32 `isb`,
+0.82 at 128, 1.02 at 256, against Rust's 2.20. Padding the slots changed nothing. The pause is two spins a slot up to 128, since a fixed
+128 made a capacity-1 ping-pong 5x slower. `channel_pipeline` is 0.533 ms (0.18x of C++, 0.24x of Rust), with half the CPU of the
+mutex ring, and a 20,000-round ping-pong 85.6 to 7.7 ms against Rust's 70.
+
 ### Plain-data channels copy through the ring
 
 A channel whose element is a struct of `Int`, `Float`, `Bool` and `Char` fields sends by `chan_send_copy` /
@@ -416,6 +431,60 @@ heap-object messages are nine allocations a frame, under 1 µs. An SPSC ring rep
 mutex: tens of nanoseconds, a few hundred a frame, about a tenth of the gap. The 4.7 µs is **unattributed**;
 the untested candidates are the genuinely contended `results` channel, thread placement on a machine with two
 core types, and the per-frame clock reads.
+
+## Dependent chains
+
+### A remainder by `2^k - 1` on a chain is a fold, and only with a bound
+
+`graph_churn_*` advance MINSTD, `seed = seed * 48271 % 2147483647`, three times a step. LLVM lowers the remainder through
+the constant's reciprocal (multiply-high, shifts, multiply-subtract): nine dependent cycles unsigned, eleven signed. For
+`C = 2^k - 1` and `0 <= x < C * 2^k`, `(x & C) + (x >> k)` and one conditional subtract is exact and four cycles. Landed as
+`MersenneRemainder` (`runtime/llvm_bridge.cpp`): `graph_churn_single` 17.6 to 14.9 ms (0.84x of C++), `graph_churn_alloc`
+28.7 to 24.8 ms (0.70x), and 3 to 8% on five other benchmarks with the same modulus, checksums equal.
+
+Two things were learned on the way. The bound has to be proved or checked: writing the fold by hand with `if (r >= M)` ran at
+0.875x but is exact only because that seed domain cannot reach `r == 2M`. And a guarded version whose slow arm stays inline
+is worth nothing (`alloc` 0.977x instead of 0.859x): the backend if-converts the diamond into selects that compute both
+sides, so the original remainder lives in a `cold noinline` helper, which a call keeps from being speculated.
+
+Rejected in the same pass: a `range(0, INT_MAX)` parameter attribute for functions every caller passes non-negative values to
+(sound, but a `0..<n` loop with a run-time `n` may descend, so the counter is not provably non-negative), and a single
+thread-local read in the slab's `slab_cache()` (1.004-1.007x: the two `tlv_get_addr` calls are not the cost).
+
+Not done, for lack of a fact the compiler has no way to know: deferring the `% 1000000007` in `graph_bfs`'s checksum chain and
+keeping the queue's header in registers. A C model of the loop is 538 us as written, 443 with the sum deferred and 280 with
+both (`docs/GRAPH_CHURN_FINDINGS.md`, "Missing features").
+
+### What `graph_bfs`'s chain needed was a fact the program already states
+
+*Added 2026-11-04, and it supersedes the "not done" above: no new language feature was needed.* The queue's values are bounded
+because the program says so: every `next` pushed was first a checked index into `seen`, and a check that passed is a fact. So
+a local `Vec`'s contents are followed as a local array's are (`ir/contents.psm`), a checked access narrows its index, and
+`let x = node % width` ties `x` to `node`, so `x + 1 < width` says `node + 1` is in range. The checksum's `smull; asr; add; msub`
+becomes `add; cmp; csel`, four bounds checks go, and `node % width` is unsigned. In a C model the remainder chain is the
+difference between 0.61 and 0.28 ms, and nothing else shows until it is gone.
+
+Then the length is the chain: `str` and a reload of the same word per push, because the grow call may change it.
+`ListHeaderPromotion` (`runtime/llvm_bridge.cpp`) takes apart the header of a list whose pointer goes only to field accesses and
+to calls that do not keep it, writing back before a call and reading after one that can change it. It also folds the element
+size a list is born with, deleting every flat guard and boxed loop copy: the suite binary went 259.7 to 210.3 KB. `graph_bfs`
+ended at 0.58x of C++, 0.59x of Rust.
+
+`mersenneForm` does at the source level what `MersenneRemainder` above does in LLVM, with a return range in place of a
+guard, and with no sign needed: below zero the step's threshold is 1 rather than `m`. Where the frontend cannot bound a
+dividend, it leaves the remainder alone.
+
+### A step behind a branch is a trade, and it was taken
+
+A `%` reduced to a step is cheap enough for SimplifyCFG to speculate. `branch_mispredict`, whose update sits behind an
+unpredictable branch, went to 0.36x. `prime_sieve`, whose `sum` update is rare and predicted, went from 0.41 to 0.50 ms. Keeping the
+step off conditional paths restored the sieve and put `branch_mispredict` back at 0.75x, so the rule was removed.
+
+### Rejected: a guess that a remainder function stays non-negative
+
+A round over the whole program can check it inductively, and it does prove `benchRandom`. Dijkstra moved 1% (442 to 438 us):
+on a cold, one-shot run the unsigned chain buys nothing the warm loop promised (3.4 to 2.7 ns a step), and one
+`s.val = benchRandom(s.val)` stops the proof for the whole suite, since a field has no fact.
 
 ## Where the raw data went
 

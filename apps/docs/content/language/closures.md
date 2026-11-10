@@ -1,8 +1,8 @@
 ---
 title: Closures
-description: "Prismio 0.1 closures -- a struct, a call function, and overload resolution; closure bounds (F: Fn(A) -> R) that check a closure and solve a result type from it."
+description: "Prismio 0.2 closures -- a struct, a call function, and overload resolution; closure bounds (F: Fn(A) -> R) that check a closure and solve a result type from it."
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-09-27"
 tags: [closures, lambdas, higher-order, generics, captures]
 related: [language/traits, language/methods, language/generics, stdlib/vec, stdlib/option]
@@ -205,7 +205,7 @@ fn main() -> Int {
 
 A block body may declare locals, loop and `return` early, and a `let` that reuses the name of an outer local shadows it rather than capturing it. A closure whose block ends in a statement, such as a call to `println`, answers nothing. A map literal as a closure's whole body must be parenthesised, since a `{` after the parameters now opens a block.
 
-## Not in 0.1
+## Not in 0.2
 
 - Inferred parameter types, even against a closure bound: `|x| x + 1` is a parse error; write `|x: Int| x + 1`.
 - Storing a closure in a struct, a list, or a global.

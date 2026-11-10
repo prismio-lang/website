@@ -1,18 +1,18 @@
 ---
-title: Map
-description: The std.map hash table — creating one, map literals, its methods, O(1) removal, the Key bound its keys satisfy, and why values stay scalar in Prismio 0.1.
+title: HashMap and HashSet
+description: The std.map hash table and the set built on it — creating one, map literals, its methods, O(1) removal, the Key bound its keys satisfy, and why values stay scalar in Prismio 0.2.
 status: stable
-version: "0.1.0"
-lastUpdated: "2026-09-28"
-tags: [standard-library, map, collections, generics, traits, hash]
+version: "0.2.0"
+lastUpdated: "2026-11-10"
+tags: [standard-library, map, set, hashmap, hashset, collections, generics, traits, hash]
 related: [stdlib/vec, language/generics, language/traits]
 ---
 
-`Map<K, V>` is an associative container written in Prismio and shipped as `std/map.psm`. It is the first container in the language that is not built into the compiler, and it exists because [generics](/language/generics) do.
+`HashMap<K, V>` is an associative container written in Prismio and shipped as `std/map.psm`. It is the first container in the language that is not built into the compiler, and it exists because [generics](/language/generics) do.
 
 Import it explicitly. So does `std.io`: there is no prelude, and every standard module is imported the same way.
 
-**Not available yet:** a set type and a sorted map. Both are planned. Until then a `Map<T, Bool>` stands in for a set, and sorting the keys gives a sorted traversal — see [what else is missing](/language/arrays-and-lists#not-available-yet).
+**Not available yet:** a sorted map. It is planned; sorting the keys gives a sorted traversal until then — see [what else is missing](/language/arrays-and-lists#not-available-yet). A set is [`HashSet`](#hashset), below.
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -22,7 +22,7 @@ import std.option
 import std.string
 
 fn main() -> Int {
-    let stock: Map<String, Int> = { "apples": 12, "pears": 4, "plums": 30 }
+    let stock: HashMap<String, Int> = { "apples": 12, "pears": 4, "plums": 30 }
     println(stock.set("pears", 5))          // true: pears was already there
 
     println(stock["apples"])                // 12
@@ -53,11 +53,11 @@ import std.io
 import std.map
 
 fn main() -> Int {
-    let a = Map<String, Int>()              // the type, called
-    let b: Map<String, Int> = Map()         // the annotation supplies <String, Int>
-    let c: Map<String, Int>                 // no initializer: an empty map
-    let d: Map<String, Int> = {}            // an empty literal
-    let e = Map<Int, Int>.withCapacity(1000)  // room for 1000 entries before it grows
+    let a = HashMap<String, Int>()              // the type, called
+    let b: HashMap<String, Int> = HashMap()         // the annotation supplies <String, Int>
+    let c: HashMap<String, Int>                 // no initializer: an empty map
+    let d: HashMap<String, Int> = {}            // an empty literal
+    let e = HashMap<Int, Int>.withCapacity(1000)  // room for 1000 entries before it grows
 
     c.set("ready", 1)
     println(a.length + b.length + c.length + d.length + e.length)   // 1
@@ -65,13 +65,13 @@ fn main() -> Int {
 }
 ```
 
-**Calling a type calls its `new`.** `Map<String, Int>()` is `Map<String, Int>.new()`, and the same holds for any struct whose `impl` declares a `new` — `Parser(source)` calls `Parser.new(source)`. A type without one is an error that says so: *`Bare` has no `new`, so it cannot be called*.
+**Calling a type calls its `new`.** `HashMap<String, Int>()` is `HashMap<String, Int>.new()`, and the same holds for any struct whose `impl` declares a `new` — `Parser(source)` calls `Parser.new(source)`. A type without one is an error that says so: *`Bare` has no `new`, so it cannot be called*.
 
-The type arguments come from the call or from the context. `let m = Map()` has neither, and is an error: *`Map()` needs its type arguments*. `mapNew<K, V>()`, the older spelling, still works, and takes its arguments from an annotation the same way.
+The type arguments come from the call or from the context. `let m = HashMap()` has neither, and is an error: *`HashMap()` needs its type arguments*. `mapNew<K, V>()`, the older spelling, still works, and takes its arguments from an annotation the same way.
 
 **A `let` with no initializer is an empty map**, as one of a `Vec` is an empty `Vec`. It is not a zeroed value that crashes on first use.
 
-## Map literals
+## HashMap literals
 
 `{ key: value, ... }`, the way Python and JSON write one:
 
@@ -82,12 +82,12 @@ import std.map
 import std.string
 
 fn main() -> Int {
-    let ages: Map<String, Int> = {
+    let ages: HashMap<String, Int> = {
         "Alice": 20,
         "Bob": 25,
     }
-    let codes = { 200: "ok".length, 404: "not found".length }   // Map<Int, Int>
-    let limits: Map<String, U8> = { "max": 255 }                // 255 is a U8 here
+    let codes = { 200: "ok".length, 404: "not found".length }   // HashMap<Int, Int>
+    let limits: HashMap<String, U8> = { "max": 255 }                // 255 is a U8 here
 
     let who = "Carol"
     let scores = { who: 91, "Dan": 78 }       // keyed on the *value* of `who`
@@ -100,22 +100,22 @@ fn main() -> Int {
 
 - **Types.** Under an annotation, every key and value takes the annotation's type, so a literal `255` fits a `U8`. With no annotation, the first entry decides, as a `Vec` literal's first element does; a later entry of another type is *map literal value: expected Int, found String*.
 - **Keys are expressions.** `{ who: 91 }` uses the value of `who`, as in Python — never the string `"who"`, as in JavaScript. A computed key such as `{ name.concat("!"): 1 }` is fine.
-- **`{}` needs a type.** `let m: Map<String, Int> = {}` is an empty map; `let m = {}` has nothing to say what it maps, and is an error.
+- **`{}` needs a type.** `let m: HashMap<String, Int> = {}` is an empty map; `let m = {}` has nothing to say what it maps, and is an error.
 - **A key written twice is an error** when both are literals: *this key is already in the map literal*. Python keeps the second value silently, which is a classic bug. Two computed keys that happen to be equal cannot be seen at compile time; the later one wins, as `set` would.
 - **Order is preserved.** Entries go in in the order they are written, so iteration visits them in that order.
 - **A trailing comma is allowed**, and a literal may span lines.
-- **Needs `import std.map`**, like every other use of `Map`.
+- **Needs `import std.map`**, like every other use of `HashMap`.
 
 A literal is sized once, for exactly its entries, so building it never grows the table.
 
-**Two limits in 0.1.** A literal holding a *computed* owned key — `{ s.concat("!"): 1 }`, as opposed to a literal, a variable or an integer — leaks its map when it is stored straight into a struct field, and leaks the key when it is returned straight from a function; bind it to a `let` first. Literals of plain keys, which is nearly all of them, have neither problem. Separately, two different `Map<String, ...>` types in one program each holding a key built at run time leak one key copy. Both are gaps in the compiler's ownership analysis, not in the map, and are tracked.
+**Two limits in 0.1.** A literal holding a *computed* owned key — `{ s.concat("!"): 1 }`, as opposed to a literal, a variable or an integer — leaks its map when it is stored straight into a struct field, and leaks the key when it is returned straight from a function; bind it to a `let` first. Literals of plain keys, which is nearly all of them, have neither problem. Separately, two different `HashMap<String, ...>` types in one program each holding a key built at run time leak one key copy. Both are gaps in the compiler's ownership analysis, not in the map, and are tracked.
 
 ## Operations
 
-| On a `Map<K, V>` | Returns |
+| On a `HashMap<K, V>` | Returns |
 |---|---|
-| `Map<K, V>()`, `mapNew<K, V>()` | an empty map. The type arguments may come from an annotation instead: `let m: Map<K, V> = Map()`. |
-| `Map<K, V>.withCapacity(n)` | an empty map with room for `n` entries before it grows |
+| `HashMap<K, V>()`, `mapNew<K, V>()` | an empty map. The type arguments may come from an annotation instead: `let m: HashMap<K, V> = HashMap()`. |
+| `HashMap<K, V>.withCapacity(n)` | an empty map with room for `n` entries before it grows |
 | `m.length`, `m.isEmpty` | `Int`, `Bool`; [properties](/language/methods#properties) |
 | `m.has(key)` | `Bool` |
 | `m.get(key)` | `V?`: the value, or `none` — [`??`](/language/optionals#none-coalescing) gives it a default |
@@ -128,7 +128,7 @@ A literal is sized once, for exactly its entries, so building it never grows the
 | `m.values()` | `Vec<V>`: every value, in position order |
 | `m.keyAt(i)`, `m.valueAt(i)` | the key and value at position `i`, for `0 <= i < m.length` |
 
-`m[key]` is for a key the program knows is there; `m.get(key)` is the form that can say "absent". `m[key] = value` is a compile error (`x[i]` on a `Map` "reads through `at`, and has no assignment form"): write `m.set(key, value)`.
+`m[key]` is for a key the program knows is there; `m.get(key)` is the form that can say "absent". `m[key] = value` is a compile error (`x[i]` on a `HashMap` "reads through `at`, and has no assignment form"): write `m.set(key, value)`.
 
 `set` answering whether the key existed is the one fact a caller cannot recover afterwards without a second lookup. Prefer `get` when a stored value could equal the fallback: `m.getOr(k, 0)` cannot tell a stored `0` from a missing key, and `m.get(k)` can.
 
@@ -155,7 +155,7 @@ All of these visit the entries in position order.
 
 ## Keys implement `Key + Copy`
 
-`Map<K: Key + Copy, V>` requires identity from `Key` in `std.key` and storage
+`HashMap<K: Key + Copy, V>` requires identity from `Key` in `std.key` and storage
 duplication from `Copy` in `std.copy`:
 
 | Method | Meaning |
@@ -189,7 +189,7 @@ impl Copy for Point {
 }
 
 fn main() -> Int {
-    let places = Map<Point, Int>()
+    let places = HashMap<Point, Int>()
     places.set(Point { x: 1, y: 2 }, 12)
     println(places[Point { x: 1, y: 2 }])
     return 0
@@ -201,7 +201,7 @@ Each block is checked against its own trait, and the map's two explicit bounds
 require both implementations.
 
 **`Float` deliberately has no `Key` impl.** NaN is not equal to itself, so a NaN key could be
-inserted and never found again — a silently wrong answer. `Map<Float, V>` fails at the instantiation
+inserted and never found again — a silently wrong answer. `HashMap<Float, V>` fails at the instantiation
 with `Float does not implement \`Key\``.
 
 ## Values are scalars
@@ -216,7 +216,7 @@ says it cannot hold something is better than one that holds it and leaks it.
 
 ## Lookup is constant time
 
-`Map` is an open-addressed hash table: two dense parallel arrays in insertion order, plus a probe
+`HashMap` is an open-addressed hash table: two dense parallel arrays in insertion order, plus a probe
 table of indices into them. `mapIndexOf` probes rather than scans.
 
 Position order is part of the contract, not an accident — `keyAt` and `valueAt` iterate in it, and
@@ -238,9 +238,9 @@ factor.
 bucket, so `remove` marks the bucket rather than emptying it: a lookup probes past a marker, and an
 insertion reuses the first one it passes.
 
-**The columns are private.** A map's two entry columns and its probe table are fields of `Map`, and
+**The columns are private.** A map's two entry columns and its probe table are fields of `HashMap`, and
 none of them is part of its surface: a program cannot read, push to or truncate one
-(`field 'entryKeys' of 'Map$Int$Int' is private to the file that declares it`). The probe relies on two
+(`field 'entryKeys' of 'HashMap$Int$Int' is private to the file that declares it`). The probe relies on two
 facts about them -- a bucket is always inside the probe table, and an entry index read out of it is always
 inside both entry columns -- and states them to the optimiser instead of checking them on every probe, so
 a lookup carries no bounds check. A program that could resize a column would break both without the
@@ -249,3 +249,41 @@ compiler seeing it. Use `keyAt`, `valueAt`, `length` and the operations above.
 ## Vec
 
 A map's keys, values and slots are each a [`Vec`](/stdlib/vec) — the growable vector, whose backing block doubles on push and stores flat elements inline.
+
+## HashSet
+
+`HashSet<K>` is a collection of distinct keys, in the same `std/map.psm` and under the same `import std.map`. It has the table `HashMap` has with the value column taken out, and the same bound on `K`: `Key + Copy`, so a `String` or a struct key is copied in and released with the set.
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+import std.map
+import std.string
+
+fn main() -> Int {
+    let seen = HashSet<String>()
+    println(seen.insert("ada"))             // true: it was not there
+    println(seen.insert("ada"))             // false: it was
+    println(seen.contains("ada"))           // true
+    println(seen.contains("grace"))         // false
+
+    println(seen.remove("ada"))             // true: it was there
+    println(seen.remove("ada"))             // false: already gone
+    println(seen.isEmpty)                   // true
+    return 0
+}
+```
+
+| On a `HashSet<K>` | Returns |
+|---|---|
+| `HashSet<K>()`, `HashSet<K>.new()` | an empty set. `let s: HashSet<K>` with no initializer is an empty set too |
+| `HashSet<K>.withCapacity(n)` | an empty set with room for `n` keys before it grows |
+| `s.insert(key)` | `Bool`: `true` when the key was not there already |
+| `s.contains(key)` | `Bool` |
+| `s.remove(key)` | `Bool`: `true` when the key was there to remove |
+| `s.clear()` | removes every key and keeps the table's capacity |
+| `s.length`, `s.isEmpty` | `Int`, `Bool`; [properties](/language/methods#properties) |
+
+`insert` answering whether the key was new is the one fact a caller cannot recover afterwards without a second lookup, as `set` is for a map. Removal swaps the last key into the removed one's place, as a map's does, so there is no iteration order to rely on yet; a `for` loop over a set is not available.
+
+A set is not a `HashMap<K, Bool>`. It holds its own columns, because a struct that holds a `HashMap` in a field of its own leaks the table; the probe is written out for it, and the two are tested against the same shapes.

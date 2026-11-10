@@ -2,7 +2,7 @@
 title: "Tutorial: model owned data"
 description: Define a struct, pass it by borrow, and transfer it explicitly with a sink parameter.
 status: stable
-version: "0.1.0"
+version: "0.2.0"
 lastUpdated: "2026-08-09"
 tags: [tutorial, structs, ownership, sink]
 related: [language/structs, language/ownership-and-borrowing, language/functions]

@@ -10,7 +10,7 @@ related: [start, roadmap, tooling/debugging-targets-and-build-tracing]
 
 ## Is Prismio production-ready?
 
-No. Prismio 0.1 is active compiler development. Implemented behavior is tested, but syntax,
+No. Prismio 0.2 is active compiler development. Implemented behavior is tested, but syntax,
 runtime contracts, manifests, diagnostics, AIF policy, and ABI details may change. Pin a compiler
 revision for persistent work.
 
