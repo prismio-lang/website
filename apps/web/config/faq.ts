@@ -10,7 +10,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "Is Prismio production-ready?",
     answer:
-      "No. Version 0.1 is active compiler development. Implemented features are tested, but syntax, runtime contracts, AIF policy and ABI details may change. Use it for compiler and language development and controlled experiments.",
+      "No. Version 0.2 is active compiler development. Implemented features are tested, but syntax, runtime contracts, AIF policy and ABI details may change. Use it for compiler and language development and controlled experiments.",
   },
   {
     question: "Is the Prismio compiler written in Prismio?",
@@ -31,5 +31,15 @@ export const faqItems: FaqItem[] = [
     question: "Does Prismio interoperate with C?",
     answer:
       "Yes. Prismio code can call C functions and pass C structs directly, and a build.ums manifest can compile your own C sources and link libraries into a program.",
+  },
+  {
+    question: "Which platforms does Prismio run on?",
+    answer:
+      "macOS on Apple silicon, Linux on x64 and ARM64, and Windows on x64 and ARM64. CI builds and tests macOS arm64, Linux x64 and Windows x64; the two ARM64 archives are built and tested on virtual machines. Windows is the least exercised platform.",
+  },
+  {
+    question: "Can I write a kernel or bare-metal code in Prismio?",
+    answer:
+      "Yes, for the cases the project tests. A --freestanding build links no C library and no startup files, and std.syscall reaches the operating system directly. The test suite boots small kernels written in Prismio under QEMU on AArch64 and 32-bit x86.",
   },
 ];

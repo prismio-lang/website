@@ -5,18 +5,19 @@ import HeaderMain from "@/components/HeaderMain";
 import FooterMain from "@prismio/ui/FooterMain";
 import {PRISMIO_VERSION} from "@prismio/utils";
 import {getBenchmarkDataset} from "@/lib/benchmarks";
+import NextRelease from "@/components/NextRelease";
 import {pageMetadata} from "@/lib/seo";
 
 export const metadata = pageMetadata({
     title: "Prismio Roadmap — Compiler, Runtime, and Language Development",
-    description: "What Prismio can do today, what is experimental, and what is not there yet. No dates, no promises.",
+    description: "What Prismio can do today, what is experimental, and what is not there yet, plus the target date of the next release.",
     path: "/roadmap",
 });
 
 const CARD = "rounded-3xl border border-white/[0.08] bg-[#0c0c0e]/70 backdrop-blur-xl";
 
 /** When this page was last checked against the feature table in the docs. */
-const CHECKED = "30 Sep 2026";
+const CHECKED = "10 Nov 2026";
 
 const WORKS_TODAY = [
     {
@@ -24,16 +25,20 @@ const WORKS_TODAY = [
         detail: "The lexer, parser, semantic analysis, and LLVM backend are written in Prismio. It builds native executables, cross-compiles with `--target`, and writes debug information with `-g`.",
     },
     {
+        title: "A language server and a formatter",
+        detail: "`prismio lsp` serves diagnostics, hover, go to definition, completion, and semantic tokens to editors. `prismio fmt` formats source, with `--check` for CI.",
+    },
+    {
         title: "A practical language core",
-        detail: "Structs, enums, `Option` and `Result`, pattern matching, traits, generics, closures, and `impl` blocks.",
+        detail: "Structs, enums, optionals (`T?`) and `Result`, pattern matching, traits, generics, closures, `impl` blocks, and integers of any width.",
     },
     {
         title: "Collections and text",
-        detail: "`Vec`, `Map`, slices, fixed-size arrays, strings, and a `StringBuilder`.",
+        detail: "`Vec`, `HashMap`, `HashSet`, slices, fixed-size arrays, strings, and a `StringBuilder`.",
     },
     {
         title: "A standard library",
-        detail: "Twenty importable modules, including files, input, time, math, terminal colours, and process access.",
+        detail: "Importable modules for files, input, time, math, JSON, terminal colours, process access, and polling several descriptors at once.",
     },
     {
         title: "Channels between threads",
@@ -41,7 +46,11 @@ const WORKS_TODAY = [
     },
     {
         title: "Projects and C interop",
-        detail: "A `build.ums` manifest with build profiles, a lockfile, path dependencies, and native C sources. Functions in C libraries are called directly.",
+        detail: "A `build.ums` manifest with build profiles, a lockfile, path dependencies, and native C sources. Functions in C libraries, variadic ones included, are called directly.",
+    },
+    {
+        title: "Freestanding programs and system calls",
+        detail: "`--freestanding` links no C library and no startup files, `std.syscall` calls the kernel directly, and `linux { }`, `macos { }` and `windows { }` blocks choose code per target. Small kernels boot under QEMU on AArch64 and 32-bit x86 in the project's tests.",
     },
 ];
 
@@ -51,8 +60,8 @@ const EXPERIMENTAL = [
         detail: "The compiler enforces moves and borrows and decides where each allocation lives, and it can explain why. The rules and their cost model can still change.",
     },
     {
-        title: "Tasks",
-        detail: "`spawn`, `join`, and `Task<R>` run work on native threads.",
+        title: "Tasks and async",
+        detail: "`spawn`, `join`, and `Task<R>` run work on native threads. `async fn`, `Future<T>`, `await`, and `scope { }` build on them, and a task is still an operating-system thread.",
     },
     {
         title: "Data layout views",
@@ -65,9 +74,8 @@ const NOT_YET = [
         area: "Standard library",
         items: [
             "Networking (sockets)",
-            "JSON parsing and writing",
             "Regular expressions",
-            "More collections: deque, linked list, sets, sorted map, priority queue",
+            "More collections: deque, linked list, sorted map, priority queue",
             "Random numbers",
             "Calendar dates, time zones, and timers",
             "Memory-mapped files",
@@ -76,8 +84,8 @@ const NOT_YET = [
     {
         area: "Language",
         items: [
-            "`async` and `await`",
-            "Atomics, locks, and other synchronization types",
+            "An `await` that gives its thread back to a scheduler",
+            "Mutexes and other safe synchronization types (raw pointer atomics exist)",
             "`select` over channels, and non-blocking send and receive",
             "Exceptions and the `?` operator",
             "Macros and compile-time code generation",
@@ -88,8 +96,7 @@ const NOT_YET = [
     {
         area: "Tooling",
         items: [
-            "A formatter and a linter",
-            "A language server for editors",
+            "A linter",
             "A package registry with version solving",
             "Importing modules from a dependency by path",
             "C++ sources and library targets in the manifest",
@@ -136,7 +143,8 @@ export default function RoadmapPage() {
                         </h1>
                         <p className="mt-8 max-w-2xl text-base leading-8 text-zinc-300 sm:text-lg">
                             Prismio is in active development. This isn&apos;t a release calendar. It lists what the
-                            compiler does today, what is experimental, and what is not there yet, with no dates.
+                            compiler does today, what is experimental, and what is not there yet. The one date on the page is the
+                            next release's target.
                         </p>
                     </div>
 
@@ -151,8 +159,8 @@ export default function RoadmapPage() {
                                 <dd className="font-mono text-indigo-300">{PRISMIO_VERSION}</dd>
                             </div>
                             <div className="flex items-center justify-between gap-4 py-3">
-                                <dt className="text-zinc-400">Dates promised</dt>
-                                <dd className="font-mono text-zinc-200">None</dd>
+                                <dt className="text-zinc-400">Next release</dt>
+                                <dd className="font-mono text-zinc-200">0.3.0 · 5 Jan 2027</dd>
                             </div>
                         </dl>
                         <a
@@ -165,6 +173,11 @@ export default function RoadmapPage() {
                             <ArrowUpRight size={14}/>
                         </a>
                     </aside>
+                </section>
+
+                {/* Next release */}
+                <section className="border-b border-white/[0.08] py-24" aria-labelledby="next-heading">
+                    <NextRelease/>
                 </section>
 
                 {/* Works today */}

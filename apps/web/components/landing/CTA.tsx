@@ -7,15 +7,17 @@ const AVAILABLE = [
     'Self-hosted native compiler',
     'Experimental AIF storage plans and runtime verification',
     'Generics, traits, closures, enums, and pattern matching',
-    'Vectors (Vec<T>), maps, slices, files, and processes',
-    'Typed blocking channels, and experimental native tasks',
+    'Vectors (Vec<T>), maps, sets, slices, files, processes, and JSON',
+    'async/await, scoped tasks, and typed blocking channels',
+    'A language server and formatter built into the compiler',
+    'Freestanding builds and direct system calls',
     'UMS projects, native linking, JSON diagnostics, and DWARF',
 ];
 
 const NOT_YET = [
-    'Networking and async/await',
-    'Regex and JSON modules',
-    'User-facing atomics, mutexes, and work-stealing pools',
+    'Networking and an executor that suspends tasks',
+    'Regex',
+    'Mutexes, safe atomic types, and work-stealing pools',
     'Reflection, derive generation, and explicit SIMD types',
     'Memory-mapped files and custom container allocators',
 ];
@@ -32,9 +34,9 @@ export default function CTA() {
                         A working compiler with a deliberately unfinished ecosystem.
                     </h2>
                     <p className="mt-6 text-base leading-7 text-zinc-300">
-                        Prismio v0.1 is in active development. It self-hosts, emits native binaries, runs its project workflow,
+                        Prismio v0.2 is in active development. It self-hosts, emits native binaries, runs its project workflow,
                         and ships the core language, memory analysis, standard containers,
-                        file and process APIs, native tasks, and typed channels.
+                        file and process APIs, async functions, typed channels, and a language server.
                     </p>
                     <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3">
                         <Link

@@ -1,6 +1,7 @@
 import React from "react";
 import HeaderMain from "@/components/HeaderMain";
 import Hero from "@/components/landing/Hero";
+import WhatsNew from "@/components/landing/WhatsNew";
 import BenchmarkTeaser from "@/components/landing/BenchmarkTeaser";
 import WhyPrismio from "@/components/landing/WhyPrismio";
 import Principles from "@/components/landing/Principles";
@@ -8,6 +9,7 @@ import AIReady from "@/components/landing/AIReady";
 import EditorSupport from "@/components/landing/EditorSupport";
 import CommunityNote from "@/components/landing/CommunityNote";
 import FAQ from "@/components/landing/FAQ";
+import NextRelease from "@/components/NextRelease";
 import CTA from "@/components/landing/CTA";
 import {JsonLd} from "@/components/json-ld";
 import {faqStructuredData, prismioEntityData} from "@/config/structured-data";
@@ -24,12 +26,16 @@ export default function LandingPage() {
 
             <main className="relative z-10">
                 <Hero />
+                <WhatsNew />
                 <BenchmarkTeaser />
                 <WhyPrismio />
                 <Principles />
                 <AIReady />
                 <EditorSupport />
                 <CommunityNote />
+                <section aria-labelledby="next-heading" className="mx-auto max-w-7xl px-6 py-24">
+                    <NextRelease />
+                </section>
                 <CTA />
                 <FAQ />
             </main>

@@ -2,7 +2,6 @@
 
 import React, {useState} from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import {ArrowUpRight, Check, Copy} from 'lucide-react';
 import GithubIcon from '@/components/icons/GithubIcon';
 
@@ -140,16 +139,20 @@ export default function IntelliJPluginCard({className = ''}: IntelliJPluginCardP
                     </span>
                     <ArrowUpRight size={16} className="shrink-0 text-zinc-400 transition-colors group-hover:text-white" />
                 </a>
-                <Link
-                    href="/roadmap"
+                <a
+                    href="https://docs.prismio.org/guides/editors"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className={`group flex items-center justify-between gap-4 px-8 py-5 transition-colors hover:bg-white/[0.03] focus-visible:ring-inset ${FOCUS}`}
                 >
                     <span>
                         <span className="block text-sm font-semibold text-white">Language server</span>
-                        <span className="mt-0.5 block text-sm text-zinc-400">Not available yet. See the roadmap.</span>
+                        <span className="mt-0.5 block text-sm text-zinc-400">
+                            <code className="font-mono text-zinc-300">prismio lsp</code> ships with the compiler and works in any editor that speaks LSP.
+                        </span>
                     </span>
                     <ArrowUpRight size={16} className="shrink-0 text-zinc-400 transition-colors group-hover:text-white" />
-                </Link>
+                </a>
             </div>
         </div>
     );

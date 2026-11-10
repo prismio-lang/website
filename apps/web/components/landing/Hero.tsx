@@ -5,6 +5,8 @@ import Link from 'next/link';
 import {ArrowRight, Check, Copy, FileCode2, Terminal} from 'lucide-react';
 import {LLVM_VERSION} from "@prismio/utils";
 
+const PLATFORMS = ['macOS', 'Linux', 'Windows'];
+
 const QUICKSTART = 'curl -fsSL https://prismio.org/install.sh | sh';
 
 interface CodeToken {
@@ -187,8 +189,15 @@ export default function Hero() {
 
                     <dl className="mt-10 grid max-w-2xl grid-cols-2 gap-5 text-sm sm:grid-cols-3">
                         <div>
-                            <dt className="text-zinc-500">Compiler</dt>
-                            <dd className="mt-1 font-medium text-zinc-200">Self-hosted</dd>
+                            <dt className="text-zinc-500">Platforms</dt>
+                            <dd className="mt-1 font-medium text-zinc-200">
+                                {PLATFORMS.map((name, i) => (
+                                    <React.Fragment key={name}>
+                                        {i > 0 && <span aria-hidden className="mx-1.5 font-normal text-zinc-600">/</span>}
+                                        {name}
+                                    </React.Fragment>
+                                ))}
+                            </dd>
                         </div>
                         <div>
                             <dt className="text-zinc-500">Backend</dt>
@@ -302,11 +311,7 @@ export default function Hero() {
 
                             {/* Footer compile status bar */}
                             <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-white/[0.07] bg-white/[0.015] px-4 py-2.5 sm:px-5 font-mono text-[11px]">
-                                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-zinc-400">
-                                    <span className="text-emerald-400 font-semibold">✓</span>
-                                    <span className="text-zinc-200">Finished in <span className="text-emerald-400 font-medium">14.2ms</span></span>
-                                </div>
-                                <div className="flex items-center gap-2 text-zinc-500 ml-auto">
+                                <div className="ml-auto flex items-center gap-2 text-zinc-500">
                                     <span>0 warnings</span>
                                     <span className="text-zinc-700 select-none">·</span>
                                     <span className="text-zinc-400">0 errors</span>

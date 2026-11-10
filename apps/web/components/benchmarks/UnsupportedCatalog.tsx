@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import {
     Search,
     CircleSlash2,
+    Check,
     Database,
     Cpu,
     HardDrive,
@@ -13,6 +14,20 @@ import {
     X,
 } from 'lucide-react';
 import { RawBenchmarkItem, CategorySummary } from '@/lib/benchmarks';
+import { POSSIBLE_NOW, PARTLY_THERE, isPossibleNow } from '@/lib/benchmark-notes';
+
+/** Render `code` spans in a note. */
+function withCode(text: string) {
+    return text.split('`').map((part, i) =>
+        i % 2 === 1 ? (
+            <code key={i} className="font-mono text-zinc-200">
+                {part}
+            </code>
+        ) : (
+            part
+        ),
+    );
+}
 
 interface UnsupportedCatalogProps {
     unsupported: RawBenchmarkItem[];
@@ -65,25 +80,39 @@ export default function UnsupportedCatalog({ unsupported, categories }: Unsuppor
     }, [filteredItems]);
 
     const activeCategoryKeys = Object.keys(groupedByCategory);
+    const readyCount = unsupported.filter((item) => isPossibleNow(item.name)).length;
+    const missingCount = unsupported.length - readyCount;
 
     return (
         <section aria-labelledby="unsupported-heading" className="space-y-8 border-t border-white/[0.09] pt-16">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div className="max-w-3xl">
                     <h2 id="unsupported-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white">
-                        Unsupported means exactly that.
+                        What the suite does not measure yet.
                     </h2>
                     <p className="mt-3 text-sm leading-6 text-zinc-400">
-                        The suite does not award a comparison result when Prismio lacks the ordinary feature
-                        the workload is meant to evaluate. Rather than hiding gaps or using benchmark-only shims,
-                        missing capabilities are documented as formal roadmap obligations.
+                        A workload gets no comparison result until all three languages run it through ordinary
+                        library features, never a benchmark-only shim. Most of these wait on a capability the standard
+                        library does not have. {readyCount > 0 && (
+                            <>
+                                {readyCount} can be written today and have not been: the capability shipped after the
+                                workload was cataloged, and they stay here until the three versions exist.
+                            </>
+                        )}
                     </p>
                 </div>
 
                 <div className="flex items-center gap-2 text-xs text-zinc-400">
                     <CircleSlash2 size={15} className="text-zinc-400" />
                     <span>
-                        <strong className="text-white font-mono">{unsupported.length}</strong> cataloged gaps across{' '}
+                        <strong className="text-white font-mono">{missingCount}</strong> missing capabilities
+                        {readyCount > 0 && (
+                            <>
+                                {' · '}
+                                <strong className="font-mono text-emerald-300">{readyCount}</strong> possible now
+                            </>
+                        )}
+                        {' · '}
                         {categories.filter((c) => c.unsupported > 0).length} domains
                     </span>
                 </div>
@@ -125,6 +154,8 @@ export default function UnsupportedCatalog({ unsupported, categories }: Unsuppor
                         const items = groupedByCategory[catKey] || [];
                         const Icon = CATEGORY_ICONS[catKey] || CircleSlash2;
                         const title = CATEGORY_NAMES[catKey] || catKey;
+                        const ready = items.filter((item) => isPossibleNow(item.name)).length;
+                        const gaps = items.length - ready;
 
                         return (
                             <div
@@ -137,28 +168,56 @@ export default function UnsupportedCatalog({ unsupported, categories }: Unsuppor
                                         <Icon size={16} className="text-zinc-300" />
                                         <span>{title}</span>
                                     </div>
-                                    <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-xs font-mono text-zinc-300">
-                                        {items.length} {items.length === 1 ? 'gap' : 'gaps'}
+                                    <span className="flex items-center gap-1.5">
+                                        {ready > 0 && (
+                                            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-mono text-emerald-300">
+                                                {ready} ready
+                                            </span>
+                                        )}
+                                        {gaps > 0 && (
+                                            <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-xs font-mono text-zinc-300">
+                                                {gaps} {gaps === 1 ? 'gap' : 'gaps'}
+                                            </span>
+                                        )}
                                     </span>
                                 </div>
 
                                 {/* Items in this Category */}
                                 <div className="divide-y divide-white/[0.06] p-2 flex-1">
-                                    {items.map((item) => (
-                                        <div key={item.name} className="p-3 space-y-1.5">
-                                            <div className="flex items-center justify-between gap-2">
-                                                <span className="font-mono text-xs font-medium text-zinc-200">
-                                                    {item.name}
-                                                </span>
-                                                <span className="rounded border border-white/[0.08] bg-white/[0.02] px-1.5 py-0.5 text-xs text-zinc-400">
-                                                    {item.profile}
-                                                </span>
+                                    {items.map((item) => {
+                                        const note = isPossibleNow(item.name) ? POSSIBLE_NOW[item.name] : undefined;
+                                        return (
+                                            <div key={item.name} className="p-3 space-y-1.5">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <span className="font-mono text-xs font-medium text-zinc-200">
+                                                        {item.name}
+                                                    </span>
+                                                    <span className="rounded border border-white/[0.08] bg-white/[0.02] px-1.5 py-0.5 text-xs text-zinc-400">
+                                                        {item.profile}
+                                                    </span>
+                                                </div>
+                                                {note ? (
+                                                    <>
+                                                        <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-300">
+                                                            <Check size={12} aria-hidden />
+                                                            Possible now, not benchmarked yet
+                                                        </p>
+                                                        <p className="text-xs leading-relaxed text-zinc-400">{withCode(note)}</p>
+                                                    </>
+                                                ) : (
+                                                    <p className="text-xs leading-relaxed text-zinc-400">
+                                                        {item.missing_feature || 'Pending implementation.'}
+                                                    </p>
+                                                )}
+                                                {!note && PARTLY_THERE[item.name] && (
+                                                    <p className="border-l border-sky-300/40 pl-3 text-xs leading-relaxed text-zinc-400">
+                                                        <span className="font-medium text-sky-300">Already there: </span>
+                                                        {withCode(PARTLY_THERE[item.name] ?? '')}
+                                                    </p>
+                                                )}
                                             </div>
-                                            <p className="text-xs leading-relaxed text-zinc-400">
-                                                {item.missing_feature || 'Pending implementation.'}
-                                            </p>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         );

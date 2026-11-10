@@ -11,7 +11,7 @@ import {pageMetadata} from "@/lib/seo";
 
 export const metadata = pageMetadata({
     title: "Prismio Team — Language and Compiler Developers",
-    description: "Prismio is built by its creator, Saksham Jaiswal. See what exists in 0.1, what doesn't yet, and how to contribute.",
+    description: "Prismio is built by its creator, Saksham Jaiswal. See what exists in 0.2, what doesn't yet, and how to contribute.",
     path: "/team",
 });
 
@@ -30,20 +30,20 @@ const AREAS = [
     },
     {
         area: "LLVM backend",
-        today: "Typed AST lowered to LLVM 23 IR, native linking, `-g` DWARF, cross-compilation, and a JIT.",
+        today: "Typed AST lowered to LLVM 23 IR, native linking, `-g` DWARF, cross-compilation, a JIT, and freestanding output with no C library.",
         missing: "No mobile toolchains.",
         tone: "bg-emerald-400",
     },
     {
         area: "Runtime and standard library",
-        today: "Native threads, typed `Channel<T>`, `Vec<T>`, `Map<K, V>`, and file I/O.",
-        missing: "No async, atomics, mutexes, or sets and queues yet.",
+        today: "`async fn` and `await`, scoped tasks, typed `Channel<T>`, `Vec<T>`, `HashMap` and `HashSet`, JSON, file I/O, and freestanding builds.",
+        missing: "No mutexes, networking, or priority queues yet, and a task is still an OS thread.",
         tone: "bg-amber-400",
     },
     {
         area: "Tooling",
-        today: "The `prismio` CLI and the UMS manifest, with a lockfile and local path dependencies.",
-        missing: "No package registry, formatter, linter, or language server.",
+        today: "The `prismio` CLI, a language server (`prismio lsp`), a formatter (`prismio fmt`), and the UMS manifest, with a lockfile and local path dependencies.",
+        missing: "No package registry or linter.",
         tone: "bg-rose-400",
     },
     {
@@ -77,7 +77,7 @@ export default function TeamPage() {
 
                             <p className="mt-8 max-w-2xl text-base leading-8 text-zinc-300 sm:text-lg">
                                 Prismio is developed by its creator, and contributions come in through GitHub
-                                and Discord. This page says who that is, what exists in 0.1, and where
+                                and Discord. This page says who that is, what exists in 0.2, and where
                                 help is most useful.
                             </p>
                         </div>
@@ -193,7 +193,7 @@ export default function TeamPage() {
                         </h2>
                         <p className="mt-4 text-base leading-7 text-zinc-400">
                             Every part of the toolchain is written and maintained by one person today. This is
-                            what exists in 0.1 and what doesn&apos;t, which is also where outside contributions
+                            what exists in 0.2 and what doesn&apos;t, which is also where outside contributions
                             help most.
                         </p>
                     </div>

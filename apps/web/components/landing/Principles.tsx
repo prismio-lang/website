@@ -7,18 +7,23 @@ const LANGUAGE_FEATURES = [
         detail: 'Generic functions and types are specialized for the concrete programs that use them. Storing or returning a closure is not supported yet.',
     },
     {
-        title: 'Ownership-aware native concurrency',
-        copy: 'Experimental spawn and join run work on native OS threads. Typed blocking Channel<T> values move messages between workers, while c.share() makes endpoint sharing explicit.',
-        detail: 'There is no async/await, atomics, or locks in 0.1, and no work-stealing executor.',
+        title: 'Async code and ownership-aware concurrency',
+        copy: 'An async fn returns a Future<T> and await runs it. scope { } and spawn { } start tasks that must finish before the scope ends. Typed blocking Channel<T> values move messages between workers, while c.share() makes endpoint sharing explicit.',
+        detail: 'A task is still a native OS thread, and await blocks its thread when the task runs elsewhere. There are no mutexes and no work-stealing executor yet.',
     },
     {
         title: 'Layout control for real hot loops',
-        copy: 'Flat values can live inline inside Vec<T>, and Slice<T> provides bounded views. Experimental soa and aos conversions give explicit structure-of-arrays access through checked DataView<T>.',
+        copy: 'Flat values can live inline inside Vec<T>, and Slice<T> provides bounded views. Experimental soa and aos conversions give explicit structure-of-arrays access through checked DataView<T>. Int<N> and UInt<N> are integers of exactly N bits.',
         detail: 'The compiler specializes the element type before choosing its container representation.',
     },
     {
+        title: 'Down to the metal',
+        copy: 'A freestanding build links no C library and no startup files, so a kernel or a boot image can be written in Prismio. std.syscall reaches the kernel directly, linux { }, macos { } and windows { } blocks choose code per target, and sizeOf and offsetOf match C’s layouts.',
+        detail: 'A freestanding program supplies its own allocator. Modules that need an operating system, such as std.fs and std.process, are not available.',
+    },
+    {
         title: 'A small, explicit standard surface',
-        copy: 'Strings, vectors, maps, options, results, iterators, files, processes, ordering, equality, and display live in ordinary std.* modules, apart from a small built-in core such as Vec’s push and indexing. There is no prelude pulling unused facilities into a program.',
+        copy: 'Strings, vectors, maps, sets, optionals, results, iterators, files, processes, JSON, ordering, and equality live in ordinary std.* modules, apart from a small built-in core such as Vec’s push and indexing. There is no prelude pulling unused facilities into a program.',
         detail: 'Import only the behavior the program intends to carry.',
     },
 ];

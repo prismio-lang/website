@@ -84,9 +84,13 @@ const TYPE_DOCS: Record<string, { title: string; desc: string }> = {
         title: 'List<T>',
         desc: 'Standard library dynamically growable array buffer. Stored in unique or scoped heap based on AIF analysis.',
     },
-    'Map': {
-        title: 'Map<K, V>',
+    'HashMap': {
+        title: 'HashMap<K, V>',
         desc: 'Standard library associative hash map collection.',
+    },
+    'HashSet': {
+        title: 'HashSet<K>',
+        desc: 'Standard library hash set of distinct keys: insert, contains, remove.',
     },
     'Result': {
         title: 'Result<T, E>',

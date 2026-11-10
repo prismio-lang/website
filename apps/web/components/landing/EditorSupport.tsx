@@ -9,7 +9,7 @@ export default function EditorSupport() {
                     Editor support
                 </h2>
                 <p className="mt-6 text-base leading-7 text-zinc-400">
-                    Official Prismio support for IntelliJ IDEA, CLion, and other JetBrains IDEs.
+                    The compiler ships its own language server, so any editor can get errors as you type, completion, hover, and go to definition. JetBrains IDEs have an official plugin.
                 </p>
             </div>
 

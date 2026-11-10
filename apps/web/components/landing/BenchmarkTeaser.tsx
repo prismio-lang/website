@@ -37,7 +37,7 @@ export default function BenchmarkTeaser() {
 
     const facts = [
         {label: 'Implemented', value: String(stats.implemented)},
-        {label: 'Documented gaps', value: String(stats.unsupported)},
+        {label: 'Not measured', value: String(stats.unsupported)},
         {label: 'Compile time', value: data.toolchain.compileTime.prismio.formatted},
         {label: 'Binary size', value: data.toolchain.binarySize.prismio.formatted},
     ];
@@ -52,8 +52,8 @@ export default function BenchmarkTeaser() {
                     <p className="mt-6 max-w-3xl text-base leading-7 text-zinc-300">
                         The maintained suite contains {stats.total} canonical workloads across {data.categories.length} categories.{' '}
                         {stats.implemented} run equivalent Prismio, C++, and Rust implementations with
-                        checksum validation and median timing. The other {stats.unsupported} are published as
-                        unsupported capabilities rather than hidden behind benchmark-only substitutes.
+                        checksum validation and median timing. The other {stats.unsupported} are listed as not
+                        measured yet, each with its reason, rather than hidden behind benchmark-only substitutes.
                     </p>
                 </div>
                 <div className="lg:col-span-4 lg:text-right">

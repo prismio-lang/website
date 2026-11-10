@@ -9,7 +9,7 @@ import {pageMetadata} from "@/lib/seo";
 
 export const metadata = pageMetadata({
     title: "About Prismio — LLVM, AIF, Ownership, and C Interoperability",
-    description: "What Prismio is, how its compiler places allocations, what works in 0.1, what doesn't yet, and how the project is run.",
+    description: "What Prismio is, how its compiler places allocations, what works in 0.2, what doesn't yet, and how the project is run.",
     path: "/about",
 });
 
@@ -55,12 +55,12 @@ const FEATURES: {
     {
         icon: Zap,
         title: "Native code through LLVM",
-        copy: "The typed AST lowers to LLVM IR and links with the platform toolchain. `-g` emits DWARF debug information, and `--target` cross-compiles.",
+        copy: "The typed AST lowers to LLVM IR and links with the platform toolchain. `-g` emits DWARF debug information, `--target` cross-compiles, and `--freestanding` builds programs that need no operating system.",
     },
     {
         icon: GitBranch,
-        title: "Native threads and channels",
-        copy: "Spawn and join OS threads and pass values over blocking `Channel<T>`. There is no async runtime in 0.1.",
+        title: "Async, native threads and channels",
+        copy: "`async fn` returns a `Future<T>`, `scope { }` and `spawn { }` start tasks that must finish together, and blocking `Channel<T>` values pass messages between them. A task is still an OS thread; there is no scheduler yet.",
     },
     {
         icon: Layers,
@@ -76,9 +76,9 @@ const SUPPORT_TONES = [
 ];
 
 const MISSING = [
-    "`async`/`await`",
-    "Atomics, mutexes, condition variables, and a specified memory-ordering model",
-    "Task cancellation, timeouts, and structured-concurrency scopes",
+    "An `await` that gives its thread back, and a work-stealing scheduler",
+    "Mutexes, condition variables, and safe atomic types (raw pointer atomics exist in `std.raw`)",
+    "Task cancellation and timeouts",
     "A stable AIF tier contract. The meaning and cost of each tier can still change",
     "Stable diagnostic codes",
     "A formally proven borrow checker",
@@ -291,7 +291,7 @@ export default function AboutPage() {
                                 What it doesn&apos;t do yet.
                             </h2>
                             <p className="mt-4 text-sm leading-7 text-zinc-400">
-                                {PRISMIO_VERSION} is the first release. If you need any of these, it isn&apos;t ready for you.
+                                If you need any of these, {PRISMIO_VERSION} isn&apos;t ready for you.
                             </p>
                         </div>
 

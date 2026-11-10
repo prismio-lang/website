@@ -12,7 +12,7 @@ const publicDir = join(root, "public");
 const site = {
     name: "Prismio Research",
     url: "https://research.prismio.org",
-    version: "0.1.0",
+    version: "0.2.0",
     email: "saksham6975@gmail.com",
     license: "https://www.apache.org/licenses/LICENSE-2.0",
     entity: "Prismio is a modern systems programming language and LLVM-based compiler designed for performance, memory ergonomics, and zero-cost safety.",

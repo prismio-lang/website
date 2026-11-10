@@ -44,6 +44,7 @@ export default function BenchmarksPage() {
 
             <main className="relative z-10 mx-auto max-w-[92rem] px-3 sm:px-5 lg:px-8 pb-28 pt-12 md:pt-16">
                 <SuiteTabs
+                    counts={{hosted: stats.implemented, freestanding: freestanding ? freestanding.stats.count : null}}
                     freestanding={freestanding ? <FreestandingPanel data={freestanding} /> : null}
                     hosted={
                         <>
@@ -83,7 +84,7 @@ export default function BenchmarksPage() {
                                 <dd className="text-emerald-400 font-mono">{stats.implemented}</dd>
                             </div>
                             <div className="flex justify-between gap-6 text-zinc-400">
-                                <dt>Documented gaps</dt>
+                                <dt>Not measured</dt>
                                 <dd className="text-zinc-200 font-mono">{stats.unsupported}</dd>
                             </div>
                             <div className="flex justify-between gap-6 text-zinc-400">
@@ -217,7 +218,7 @@ export default function BenchmarksPage() {
                             </h2>
                             <p className="mt-4 max-w-sm text-sm leading-6 text-zinc-400">
                                 {stats.implemented} of {stats.total} cataloged workloads are implemented.
-                                The remaining {stats.unsupported} make an absence visible instead of allowing a bespoke benchmark-only substitute.
+                                The remaining {stats.unsupported} are not measured, and each says why instead of being replaced by a benchmark-only substitute.
                             </p>
                         </div>
                         <div className="lg:col-span-8">
@@ -274,7 +275,6 @@ export default function BenchmarksPage() {
                 <BenchmarkMethodology
                     eliminationNs={data.eliminationNs}
                     runs={data.runs}
-                    buildCommands={data.buildCommands}
                     environment={data.environment}
                 />
 

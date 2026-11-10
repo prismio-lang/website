@@ -1,10 +1,10 @@
 import React from 'react';
-import {Binary, Braces, Bug, FileCode2, FileJson2, Link2, Workflow} from 'lucide-react';
+import {Binary, Braces, Bug, FileCode2, FileJson2, Link2, PencilRuler, Workflow} from 'lucide-react';
 
 const UMS_SOURCE = `project {
     name = "xefy"
     version = "0.1.0"
-    prismio = "0.1.0"
+    prismio = "0.2.0"
     license = "Apache-2.0"
 }
 
@@ -57,6 +57,11 @@ const TOOLING = [
         icon: FileJson2,
         title: 'Structured diagnostics',
         copy: 'prismio check runs the real frontend without generating code. JSON Lines diagnostics carry P#### codes, severity, files, and UTF-8 source spans. The codes are not stable yet and can change before 1.0.',
+    },
+    {
+        icon: PencilRuler,
+        title: 'Language server and formatter',
+        copy: 'prismio lsp speaks LSP 3.17 and reports the compiler’s own P#### diagnostics, with hover, go to definition, completion, and semantic tokens. prismio fmt --check gives CI the formatting an editor applies.',
     },
     {
         icon: Bug,

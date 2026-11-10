@@ -84,7 +84,7 @@ const VERIFY: Record<VerifyTab, {label: string; lines: {text: string; kind?: 'cm
         lines: [
             {text: 'prismio --version', kind: 'cmd'},
             {text: `prismio ${PRISMIO_VERSION.replace(/^v/, '')}`},
-            {text: `llvm ${LLVM_VERSION}.1.1`},
+            {text: 'llvm 23.1.5'},
             {text: 'compiler <where the compiler lives>'},
             {text: 'stdlib <where the standard library lives>'},
         ],
@@ -98,6 +98,8 @@ const VERIFY: Record<VerifyTab, {label: string; lines: {text: string; kind?: 'cm
             {text: '  hello/src/main.psm'},
             {text: '  hello/.gitignore'},
             {text: ''},
+            {text: 'build it with `cd hello && prismio run`'},
+            {text: ''},
             {text: 'prismio run', kind: 'cmd'},
             {text: 'Built …/hello/.prismio/build/debug/hello'},
             {text: 'Hello, Prismio!', kind: 'ok'},
@@ -108,13 +110,13 @@ const VERIFY: Record<VerifyTab, {label: string; lines: {text: string; kind?: 'cm
         lines: [
             {text: 'prismio aif src/main.psm', kind: 'cmd'},
             {text: 'AIF analysis'},
-            {text: '  Result   converged in 7 rounds'},
+            {text: '  Result   converged in 6 rounds'},
             {text: ''},
             {text: 'Storage plan'},
             {text: '  Stack                   0'},
-            {text: '  Arena                   2'},
+            {text: '  Arena                   1'},
             {text: '  Scoped heap             0'},
-            {text: '  Unique heap             3'},
+            {text: '  Unique heap             0'},
             {text: '  Shared heap             0'},
             {text: '  Cycle-managed heap      0'},
             {text: '  Cross-thread heap       0'},
@@ -246,7 +248,7 @@ export default function InstallPage() {
                         Install <span className="text-sky-300">Prismio</span>
                     </h1>
                     <p className="mx-auto mt-6 max-w-xl text-base leading-8 text-zinc-300 sm:text-lg">
-                        {PRISMIO_VERSION} is the first release. Install it with one command, download an archive, or build it from source.
+                        Install {PRISMIO_VERSION} with one command, download an archive, or build it from source.
                     </p>
 
                     {/* At a glance */}

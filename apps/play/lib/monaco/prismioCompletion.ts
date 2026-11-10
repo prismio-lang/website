@@ -98,7 +98,8 @@ export function createPrismioCompletionProvider(
 
                 const genericTypes = [
                     { name: 'List', snippet: 'List<${1:T}>', desc: 'Growable dynamic collection' },
-                    { name: 'Map', snippet: 'Map<${1:Key}, ${2:Value}>', desc: 'Hash-based key-value map' },
+                    { name: 'HashMap', snippet: 'HashMap<${1:Key}, ${2:Value}>', desc: 'Hash-based key-value map' },
+                    { name: 'HashSet', snippet: 'HashSet<${1:Key}>', desc: 'Hash-based set of distinct keys' },
                     { name: 'Result', snippet: 'Result<${1:T}, ${2:E}>', desc: 'Error handling type (Ok(T) or Err(E))' },
                     { name: 'Box', snippet: 'Box<${1:T}>', desc: 'Unique heap-allocated pointer' },
                     { name: 'Task', snippet: 'Task<${1:T}>', desc: 'Asynchronous task handle' },

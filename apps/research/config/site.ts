@@ -9,7 +9,7 @@ export const site = {
     language: "en",
     license: "https://www.apache.org/licenses/LICENSE-2.0",
     licenseName: "Apache-2.0",
-    version: "0.1.0",
+    version: "0.2.0",
     email: "saksham6975@gmail.com",
     author: { name: "Saksham Jaiswal", url: "https://saksham1319.vercel.app" },
     publisher: {

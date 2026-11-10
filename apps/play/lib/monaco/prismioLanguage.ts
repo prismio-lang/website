@@ -27,7 +27,7 @@ export const prismioLanguageDef: languages.IMonarchLanguage = {
     ],
 
     stdlibTypes: [
-        'List', 'Map', 'Option', 'Result', 'Box', 'Task', 'Slice', 'DataView', 'Chan'
+        'List', 'HashMap', 'HashSet', 'Option', 'Result', 'Box', 'Task', 'Slice', 'DataView', 'Chan'
     ],
 
     stdModules: [
