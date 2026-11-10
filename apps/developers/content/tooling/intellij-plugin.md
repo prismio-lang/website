@@ -3,7 +3,7 @@ title: The IntelliJ plugin
 description: How the Prismio plugin for JetBrains IDEs finds a compiler, talks to its language server, builds run configurations and creates projects, and the little that must change with the compiler.
 status: stable
 version: "0.2.0"
-lastUpdated: "2026-10-29"
+lastUpdated: "2026-11-10"
 tags: [ide, intellij, plugin, tooling]
 related: [tooling/language-server, tooling/ide-protocol, tooling/ums-overview, tooling/compiler-host-and-promotion, compiler/diagnostics, start/repository-tour]
 ---
@@ -16,14 +16,14 @@ Users of the plugin should read [the user guide](https://docs.prismio.org/guides
 
 ```bash
 cd ../jetbrains-plugin
-./gradlew test --offline -Dprismio.checkout=/path/to/prismio -Dprismio.compiler=/path/to/toolchain/bin/gen   # most tests need both
-./gradlew verifyPlugin buildPlugin --offline                    # compatibility, then the zip
-./gradlew verifyPlugin --offline -Pprismio.verifyIdes="/path/CLion.app:/path/WebStorm.app"   # more IDEs
+./gradlew test --rerun --no-build-cache --offline -Dprismio.checkout=/path/to/prismio -Dprismio.compiler=/path/to/toolchain/bin/gen   # most tests need both
+./gradlew buildPlugin --offline                                 # the zip
+./gradlew verifyPlugin -Pprismio.verifyIdes="/path/CLion.app:/path/WebStorm.app"   # compatibility, needs the network
 ```
 
 It targets IntelliJ Platform 2026.2.1 with a Java 26 toolchain emitting Java 25 bytecode. JFlex and Grammar-Kit are not available offline, so neither is used. Without `-Dprismio.checkout` and `-Dprismio.compiler` the corpus and server tests skip silently and a green run proves less than it looks. The compiler must not be named `prismio` (a launcher forwards by that name); the tests set `PRISMIO_INTERNAL_HOSTED`.
 
-`verifyPlugin` runs against two IDEA builds by default, plus any IDE installs named in `-Pprismio.verifyIdes` (paths separated by `:`; the property is optional so a contributor with one IDE still builds). The plugin claims every JetBrains IDE, so run it against the IDEs you have before a release: it is the only thing that says a platform API exists there. It is the gate for API use: an `@ApiStatus.Experimental` API is a warning, an `@ApiStatus.Internal` one fails the build. The plugin has six experimental warnings, all from `InlineDocumentationProvider`, which has no stable replacement. Do not reach for an internal class to get a feature; there was one (see [documentation comments](#documentation-comments)).
+The build cache is on (`org.gradle.caching`), so a plain `./gradlew test` with unchanged inputs replays the last results from the cache without running anything; `--rerun --no-build-cache` makes it run. `verifyPlugin` downloads the verifier and its reference IDEs, so it cannot run `--offline`. It runs against two IDEA builds by default (the latest 2026.2 and 2026.3), plus any IDE installs named in `-Pprismio.verifyIdes` (paths separated by `:`; the property is optional so a contributor with one IDE still builds). The plugin claims every JetBrains IDE, so run it against the IDEs you have before a release: it is the only thing that says a platform API exists there. It is the gate for API use: an `@ApiStatus.Experimental` API is a warning, an `@ApiStatus.Internal` one fails the build. The plugin has six experimental warnings, all from `InlineDocumentationProvider`, which has no stable replacement, and no deprecated API. Do not reach for an internal class to get a feature; there was one (see [documentation comments](#documentation-comments)).
 
 ## What must follow the compiler
 
@@ -36,6 +36,7 @@ Both lexers are hand-written and there is no generated source. A contextual keyw
 | `ums/UmsLexer.java` | `ums/parser/lexer.psm` |
 | `ums/UmsWords.java` | `ums/model/lowering.psm` |
 | `wizard/PrismioProjectStep.java` | `initUmsProject` in `src/project/ums_cli.psm` |
+| `liveTemplates/Prismio.xml`, the colour pages' demos | the language: a test expands every template and compiles each demo with `prismio check` |
 
 `PrismioTokenTablesTest` compares the keywords, the contextual words and the built-in types with the compiler's own and lexes every operator and separator it lists; it found that `...` lexed as a range and a dot. `PrismioLexerCorpusTest` lexes every `.psm` and `.ums` in a checkout and fails on a bad character or an offset gap. Run both after a change to the scanner or to syntax. A change to anything else (a declaration form, a call shape) costs the plugin nothing, provided the compiler's index names it.
 
@@ -57,10 +58,10 @@ The standard library is the compiler's: the server reads it from the toolchain t
 
 ## The language server
 
-`io.prismio.lsp` is a `LspServerSupportProvider` (loaded only where the platform has an LSP client) that starts the compiler's `prismio lsp` with `PRISMIO_INTERNAL_HOSTED=1`, so a project's own host cannot take it over. Which program a file belongs to, the unsaved buffers, the cancellation and the timeouts are the server's ([the language server](/tooling/language-server)); the plugin's part is small.
+`io.prismio.lsp` is an `LspIntegrationProvider` with a `ProjectWideLspClientDescriptor`, the client API 2026.2 introduced in place of the deprecated `LspServerSupportProvider` (loaded only where the platform has an LSP client), that starts the compiler's `prismio lsp` with `PRISMIO_INTERNAL_HOSTED=1`, so a project's own host cannot take it over. Which program a file belongs to, the unsaved buffers, the cancellation and the timeouts are the server's ([the language server](/tooling/language-server)); the plugin's part is small.
 
 - **`PrismioLspFeatures.SERVED`** lists the server's features the editor uses, by the platform's name for each (`diagnostics`, `hover`, `completion`, `goToDefinition`, `findReferences`, `rename`, `documentSymbol`, `workspaceSymbol`, `documentHighlights`, `formatting`, `semanticTokens`...). The platform client has a customizer for everything the server advertises, so a feature the plugin still answers itself is switched off until it is deleted, and two answers to one question never meet.
-- **Names are coloured by the server.** `semanticTokens` is served: `shouldAskServerForSemanticTokens` is overridden for a Prismio file (the platform's default is plain text) and the server's legend (`namespace`, `enum`, `interface`, `struct`, `typeParameter`, `parameter`, `variable`, `property`, `enumMember`, `function`, `method`; modifiers `declaration` and `readonly`) is mapped onto the plugin's own colour keys in `PrismioLspFeatures.semanticKey`, so the colour scheme page applies. The lexer colours first and keeps its word tables, `STDLIB_TYPES` among them, until the server's answer replaces them; `STDLIB_TYPES` is the one table `dump-tokens` cannot check and is a first guess.
+- **Names are coloured by the server.** `semanticTokens` is served: `shouldAskServerForSemanticTokens` is overridden for a Prismio file (the platform's default is plain text) and the server's legend (`namespace`, `enum`, `interface`, `struct`, `typeParameter`, `parameter`, `variable`, `property`, `enumMember`, `function`, `method`; modifiers `declaration` and `readonly`) is mapped onto the plugin's own colour keys in `PrismioLspFeatures.semanticKey`, so the colour scheme page applies. The lexer colours first and keeps its word tables, `STDLIB_TYPES` among them, until the server's answer replaces them; `STDLIB_TYPES` is the one table `dump-tokens` cannot check and is a first guess. Nothing else colours names: a heuristic annotator that guessed from the tokens around a name was deleted when the server's tokens arrived, with the Mutable Variable colour, since the legend has no mutable modifier. `PrismioSemanticHighlightingTest` holds one colour per name.
 - **Three platform defaults are plain text only**: `LspRenameSupport.shouldRunRename`, `LspDocumentHighlightsSupport.shouldAskServerForDocumentHighlights` and `LspFormattingSupport.shouldFormatThisFileExclusivelyByServer` are true for text and TextMate files and false for any other language. A test that talks to the server directly cannot see it: Rename was greyed out in a real IDE until `PrismioLspFeatures` said "a Prismio file" for each (`PrismioLspFeaturesTest`).
 - **The setting** *Use the Prismio language server* starts and stops the server live (a settings topic); with it off the plugin keeps highlighting, folding, typing and running.
 - **A definition in the library** opens the source the server wrote out of the `.plib` into its scratch directory (`prismio library-source`); that file is read-only in effect, since it is regenerated.
