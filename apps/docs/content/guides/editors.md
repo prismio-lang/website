@@ -3,7 +3,7 @@ title: Set up your editor
 description: Get errors as you type, completion, hover, go to definition, rename and formatting in VS Code and the JetBrains IDEs.
 status: stable
 version: "0.2.0"
-lastUpdated: "2026-11-03"
+lastUpdated: "2026-11-11"
 tags: [guide, editor, lsp, vscode, intellij, formatting]
 related: [guides/intellij, start/installation, compiler/cli, compiler/diagnostics]
 ---
@@ -20,15 +20,15 @@ If it is not there, `prismio lsp` refuses to start and names what is missing (`P
 
 ## VS Code
 
-Install the **Prismio** extension from its `.vsix` (it is built from the `vscode-plugin` repository with `npm run package`; it is not on the Marketplace yet):
+Install the **Prismio** extension from its `.vsix`, attached to the [v0.1.0 release](https://github.com/prismio-lang/vscode-plugin/releases/tag/v0.1.0) on GitHub (it is not on the Marketplace yet). It needs VS Code 1.100 or newer:
 
 ```bash
 code --install-extension prismio-0.1.0.vsix
 ```
 
-Open a folder with a `build.ums` or any `.psm` file; `.psm` files carry the Prismio logo in the explorer and on their tabs, and `build.ums` the manifest's mark. The extension finds `prismio` on your `PATH`, then in `~/.prismio/bin`; to use another one, set `prismio.path`. After installing a newer toolchain, run **Prismio: Restart Language Server** from the command palette.
+Open a folder with a `build.ums` or any `.psm` file; `.psm` files carry the Prismio logo in the explorer and on their tabs, and `build.ums` the manifest's mark. The extension finds `prismio` on your `PATH`, then in `~/.prismio/bin`; to use another one, set `prismio.path`. After installing a newer toolchain, run **Prismio: Restart Language Server** from the command palette. The status bar shows the toolchain's version and whether the server is running; click it for the server's output. **Prismio: New Project** writes what `prismio init` writes in a folder you pick and opens it.
 
-You get errors as you type (with the compiler's `P####` codes), hover, go to definition (into the standard library's source too), find references, rename, completion, signature help, inlay hints, semantic colours, folding, the outline, the import quick fix and format document. The **Tasks** menu lists `build`, `test`, `run <target>` and every `command` your `build.ums` declares; **Prismio: Build and Debug a Target** builds in the debug profile and starts CodeLLDB (or `cppdbg` with LLDB) on the result.
+You get errors as you type (with the compiler's `P####` codes, and its `UMS####` codes in `build.ums`), hover, go to definition (into the standard library's source too), find references, rename, completion (a library function you pick brings its `import` with it), signature help, inlay hints, semantic colours, folding, the outline, the import quick fix and format document or selection. `build.ums` is highlighted, and snippets cover `main`, `fn`, `struct`, `enum`, `codeset`, `impl`, `if`, `for`, `match`, `let` and `println`. **Run** and **Debug** links sit above `fn main` and above each runnable target and command in `build.ums`; the **Tasks** menu lists `build`, `test`, `run <target>` and every `command` your `build.ums` declares; **Prismio: Build and Debug a Target** builds in the debug profile and starts CodeLLDB (or `cppdbg` with LLDB) on the result, and asks you to install a debugger if there is none.
 
 ## IntelliJ and other JetBrains IDEs
 
