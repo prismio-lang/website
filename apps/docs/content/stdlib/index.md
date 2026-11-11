@@ -27,6 +27,7 @@ Prismio ships twenty-one standard-library modules:
 | [`std.math`](/stdlib/math) | Float and integer math, and every numeric type's limits |
 | [`std.vec`](/stdlib/vec) | `Vec<T>`'s library methods and the Vec literal |
 | [`std.map`](/stdlib/map) | `HashMap<K, V>` |
+| [`std.tuple`](/stdlib/tuple) | `Tuple2` to `Tuple4`, what `(a, b)` is; imported for you when a file writes a tuple |
 | [`std.mem`](/stdlib/mem) | `Buffer`, a byte buffer with typed reads and writes; `alloc`, `realloc` and `free`; `Arena` |
 | [`std.raw`](/stdlib/raw) | volatile and atomic access to an address, a memory barrier, unaligned access, byte order, a Float's bits; no C runtime |
 | [`std.port`](/stdlib/port), [`std.asm`](/stdlib/asm) | x86 port I/O, and inline assembly written where it runs |

@@ -529,6 +529,14 @@ field in the pattern so errors point there). Any other value is bound first as `
 type, which is what checks it and what owns it for the bindings' lifetime. `P3016` refuses a binding named like the
 value, since the fields after it would read the new binding. Sema, ownership and AIF see only `let` and field reads.
 
+**Tuples.** `parse/tuples.psm`. A tuple is `Tuple2`..`Tuple4` from `std/tuple.psm`, a generic struct with fields
+`_0`, `_1`, …, and the parser writes the spellings that mean it: `(A, B)` in `parseTypeAnnotation` is a `TYPE_ANNOTATION`
+named `Tuple2` with type arguments, `(a, b)` in the parenthesised primary is a call of `tuple2`, `t.0` is the member
+`_0`, and `let (a, b) = t` is a pattern whose fields are `_0`, `_1` (the destructuring above). The first tuple in a file
+parks an `import std.tuple` on the parser (`tupleImport`), which `parseModule` appends to the file's declarations unless
+the file imported it. `==` on a tuple reaches `eq` because `semaStructImplements` lets a generic impl on the template
+(`impl<A: Eq, B: Eq> Eq for Tuple2<A, B>`) answer for an instance; bound checking still asks only for an exact match.
+
 **Visibility.** A function, a global `let`, a struct, an enum and a struct field carry their level in `i2` (0 public,
 1 file, 2 package), and `semaVisibleFrom` (`sema/types.psm`) is the one test, with `ir_same_package` answering
 the package question in C. The parser stamps the defaults, `internal` on a struct and an enum and `private` on a

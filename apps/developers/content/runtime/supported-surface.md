@@ -177,6 +177,7 @@ leaks or violations.
 | `std.mem` | `Buffer` (a byte `Vec<U8>` with bounds-checked typed reads and writes, `b[i]`, `fill`, `copyFrom`, `slice`, `resize`, `append`, `indexOf`, `toString`, `==`), manual memory on `Usize` addresses (`alloc`, `allocZeroed`, `realloc`, `free`, `copy`, `fill`, `compare`, `loadU8..U64`, `storeU8..U64`), and `Arena` |
 | `std.math` | Float `sqrt`, rounding, `pow`, logarithms, trigonometry, IEEE constants; integer `pow`, `gcd`, `floorMod`, `isqrt`; each numeric type's `MAX` / `MIN`, lowered through the `__builtin_f64_*` family |
 | `std.term` | Terminal colour and text styles as `String` methods, and `colorEnabled()` |
+| `std.tuple` | `Tuple2`..`Tuple4`, `tuple2`..`tuple4`, `Copy` and `Eq` for them: what the tuple syntax stands for |
 | `std.key`, `std.ord`, `std.copy`, `std.eq`, `std.display`, `std.iter`, `std.default` | The `Key`, `Ord`, `Copy`, `Eq`, `Display`, `Iterator`, and `Default` bounds, including `==` on a struct and `for … in` over a user type |
 
 ### There is no prelude

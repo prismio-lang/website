@@ -267,9 +267,32 @@ descriptors use value-copy semantics in 0.1.
 
 Function calls add parameter modes: an ordinary parameter borrows move-only data, `sink` consumes it, and `inout` forms a mutable borrow. The complete rules are in [ownership and borrowing](/language/ownership-and-borrowing).
 
+## Tuples
+
+A tuple groups two to four values under positions instead of names. It is written with parentheses, in a type and as a value:
+
+<!-- prismio-check: pass -->
+```prismio
+fn divmod(a: Int, b: Int) -> (Int, Int) {
+    return (a / b, a % b)
+}
+
+fn main() -> Int {
+    let (q, r) = divmod(17, 5)
+    let t = divmod(9, 4)
+    return q * 10 + r + t.0 + t.1 - 35
+}
+```
+
+`t.0` and `t.1` are the elements, `let (q, r) = …` takes a tuple apart (and nests: `let ((a, b), c) = ((1, 2), 3)`; a struct pattern may sit inside, `let (Point { x, y }, n) = …`), and `t.0 = 7` assigns one on a `let mut`. A tuple of `Copy` elements is `Copy`, so it can go in a `Vec<(Int, Int)>`; a tuple of `Eq` elements compares with `==`.
+
+A tuple is not a new kind of value. `(Int, String)` is [`Tuple2<Int, String>`](/stdlib/tuple), a generic struct with fields `_0` and `_1`, and `(1, "a")` is the call `tuple2(1, "a")`; the parser writes those spellings, so a tuple has a struct's layout, moves like one and owns what its elements own. A file that writes a tuple imports `std.tuple` without being asked, since nothing else in it could define the type.
+
+Two to four elements: past that, name the fields in a struct. There is no one-element tuple (`(x)` is `x`) and no `()`. Elements are numbered from zero, and `t.0.1` reaches the second element of the first.
+
 ## Types not implemented
 
-Prismio 0.2 has no tuples, user-defined type aliases, union types, function types (a
+Prismio 0.2 has no user-defined type aliases, union types, function types (a
 [closure](/language/closures) is passed as a generic `F`), arbitrary reference types, or
 user-written lifetime types. An array's length is written on a local `let`, a return type or a
 struct field; a parameter of one fixed length (`xs: Array<Int, 4>`) is not available yet — a `[T]`
