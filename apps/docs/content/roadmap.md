@@ -62,7 +62,8 @@ This page distinguishes shipped compiler behavior from intent. It assigns no dat
 | `for` over String, Vec, Slice, arrays, HashMap and `Iterator` types, with `(index, element)` | Implemented |
 | Labelled loops: `outer@ for …`, `break@outer`, `continue@outer` | Implemented |
 | Descending ranges (`10..0` counts down) | Implemented |
-| `break` with a value, `if`/`match` as expressions | Coming Soon |
+| `if`/`match` as expressions: `let x = if c { 1 } else { 2 }`, `match (e) { A => 1, _ => 2 }` | Implemented (a branch is one expression) |
+| `break` with a value | Coming Soon |
 | Payload enums and `Result` | Implemented |
 | Scalar optionals (`Int?`, `Float?`, an enum's `T?`) by value, in containers | Implemented |
 | Conversions: `as T?` that answer `none`, `as String`, text read at compile time | Implemented |

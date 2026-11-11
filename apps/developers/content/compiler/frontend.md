@@ -537,6 +537,20 @@ parks an `import std.tuple` on the parser (`tupleImport`), which `parseModule` a
 the file imported it. `==` on a tuple reaches `eq` because `semaStructImplements` lets a generic impl on the template
 (`impl<A: Eq, B: Eq> Eq for Tuple2<A, B>`) answer for an instance; bound checking still asks only for an exact match.
 
+**`if` and `match` as values.** `parse/value_exprs.psm`. `parseIfExpr` and `parseMatchExpr`, reached from the primary
+parser at the keywords, rewrite the expression to statements and return the name of a temporary: `let $v0: $infer`, then an
+`IF_STATEMENT` or `MATCH_STATEMENT` whose branches are blocks assigning `$v0`. They are queued on the parser (`preHead`) and
+`parseBlock` places them in front of the statement being read. That is only valid when nothing skipped would have run, so
+the parser refuses an expression after a call in the same statement (`stmtCalls`, bumped at the end of `parseCall`), in a loop
+header, in the right side of `and`/`or`/`??`, in an `else if` condition and in a closure's expression body (`noHoist`, which
+`parseBlock` resets for the statements inside it), and outside a function. A branch is parsed with its own queue, so an `if`
+inside a branch is hoisted into that branch. A `let` with a written type passes it down (`valueHint`) and the temporary is
+declared with a copy of it. Otherwise sema types the temporary (`sema/value_exprs.psm`): `semaVariableDecl` registers a
+`$infer` declaration, and `semaAssignment` types the first assignment's value, where a match arm's bindings are in scope, and
+gives the declaration that type (`ir_retype_var`, since the branch is a scope below the binding, and a second
+`ir_set_var_type` there would shadow it). An uncovered value reaches `flowRead` as a read of `$vN` and is reported as a
+`match` without an arm.
+
 **Visibility.** A function, a global `let`, a struct, an enum and a struct field carry their level in `i2` (0 public,
 1 file, 2 package), and `semaVisibleFrom` (`sema/types.psm`) is the one test, with `ir_same_package` answering
 the package question in C. The parser stamps the defaults, `internal` on a struct and an enum and `private` on a

@@ -179,6 +179,6 @@ A second arm for a variant an earlier arm already matches is rejected as unreach
 
 Exhaustiveness applies to **payload** enums only. A fieldless enum still matches as an integer, where the scrutinee is not confined to the declared variants, so matching a subset stays legal there.
 
-Guards, alternatives, ranges, string patterns, nested destructuring, and match expressions are not implemented.
+Guards, ranges, string patterns and nested destructuring are not implemented. A `match` can give a value: see [`if` and `match` as values](/language/control-flow#if-and-match-as-values).
 
 Future pattern syntax is intentionally not specified here. When those features exist, this page will define their precedence, binding ownership, exhaustiveness rules, and diagnostics from compiler-tested behavior.

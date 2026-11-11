@@ -99,7 +99,40 @@ fn main() -> Int {
 }
 ```
 
-Each branch establishes its own lexical scope. Since `if` is a statement, syntax such as `let sign = if (...) { ... } else { ... }` is not supported.
+Each branch establishes its own lexical scope.
+
+### `if` and `match` as values
+
+Where a value is wanted, `if` and `match` give one:
+
+<!-- prismio-check: pass -->
+```prismio
+enum Color { Red, Green, Blue }
+
+fn label(c: Color) -> String {
+    return match (c) { Color.Red => "red", Color.Green => "green", _ => "other" }
+}
+
+fn main() -> Int {
+    let n = -3
+    let sign = if n < 0 { -1 } else if n == 0 { 0 } else { 1 }
+    let small: U8 = if n > 5 { 200 } else { 7 }
+    if label(Color.Blue) != "other" { return 1 }
+    return sign + 1 + (small as Int) - 7
+}
+```
+
+A branch is **one expression**, in braces for an `if`, and a `match` arm is `Pattern => expression`. An `if` needs its `else` (there would be no value without it), and a `match` must have an arm for every value, as a statement over a payload enum must, so an integer `match` ends in `_`. The branches must agree on a type: the first gives the value its type, and a later branch that disagrees is reported in the usual words (`expected Int, found String`). When the `let` names a type, the branches are read against it, so `let small: U8 = if c { 200 } else { 7 }` makes `200` a `U8`.
+
+A `match` arm may use what its pattern binds (`Shape.Rect(w, h) => w * h`), and a `String` or a struct built in a branch is the value's, owned as any other.
+
+This is not a conditional operator in the C sense. The compiler runs the `if` or `match` as the statements it is *before* the statement that uses its value, and uses a hidden variable for the result. That is only right if everything skipped would have run anyway, so it is refused, with the advice to bind the value to a variable first, in these places:
+
+- after a call in the same statement (`f(g(), if c { 1 } else { 2 })`), since the `if` would run before `g()`;
+- in a `while`, `for` or `repeat` header, in the right side of `and`, `or` and `??`, in an `else if` condition, and in a closure's expression body, which run more than once or only sometimes;
+- in a global `let`, which has no statements.
+
+A block of several statements as a branch (`if c { let t = f(); t + 1 } else { 0 }`) is not supported; bind the value above, or write the `if` as a statement.
 
 ## `while`
 
@@ -353,7 +386,7 @@ This conservative restriction prevents a path that succeeds once and becomes a u
 
 | Missing | Use today |
 | --- | --- |
-| **`if` and `match` as expressions** (`let x = if (c) { 1 } else { 2 }`) | assign into a `let mut` in each branch, or `return` from a helper |
+| **A branch with several statements** in an `if` or `match` expression (`if c { let t = f(); t + 1 } else { 0 }`) | bind the value first, or write the `if` as a statement that assigns |
 | **A `break` that carries a value** out of a `loop` | assign into a `let mut` declared before the loop, then `break` |
 | **`for` over a `[T]` parameter**, whose length is not known | pass the length and write `for i in 0..<n` |
 | **`(key, value)` from an `Iterator`** | return a struct from `next()` and read its fields |
