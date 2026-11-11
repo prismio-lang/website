@@ -16,8 +16,8 @@ The end-to-end suite starts the installed VS Code with the extension and throwaw
 
 ```bash
 cd vscode-plugin
-npm install
-PRISMIO=/path/to/prismio npm test
+pnpm install
+PRISMIO=/path/to/prismio pnpm test
 ```
 
 ```text
@@ -87,7 +87,7 @@ If a file grows past a few hundred lines, the logic it is gaining belongs in the
 TextMate grammars are usually written by hand and drift. This one is generated from `prismio dump-tokens`, which prints the compiler's own token tables, by `scripts/generate-grammar.mjs`; the script holds only how a class of token is coloured, never the words. The committed snapshot of the tables is `syntaxes/tokens.json`. `test/grammar.test.mjs` fails when:
 
 - the grammar is not what the generator makes of the snapshot;
-- the snapshot is not what the compiler says now (when `PRISMIO` names a compiler): a keyword added to the language fails it until `PRISMIO=... npm run grammar -- --refresh` is run;
+- the snapshot is not what the compiler says now (when `PRISMIO` names a compiler): a keyword added to the language fails it until `PRISMIO=... pnpm run grammar --refresh` is run;
 - the tables are empty, so a generator that produced nothing cannot pass; or
 - a sample is not coloured as the language reads it (keywords, `0xFF_FF`, `0..<10` as two numbers and a range, escapes, `and`/`not`, calls).
 
@@ -95,7 +95,7 @@ A TextMate grammar cannot see context, so a contextual keyword is coloured only 
 
 ## If you are changing this
 
-- `npm run package` builds the `.vsix`; `test/package.test.mjs` holds what it ships to an allowlist (an IDE's `.idea/workspace.xml`, with local paths, once slipped in).
+- `pnpm run package` builds `prismio-vscode-<version>.vsix`: esbuild bundles the extension and `vscode-languageclient` into `out/extension.js`, and `vsce package --no-dependencies` ships that one file and no `node_modules` (vsce cannot list a pnpm `node_modules`, and a bundle loads faster). The repository is its own pnpm workspace root (`pnpm-workspace.yaml`), so pnpm never joins a workspace file further up the tree. The identifier is `io.prismio`; `test/package.test.mjs` holds what it ships to an allowlist (an IDE's `.idea/workspace.xml`, with local paths, once slipped in).
 - `test/runTests.ts` uses the installed VS Code (`VSCODE_PATH` names another) with `--disable-extensions`. It opens copies of `test/fixtures/demo` and `test/fixtures/second` as one two-folder workspace and writes `prismio.path` into the workspace file (a window setting, which a folder's settings cannot set in a multi-root workspace), so the test needs `PRISMIO`, not a `prismio` on `PATH`.
 - Position encoding is negotiated by the client library; the server converts between the compiler's byte columns and it in one module.
 - Not done: publishing to the Marketplace (an account and a token the maintainer holds; the `.vsix` is on the GitHub release), and the extension itself on Windows (the server it starts has been run there, see [the language server](/tooling/language-server#windows)). The end-to-end suite is automated and also runs against the unpacked `.vsix`, so what ships is what was tested.

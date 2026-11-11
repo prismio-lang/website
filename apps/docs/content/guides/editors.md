@@ -23,7 +23,7 @@ If it is not there, `prismio lsp` refuses to start and names what is missing (`P
 Install the **Prismio** extension from its `.vsix`, attached to the [v0.1.0 release](https://github.com/prismio-lang/vscode-plugin/releases/tag/v0.1.0) on GitHub (it is not on the Marketplace yet). It needs VS Code 1.100 or newer:
 
 ```bash
-code --install-extension prismio-0.1.0.vsix
+code --install-extension prismio-vscode-0.1.0.vsix
 ```
 
 Open a folder with a `build.ums` or any `.psm` file; `.psm` files carry the Prismio logo in the explorer and on their tabs, and `build.ums` the manifest's mark. The extension finds `prismio` on your `PATH`, then in `~/.prismio/bin`; to use another one, set `prismio.path`. After installing a newer toolchain, run **Prismio: Restart Language Server** from the command palette. The status bar shows the toolchain's version and whether the server is running; click it for the server's output. **Prismio: New Project** writes what `prismio init` writes in a folder you pick and opens it.
