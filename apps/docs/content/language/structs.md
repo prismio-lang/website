@@ -38,7 +38,77 @@ struct Request {
 
 The declaration introduces `Request` into the program's type namespace. Field order contributes to the current compiled layout, but source code should use names rather than assuming offsets. A stable cross-version struct ABI is not promised in 0.1.
 
-Fields may contain scalars, enums, fixed-length arrays, vectors, strings, other structs, and permitted optional types. An array field is written `Array<T, N>` and stored inside the struct — see [returning and storing arrays](/language/arrays-and-lists#returning-and-storing-arrays). A directly recursive stored field has no finite layout; model recursive links with an optional reference-shaped struct field, as shown on the [optional values](/language/optionals) page.
+Fields may contain scalars, enums, fixed-length arrays, vectors, strings, other structs (declared elsewhere or [nested](#nested-structs)), and permitted optional types. An array field is written `Array<T, N>` and stored inside the struct — see [returning and storing arrays](/language/arrays-and-lists#returning-and-storing-arrays). A directly recursive stored field has no finite layout; model recursive links with an optional reference-shaped struct field, as shown on the [optional values](/language/optionals) page.
+
+## Nested structs
+
+A struct can declare another inside it, either as a field's type or between its fields. The inner struct is an ordinary struct, stored inline in the outer one, with no extra indirection and no ownership rule of its own. Writing it inside says that it belongs to the outer struct, and the outer struct's name is how you reach it from outside.
+
+<!-- prismio-check: pass -->
+```prismio
+struct Window {
+    title: String,
+    size: struct { w: Int, h: Int },
+    origin: struct { x: Int, y: Int }
+}
+
+fn area(size: Window.size) -> Int {
+    return size.w * size.h
+}
+
+fn main() -> Int {
+    let window = Window {
+        title: "main",
+        size: { w: 4, h: 5 },
+        origin: Window.origin { x: 1, y: 2 }
+    }
+    window.size.w = 6
+    return area(window.size) - 30
+}
+```
+
+`size: struct { ... }` declares a struct named after the field, `Window.size`, and gives the field that type. The fields of a nested struct follow the field rules: private to the file unless marked.
+
+A struct with a name of its own is declared between the fields and reached through its owner:
+
+<!-- prismio-check: pass -->
+```prismio
+struct Config {
+    struct Limits { max: Int, min: Int }
+    limits: Limits,
+    retries: Int
+}
+
+impl Config.Limits {
+    fn span(self: Config.Limits) -> Int { return self.max - self.min }
+}
+
+fn main() -> Int {
+    let config = Config { limits: Config.Limits { max: 9, min: 1 }, retries: 3 }
+    return config.limits.span() - 8
+}
+```
+
+Inside `Config`'s own fields `Limits` is written bare. Anywhere else, including an `impl` block and a function's signature, it is `Config.Limits`. A nested `Limits` hides a top-level `Limits` for the fields beside it.
+
+Nesting goes as deep as you like (`Config.Server.tls`), and each level is named by the one outside it.
+
+### Writing the value
+
+A nested struct literal is written with its path, `Window.origin { x: 1, y: 2 }`, or with bare braces wherever the expected type is a struct, as `size:` above. The braces work for any struct, nested or not, in a field, a `let` with a type, an argument or a return:
+
+```prismio
+let limits: Config.Limits = { max: 3, min: 2 }
+```
+
+A bare `{ name: value }` is a [`HashMap`](/stdlib/map) literal when a map is expected or nothing says otherwise. The context decides, and an unknown field is reported as one: ``struct `Window.size` has no field `d` ``.
+
+### Rules
+
+- **Visibility.** A nested struct is as visible as the struct it is written in. It has no marker of its own.
+- **Identity.** Two inline structs of the same shape are two types, as two declarations are. An inline struct is nameable, as `Window.size`, so a function can take it.
+- **Generics.** A struct inside a generic struct is not supported yet; declare it beside the outer one and give it the type parameters it uses.
+- **Recursion.** A nested struct cannot contain itself or its owner, for the reason a directly recursive field cannot: there is no finite layout.
 
 ## Visibility
 

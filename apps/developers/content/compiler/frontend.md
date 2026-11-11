@@ -507,6 +507,19 @@ the BLOCK in `child2`, `semaClosureBodyType` types the last statement, and `sema
 `call` function's body with that statement turned into a `return`; names the block itself declares are never
 captures (`semaClosureDeclaredNames`).
 
+**Nested structs.** `size: struct { w: Int }` and `struct Size { … }` inside a struct body are lifted out by the
+parser, not by sema. `parseStructBody` reads the inner body with the same code as a top-level one, names the
+result `Outer$$name` (`$$`, because a single `$` already means "instance of a template" to `typeInstancesAsWritten`),
+and appends it to the hoist chain `parseModule` drains after the declaration, the one nested functions use. The
+field's type becomes a plain `TYPE_ANNOTATION` naming it. What a program writes to reach one — `Outer.name` in a type,
+`Outer.Name { … }` as a literal — arrives as an `ASSOC_TYPE_REF` and as a dotted `STRUCT_LITERAL_EXPR`, and
+`sema/nested_structs.psm` rewrites both to the hoisted name before the type registry is filled, in a module that
+declares one (a shallow scan decides). It also gives each hoisted struct its owner's visibility, and resolves a bare
+`Limits` among its owner's field types to `Owner$$Limits`. After that it is an ordinary struct stored inline, so
+layout, ownership, AIF and codegen are unchanged. `{ k: v }` where the expected type is a struct is a struct
+literal: `semaCheckValue` calls `semaBraceStructLiteral` before it would treat the braces as a map. `diagQuote` and
+`typeDisplay` print `Outer$$name` as `Outer.name`.
+
 **Visibility.** A function, a global `let`, a struct, an enum and a struct field carry their level in `i2` (0 public,
 1 file, 2 package), and `semaVisibleFrom` (`sema/types.psm`) is the one test, with `ir_same_package` answering
 the package question in C. The parser stamps the defaults, `internal` on a struct and an enum and `private` on a

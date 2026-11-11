@@ -53,6 +53,7 @@ This page distinguishes shipped compiler behavior from intent. It assigns no dat
 | Chunked `Vec<T, N>` and `Vec<T, Chunk>`, slices of arrays | Coming Soon |
 | `HashSet<K>` (`insert`, `contains`, `remove`) | Implemented |
 | More collections: `VecDeque<T>`, a sorted map, a priority queue, a linked list | Coming Soon |
+| Nested structs: `field: struct { … }` and `struct Name { … }` inside a struct, reached as `Outer.field` / `Outer.Name`; `{ … }` as a struct literal where the type is known | Implemented (not inside a generic struct) |
 | Programmer-directed AoS↔SoA data views | Experimental (conversion, checked reads, mutation and round trip implemented) |
 | `else if` chains, `while`, `loop`, `repeat(n)` | Implemented |
 | Ranges `a..b` (end included) and `a..<b`, with `step` | Implemented |
