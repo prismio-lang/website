@@ -180,6 +180,35 @@ Prismio 0.2 permits field assignment through a struct binding even when that bin
 
 An optional struct must be unwrapped before member access. Comparing it with `none` does not flow-narrow the expression; call `expect` and access the result.
 
+## Taking a struct apart
+
+`let` can name a struct's fields at once. The pattern is the type, then the fields to bind:
+
+<!-- prismio-check: pass -->
+```prismio
+struct Point { x: Int, y: Int }
+
+fn main() -> Int {
+    let p = Point { x: 3, y: 4 }
+    let Point { x, y } = p
+    let Point { x: left, .. } = Point { x: 10, y: 20 }
+    return x + y + left - 17
+}
+```
+
+- `{ x, y }` binds each field to a name of its own spelling; `{ x: left }` binds it to another.
+- `..` says the other fields are left alone, and a field you do not list is left alone either. `_` skips one you list: `{ x: _, y }`.
+- `let mut Point { y: top } = p` makes the bindings assignable. It does not make `p` change.
+- A pattern inside a pattern takes a nested struct apart: `let Window { title, origin: Point { x, y } } = win`. A [nested struct](#nested-structs) is named by its path, `size: Window.size { w, h }`.
+
+A pattern is shorthand for the field reads it stands for, so a binding behaves as `let x = p.x` does: a number is copied, and a `String` or `Vec` is borrowed from the value for as long as that value lives. A variable taken apart this way is still whole afterwards. A value that is not a variable, such as a call, is held under a hidden name for the rest of the scope, so its bindings stay valid, and for that case the pattern's type is checked against it:
+
+``expected Point, found Other``
+
+For a variable the type in the pattern is not checked, only the fields: a name that is not a field of the variable's type is an error at the name in the pattern. A pattern that binds the name it is taking apart (`let Point { x: p } = p`) is refused, because the fields after it would read the new `p`. A global `let` binds one name and takes no pattern.
+
+Patterns in `match` arms and function parameters are not implemented. An enum's [struct variant](/language/enums#struct-variants) is taken apart in a `match` arm.
+
 ## Ownership
 
 Struct values move when stored into another owned location or passed to `sink`. Ordinary function parameters borrow them. Methods are attached with an [`impl` block](/language/methods) and a type satisfies a bound with [`impl <Trait> for <Type>`](/language/traits). Constructors, field visibility modifiers, and inheritance are not implemented.
@@ -216,7 +245,7 @@ When a struct contains another move-only value, constructing the outer struct tr
 - Visibility applies to a struct and its fields. An enum takes the same markers, without fields: see [enum visibility](/language/enums#visibility).
 - Structs may be [generic](/language/generics); there are no field defaults. A literal that omits a field is accepted, and the omitted field is zero-initialised — a null pointer, a zero number, zeroed array elements, or a recursively zeroed inline struct.
 - A generic struct cannot hold an `Array<T, N>` field yet.
-- There is no update syntax that copies unspecified fields.
+- There is no update syntax that copies unspecified fields. A struct is taken apart by a [`let` pattern](#taking-a-struct-apart), not in a `match` arm or a parameter list.
 - Layout and cross-version ABI stability are not guaranteed.
 - Field assignment through an immutable binding is currently accepted and may be tightened.
 

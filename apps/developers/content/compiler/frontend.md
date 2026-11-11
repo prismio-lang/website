@@ -520,6 +520,15 @@ layout, ownership, AIF and codegen are unchanged. `{ k: v }` where the expected 
 literal: `semaCheckValue` calls `semaBraceStructLiteral` before it would treat the braces as a map. `diagQuote` and
 `typeDisplay` print `Outer$$name` as `Outer.name`.
 
+**Destructuring `let`.** `let Point { x, y: b, .. } = value` is rewritten in the parser (`parse/patterns.psm`) to
+the `let`s it stands for. `parseVariableDecl` calls `atDestructure` (a capitalised name followed by `{`, `.` or `<`
+after `let`) and `parseDestructure` returns the first statement and leaves the rest on the parser's spill chain, which
+`parseBlock` drains behind it, the way hoisted functions follow a declaration. A value that is a variable or a field
+path is read in place (`let x = p.x`, a fresh `IDENTIFIER_EXPR`/`MEMBER_ACCESS_EXPR` chain per binding, positioned at the
+field in the pattern so errors point there). Any other value is bound first as `$dN`, annotated with the pattern's
+type, which is what checks it and what owns it for the bindings' lifetime. `P3016` refuses a binding named like the
+value, since the fields after it would read the new binding. Sema, ownership and AIF see only `let` and field reads.
+
 **Visibility.** A function, a global `let`, a struct, an enum and a struct field carry their level in `i2` (0 public,
 1 file, 2 package), and `semaVisibleFrom` (`sema/types.psm`) is the one test, with `ir_same_package` answering
 the package question in C. The parser stamps the defaults, `internal` on a struct and an enum and `private` on a
