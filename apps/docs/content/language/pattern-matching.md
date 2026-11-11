@@ -13,11 +13,37 @@ related: [language/enums, language/control-flow, specification/evaluation]
 The syntax is:
 
 ```prismio
-match (expression) {
+match expression {
     pattern => { statements }
     _ => { fallback statements }
 }
 ```
+
+Parentheses around the expression are optional (`match (expression) {` reads too), and so are the braces around an arm that is one statement:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+enum Shape { Circle, Square, Tri(Int) }
+
+fn main() -> Int {
+    let mut out = 0
+    let s = Shape.Tri(4)
+    match s {
+        Shape.Circle => out = 1,
+        Shape.Square => print("square"),
+        Shape.Tri(n) => out = n * 2
+    }
+    match out {
+        8 => out = out - 8,
+        _ =>
+    }
+    return out
+}
+```
+
+An arm is a block, or one statement (`out = 1`, a call, `return x`), or nothing: `_ =>` before the closing brace or a comma does nothing. A comma after an arm is optional. A struct literal in the expression is parenthesised, as in an `if`, because its brace would otherwise be taken for the one that opens the arms.
 
 <!-- prismio-check: pass -->
 ```prismio

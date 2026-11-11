@@ -100,18 +100,46 @@ Before these types, a failing function returned `-1`, `0`, or an empty string, a
 
 Use `T?` when there is nothing to say about *why* the value is missing, and `Result<T, E>` when there is. `o.okOr(error)` turns an optional into a `Result` by supplying the reason, and `r.ok()` turns a `Result` into an optional by dropping it.
 
-## Propagation is manual
+## Propagation with `?`
 
-There is no `?` operator. A caller that wants to forward an error writes the match:
+`?` after a `Result` is the `Ok` value, or an early `return` of the `Err` from the function:
 
+<!-- prismio-check: pass -->
 ```prismio
-match (half(n)) {
-    Result.Err(e) => { return Result.Err(e) }
-    Result.Ok(v) => { doubled = v * 2 }
+import std.option
+
+fn half(n: Int) -> Result<Int, String> {
+    if n % 2 != 0 { return Result.Err("odd") }
+    return Result.Ok(n / 2)
+}
+
+fn quarter(n: Int) -> Result<Int, String> {
+    let h = half(n)?
+    let q = half(h)?
+    return Result.Ok(q)
+}
+
+fn main() -> Int {
+    return quarter(8).unwrapOr(-1) - 2
 }
 ```
 
-A propagation operator needs a defined interaction with ownership and with cleanup during a non-local exit. Neither is specified, so the syntax is not provided rather than provided provisionally.
+After an optional it is the value, or an early `return none`:
+
+```prismio
+fn next(x: Int?) -> Int? {
+    let v = x?
+    return v + 1
+}
+```
+
+The function has to be able to carry what `?` hands back: a `Result` with the same error type for a `Result`, an optional for an optional. Otherwise it is an error that says so at the `?`, not a type error about a `return` you did not write. The error leaves as it is; to change it, `match` the `Result` and build the one you want.
+
+`?` is a value computed by statements: the operand is run first, the rest of the block runs only when there was a value, and an owned payload (a `String`, say) stays owned all the way to what you build from it. So it follows the same rules as an [`if` expression](/language/control-flow#if-and-match-as-values), and is refused where it could not run first:
+
+- after a call in the same statement (`f(g(), parse(s)?)`), since the `?` would run before `g()`. Calls inside the operand itself are fine, and so is `parse(a)? + parse(b)?`;
+- in a loop header, the right side of `and`, `or` and `??`, an `else if` condition and a closure's expression body;
+- outside a function.
 
 ## Limits in 0.2
 

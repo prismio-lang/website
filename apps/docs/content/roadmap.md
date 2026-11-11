@@ -72,7 +72,9 @@ This page distinguishes shipped compiler behavior from intent. It assigns no dat
 | Closure bounds (`F: Fn(A) -> R`), solving a result type from the closure | Implemented |
 | Inferred closure parameter types, storing or returning a closure | Coming Soon |
 | User-written lifetimes | Coming Soon |
-| Exceptions or result propagation syntax (`?`) | Coming Soon |
+| Result and optional propagation: `let v = parse(s)?` | Implemented |
+| Exceptions (`throw`, `catch`) | Coming Soon |
+| `match` without parentheses, and an arm that is one statement or empty: `match s { A => x = 1, _ => }` | Implemented |
 | Tasks: `spawn`, `join`, `Task<R>` | Experimental |
 | `async fn`, lazy `Future<T>`, `await`, `scope { }`, `spawn { }` | Experimental |
 | Blocking typed channels: `Channel<T>`, `for msg in c` | Implemented |

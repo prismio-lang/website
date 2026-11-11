@@ -551,6 +551,23 @@ gives the declaration that type (`ir_retype_var`, since the branch is a scope be
 `ir_set_var_type` there would shadow it). An uncovered value reaches `flowRead` as a read of `$vN` and is reported as a
 `match` without an arm.
 
+**The `?` operator.** `parse/try_exprs.psm`. `parseSuffixes` hands a `?` to `parseTry`, which refuses what an `if` expression
+refuses (the operand's own calls are exempt: `primaryCalls` is `stmtCalls` as the primary began) and queues `let $qN = operand`
+and a marker, an `EXPRESSION_STATEMENT` with `s1 == "$try"` holding two complete lowerings: a `match` over `Result`
+(`Err($te) => return Err($te)`, `Ok($vN) => { ... }`) and an `if` over `none`. Only sema can tell which applies, so
+`semaTryLower` (`sema/try_exprs.psm`) picks by `$qN`'s type, checks the function can carry the result (and that the error
+types agree, through `Err$0`), and rewrites the marker in place. The statements after the `?` in its block, which include the one
+that used it, are nested inside the `Ok` arm by `nestTries` when `parseBlock` closes the block (innermost first, so a second `?`
+nests inside the first), and `$vN` is the name that arm binds. That, and not a temporary assigned in the arm, is what keeps an
+owned payload owned: the compiler moves a pattern binding on into what is built from it, and leaks one stored into a variable that
+outlives the arm (`plainTemp` in the 2026-11-11 session, recorded in KNOWN_ISSUES). For an optional, sema moves the rest across to
+the `if`'s success branch, after `let $vN = expect($qN)`.
+
+**`match` syntax.** `parseScrutinee` reads the expression as a condition is read (no struct literal at the top level), so
+parentheses are not needed; `parseArmBody` reads `{ ... }` as a block, nothing before `}` or `,` as an empty block, and anything
+else as one statement through `parseBlockOf(single: true)`, the block parser run for exactly one statement so that `if` expressions,
+`?` and destructuring in it get their own context rather than leaking ahead of the whole `match`.
+
 **Visibility.** A function, a global `let`, a struct, an enum and a struct field carry their level in `i2` (0 public,
 1 file, 2 package), and `semaVisibleFrom` (`sema/types.psm`) is the one test, with `ir_same_package` answering
 the package question in C. The parser stamps the defaults, `internal` on a struct and an enum and `private` on a
