@@ -3,7 +3,7 @@ title: Compiler command-line reference
 description: Complete Prismio 0.2 build, run, AST, AIF, target, optimization, and verification command reference.
 status: stable
 version: "0.2.0"
-lastUpdated: "2026-09-28"
+lastUpdated: "2026-11-12"
 tags: [compiler, cli, flags, commands]
 related: [start/build-and-run, compiler/aif, compiler/targets]
 ---
@@ -110,6 +110,7 @@ These exist for editors and for CI; [Set up your editor](/guides/editors) shows 
 | `-Os`, `-Oz` | Optimise for size; `-Oz` is smaller still and usually slower |
 | `-g` | Emit debug info; the program object is built at `-O0` unless an `-O` flag says otherwise |
 | `--overflow-checks` | Trap on signed and unsigned integer overflow in your code |
+| `--strict-float` | Add every float in source order, even in a [loop reduction](/specification/behavior#numeric-behavior) |
 | `--verify` | Instrument and check allocation/free behavior |
 | `--debug` | Use conservative analysis and extra debugging behavior |
 | `--target wasm32` | Emit a WebAssembly-targeted module (experimental) |
@@ -119,6 +120,8 @@ These exist for editors and for CI; [Set up your editor](/guides/editors) shows 
 `-Os` and `-Oz` trade speed for size. On the same program the code is 36% smaller at `-Os` and 55% smaller at `-Oz`, which also outlines repeated instruction sequences into shared ones. Neither is a default, because both make the program slower.
 
 With `-o file.ll`, the flag applies to the IR written. Record the complete compiler version and command in benchmarks.
+
+`--strict-float` gives up the one reordering the language allows for floats. By default a loop that only adds into a float local (`sum += x`) may add its terms in any grouping, which lets the compiler split the sum across SIMD lanes: a plain sum runs in about a fifth of the time of the same loop in C++ or Rust. Use the flag when a sum must match a sequential result bit for bit. `strictFloat` in a `profiles` block does the same for a project.
 
 `--verify` adds supported allocation/free lifecycle instrumentation. It can change performance and is intended for testing. `--debug` selects conservative analysis/debug behavior; it is not a promise of an integrated source debugger.
 

@@ -3,7 +3,7 @@ title: Debugging, targets, and build tracing
 description: Separate frontend, AIF, LLVM, native-link, target, and runtime failures using Prismio's supported inspection commands.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-09"
+lastUpdated: "2026-11-12"
 tags: [debugging, targets, tracing]
 related: [llvm/debug-information, compiler/cli, runtime/platform-and-packaging]
 ---
@@ -19,6 +19,7 @@ Choose the inspection boundary that can still reproduce the failure.
 | Is generated IR valid? | Emit `.ll` and use LLVM verification |
 | Which native build stage is slow? | `PRISMIO_BUILD_TRACE=1` (then `PRISMIO_SAVE_IR=<file>` to time `opt`/`llc` on the exact module) |
 | Which frontend phase is slow? | `PRISMIO_PHASE_TIMES=1` |
+| Which float sums may be reordered? | `PRISMIO_REDUCTION_TRACE=1` prints each [loop reduction](/compiler/float-reductions) as `file:line` |
 | What does unused standard library still cost? | `PRISMIO_PRUNE=0` turns off unreachable-function pruning, for an A/B |
 | Is a parallel-codegen partition malformed? | `PRISMIO_CODEGEN_VERIFY=1`, or `PRISMIO_CODEGEN_THREADS=1` to emit whole |
 | Do source-level debugger views match? | Build with `-g`, then use LLDB or GDB |

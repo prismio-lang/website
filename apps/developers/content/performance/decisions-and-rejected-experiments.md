@@ -3,7 +3,7 @@ title: Performance decisions and rejected experiments
 description: What was tried to make Prismio faster or smaller, what each attempt measured, and why the obvious alternative lost, so a contributor does not re-derive a negative result.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-10-14"
+lastUpdated: "2026-11-12"
 tags: [performance, decisions, benchmarks, llvm, runtime]
 related: [performance/investigation-method, performance/telling-a-difference-from-noise, runtime/collection-representations, llvm/runtime-ir-and-optimization]
 ---
@@ -58,6 +58,38 @@ what a list *is* has to be priced on a read loop and a write loop separately.
 a `match` reads the variant from pointer nullness instead of a tag load. `tree_traversal` went from
 0.641 ms to 0.340 ms (1.88×), and `recursive_tree_rebuild` from 0.557 ms to 0.345 ms (1.61×). It is null
 pointer optimisation applied to a user enum; the generated releases already stopped at null.
+
+### The compiler does not choose element widths or map representations
+
+Measured and rejected 2026-11-11. A compiler that can prove what values a container holds could store it
+more cheaply, and C++ and Rust cannot, because layout is observable to their programs. Two forms were
+priced, and both died on the same test: *how often do real programs have the shape?*
+
+**Narrower `Vec` elements.** The prize is real on kernels. The same values held as `Int`, `U16` and `U8`,
+written in Prismio:
+
+| kernel | U16 | U8 |
+|---|---:|---:|
+| scan into an `Int` sum, 256 KB as `Int` | 0.59× | 0.35× |
+| the same, 64 MB | 0.46× | 0.22× |
+| scan into an `I64` sum, in cache | 1.26× | **1.25× slower** |
+| random gather, 64 MB table | 0.74× | 0.44× |
+| `convolution`, `vector_dot` (suite, inputs narrowed) | | 0.90×, 0.87× |
+
+A narrow element fills four times the SIMD lanes, so a scan wins even in cache, but only when what reads it
+is 32 bits or narrower: widening each byte to 64 bits costs more than the bytes save. Then the count: of
+the 62 `Vec<Int>` allocations in the compiler's own `src/`, the largest real Prismio program, **one** holds
+provably small values (a 0/1/2 flag per token in the formatter). The rest hold counters, offsets, indices
+and ids that grow with the input. `std/` and `lsp/` have none. About 24 of 57 in the hosted suite qualify,
+nearly all synthetic inputs filled with `i % K`, which is how a benchmark makes data. Narrowing would
+mostly reward the benchmarks.
+
+**Tables for dense-key maps.** Six of the compiler's eight `Int`-keyed `HashMap`s are keyed by
+`irNameId`, which hands out ids sequentially from 0, so a table would serve them. Sampling the compiler
+from process start at 1 ms while it built the hosted suite found 4 of about 671 main-thread samples in any
+map or set function, and 1 in an `Int`-keyed one. The hot map is name interning, keyed by `String`. The
+only dense-key maps that matter are `hashmap_insert_lookup`, `key_value_update` and `mixed_map_removal`,
+keyed `0..n`, and a table there would stop measuring what they exist to measure.
 
 ### `list_new` allocates nothing until the first push
 
@@ -175,6 +207,45 @@ marking the list constructors' return `noalias`, vectorised the two-list fill lo
 instructions, `len` out of memory). The fill phase measured 2.235 ms before and 2.198 ms after: the loop
 was never instruction-bound. The change is kept for what it did buy, `prime_sieve` 0.906×. Each fact alone
 moved nothing; both together were required.
+
+### More alias facts change no loop
+
+Measured 2026-11-11, while pricing a proposal for "regional permissions": borrows of disjoint parts
+of one allocation (fields, index ranges), proved with Presburger arithmetic and lowered to scoped
+alias metadata. The suite's IR was annotated by hand, one function at a time, and both arms were built the
+same way (`opt` internalize, then `clang -O3`; the unmodified arm ran within 1% of the real build).
+
+- **A scope per struct field** (`ecs_component_update`, the AoS half of `aos_vs_soa`): byte-identical
+  machine code. Field accesses already carry struct-path TBAA, which separates the fields.
+- **A scope per `Vec` variable** (all list elements share one scope today): `flat_bitset` lost its 20
+  runtime overlap checks and 21% of its IR, `mergesort` 2 and the SoA loop 1. The same loops vectorised
+  in both arms, and retired instructions did not move (18.70M against 18.73M for `flat_bitset`). A 3–6%
+  wall-clock difference shrank to 3% against an identical-binary control, which is code layout.
+- **The proposal's own shape**, a loop writing one range of a buffer while reading a disjoint one, does not
+  occur in the suite. The closest loops, `knapsack` and SHA-256's message schedule, read and write
+  overlapping ranges with a real dependence.
+
+Affine accesses, the only ones such regions can describe, are exactly the ones LLVM can already guard
+with a runtime overlap check, which is paid once per loop entry. So the ceiling of the whole idea is that
+check plus code size, unless a loop exceeds the check's pointer budget.
+
+### A float accumulator is an unordered reduction
+
+Decided 2026-11-11, built for 0.3.0. A float local that a loop only updates as `x += e` or `x -= e` (and
+the spelled-out forms), with `e` not reading `x`, may have its terms added in any grouping. The compiler
+puts `reassoc` on exactly those adds, and on nothing else. C++ and Rust promise source order, so the same
+naive loop stays sequential there:
+
+| workload | vs C++ | vs Rust | `--strict-float` vs C++ |
+|---|---:|---:|---:|
+| `numerical_integration` | 0.51× | 0.52× | 1.00× |
+| `float_sum` | 0.20× | 0.21× | 0.94× |
+| `float_dot` | 0.33× | 0.37× | 0.91× |
+
+`reassoc` on the accumulator alone measured the same as `reassoc nsz` on every float add in the function
+(0.509× against 0.510×), so no other fast-math flag is set. The eight partial sums are as accurate as one
+chain or better: −52 against −414 ulp on a 1M-term harmonic sum. The mechanism, the shapes it excludes
+(Kahan summation, time-stepping) and the tests are in [Float loop reductions](/compiler/float-reductions).
 
 ### A call in a loop declines the guard, so a two-line helper cost 1.79×
 

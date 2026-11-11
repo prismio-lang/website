@@ -3,12 +3,32 @@ title: std.tuple
 description: Tuple2, Tuple3 and Tuple4, the generic structs that the tuple syntax (a, b) stands for.
 status: stable
 version: "0.3.0"
-lastUpdated: "2026-11-11"
+lastUpdated: "2026-11-12"
 tags: [tuple, stdlib]
 related: [language/types, language/structs]
 ---
 
-`std.tuple` defines what the [tuple syntax](/language/types#tuples) means. You rarely import it: a file that writes `(a, b)` or `(Int, String)` gets the import added.
+A function that has two answers, a quotient and a remainder, or a value and whether it was found, can return them together without declaring a struct for the pair:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+
+fn divide(a: Int, b: Int) -> (Int, Int) {
+    return (a / b, a % b)
+}
+
+fn main() {
+    let (quotient, remainder) = divide(17, 5)
+    println(quotient, "remainder", remainder)
+}
+```
+
+```
+3 remainder 2
+```
+
+This module defines what that [tuple syntax](/language/types#tuples) means. You rarely import it: a file that writes `(a, b)` or `(Int, String)` gets the import added.
 
 | Item | Meaning |
 | --- | --- |

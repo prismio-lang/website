@@ -4,7 +4,7 @@ description: Boundaries where Prismio 0.2 rejects code, checks at runtime, or do
 status: stable
 draft: true
 version: "0.2.0"
-lastUpdated: "2026-11-10"
+lastUpdated: "2026-11-12"
 tags: [specification, undefined-behavior, portability, safety]
 related: [specification/memory-model, compiler/targets, language/ffi]
 ---
@@ -43,7 +43,7 @@ The language defines type widths and explicit cast mechanics, but does not yet g
 
 Portable code validates divisors, shift ranges, and numeric input before performing the operation. Security-sensitive code should not infer debug trapping or wraparound without a future explicit contract.
 
-`Float` is IEEE 754 binary64 (ISO/IEC 60559). `+ - * /` and `sqrt` are correctly rounded to nearest, ties to even. Comparisons follow IEEE 754: `!=` is true for a NaN operand, and the other comparisons are false. Signed zero is preserved through negation. `%` is C's `fmod`. The compiler may contract `a * b + c` into a fused multiply-add. Exception flags and non-default rounding modes are not exposed. Transcendental functions come from the platform C library and may differ in the last bit between targets; see [`std.math`](/stdlib/math#floating-point-semantics).
+`Float` is IEEE 754 binary64 (ISO/IEC 60559). `+ - * /` and `sqrt` are correctly rounded to nearest, ties to even. Comparisons follow IEEE 754: `!=` is true for a NaN operand, and the other comparisons are false. Signed zero is preserved through negation. `%` is C's `fmod`. The compiler may contract `a * b + c` into a fused multiply-add. A *loop reduction* is a local of float type, declared outside a loop, that the loop's body references only as `x = x + e`, `x = x - e`, `x += e` or `x -= e`, where `e` does not reference `x`; for one execution of that loop, the terms of a loop reduction may be added in any grouping and order, and every term is still computed and added exactly once. `--strict-float`, or `strictFloat` in a manifest profile, keeps every float add in source order. Exception flags and non-default rounding modes are not exposed. Transcendental functions come from the platform C library and may differ in the last bit between targets; see [`std.math`](/stdlib/math#floating-point-semantics).
 
 ## Bounds and storage
 

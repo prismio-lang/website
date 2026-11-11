@@ -3,7 +3,7 @@ title: Package manager
 description: The UMS manifest, project commands, path dependencies and the lockfile in Prismio 0.2, and what a registry would still add.
 status: stable
 version: "0.2.0"
-lastUpdated: "2026-11-10"
+lastUpdated: "2026-11-12"
 tags: [package-manager, registry, dependencies, manifest, lockfile]
 related: [language/modules, guides/modules, roadmap]
 ---
@@ -58,6 +58,11 @@ profiles {
 
 Overflow checks apply to your code, not to the standard library, which is
 written against wrapping arithmetic and is built the same way in every profile.
+
+`strictFloat = true` in either profile keeps every float add in source order, as
+`--strict-float` does: a loop that sums floats then gives the same bits as a
+sequential sum, and runs at the speed C++ and Rust give it. It is off by default.
+See [`--strict-float`](/compiler/cli#build-options).
 
 ```bash
 prismio init hello

@@ -3,7 +3,7 @@ title: Types
 description: Primitive, numeric, aggregate, optional, and inferred types in Prismio 0.2, including integers of any width and the five float types.
 status: stable
 version: "0.2.0"
-lastUpdated: "2026-11-10"
+lastUpdated: "2026-11-12"
 tags: [types, integers, arbitrary-width, floats, bool, string]
 related: [stdlib/number-text, language/arrays-and-lists, language/structs, language/optionals, language/conversions, specification/type-system]
 ---
@@ -183,7 +183,11 @@ fn main() -> Int {
 
 The IEEE special values behave as the standard says. `NaN != NaN` is `true` and every other comparison with a NaN is `false`. `-0.0` keeps its sign, so `1.0 / -0.0` is `-inf`. `%` is C's `fmod`, so its result takes the dividend's sign. Square roots, rounding, powers, logarithms, trigonometry and the `Float.PI`/`Float.INFINITY` constants are in [`std.math`](/stdlib/math), which also documents what is correctly rounded and what comes from the platform's C library.
 
-The compiler may fuse `a * b + c` into one fused multiply-add, as C compilers do by default. Exception flags and rounding modes other than round-to-nearest are not exposed. Treat bit-for-bit reproducibility of transcendental functions across operating systems as an application-level responsibility.
+The compiler may fuse `a * b + c` into one fused multiply-add, as C compilers do by default.
+
+A loop that only adds into a float local, such as `sum += values[i]` or `total = total - cost(i)`, is a *loop reduction*: the compiler may add its terms in any grouping, which lets it split the sum across SIMD lanes. A plain sum runs in about a fifth of the time it takes in C++ or Rust, which both promise to add in source order. Every term is still added exactly once, the result is usually as accurate or more so, and it is the same every time the same program runs on the same machine. It can differ from a strictly sequential sum in the last bits. The rule applies only when the loop does nothing else with the variable: Kahan summation, which reads its running sum to correct it, and a time-step `t += dt` whose `t` the loop also uses keep source order. Build with `--strict-float` to keep every float add in source order. The [specification](/specification/behavior#numeric-behavior) states the rule exactly.
+
+Exception flags and rounding modes other than round-to-nearest are not exposed. Treat bit-for-bit reproducibility of transcendental functions across operating systems as an application-level responsibility.
 
 ## Boolean and character values
 

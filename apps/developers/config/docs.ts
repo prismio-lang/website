@@ -114,6 +114,7 @@ export const docsConfig: DocsAppConfig = {
                 { label: "Enums and pattern lowering", href: "/compiler/enums-and-pattern-lowering" },
                 { label: "Loop guards", href: "/compiler/loop-guards" },
                 { label: "Stride tiling", href: "/compiler/stride-tiling" },
+                { label: "Float loop reductions", href: "/compiler/float-reductions" },
                 { label: "Bootstrapping", href: "/compiler/bootstrap" },
             ],
         },

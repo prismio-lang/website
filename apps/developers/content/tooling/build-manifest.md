@@ -3,7 +3,7 @@ title: build.ums manifest reference
 description: The syntax of build.ums, every block, key and call with what it accepts and its default, and every UMS diagnostic code with its message and fix.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-30"
+lastUpdated: "2026-11-12"
 tags: [ums, manifest, reference, diagnostics]
 related: [tooling/ums-overview, tooling/build-graph-and-linking, tooling/compiler-host-and-promotion, compiler/diagnostics, cookbook/extend-ums]
 ---
@@ -227,8 +227,9 @@ profiles {
 |---|---|---|---|---|
 | `debugInfo` | `true` or `false` | `true` | `false` | build with `-g`, and the program's object step at `-O0` so a debugger can see every variable |
 | `overflowChecks` | `true` or `false` | `true` | `false` | trap on integer overflow in the project's own code. Standard-library code is never checked, because some of it wraps on purpose |
+| `strictFloat` | `true` or `false` | `false` | `false` | keep every float add in source order (`--strict-float`): no [loop reduction](/compiler/float-reductions) is summed in another order |
 
-Each profile is written at most once (`UMS2702`), and the block holds only `debug { }` and `release { }` (`UMS2701`). Every block is checked whether or not it is the selected profile, so a mistake in `release` is found while building `debug`. Only the selected profile's block changes the build. A value that is not `true` or `false` is `UMS2704`, and a key other than those two is `UMS2703`.
+Each profile is written at most once (`UMS2702`), and the block holds only `debug { }` and `release { }` (`UMS2701`). Every block is checked whether or not it is the selected profile, so a mistake in `release` is found while building `debug`. Only the selected profile's block changes the build. A value that is not `true` or `false` is `UMS2704`, and a key other than those three is `UMS2703`.
 
 ### `targets`
 
@@ -463,7 +464,7 @@ A name or value that fails here keeps its raw text, so lowering may report the s
 |---|---|---|
 | `UMS2701` | profiles holds debug { ... } and release { ... }, not 'x' | Only those two profile blocks exist |
 | `UMS2702` | profile 'x' is declared more than once | Keep one |
-| `UMS2703` | unknown profile setting 'x'; expected debugInfo or overflowChecks | Use one of those two |
+| `UMS2703` | unknown profile setting 'x'; expected debugInfo, overflowChecks or strictFloat | Use one of those three |
 | `UMS2704` | profile setting 'x' must be true or false | Write `true` or `false`, unquoted |
 | `UMS3001` | invalid build profile 'x' | A profile name holds letters, digits, `-` and `_` |
 
