@@ -365,7 +365,7 @@ export default function InstallPage() {
 
                                         {step.commands && (
                                             <div className="group relative mt-4 overflow-hidden rounded-xl bg-[#06070a] ring-1 ring-white/[0.08]">
-                                                <pre className="overflow-x-auto py-3.5 pl-4 pr-14 font-mono text-sm leading-relaxed">
+                                                <pre className="overflow-x-auto py-3.5 pl-4 pr-14 font-mono text-sm leading-relaxed max-md:whitespace-pre-wrap max-md:break-all">
                                                     {step.commands.map((command, j) => (
                                                         <div key={j}>
                                                             <span className="mr-3 select-none text-indigo-400">{prompt}</span>
@@ -589,7 +589,7 @@ function Preview({
                     </button>
                 )}
             </div>
-            <code className="mt-3 block overflow-x-auto whitespace-nowrap font-mono text-sm">
+            <code className="mt-3 block overflow-x-auto whitespace-nowrap font-mono text-sm max-md:whitespace-pre-wrap max-md:break-all">
                 <span className="mr-3 select-none text-indigo-400">{prompt}</span>
                 <Command text={command} />
             </code>

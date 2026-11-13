@@ -261,7 +261,7 @@ export default function BenchmarksPage() {
                         </h2>
                         <p className="mt-3 text-sm text-zinc-400 max-w-3xl max-md:text-base max-md:leading-7">
                             Filter, search, and inspect the individual runs. Timings represent elapsed execution medians across {data.runs} runs.
-                            Click any row to view raw sample times, memory RSS, and checksum verification.
+                            {' '}<span className="max-md:hidden">Click any row to view raw sample times, memory RSS, and checksum verification.</span><span className="md:hidden">Tap any row to view raw sample times, memory RSS, and checksum verification.</span>
                         </p>
                     </div>
 

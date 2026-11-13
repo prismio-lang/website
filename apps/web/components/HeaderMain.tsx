@@ -75,7 +75,7 @@ const HeaderMain: React.FC = () => {
                 sticky top-0 z-[80] transition-all duration-300
                 ${
                     scrolled
-                        ? "bg-[#0b0b0b]/65 backdrop-blur-xl border-b border-white/10"
+                        ? "bg-[#0b0b0b]/65 max-md:bg-[#0b0b0b]/95 backdrop-blur-xl border-b border-white/10"
                         : "bg-transparent border-b border-transparent"
                 }`}>
 

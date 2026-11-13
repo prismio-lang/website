@@ -234,7 +234,7 @@ export default function FreestandingPanel({data}: FreestandingPanelProps) {
                         All freestanding workloads
                     </h2>
                     <p className="mt-3 max-w-3xl text-sm text-zinc-400 max-md:text-base max-md:leading-7">
-                        Guest instructions per workload. Click any row to see the checksum all three arms returned and each arm&apos;s exact count.
+                        Guest instructions per workload. <span className="max-md:hidden">Click any row to see the checksum all three arms returned and each arm&apos;s exact count.</span><span className="md:hidden">Tap any row to see the checksum all three arms returned and each arm&apos;s exact count.</span>
                     </p>
                 </div>
                 <FreestandingMatrix benchmarks={data.benchmarks} categories={data.categories} />

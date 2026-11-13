@@ -10,7 +10,7 @@ export default function FooterMain() {
             <div className="max-w-7xl mx-auto px-8 py-16 grid grid-cols-2 md:grid-cols-4 gap-12 text-sm">
                 {/* Column — About */}
                 <div className="space-y-4 col-span-2 sm:col-span-1">
-                    <Link href="/" className="flex items-center gap-2.5">
+                    <Link href="/" className="flex items-center gap-2.5 max-md:min-h-11">
                         <div className="w-8 h-8 flex items-center justify-center">
                             <Image src="/icons/prismio.png" alt="Prismio logo" width={32} height={32}/>
                         </div>
@@ -24,8 +24,8 @@ export default function FooterMain() {
                 </div>
 
                 {/* Column — Ecosystem */}
-                <div className="space-y-3 md:pl-4">
-                    <p className="font-medium text-zinc-900 dark:text-gray-200 tracking-tight">Ecosystem</p>
+                <div className="space-y-3 md:pl-4 max-md:space-y-0">
+                    <p className="font-medium text-zinc-900 dark:text-gray-200 tracking-tight max-md:pb-1">Ecosystem</p>
                     <FooterLink href="/install">Install</FooterLink>
                     <FooterLink href="https://docs.prismio.org" external>Documentation</FooterLink>
                     <FooterLink href="https://developers.prismio.org" external>Developers</FooterLink>
@@ -34,8 +34,8 @@ export default function FooterMain() {
                 </div>
 
                 {/* Column — Project */}
-                <div className="space-y-3 md:pl-4">
-                    <p className="font-medium text-zinc-900 dark:text-gray-200 tracking-tight">Project</p>
+                <div className="space-y-3 md:pl-4 max-md:space-y-0">
+                    <p className="font-medium text-zinc-900 dark:text-gray-200 tracking-tight max-md:pb-1">Project</p>
                     <FooterLink href="/about">About</FooterLink>
                     <FooterLink href="/team">Team</FooterLink>
                     <FooterLink href="/benchmarks">Benchmarks</FooterLink>
@@ -47,8 +47,8 @@ export default function FooterMain() {
                 </div>
 
                 {/* Column — Community */}
-                <div className="space-y-3 md:pl-4">
-                    <p className="font-medium text-zinc-900 dark:text-gray-200 tracking-tight">Community</p>
+                <div className="space-y-3 md:pl-4 max-md:space-y-0">
+                    <p className="font-medium text-zinc-900 dark:text-gray-200 tracking-tight max-md:pb-1">Community</p>
                     <FooterLink href="/community">Community</FooterLink>
                     <FooterLink href="/sponsors">Sponsors</FooterLink>
                     <FooterLink href={DISCORD_INVITE_LINK} external>Discord</FooterLink>
@@ -72,7 +72,7 @@ function FooterLink({
     soon?: boolean;
 }) {
     const className =
-        "flex items-center gap-2 text-zinc-600 hover:text-zinc-950 dark:text-gray-400 dark:hover:text-white transition-colors";
+        "flex items-center gap-2 text-zinc-600 hover:text-zinc-950 dark:text-gray-400 dark:hover:text-white transition-colors max-md:min-h-11";
     const content = (
         <>
             {children}

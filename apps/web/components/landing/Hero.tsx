@@ -158,7 +158,7 @@ export default function Hero() {
                         </a>
                     </div>
 
-                    <div className="mt-9 max-w-2xl border-t border-white/[0.08] pt-6 max-md:mt-8">
+                    <div className="mt-9 max-w-2xl border-t border-white/[0.08] pt-6 max-md:hidden">
                         <div className="mb-3 flex items-center justify-between text-xs text-zinc-500 max-md:mb-1">
                             <span>Install Prismio</span>
                             {/* Phones: the copy control moves up here, so the command gets the box's full width. */}

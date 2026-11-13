@@ -34,7 +34,7 @@ export default function NotFound() {
                         That page isn&apos;t here.
                     </h1>
                     <p className="mt-6 max-w-md text-base leading-7 text-zinc-400">
-                        The link may be old, or the page may have moved. Pick up from one of the places on the right.
+                        The link may be old, or the page may have moved. <span className="max-md:hidden">Pick up from one of the places on the right.</span><span className="md:hidden">Pick up from one of the places below.</span>
                     </p>
                     <div className="mt-8 flex flex-wrap items-center gap-3">
                         <Link

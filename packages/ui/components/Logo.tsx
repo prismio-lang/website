@@ -10,7 +10,7 @@ export interface LogoProps {
 
 export default function Logo({ href = "/", label = "Prismio", className }: LogoProps = {}) {
     return (
-        <Link href={href} className={`flex items-center gap-2.5 ${className ?? ""}`}>
+        <Link href={href} className={`flex items-center gap-2.5 max-md:min-h-11 ${className ?? ""}`}>
             <div className="w-8 h-8 flex items-center justify-center">
                 <Image src="/icons/prismio.png" alt="Prismio logo" width={32} height={32}/>
             </div>

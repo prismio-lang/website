@@ -111,9 +111,9 @@ export function Logo({ide, size}: {ide: Ide; size: number}) {
 
 export function LogoStack({logos}: {logos: Ide[]}) {
     return (
-        <span className="flex shrink-0 items-center -space-x-3" aria-hidden>
+        <span className="flex shrink-0 items-center -space-x-3 max-md:-space-x-2 max-md:[&_img]:size-5" aria-hidden>
             {logos.map((ide) => (
-                <span key={ide.name} className="flex size-11 items-center justify-center rounded-xl bg-[#0b0c10] ring-2 ring-[#0b0c10]">
+                <span key={ide.name} className="flex size-11 items-center justify-center rounded-xl bg-[#0b0c10] ring-2 ring-[#0b0c10] max-md:size-7 max-md:rounded-lg">
                     <Logo ide={ide} size={40} />
                 </span>
             ))}
@@ -155,16 +155,16 @@ export default function EditorSupportCard({className = ''}: {className?: string}
                                 setActiveId(e.id);
                                 setCopied(false);
                             }}
-                            className={`relative flex items-center gap-4 px-7 py-6 max-sm:flex-col max-sm:items-start max-sm:gap-3 max-sm:px-4 max-sm:py-5 text-left transition-colors focus-visible:ring-inset ${FOCUS} ${
+                            className={`relative flex items-center gap-4 px-7 py-6 max-md:gap-2 max-md:px-2.5 max-md:py-3.5 text-left transition-colors focus-visible:ring-inset ${FOCUS} ${
                                 selected ? 'bg-white/[0.04]' : 'hover:bg-white/[0.025]'
                             }`}
                         >
                             <LogoStack logos={e.logos} />
                             <span className="min-w-0">
-                                <span className={`block text-lg font-semibold tracking-tight max-sm:text-base transition-colors ${selected ? 'text-white' : 'text-zinc-400'}`}>
+                                <span className={`block text-lg font-semibold tracking-tight max-md:text-sm max-md:leading-5 max-md:whitespace-nowrap transition-colors ${selected ? 'text-white' : 'text-zinc-400'}`}>
                                     {e.name}
                                 </span>
-                                <span className="mt-0.5 block text-sm text-zinc-500">{e.kind}</span>
+                                <span className="mt-0.5 block text-sm text-zinc-500 max-md:text-xs">{e.kind}</span>
                             </span>
                             <span
                                 aria-hidden
@@ -191,7 +191,7 @@ export default function EditorSupportCard({className = ''}: {className?: string}
 
                     <div className="mt-8">
                         <p className="text-xs font-medium text-zinc-500">{editor.id === 'vscode' ? 'Works in' : 'Recommended'}</p>
-                        <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-3">
+                        <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3">
                             {(editor.id === 'vscode' ? [VSCODE] : JETBRAINS_TESTED).map((ide) => (
                                 <li key={ide.name} className="flex items-center gap-2.5 text-sm font-medium text-white">
                                     <Logo ide={ide} size={24} />
@@ -202,7 +202,7 @@ export default function EditorSupportCard({className = ''}: {className?: string}
                         {editor.id === 'jetbrains' && (
                             <>
                                 <p className="mt-6 text-xs font-medium text-zinc-500">Also compatible</p>
-                                <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-3">
+                                <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3">
                                     {JETBRAINS_COMPATIBLE.map((ide) => (
                                         <li key={ide.name} className="flex items-center gap-2 text-sm text-zinc-400">
                                             <Logo ide={ide} size={20} />
@@ -248,7 +248,7 @@ export default function EditorSupportCard({className = ''}: {className?: string}
                         ))}
                     </ul>
 
-                    <div className="mt-8">
+                    <div className="mt-8 max-md:hidden">
                         <p className="text-sm leading-6 text-zinc-400 max-md:text-base max-md:leading-7">{editor.installIntro}</p>
                         <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-[#06070a] px-4 py-3 ring-1 ring-white/[0.08] max-md:py-1.5 max-md:pr-1.5">
                             <code className="overflow-x-auto whitespace-nowrap font-mono text-sm text-zinc-100 [scrollbar-width:none]">
