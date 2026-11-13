@@ -44,9 +44,11 @@ export function DocsArticlePage({
         timeZone: "UTC",
     }).format(new Date(doc.lastUpdated));
 
+    // The same trail the visible breadcrumb shows: a page that is its own section's first page is not listed twice.
+    const showSection = Boolean(section && parent && parent !== `/${doc.slug}`);
     const breadcrumbItems = [
         { name: breadcrumbRootLabel, url: site.siteUrl },
-        ...(section && parent ? [{ name: section.label, url: `${site.siteUrl}${parent}` }] : []),
+        ...(section && showSection ? [{ name: section.label, url: `${site.siteUrl}${parent}` }] : []),
         { name: doc.title, url: canonicalUrl },
     ];
 
@@ -95,6 +97,18 @@ export function DocsArticlePage({
             })),
         },
     ];
+    const faq = doc.tags.includes("faq") ? faqEntries(doc.raw) : [];
+    if (faq.length > 0) {
+        structuredData.push({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faq.map(({ question, answer }) => ({
+                "@type": "Question",
+                name: question,
+                acceptedAnswer: { "@type": "Answer", text: answer },
+            })),
+        } as any);
+    }
 
     return (
         <div className="relative mx-auto flex w-full max-w-[100rem] gap-8 py-2 md:py-5">
@@ -231,3 +245,25 @@ export function DocsArticlePage({
 }
 
 export default DocsArticlePage;
+
+/**
+ * The questions of an FAQ page, for FAQPage data: each `## ` heading ending in "?" and the prose under it, as plain
+ * text (links keep their text, code keeps its characters, code blocks are dropped).
+ */
+function faqEntries(raw: string): { question: string; answer: string }[] {
+    const plain = (markdown: string) =>
+        markdown
+            .replace(/```[\s\S]*?```/g, " ")
+            .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+            .replace(/[`*_]/g, "")
+            .replace(/\s+/g, " ")
+            .trim();
+    return raw
+        .split(/^## /m)
+        .slice(1)
+        .map((block) => {
+            const newline = block.indexOf("\n");
+            return { question: plain(block.slice(0, newline)), answer: plain(block.slice(newline + 1)) };
+        })
+        .filter(({ question, answer }) => question.endsWith("?") && answer.length > 0);
+}
