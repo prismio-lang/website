@@ -9,7 +9,7 @@
   },
   {
     "question": "Is the Prismio compiler written in Prismio?",
-    "answer": "Yes. A committed LLVM IR seed breaks the initial bootstrapping cycle, and later generations compile the Prismio compiler source. The repository checks multiple generations and fixed points."
+    "answer": "Yes. A target-neutral LLVM IR seed breaks the initial bootstrapping cycle: it is committed in the compiler repository as bootstrap/seed.ll and also attached to each release as prismio-seed-<version>.ll. Later generations compile the Prismio compiler source. The repository checks multiple generations and fixed points."
   },
   {
     "question": "Does Prismio use garbage collection?",

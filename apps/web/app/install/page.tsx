@@ -56,13 +56,13 @@ function stepsFor(os: OS): Step[] {
         },
         {
             title: 'Build the first compiler',
-            note: 'Built from the LLVM IR seed of the pinned release, downloaded and checked for you, so a machine with no Prismio can start.',
-            commands: [win ? 'tools\\bootstrap.ps1 -Out build\\gen0' : 'tools/bootstrap.sh --seed --out build/gen0'],
+            note: 'Built from the seed, LLVM IR for the compiler committed as bootstrap/seed.ll (and attached to each release), so a machine with no Prismio can start.',
+            commands: [win ? 'python tools\\bootstrap.py --seed --out build\\gen0' : 'python3 tools/bootstrap.py --seed --out build/gen0'],
         },
         {
             title: 'Rebuild it with itself',
             note: 'The compiler compiles its own source. This is the one you will use.',
-            commands: [win ? 'tools\\bootstrap.ps1 -Compiler build\\gen0 -Out build\\gen1' : 'tools/bootstrap.sh --compiler build/gen0 --out build/gen1'],
+            commands: [win ? 'python tools\\bootstrap.py --compiler build\\gen0 --out build\\gen1' : 'python3 tools/bootstrap.py --compiler build/gen0 --out build/gen1'],
         },
         win
             ? {
