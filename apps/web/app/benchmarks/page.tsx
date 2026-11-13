@@ -132,7 +132,7 @@ export default function BenchmarksPage() {
                                 lossPct: rustLossPct,
                             },
                         ].map((card) => (
-                            <div key={card.key} className="rounded-2xl border border-white/10 bg-[#0b0c10] p-7 space-y-5">
+                            <div key={card.key} className="rounded-2xl border border-white/10 bg-[#0b0c10] p-7 space-y-5 max-md:p-6">
                                 <div className="flex items-center justify-between text-sm">
                                     <h2 className="font-medium text-zinc-200">{card.title}</h2>
                                     <span className={`font-mono text-xs ${card.armTone}`}>{card.arm}</span>
@@ -151,7 +151,7 @@ export default function BenchmarksPage() {
                                             : `${Math.abs(card.speedupPct).toFixed(1)}% slower`}
                                     </span>
                                 </div>
-                                <p className="text-sm leading-6 text-zinc-400">
+                                <p className="text-sm leading-6 text-zinc-400 max-md:text-[15px]">
                                     Geometric mean of the time ratio across {comparisonCount} comparison workloads.
                                     Lower is faster; 1.00× is parity.
                                 </p>
@@ -176,7 +176,7 @@ export default function BenchmarksPage() {
                         ))}
 
                         {/* Dead code elimination */}
-                        <div className="rounded-2xl border border-white/10 bg-[#0b0c10] p-7 space-y-5">
+                        <div className="rounded-2xl border border-white/10 bg-[#0b0c10] p-7 space-y-5 max-md:p-6">
                             <div className="flex items-center justify-between text-sm">
                                 <h2 className="font-medium text-zinc-200">Dead Code Pruning</h2>
                                 <span className="font-mono text-xs text-purple-300">LLVM Backend</span>
@@ -189,12 +189,12 @@ export default function BenchmarksPage() {
                                     {eliminatedPct.toFixed(0)}% eliminated
                                 </span>
                             </div>
-                            <p className="text-sm leading-6 text-zinc-400">
+                            <p className="text-sm leading-6 text-zinc-400 max-md:text-[15px]">
                                 {eliminatedCount === eliminationTotal ? 'Complete compile-time' : 'Compile-time'} dead branch
                                 elimination across adversarial suites. A probe counts as eliminated when it
                                 runs in {(data.eliminationNs / 1000).toFixed(0)} µs or less.
                             </p>
-                            <p className="text-xs text-zinc-400">
+                            <p className="text-xs text-zinc-400 max-md:text-sm">
                                 Verified via binary symbol extraction and differential runtime sampling.
                             </p>
                         </div>
@@ -216,13 +216,13 @@ export default function BenchmarksPage() {
                             <h2 id="coverage-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white">
                                 Coverage is part of the result.
                             </h2>
-                            <p className="mt-4 max-w-sm text-sm leading-6 text-zinc-400">
+                            <p className="mt-4 max-w-sm text-sm leading-6 text-zinc-400 max-md:text-base max-md:leading-7">
                                 {stats.implemented} of {stats.total} cataloged workloads are implemented.
                                 The remaining {stats.unsupported} are not measured, and each says why instead of being replaced by a benchmark-only substitute.
                             </p>
                         </div>
                         <div className="lg:col-span-8">
-                            <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-6 border-y border-white/[0.08] text-xs text-zinc-400">
+                            <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-6 border-y border-white/[0.08] text-xs text-zinc-400 max-md:gap-x-3">
                                 <div className="py-3">Category</div>
                                 <div className="py-3 text-right">Implemented</div>
                                 <div className="py-3 text-right">Pending</div>
@@ -232,7 +232,7 @@ export default function BenchmarksPage() {
                             {categories.map((item) => (
                                 <div
                                     key={item.key}
-                                    className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-6 border-b border-white/[0.08] text-sm py-4"
+                                    className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-6 border-b border-white/[0.08] text-sm py-4 max-md:gap-x-3"
                                 >
                                     <div className="text-zinc-200 font-medium">{item.label}</div>
                                     <div className="text-right font-mono text-emerald-400">{item.implemented}</div>
@@ -259,7 +259,7 @@ export default function BenchmarksPage() {
                         <h2 id="matrix-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white md:text-4xl">
                             All Workloads Matrix
                         </h2>
-                        <p className="mt-3 text-sm text-zinc-400 max-w-3xl">
+                        <p className="mt-3 text-sm text-zinc-400 max-w-3xl max-md:text-base max-md:leading-7">
                             Filter, search, and inspect the individual runs. Timings represent elapsed execution medians across {data.runs} runs.
                             Click any row to view raw sample times, memory RSS, and checksum verification.
                         </p>
@@ -279,14 +279,14 @@ export default function BenchmarksPage() {
                 />
 
                 {/* Reproduction Call to Action */}
-                <section className="border-t border-white/[0.09] pt-16">
-                    <div className="grid gap-8 rounded-2xl bg-[#0b0c10] p-7 ring-1 ring-white/[0.08] lg:grid-cols-[1fr_auto] lg:items-center md:p-10">
+                <section className="border-t border-white/[0.09] pt-16 max-md:pt-12">
+                    <div className="grid gap-8 rounded-2xl bg-[#0b0c10] p-7 ring-1 ring-white/[0.08] lg:grid-cols-[1fr_auto] lg:items-center md:p-10 max-md:p-6">
                         <div className="space-y-4">
                             <div className="flex items-center gap-2 text-zinc-200">
                                 <FileText size={17} className="text-indigo-300" />
                                 <h2 className="text-xl font-semibold tracking-[-0.02em]">Reproduce or challenge a result.</h2>
                             </div>
-                            <p className="max-w-2xl text-sm leading-6 text-zinc-400">
+                            <p className="max-w-2xl text-sm leading-6 text-zinc-400 max-md:text-base max-md:leading-7">
                                 The harness, benchmark sources, unsupported-workload records, and raw checked-in results
                                 are fully open-source. Inspect the source arms, audit the methodology contract, or contribute workloads.
                             </p>
@@ -296,14 +296,14 @@ export default function BenchmarksPage() {
                                 href="https://github.com/prismio-lang/prismio/tree/main/benchmarks"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-white px-5 max-sm:flex-1 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                             >
                                 Open the suite
                                 <ArrowUpRight size={16} />
                             </a>
                             <Link
                                 href="/roadmap"
-                                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/[0.1] px-5 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.05] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/[0.1] px-5 max-sm:flex-1 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.05] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                             >
                                 Read the roadmap
                                 <ArrowRight size={16} />

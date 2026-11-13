@@ -10,6 +10,15 @@ import {
 } from 'lucide-react';
 import { BenchmarkItem, CategorySummary, formatBytes, formatDuration } from '@/lib/benchmarks';
 
+/**
+ * Below 768px the table is read as a list of cards: every row becomes a three-column grid and each
+ * value carries its column name (from `data-label`), since the header row turns into a strip of sort chips.
+ */
+const PHONE_CELL = 'max-md:p-0 max-md:text-left';
+const PHONE_LABEL =
+    'max-md:before:mb-1 max-md:before:block max-md:before:font-sans max-md:before:text-[11px] max-md:before:font-medium max-md:before:uppercase max-md:before:tracking-wider max-md:before:text-zinc-400 max-md:before:content-[attr(data-label)]';
+const PHONE_CHIP = 'max-md:min-h-10 max-md:shrink-0 max-md:whitespace-nowrap max-md:px-3.5 max-md:text-sm';
+
 interface BenchmarkMatrixProps {
     benchmarks: BenchmarkItem[];
     categories: CategorySummary[];
@@ -31,11 +40,13 @@ function SortTh({col, label, align = 'right', tone = '', dot, className, sortCol
     const active = sortColumn === col;
     const ariaSort = active ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none';
     return (
-        <th scope="col" aria-sort={ariaSort} className={className}>
+        <th scope="col" aria-sort={ariaSort} className={`${className} max-md:shrink-0 max-md:p-0`}>
             <button
                 type="button"
                 onClick={() => onSort(col)}
-                className={`inline-flex items-center gap-1.5 rounded transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
+                className={`inline-flex items-center gap-1.5 rounded transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 max-md:min-h-10 max-md:whitespace-nowrap max-md:rounded-lg max-md:border max-md:px-3 ${
+                    active ? 'max-md:border-white/25 max-md:bg-white/[0.07]' : 'max-md:border-white/[0.08]'
+                } ${
                     align === 'right' ? 'justify-end' : ''
                 } ${tone}`}
             >
@@ -149,12 +160,12 @@ export default function BenchmarkMatrix({ benchmarks, categories }: BenchmarkMat
     return (
         <div className="space-y-6">
             {/* Category Navigation Bar */}
-            <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.08] pb-4">
+            <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.08] pb-4 max-md:flex-nowrap max-md:overflow-x-auto max-md:[scrollbar-width:none] max-md:[&::-webkit-scrollbar]:hidden">
                 <button
                     type="button"
                     aria-pressed={selectedCategory === 'all'}
                     onClick={() => setSelectedCategory('all')}
-                    className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                    className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-1.5 text-xs font-medium transition-colors ${PHONE_CHIP} ${
                         selectedCategory === 'all'
                             ? 'bg-white text-black font-semibold'
                             : 'bg-white/[0.03] text-zinc-400 hover:bg-white/[0.08] hover:text-white'
@@ -176,7 +187,7 @@ export default function BenchmarkMatrix({ benchmarks, categories }: BenchmarkMat
                             type="button"
                             aria-pressed={isActive}
                             onClick={() => setSelectedCategory(cat.key)}
-                            className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                            className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-1.5 text-xs font-medium transition-colors ${PHONE_CHIP} ${
                                 isActive
                                     ? 'bg-white text-black font-semibold'
                                     : 'bg-white/[0.03] text-zinc-400 hover:bg-white/[0.08] hover:text-white'
@@ -204,14 +215,14 @@ export default function BenchmarkMatrix({ benchmarks, categories }: BenchmarkMat
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Search workload, category, or profile..."
-                        className="w-full rounded-xl border border-white/10 bg-[#0b0c10] py-2 pl-9 pr-8 text-xs text-white placeholder-zinc-400 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                        className="w-full rounded-xl border border-white/10 bg-[#0b0c10] py-2 pl-9 pr-8 text-xs text-white placeholder-zinc-400 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 max-md:py-2.5 max-md:pr-11 max-md:text-base"
                     />
                     {search && (
                         <button
                             type="button"
                             aria-label="Clear search"
                             onClick={() => setSearch('')}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white max-md:right-0.5 max-md:inline-flex max-md:size-10 max-md:items-center max-md:justify-center"
                         >
                             <X size={13} />
                         </button>
@@ -219,13 +230,13 @@ export default function BenchmarkMatrix({ benchmarks, categories }: BenchmarkMat
                 </div>
 
                 {/* Outcome Filter Pills */}
-                <div className="flex items-center gap-1.5 text-xs">
+                <div className="flex items-center gap-1.5 text-xs max-md:grid max-md:grid-cols-2 max-md:gap-1 max-md:rounded-xl max-md:bg-white/[0.03] max-md:p-1 max-md:text-sm max-md:ring-1 max-md:ring-white/[0.08]">
                     <span className="text-zinc-400 mr-1 hidden md:inline">Outcome:</span>
                     <button
                         type="button"
                         aria-pressed={selectedOutcome === 'all'}
                         onClick={() => setSelectedOutcome('all')}
-                        className={`rounded-lg px-2.5 py-1 transition-colors ${
+                        className={`rounded-lg px-2.5 py-1 transition-colors max-md:min-h-10 ${
                             selectedOutcome === 'all'
                                 ? 'bg-white/15 text-white font-medium'
                                 : 'text-zinc-400 hover:text-white'
@@ -237,7 +248,7 @@ export default function BenchmarkMatrix({ benchmarks, categories }: BenchmarkMat
                         type="button"
                         aria-pressed={selectedOutcome === 'prismio-win'}
                         onClick={() => setSelectedOutcome('prismio-win')}
-                        className={`rounded-lg px-2.5 py-1 transition-colors ${
+                        className={`rounded-lg px-2.5 py-1 transition-colors max-md:min-h-10 ${
                             selectedOutcome === 'prismio-win'
                                 ? 'bg-emerald-500/20 text-emerald-300 font-medium'
                                 : 'text-zinc-400 hover:text-emerald-300'
@@ -249,7 +260,7 @@ export default function BenchmarkMatrix({ benchmarks, categories }: BenchmarkMat
                         type="button"
                         aria-pressed={selectedOutcome === 'parity'}
                         onClick={() => setSelectedOutcome('parity')}
-                        className={`rounded-lg px-2.5 py-1 transition-colors ${
+                        className={`rounded-lg px-2.5 py-1 transition-colors max-md:min-h-10 ${
                             selectedOutcome === 'parity'
                                 ? 'bg-zinc-700/50 text-zinc-200 font-medium'
                                 : 'text-zinc-400 hover:text-zinc-200'
@@ -261,7 +272,7 @@ export default function BenchmarkMatrix({ benchmarks, categories }: BenchmarkMat
                         type="button"
                         aria-pressed={selectedOutcome === 'prismio-loss'}
                         onClick={() => setSelectedOutcome('prismio-loss')}
-                        className={`rounded-lg px-2.5 py-1 transition-colors ${
+                        className={`rounded-lg px-2.5 py-1 transition-colors max-md:min-h-10 ${
                             selectedOutcome === 'prismio-loss'
                                 ? 'bg-rose-500/20 text-rose-300 font-medium'
                                 : 'text-zinc-400 hover:text-rose-300'
@@ -286,7 +297,7 @@ export default function BenchmarkMatrix({ benchmarks, categories }: BenchmarkMat
                             setSelectedCategory('all');
                             setSelectedOutcome('all');
                         }}
-                        className="text-indigo-400 hover:text-indigo-300 transition-colors"
+                        className="text-indigo-400 hover:text-indigo-300 transition-colors max-md:-my-2 max-md:min-h-10 max-md:px-1"
                     >
                         Reset filters
                     </button>
@@ -295,12 +306,12 @@ export default function BenchmarkMatrix({ benchmarks, categories }: BenchmarkMat
 
             {/* Workload Table */}
             <div className="overflow-x-auto rounded-2xl border border-white/[0.08] bg-[#0b0c10]/60">
-                <table className="w-full min-w-[58rem] border-collapse text-left text-xs">
+                <table className="w-full min-w-[58rem] border-collapse text-left text-xs max-md:block max-md:min-w-0">
                     <caption className="sr-only">
                         Benchmark workloads with median elapsed time per arm. Column headers sort the table.
                     </caption>
-                    <thead>
-                        <tr className="border-b border-white/[0.08] bg-white/[0.02] text-zinc-400 font-medium select-none">
+                    <thead className="max-md:block">
+                        <tr className="border-b border-white/[0.08] bg-white/[0.02] text-zinc-400 font-medium select-none max-md:flex max-md:gap-2 max-md:overflow-x-auto max-md:px-3 max-md:py-3 max-md:[scrollbar-width:none] max-md:[&::-webkit-scrollbar]:hidden">
                             <SortTh col="name" label="Workload" align="left" className="py-4 pl-6 pr-4 text-left" {...sortProps} />
                             <SortTh col="category" label="Category" align="left" className="px-4 py-4 text-left" {...sortProps} />
                             <SortTh col="prismio" label="Prismio" tone="text-purple-300" dot="bg-purple-400" className="px-4 py-4 text-right" {...sortProps} />
@@ -308,13 +319,13 @@ export default function BenchmarkMatrix({ benchmarks, categories }: BenchmarkMat
                             <SortTh col="rust" label="Rust (opt-3)" tone="text-orange-300" dot="bg-orange-400" className="px-4 py-4 text-right" {...sortProps} />
                             <SortTh col="vs-cpp" label="vs C++" tone="text-sky-300" dot="bg-sky-400" className="px-4 py-4 text-right" {...sortProps} />
                             <SortTh col="vs-rust" label="vs Rust" tone="text-orange-300" dot="bg-orange-400" className="px-4 py-4 text-right" {...sortProps} />
-                            <th scope="col" className="py-4 pr-6 text-right">Details</th>
+                            <th scope="col" className="py-4 pr-6 text-right max-md:hidden">Details</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/[0.05]">
+                    <tbody className="divide-y divide-white/[0.05] max-md:block">
                         {sortedBenchmarks.length === 0 ? (
                             <tr>
-                                <td colSpan={8} className="py-12 text-center text-zinc-400">
+                                <td colSpan={8} className="py-12 text-center text-zinc-400 max-md:block max-md:px-4">
                                     No benchmark workloads match the selected filter criteria.
                                 </td>
                             </tr>
@@ -326,18 +337,18 @@ export default function BenchmarkMatrix({ benchmarks, categories }: BenchmarkMat
                                     <React.Fragment key={item.name}>
                                         <tr
                                             onClick={() => toggleRow(item.name)}
-                                            className={`group cursor-pointer transition-colors hover:bg-white/[0.03] ${
+                                            className={`group cursor-pointer transition-colors hover:bg-white/[0.03] max-md:grid max-md:grid-cols-3 max-md:gap-x-3 max-md:gap-y-2.5 max-md:px-4 max-md:pb-4 max-md:pt-1.5 ${
                                                 isExpanded ? 'bg-white/[0.04]' : ''
                                             }`}
                                         >
                                             {/* Workload Name & Profile */}
-                                            <td className="py-4 pl-6 pr-4">
+                                            <td className="py-4 pl-6 pr-4 max-md:col-span-3 max-md:p-0">
                                                 <button
                                                     type="button"
                                                     aria-expanded={isExpanded}
                                                     aria-controls={`bm-details-${item.name}`}
                                                     aria-label={`${isExpanded ? 'Hide' : 'Inspect'} ${item.name}`}
-                                                    className="flex items-center gap-2.5 rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                                                    className="flex items-center gap-2.5 rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 max-md:min-h-11 max-md:w-full"
                                                 >
                                                     <span className="text-zinc-400 group-hover:text-zinc-300 transition-colors">
                                                         {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -354,13 +365,13 @@ export default function BenchmarkMatrix({ benchmarks, categories }: BenchmarkMat
                                             </td>
 
                                             {/* Category */}
-                                            <td className="px-4 py-4 text-sm text-zinc-400">
+                                            <td className="px-4 py-4 text-sm text-zinc-400 max-md:col-span-3 max-md:-mt-3 max-md:p-0 max-md:pl-6">
                                                 {item.categoryLabel}
                                             </td>
 
                                             {/* Prismio Elapsed Median */}
-                                            <td className="px-4 py-4 text-right font-mono text-sm font-medium text-purple-200">
-                                                <div className="flex items-center justify-end gap-2">
+                                            <td data-label="Prismio" className={`px-4 py-4 text-right font-mono text-sm font-medium text-purple-200 ${PHONE_CELL} ${PHONE_LABEL}`}>
+                                                <div className="flex items-center justify-end gap-2 max-md:flex-wrap max-md:justify-start max-md:gap-1.5">
                                                     <span>{item.prismioFormatted}</span>
                                                     {item.jitterPct !== null && item.jitterPct <= 2.5 && (
                                                         <span
@@ -374,19 +385,19 @@ export default function BenchmarkMatrix({ benchmarks, categories }: BenchmarkMat
                                             </td>
 
                                             {/* C++ Elapsed Median */}
-                                            <td className="px-4 py-4 text-right font-mono text-sm text-zinc-300">
+                                            <td data-label="C++20" className={`px-4 py-4 text-right font-mono text-sm text-zinc-300 ${PHONE_CELL} ${PHONE_LABEL}`}>
                                                 {item.cppFormatted}
                                             </td>
 
                                             {/* Rust Elapsed Median */}
-                                            <td className="px-4 py-4 text-right font-mono text-sm text-zinc-300">
+                                            <td data-label="Rust" className={`px-4 py-4 text-right font-mono text-sm text-zinc-300 ${PHONE_CELL} ${PHONE_LABEL}`}>
                                                 {item.rustFormatted}
                                             </td>
 
                                             {/* vs C++ Delta Pill */}
-                                            <td className="px-4 py-4 text-right font-mono">
+                                            <td data-label="vs C++" className={`px-4 py-4 text-right font-mono ${PHONE_CELL} max-md:col-start-2 max-md:row-start-4 max-md:-mt-1`}>
                                                 <span
-                                                    className={`inline-block rounded-md px-2.5 py-1 text-xs font-semibold ${
+                                                    className={`inline-block rounded-md px-2.5 py-1 text-xs font-semibold max-md:whitespace-nowrap max-md:px-1.5 max-md:text-[11px] ${
                                                         item.vsCppStatus === 'faster'
                                                             ? 'bg-emerald-500/15 text-emerald-400'
                                                             : item.vsCppStatus === 'slower'
@@ -399,9 +410,9 @@ export default function BenchmarkMatrix({ benchmarks, categories }: BenchmarkMat
                                             </td>
 
                                             {/* vs Rust Delta Pill */}
-                                            <td className="px-4 py-4 text-right font-mono">
+                                            <td data-label="vs Rust" className={`px-4 py-4 text-right font-mono ${PHONE_CELL} max-md:col-start-3 max-md:row-start-4 max-md:-mt-1`}>
                                                 <span
-                                                    className={`inline-block rounded-md px-2.5 py-1 text-xs font-semibold ${
+                                                    className={`inline-block rounded-md px-2.5 py-1 text-xs font-semibold max-md:whitespace-nowrap max-md:px-1.5 max-md:text-[11px] ${
                                                         item.vsRustStatus === 'faster'
                                                             ? 'bg-emerald-500/15 text-emerald-400'
                                                             : item.vsRustStatus === 'slower'
@@ -414,7 +425,7 @@ export default function BenchmarkMatrix({ benchmarks, categories }: BenchmarkMat
                                             </td>
 
                                             {/* Action / Chevron */}
-                                            <td className="py-4 pr-6 text-right text-zinc-400">
+                                            <td className="py-4 pr-6 text-right text-zinc-400 max-md:hidden">
                                                 <span className="text-xs text-zinc-400 group-hover:text-white transition-colors">
                                                     {isExpanded ? 'Hide' : 'Inspect'}
                                                 </span>
@@ -423,11 +434,11 @@ export default function BenchmarkMatrix({ benchmarks, categories }: BenchmarkMat
 
                                         {/* Expanded Details Sub-Panel */}
                                         {isExpanded && (
-                                            <tr id={`bm-details-${item.name}`} className="bg-black/40">
-                                                <td colSpan={8} className="px-6 py-4">
-                                                    <div className="space-y-4 rounded-xl border border-white/[0.08] bg-[#090a0e] p-5">
+                                            <tr id={`bm-details-${item.name}`} className="bg-black/40 max-md:block">
+                                                <td colSpan={8} className="px-6 py-4 max-md:block max-md:px-3 max-md:py-3">
+                                                    <div className="space-y-4 rounded-xl border border-white/[0.08] bg-[#090a0e] p-5 max-md:p-3.5">
                                                         {/* Clean Header: Workload & Raw Checksum */}
-                                                        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3 text-xs">
+                                                        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3 text-xs max-md:flex-wrap max-md:gap-2">
                                                             <div className="flex items-center gap-2">
                                                                 <span className="font-mono font-medium text-white">{item.name}</span>
                                                                 <span className="font-mono text-xs text-zinc-400">({item.profile})</span>

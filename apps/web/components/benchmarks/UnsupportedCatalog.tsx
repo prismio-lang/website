@@ -90,7 +90,7 @@ export default function UnsupportedCatalog({ unsupported, categories }: Unsuppor
                     <h2 id="unsupported-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white">
                         What the suite does not measure yet.
                     </h2>
-                    <p className="mt-3 text-sm leading-6 text-zinc-400">
+                    <p className="mt-3 text-sm leading-6 text-zinc-400 max-md:text-base max-md:leading-7">
                         A workload gets no comparison result until all three languages run it through ordinary
                         library features, never a benchmark-only shim. Most of these wait on a capability the standard
                         library does not have. {readyCount > 0 && (
@@ -128,14 +128,14 @@ export default function UnsupportedCatalog({ unsupported, categories }: Unsuppor
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Search missing features, containers, runtimes..."
-                        className="w-full rounded-xl border border-white/10 bg-[#0b0c10] py-2 pl-9 pr-8 text-xs text-white placeholder-zinc-400 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                        className="w-full rounded-xl border border-white/10 bg-[#0b0c10] py-2 pl-9 pr-8 text-xs text-white placeholder-zinc-400 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 max-md:py-2.5 max-md:pr-11 max-md:text-base"
                     />
                     {search && (
                         <button
                             type="button"
                             aria-label="Clear search"
                             onClick={() => setSearch('')}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white max-md:right-0.5 max-md:inline-flex max-md:size-10 max-md:items-center max-md:justify-center"
                         >
                             <X size={13} />
                         </button>
@@ -187,9 +187,9 @@ export default function UnsupportedCatalog({ unsupported, categories }: Unsuppor
                                     {items.map((item) => {
                                         const note = isPossibleNow(item.name) ? POSSIBLE_NOW[item.name] : undefined;
                                         return (
-                                            <div key={item.name} className="p-3 space-y-1.5">
+                                            <div key={item.name} className="p-3 space-y-1.5 max-md:py-3.5">
                                                 <div className="flex items-center justify-between gap-2">
-                                                    <span className="font-mono text-xs font-medium text-zinc-200">
+                                                    <span className="font-mono text-xs font-medium text-zinc-200 max-md:text-sm">
                                                         {item.name}
                                                     </span>
                                                     <span className="rounded border border-white/[0.08] bg-white/[0.02] px-1.5 py-0.5 text-xs text-zinc-400">
@@ -198,19 +198,19 @@ export default function UnsupportedCatalog({ unsupported, categories }: Unsuppor
                                                 </div>
                                                 {note ? (
                                                     <>
-                                                        <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-300">
+                                                        <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-300 max-md:text-sm">
                                                             <Check size={12} aria-hidden />
                                                             Possible now, not benchmarked yet
                                                         </p>
-                                                        <p className="text-xs leading-relaxed text-zinc-400">{withCode(note)}</p>
+                                                        <p className="text-xs leading-relaxed text-zinc-400 max-md:text-sm">{withCode(note)}</p>
                                                     </>
                                                 ) : (
-                                                    <p className="text-xs leading-relaxed text-zinc-400">
+                                                    <p className="text-xs leading-relaxed text-zinc-400 max-md:text-sm">
                                                         {item.missing_feature || 'Pending implementation.'}
                                                     </p>
                                                 )}
                                                 {!note && PARTLY_THERE[item.name] && (
-                                                    <p className="border-l border-sky-300/40 pl-3 text-xs leading-relaxed text-zinc-400">
+                                                    <p className="border-l border-sky-300/40 pl-3 text-xs leading-relaxed text-zinc-400 max-md:text-sm">
                                                         <span className="font-medium text-sky-300">Already there: </span>
                                                         {withCode(PARTLY_THERE[item.name] ?? '')}
                                                     </p>
