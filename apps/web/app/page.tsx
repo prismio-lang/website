@@ -14,6 +14,20 @@ import CTA from "@/components/landing/CTA";
 import {JsonLd} from "@/components/json-ld";
 import {faqStructuredData, prismioEntityData} from "@/config/structured-data";
 import FooterMain from "@prismio/ui/FooterMain";
+import type {Metadata} from "next";
+import {siteConfig} from "@/config/site";
+import {pageMetadata} from "@/lib/seo";
+
+const home = pageMetadata({
+    title: "Prismio — Systems Programming Language for Native Performance",
+    description: siteConfig.description,
+    path: "/",
+});
+
+export const metadata: Metadata = {
+    ...home,
+    alternates: {...home.alternates, types: {"application/atom+xml": siteConfig.releasesFeed}},
+};
 
 export default function LandingPage() {
     return (

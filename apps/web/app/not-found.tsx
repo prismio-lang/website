@@ -10,13 +10,19 @@ import {
     ArrowRight,
 } from "lucide-react";
 import Logo from "@prismio/ui/Logo";
+import type {Metadata} from "next";
+
+// Next adds `noindex` to this page itself.
+export const metadata: Metadata = {
+    title: "Page not found · Prismio",
+};
 
 const navLinks = [
     { title: "Home",        icon: House,     href: "/",           desc: "Back to the main page" },
     { title: "Community",   icon: Users,     href: "/community",  desc: "Join the conversation" },
-    { title: "Playground",  icon: Terminal,  href: "/playground", desc: "Try Prismio in browser" },
-    { title: "Packages",    icon: Package,   href: "/packages",   desc: "Browse the ecosystem" },
-    { title: "Docs",        icon: BookOpen,  href: "/docs",       desc: "Read the documentation" },
+    { title: "Playground",  icon: Terminal,  href: "https://play.prismio.org", desc: "Try Prismio in browser" },
+    { title: "Packages",    icon: Package,   href: "https://packages.prismio.org", desc: "Browse the ecosystem" },
+    { title: "Docs",        icon: BookOpen,  href: "https://docs.prismio.org", desc: "Read the documentation" },
     { title: "Install",     icon: Download,  href: "/install",    desc: "Get Prismio locally" },
 ];
 

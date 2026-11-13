@@ -37,8 +37,8 @@ export const metadata: Metadata = {
         ],
         apple: [{ url: "/icons/prismio.png", sizes: "180x180", type: "image/png" }],
     },
+    // No canonical here: a layout's canonical is inherited by every page that sets none, the 404 page included.
     alternates: {
-        canonical: "/",
         types: {
             "application/atom+xml": siteConfig.releasesFeed,
         },
@@ -55,7 +55,6 @@ export const metadata: Metadata = {
             {url: "/icons/prismio-banner.png", width: 489, height: 121, alt: "Prismio logo and wordmark"},
         ],
     },
-    robots: {index: true, follow: true},
     keywords: [
         "Prismio",
         "systems programming language",
