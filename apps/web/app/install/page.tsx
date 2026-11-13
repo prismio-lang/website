@@ -483,7 +483,7 @@ export default function InstallPage() {
                 </section>
 
                 {/* Check it works */}
-                <section className="mt-28 max-md:mt-20" aria-labelledby="verify-heading">
+                <section className="mt-28 max-md:hidden" aria-labelledby="verify-heading">
                     <h2 id="verify-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white">
                         Check it works.
                     </h2>
@@ -547,7 +547,7 @@ export default function InstallPage() {
                 </section>
 
                 {/* Editors */}
-                <section className="mt-28 max-md:mt-20" aria-labelledby="editors-heading">
+                <section className="mt-28 max-md:hidden" aria-labelledby="editors-heading">
                     <h2 id="editors-heading" className="mb-8 text-3xl font-semibold tracking-[-0.03em] text-white">
                         Editor support
                     </h2>

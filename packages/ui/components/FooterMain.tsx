@@ -6,7 +6,7 @@ import {DISCORD_INVITE_LINK} from "@prismio/utils";
 
 export default function FooterMain() {
     return (
-        <footer className="relative border-t border-zinc-200 dark:border-white/10 mt-32 z-[100]">
+        <footer className="relative border-t border-zinc-200 dark:border-white/10 mt-32 max-md:mt-16 z-[100]">
             <div className="max-w-7xl mx-auto px-8 py-16 grid grid-cols-2 md:grid-cols-4 gap-12 text-sm">
                 {/* Column — About */}
                 <div className="space-y-4 col-span-2 sm:col-span-1">
