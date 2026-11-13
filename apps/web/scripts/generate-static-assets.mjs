@@ -20,6 +20,8 @@ const siteConfig = {
     rosettaCode: "https://rosettacode.org/wiki/Category:Prismio",
     homebrewTap: "https://github.com/prismio-lang/homebrew-tap",
     jetbrainsPlugin: "https://plugins.jetbrains.com/plugin/34672-prismio/",
+    vscodeExtension: "https://marketplace.visualstudio.com/items?itemName=Prismio.prismio",
+    playground: "https://play.prismio.org",
     fossUnitedGrant: "https://fossunited.org/grants/prismio",
 };
 
@@ -130,7 +132,8 @@ Prismio ${PRISMIO_VERSION} was released on 2026-11-10 and is pre-1.0 (0.3.0 is p
 
 - [Wikidata Knowledge Graph](${siteConfig.wikidata}): Official Wikidata entity (Q141648085) for the Prismio programming language and compiler
 - [Rosetta Code](${siteConfig.rosettaCode}): Rosetta Code programming language category and comparative code samples
-- [JetBrains Plugin](${siteConfig.jetbrainsPlugin}): Official IDE support for CLion, IntelliJ IDEA, and JetBrains IDEs
+- [JetBrains Plugin](${siteConfig.jetbrainsPlugin}): Official plugin on the JetBrains Marketplace for IntelliJ IDEA, CLion and the other JetBrains IDEs (2026.2 or newer)
+- [VS Code Extension](${siteConfig.vscodeExtension}): Official extension on the Visual Studio Marketplace (Prismio.prismio), a client of the compiler's own language server
 - [Homebrew Tap](${siteConfig.homebrewTap}): macOS and Linux Homebrew formula repository
 - [FOSS United Grant](${siteConfig.fossUnitedGrant}): FOSS United Foundation development grant profile
 
@@ -179,6 +182,7 @@ Contact: ${siteConfig.email}
             rosettacode: siteConfig.rosettaCode,
             homebrew: siteConfig.homebrewTap,
             jetbrains: siteConfig.jetbrainsPlugin,
+            vscode: siteConfig.vscodeExtension,
             fossunited: siteConfig.fossUnitedGrant,
             releases: `${siteConfig.github}/releases`,
             llms: `${siteConfig.url}/llms.txt`,
@@ -222,7 +226,9 @@ Contact: ${siteConfig.email}
             install: `${siteConfig.url}/install`,
             documentation: siteConfig.docsUrl,
             developers: siteConfig.developersUrl,
-            playground: `${siteConfig.url}/playground`,
+            playground: siteConfig.playground,
+            jetbrains: siteConfig.jetbrainsPlugin,
+            vscode: siteConfig.vscodeExtension,
             source: siteConfig.github,
             releases: `${siteConfig.github}/releases`,
             llms: `${siteConfig.url}/llms.txt`,
