@@ -8,7 +8,7 @@ tags: [roadmap, status, coming-soon]
 related: [start/overview, releases/0.2.0, faq]
 ---
 
-This page distinguishes shipped compiler behavior from intent. It assigns no dates to features. The one date is the next release's target: **0.3.0 is planned for 5 January 2027**, a target and not a promise.
+This page distinguishes shipped compiler behavior from intent. It assigns no dates to features. The one date is the next release's target: **0.3.0 is planned for 10 December 2026**, a target and not a promise.
 
 | Area | 0.2 status |
 | --- | --- |

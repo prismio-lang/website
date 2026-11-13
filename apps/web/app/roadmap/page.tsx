@@ -160,7 +160,7 @@ export default function RoadmapPage() {
                             </div>
                             <div className="flex items-center justify-between gap-4 py-3">
                                 <dt className="text-zinc-400">Next release</dt>
-                                <dd className="font-mono text-zinc-200">0.3.0 · 5 Jan 2027</dd>
+                                <dd className="font-mono text-zinc-200">0.3.0 · 10 Dec 2026</dd>
                             </div>
                         </dl>
                         <a

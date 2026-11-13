@@ -4,8 +4,8 @@ import {ArrowRight, ArrowUpRight} from 'lucide-react';
 
 const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400';
 
-/** 10 Nov 2026 to 5 Jan 2027. */
-const DAYS_BETWEEN = 56;
+/** 10 Nov 2026 to 10 Dec 2026. */
+const DAYS_BETWEEN = 30;
 
 const TERMS = [
     {term: 'Status', detail: 'Planned. Nothing in 0.3.0 has been announced yet.'},
@@ -21,8 +21,8 @@ export default function NextRelease() {
                 <p className="font-mono text-sm text-indigo-300">Next release</p>
                 <h2 id="next-heading" className="mt-4 text-4xl font-semibold tracking-[-0.035em] text-white md:text-5xl">
                     0.3.0 is planned for{' '}
-                    <time dateTime="2027-01-05" className="text-sky-300 whitespace-nowrap">
-                        5 January 2027.
+                    <time dateTime="2026-12-10" className="text-sky-300 whitespace-nowrap">
+                        10 December 2026.
                     </time>
                 </h2>
                 <p className="mt-6 text-base leading-7 text-zinc-300">
@@ -53,7 +53,7 @@ export default function NextRelease() {
                 {/* Timeline: shipped version, the span between, the planned version */}
                 <div
                     role="img"
-                    aria-label={`Prismio 0.2.0 was released on 10 November 2026. Prismio 0.3.0 is planned for 5 January 2027, ${DAYS_BETWEEN} days later.`}
+                    aria-label={`Prismio 0.2.0 was released on 10 November 2026. Prismio 0.3.0 is planned for 10 December 2026, ${DAYS_BETWEEN} days later.`}
                     className="flex items-start"
                 >
                     <div className="w-28 shrink-0 sm:w-36">
@@ -75,7 +75,7 @@ export default function NextRelease() {
                             <span className="size-1 rounded-full bg-indigo-300/80"/>
                         </span>
                         <p className="mt-4 font-mono text-2xl font-semibold tracking-tight text-white">0.3.0</p>
-                        <p className="mt-1 text-sm text-zinc-300">5 Jan 2027</p>
+                        <p className="mt-1 text-sm text-zinc-300">10 Dec 2026</p>
                         <p className="mt-0.5 text-xs text-indigo-300">Planned</p>
                     </div>
                 </div>

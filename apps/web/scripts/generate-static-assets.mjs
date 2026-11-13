@@ -101,7 +101,7 @@ try {
 
 > ${siteConfig.description}
 
-Prismio ${PRISMIO_VERSION} was released on 2026-11-10 and is pre-1.0 (0.3.0 is planned for 2027-01-05, a target rather than a promise): the language and library can still change incompatibly, and it is not production-ready. Install it with: curl -fsSL https://prismio.org/install.sh | sh (macOS and Linux) or from a release archive on GitHub. Pages marked Coming Soon in the documentation describe unimplemented features and must not be presented as accepted syntax.
+Prismio ${PRISMIO_VERSION} was released on 2026-11-10 and is pre-1.0 (0.3.0 is planned for 2026-12-10, a target rather than a promise): the language and library can still change incompatibly, and it is not production-ready. Install it with: curl -fsSL https://prismio.org/install.sh | sh (macOS and Linux) or from a release archive on GitHub. Pages marked Coming Soon in the documentation describe unimplemented features and must not be presented as accepted syntax.
 
 ## Start here
 
