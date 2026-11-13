@@ -26,7 +26,7 @@ function Row({editor}: {editor: (typeof EDITORS)[number]}) {
     };
 
     return (
-        <li className="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+        <li className="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between max-sm:px-5">
             <div className="flex items-center gap-4">
                 <LogoStack logos={editor.logos} />
                 <div>
@@ -36,13 +36,13 @@ function Row({editor}: {editor: (typeof EDITORS)[number]}) {
                     </p>
                 </div>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-3 rounded-lg bg-[#06070a] py-2 pl-3 pr-2.5 ring-1 ring-white/[0.08]">
+            <div className="flex flex-wrap items-center gap-3 max-sm:grid max-sm:grid-cols-[minmax(0,1fr)_auto]">
+                <div className="flex items-center gap-3 rounded-lg bg-[#06070a] py-2 pl-3 pr-2.5 ring-1 ring-white/[0.08] max-sm:justify-between max-sm:py-0.5 max-sm:pr-1">
                     <code className="font-mono text-sm text-zinc-100">{editor.copyValue}</code>
                     <button
                         type="button"
                         onClick={copy}
-                        className={`inline-flex items-center gap-1.5 rounded text-xs text-zinc-400 transition-colors hover:text-white ${FOCUS}`}
+                        className={`inline-flex items-center gap-1.5 rounded text-xs text-zinc-400 transition-colors hover:text-white max-md:min-h-10 max-md:px-2.5 max-md:text-sm ${FOCUS}`}
                         aria-label={`Copy ${editor.copyValue}`}
                     >
                         {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
@@ -53,7 +53,7 @@ function Row({editor}: {editor: (typeof EDITORS)[number]}) {
                     href={editor.primary.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 ${FOCUS}`}
+                    className={`inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 max-md:min-h-11 max-md:justify-center ${FOCUS}`}
                 >
                     Marketplace
                     <ArrowUpRight size={14} />
@@ -71,7 +71,7 @@ export default function EditorInstall({className = ''}: {className?: string}) {
                     <Row key={editor.id} editor={editor} />
                 ))}
             </ul>
-            <p className="mt-4 text-sm leading-6 text-zinc-500">
+            <p className="mt-4 text-sm leading-6 text-zinc-500 max-md:text-base max-md:leading-7">
                 Any other editor can run <code className="font-mono text-zinc-300">prismio lsp</code>, which ships with the toolchain.{' '}
                 <a
                     href="https://docs.prismio.org/guides/editors"

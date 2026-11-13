@@ -124,9 +124,9 @@ export default function CommunityPage() {
 
             <HeaderMain />
 
-            <main className="relative z-10 mx-auto max-w-7xl px-6 pt-20 pb-0 md:pt-28 md:pb-0">
+            <main className="relative z-10 mx-auto max-w-7xl px-6 pt-20 pb-0 md:pt-28 md:pb-0 max-md:px-5 max-md:pt-12">
                 {/* Hero */}
-                <section className="border-b border-white/[0.08] pb-20">
+                <section className="border-b border-white/[0.08] pb-20 max-md:pb-16">
                     <h1 className="max-w-4xl text-4xl font-semibold leading-[1.05] tracking-[-0.04em] text-white sm:text-5xl md:text-6xl">
                         Where Prismio is{' '} <br/>
                         <span className="text-sky-300">discussed and built.</span>
@@ -140,7 +140,7 @@ export default function CommunityPage() {
                             href={DISCORD_INVITE_LINK}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#5865F2] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#4752c4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
+                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#5865F2] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#4752c4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 max-sm:min-h-12 max-sm:w-full"
                         >
                             <DiscordIcon size={16} />
                             Join Discord
@@ -149,7 +149,7 @@ export default function CommunityPage() {
                             href={REPO}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
+                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 max-sm:min-h-12 max-sm:w-full"
                         >
                             <GithubIcon size={16} />
                             GitHub
@@ -159,15 +159,15 @@ export default function CommunityPage() {
                 </section>
 
                 {/* Where to talk */}
-                <section aria-labelledby="talk-heading" className="border-b border-white/[0.08] py-24">
+                <section aria-labelledby="talk-heading" className="border-b border-white/[0.08] py-24 max-md:py-16">
                     <h2 id="talk-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
                         Where to talk.
                     </h2>
-                    <div className="mt-12 grid gap-6 md:grid-cols-2">
+                    <div className="mt-12 grid gap-6 md:grid-cols-2 max-md:mt-8 max-md:gap-4">
                         {PLACES.map(({name, copy, cta, href, icon, primary}) => (
                             <div
                                 key={name}
-                                className={`${CARD} flex flex-col justify-between p-8 ${
+                                className={`${CARD} flex flex-col justify-between p-8 max-md:p-6 ${
                                     primary ? 'border-indigo-500/30' : ''
                                 }`}
                             >
@@ -176,13 +176,13 @@ export default function CommunityPage() {
                                         {icon}
                                         <h3 className="text-xl font-semibold text-white">{name}</h3>
                                     </div>
-                                    <p className="text-sm leading-7 text-zinc-400">{copy}</p>
+                                    <p className="text-sm leading-7 text-zinc-400 max-md:text-base">{copy}</p>
                                 </div>
                                 <a
                                     href={href}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="mt-8 inline-flex items-center gap-1.5 text-sm font-medium text-indigo-400 transition-colors hover:text-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                                    className="mt-8 inline-flex items-center gap-1.5 text-sm font-medium text-indigo-400 transition-colors hover:text-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 max-md:mt-5 max-md:min-h-11 max-md:text-base"
                                 >
                                     {cta}
                                     <ArrowUpRight size={14} />
@@ -193,13 +193,13 @@ export default function CommunityPage() {
                 </section>
 
                 {/* Start here */}
-                <section aria-labelledby="start-heading" className="border-b border-white/[0.08] py-24">
+                <section aria-labelledby="start-heading" className="border-b border-white/[0.08] py-24 max-md:py-16">
                     <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
                         <div className="lg:col-span-4">
                             <h2 id="start-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
                                 Start here.
                             </h2>
-                            <p className="mt-4 text-sm leading-7 text-zinc-400">
+                            <p className="mt-4 text-sm leading-7 text-zinc-400 max-md:text-base">
                                 Everything you need to go from reading to a first pull request.
                             </p>
                         </div>
@@ -211,7 +211,7 @@ export default function CommunityPage() {
                                         href={href}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="group flex items-start gap-4 px-7 py-5 transition-colors hover:bg-white/[0.03] focus-visible:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-white/40"
+                                        className="group flex items-start gap-4 px-7 py-5 max-md:px-5 transition-colors hover:bg-white/[0.03] focus-visible:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-white/40"
                                     >
                                         <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-400">
                                             <Icon size={17} />
@@ -220,7 +220,7 @@ export default function CommunityPage() {
                                             <span className="block text-base font-semibold text-white transition-colors group-hover:text-indigo-200">
                                                 {title}
                                             </span>
-                                            <span className="mt-1 block text-sm leading-6 text-zinc-400">{copy}</span>
+                                            <span className="mt-1 block text-sm leading-6 text-zinc-400 max-md:text-base max-md:leading-7">{copy}</span>
                                         </span>
                                         <ArrowUpRight size={16} className="mt-1 shrink-0 text-zinc-400 transition-colors group-hover:text-white" />
                                     </a>
@@ -231,25 +231,25 @@ export default function CommunityPage() {
                 </section>
 
                 {/* Where help fits */}
-                <section aria-labelledby="areas-heading" className="border-b border-white/[0.08] py-24">
+                <section aria-labelledby="areas-heading" className="border-b border-white/[0.08] py-24 max-md:py-16">
                     <h2 id="areas-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
                         Where help fits.
                     </h2>
 
-                    <dl className="mt-12 divide-y divide-white/[0.08] border-y border-white/[0.08]">
+                    <dl className="mt-12 divide-y divide-white/[0.08] border-y border-white/[0.08] max-md:mt-8">
                         {AREAS.map(({title, path, copy, href, label}) => (
-                            <div key={title} className="grid gap-4 py-8 md:grid-cols-12 md:gap-8">
+                            <div key={title} className="grid gap-4 py-8 md:grid-cols-12 md:gap-8 max-md:gap-3 max-md:py-7">
                                 <dt className="md:col-span-4">
                                     <span className="block text-lg font-semibold text-white">{title}</span>
                                     <span className="mt-1 block font-mono text-xs text-zinc-400">{path}</span>
                                 </dt>
-                                <dd className="text-sm leading-7 text-zinc-400 md:col-span-6">{copy}</dd>
+                                <dd className="text-sm leading-7 text-zinc-400 md:col-span-6 max-md:text-base">{copy}</dd>
                                 <dd className="md:col-span-2 md:text-right">
                                     <a
                                         href={href}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-400 transition-colors hover:text-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                                        className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-400 transition-colors hover:text-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 max-md:-my-2 max-md:min-h-11 max-md:text-base"
                                     >
                                         {label}
                                         <ArrowUpRight size={13} />
@@ -261,23 +261,23 @@ export default function CommunityPage() {
                 </section>
 
                 {/* How a change lands */}
-                <section aria-labelledby="flow-heading" className="border-b border-white/[0.08] py-24">
+                <section aria-labelledby="flow-heading" className="border-b border-white/[0.08] py-24 max-md:py-16">
                     <h2 id="flow-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
                         How a change lands.
                     </h2>
 
-                    <ol className="mt-12 grid gap-6 md:grid-cols-3">
+                    <ol className="mt-12 grid gap-6 md:grid-cols-3 max-md:mt-8 max-md:gap-4">
                         {STEPS.map(({title, copy}, i) => (
-                            <li key={title} className={`${CARD} p-7`}>
+                            <li key={title} className={`${CARD} p-7 max-md:p-6`}>
                                 <span className="font-mono text-sm text-indigo-300">Step {i + 1}</span>
                                 <h3 className="mt-3 text-lg font-semibold text-white">{title}</h3>
-                                <p className="mt-2 text-sm leading-7 text-zinc-400">{copy}</p>
+                                <p className="mt-2 text-sm leading-7 text-zinc-400 max-md:text-base">{copy}</p>
                             </li>
                         ))}
                     </ol>
 
-                    <p className="mt-10 flex items-center gap-3 text-sm text-zinc-400">
-                        <FileText size={16} className="shrink-0 text-zinc-400" />
+                    <p className="mt-10 flex items-center gap-3 text-sm text-zinc-400 max-md:items-start max-md:text-base max-md:leading-7">
+                        <FileText size={16} className="shrink-0 text-zinc-400 max-md:mt-1.5" />
                         <span>
                             Prismio follows the Contributor Covenant.{' '}
                             <a
@@ -294,7 +294,7 @@ export default function CommunityPage() {
                 </section>
 
                 {/* Closing CTA */}
-                <section className="pt-28 text-center">
+                <section className="pt-28 text-center max-md:pt-20">
                     <div className="mx-auto max-w-3xl space-y-6">
                         <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
                             Rather just try it first?
@@ -302,10 +302,10 @@ export default function CommunityPage() {
                         <p className="mx-auto max-w-xl text-base text-zinc-400">
                             Install Prismio, write something small, and report where it broke.
                         </p>
-                        <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+                        <div className="flex flex-wrap items-center justify-center gap-4 pt-4 max-sm:gap-3">
                             <Link
                                 href="/install"
-                                className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                                className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 max-sm:w-full max-sm:justify-center"
                             >
                                 Install Prismio
                                 <ArrowRight size={15} />
@@ -314,7 +314,7 @@ export default function CommunityPage() {
                                 href="https://docs.prismio.org"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-7 py-3.5 text-sm font-medium text-white transition-colors hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-7 py-3.5 text-sm font-medium text-white transition-colors hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 max-sm:w-full max-sm:justify-center"
                             >
                                 Read the docs
                                 <ArrowUpRight size={14} className="opacity-60" />

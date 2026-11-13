@@ -120,9 +120,9 @@ export default function AboutPage() {
 
             <HeaderMain />
 
-            <main className="relative z-10 mx-auto max-w-7xl px-6 pt-20 pb-0 md:pt-28 md:pb-0">
+            <main className="relative z-10 mx-auto max-w-7xl px-6 pt-20 pb-0 md:pt-28 md:pb-0 max-md:px-5 max-md:pt-12">
                 {/* Hero */}
-                <section className="grid items-start gap-12 border-b border-white/[0.08] pb-20 lg:grid-cols-12 lg:gap-16">
+                <section className="grid items-start gap-12 border-b border-white/[0.08] pb-20 lg:grid-cols-12 lg:gap-16 max-md:gap-10 max-md:pb-16">
                     <div className="lg:col-span-8">
                         <h1 className="max-w-3xl text-4xl font-semibold leading-[1.05] tracking-[-0.04em] text-white sm:text-5xl md:text-6xl">
                             A systems language where the compiler places your memory and{" "}
@@ -139,10 +139,10 @@ export default function AboutPage() {
                             explains every decision it makes.
                         </p>
 
-                        <div className="mt-8 flex flex-wrap gap-4">
+                        <div className="mt-8 flex flex-wrap gap-4 max-sm:gap-3">
                             <Link
                                 href="/install"
-                                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-colors hover:bg-zinc-200"
+                                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 max-sm:w-full max-sm:justify-center max-sm:min-h-12"
                             >
                                 <Terminal size={16} />
                                 Install Prismio
@@ -151,7 +151,7 @@ export default function AboutPage() {
                                 href="https://docs.prismio.org"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-zinc-200 transition-colors hover:bg-white/[0.06] hover:text-white"
+                                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-zinc-200 transition-colors hover:bg-white/[0.06] hover:text-white max-sm:w-full max-sm:justify-center max-sm:min-h-12"
                             >
                                 <BookOpen size={16} />
                                 Read the docs
@@ -172,7 +172,7 @@ export default function AboutPage() {
                                 </div>
                             ))}
                         </dl>
-                        <p className="mt-6 rounded-2xl border border-white/[0.06] bg-black/40 p-4 text-xs leading-5 text-zinc-400">
+                        <p className="mt-6 rounded-2xl border border-white/[0.06] bg-black/40 p-4 text-xs leading-5 text-zinc-400 max-md:text-sm max-md:leading-6">
                             <span className="mb-0.5 block font-mono font-semibold text-indigo-400">
                                 Self-hosting
                             </span>
@@ -183,7 +183,7 @@ export default function AboutPage() {
                 </section>
 
                 {/* The Systems Dilemma */}
-                <section className="border-b border-white/[0.08] py-24">
+                <section className="border-b border-white/[0.08] py-24 max-md:py-16">
                     <div className="max-w-3xl">
                         <span className="font-mono text-xs uppercase tracking-widest text-indigo-400">
                             The Systems Dilemma
@@ -196,19 +196,19 @@ export default function AboutPage() {
                         </p>
                     </div>
 
-                    <div className="mt-12 grid gap-6 md:grid-cols-3">
+                    <div className="mt-12 grid gap-6 md:grid-cols-3 max-md:mt-8 max-md:gap-4">
                         {TRADEOFFS.map(({tag, title, tone, copy}) => (
-                            <div key={tag} className={`${CARD} p-7`}>
+                            <div key={tag} className={`${CARD} p-7 max-md:p-6`}>
                                 <div className={`mb-3 font-mono text-xs uppercase tracking-wider ${tone}`}>
                                     {tag}
                                 </div>
                                 <h3 className="mb-2 text-xl font-semibold text-white">{title}</h3>
-                                <p className="text-sm leading-6 text-zinc-400">{copy}</p>
+                                <p className="text-sm leading-6 text-zinc-400 max-md:text-base max-md:leading-7">{copy}</p>
                             </div>
                         ))}
                     </div>
 
-                    <div className="mt-10 rounded-3xl border border-indigo-500/20 bg-indigo-950/[0.15] p-8 md:p-10">
+                    <div className="mt-10 rounded-3xl border border-indigo-500/20 bg-indigo-950/[0.15] p-8 md:p-10 max-md:mt-6 max-md:p-6">
                         <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:items-center">
                             <div className="max-w-2xl space-y-2">
                                 <span className="font-mono text-xs uppercase tracking-widest text-[#47d7b5]">
@@ -217,7 +217,7 @@ export default function AboutPage() {
                                 <h3 className="text-xl font-semibold tracking-tight text-white">
                                     Inference replaces annotation bureaucracy.
                                 </h3>
-                                <p className="text-sm leading-6 text-zinc-300">
+                                <p className="text-sm leading-6 text-zinc-300 max-md:text-base max-md:leading-7">
                                     Instead of forcing you to annotate every reference lifetime or suffer
                                     garbage collector pauses, Prismio uses compiler-proven escape and ownership
                                     analysis to place data in the cheapest safe tier automatically—and lets you
@@ -226,7 +226,7 @@ export default function AboutPage() {
                             </div>
                             <Link
                                 href="/benchmarks"
-                                className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200"
+                                className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 max-sm:w-full max-sm:justify-center max-sm:min-h-12"
                             >
                                 Read Benchmarks
                                 <ArrowRight size={14} />
@@ -236,7 +236,7 @@ export default function AboutPage() {
                 </section>
 
                 {/* What works */}
-                <section className="border-b border-white/[0.08] py-24">
+                <section className="border-b border-white/[0.08] py-24 max-md:py-16">
                     <span className="font-mono text-xs tracking-widest text-indigo-400">
                         IN {PRISMIO_VERSION}
                     </span>
@@ -250,11 +250,11 @@ export default function AboutPage() {
                         if (!lead) return null;
                         const {icon: Icon, title, copy} = lead;
                         return (
-                            <div className="relative mt-12 overflow-hidden rounded-3xl border border-indigo-500/20 bg-indigo-950/[0.15] p-8 md:p-10">
+                            <div className="relative mt-12 overflow-hidden rounded-3xl border border-indigo-500/20 bg-indigo-950/[0.15] p-8 md:p-10 max-md:mt-8 max-md:p-6">
                                 <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-indigo-500/20 blur-3xl" />
                                 <div className="relative grid gap-8 lg:grid-cols-12 lg:gap-16">
                                     <div className="lg:col-span-5">
-                                        <h3 className="mt-10 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                                        <h3 className="mt-10 text-2xl font-semibold tracking-tight text-white sm:text-3xl max-md:mt-0">
                                             {title}
                                         </h3>
                                     </div>
@@ -267,21 +267,21 @@ export default function AboutPage() {
                     {/* Supporting three */}
                     <div className={`${CARD} mt-6 grid divide-y divide-white/[0.08] md:grid-cols-3 md:divide-x md:divide-y-0`}>
                         {FEATURES.slice(1).map(({icon: Icon, title, copy}, i) => (
-                            <div key={title} className="group p-8 transition-colors duration-300 hover:bg-white/[0.02]">
+                            <div key={title} className="group p-8 transition-colors duration-300 hover:bg-white/[0.02] max-md:p-6">
                                 <div className="flex items-center gap-3">
                                     <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-transform group-hover:scale-105 ${SUPPORT_TONES[i]}`}>
                                         <Icon size={18} />
                                     </div>
                                     <h3 className="text-lg font-semibold text-white">{title}</h3>
                                 </div>
-                                <p className="mt-4 text-sm leading-6 text-zinc-400">{renderCode(copy)}</p>
+                                <p className="mt-4 text-sm leading-6 text-zinc-400 max-md:text-base max-md:leading-7">{renderCode(copy)}</p>
                             </div>
                         ))}
                     </div>
                 </section>
 
                 {/* What doesn't */}
-                <section className="border-b border-white/[0.08] py-24">
+                <section className="border-b border-white/[0.08] py-24 max-md:py-16">
                     <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
                         <div className="lg:col-span-4">
                             <span className="font-mono text-xs uppercase tracking-widest text-amber-400">
@@ -290,15 +290,15 @@ export default function AboutPage() {
                             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
                                 What it doesn&apos;t do yet.
                             </h2>
-                            <p className="mt-4 text-sm leading-7 text-zinc-400">
+                            <p className="mt-4 text-sm leading-7 text-zinc-400 max-md:text-base">
                                 If you need any of these, {PRISMIO_VERSION} isn&apos;t ready for you.
                             </p>
                         </div>
 
                         <ul className={`${CARD} divide-y divide-white/[0.06] lg:col-span-8`}>
                             {MISSING.map((item) => (
-                                <li key={item} className="flex gap-3 px-7 py-4 text-sm leading-6 text-zinc-300">
-                                    <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400/70" />
+                                <li key={item} className="flex gap-3 px-7 py-4 text-sm leading-6 text-zinc-300 max-md:px-5 max-md:text-base max-md:leading-7">
+                                    <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400/70 max-md:mt-[11px]" />
                                     <span>{renderCode(item)}</span>
                                 </li>
                             ))}
@@ -307,9 +307,9 @@ export default function AboutPage() {
                 </section>
 
                 {/* How it's run */}
-                <section id="stewardship" className="border-b border-white/[0.08] py-24">
+                <section id="stewardship" className="border-b border-white/[0.08] py-24 max-md:py-16">
                     <div className={`${CARD} overflow-hidden`}>
-                        <div className="grid gap-10 p-8 md:p-10 lg:grid-cols-12 lg:gap-16">
+                        <div className="grid gap-10 p-8 md:p-10 lg:grid-cols-12 lg:gap-16 max-md:gap-6 max-md:p-6">
                             <div className="lg:col-span-5">
                                 <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
                                     How it&apos;s run.
@@ -327,7 +327,7 @@ export default function AboutPage() {
                                             <span aria-hidden className={`h-1.5 w-1.5 shrink-0 rounded-full ${tone}`} />
                                             {title}
                                         </dt>
-                                        <dd className="text-sm leading-6 text-zinc-400">{copy}</dd>
+                                        <dd className="text-sm leading-6 text-zinc-400 max-md:text-base max-md:leading-7">{copy}</dd>
                                     </div>
                                 ))}
                             </dl>
@@ -336,7 +336,7 @@ export default function AboutPage() {
                         {/* Where to go next */}
                         <nav
                             aria-label="About the project"
-                            className="grid grid-cols-2 divide-x divide-y divide-white/[0.08] border-t border-white/[0.08] lg:grid-cols-4 lg:divide-y-0"
+                            className="grid grid-cols-2 divide-x divide-y divide-white/[0.08] border-t border-white/[0.08] lg:grid-cols-4 lg:divide-y-0 max-sm:grid-cols-1 max-sm:divide-x-0"
                         >
                             {LINKS.map(({href, label, hint, tone}) => (
                                 <Link
@@ -348,7 +348,7 @@ export default function AboutPage() {
                                         <span className={`block text-sm font-semibold text-white transition-colors ${tone}`}>
                                             {label}
                                         </span>
-                                        <span className="mt-0.5 block text-xs text-zinc-400">{hint}</span>
+                                        <span className="mt-0.5 block text-xs text-zinc-400 max-md:text-sm">{hint}</span>
                                     </span>
                                     <ArrowRight
                                         size={16}
@@ -361,7 +361,7 @@ export default function AboutPage() {
                 </section>
 
                 {/* Call to action */}
-                <section className="pt-28 text-center">
+                <section className="pt-28 text-center max-md:pt-20">
                     <div className="mx-auto max-w-3xl space-y-6">
                         <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
                             Ready to explore the next generation of systems code?
@@ -371,10 +371,10 @@ export default function AboutPage() {
                             or install Prismio on your machine in seconds.
                         </p>
 
-                        <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+                        <div className="flex flex-wrap items-center justify-center gap-4 pt-4 max-sm:gap-3">
                             <Link
                                 href="/install"
-                                className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-semibold text-black transition-all hover:bg-zinc-200"
+                                className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-semibold text-black transition-all hover:bg-zinc-200 max-sm:w-full max-sm:justify-center"
                             >
                                 <Terminal size={16} />
                                 Install Prismio
@@ -384,7 +384,7 @@ export default function AboutPage() {
                                 href="https://docs.prismio.org"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-7 py-3.5 text-sm font-medium text-white transition-all hover:bg-white/[0.06]"
+                                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-7 py-3.5 text-sm font-medium text-white transition-all hover:bg-white/[0.06] max-sm:w-full max-sm:justify-center"
                             >
                                 <BookOpen size={16} />
                                 Read Documentation

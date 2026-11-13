@@ -134,12 +134,12 @@ export default function RoadmapPage() {
 
             <HeaderMain/>
 
-            <main className="relative z-10 mx-auto max-w-7xl px-6 py-20 md:py-28">
+            <main className="relative z-10 mx-auto max-w-7xl px-6 py-20 md:py-28 max-md:px-5 max-md:pb-16 max-md:pt-12">
                 {/* Hero */}
-                <section className="grid items-start gap-12 border-b border-white/[0.08] pb-20 lg:grid-cols-12 lg:gap-16">
+                <section className="grid items-start gap-12 border-b border-white/[0.08] pb-20 lg:grid-cols-12 lg:gap-16 max-md:gap-10 max-md:pb-16">
                     <div className="lg:col-span-8">
                         <h1 className="max-w-4xl text-4xl font-semibold leading-[1.05] tracking-[-0.04em] text-white sm:text-5xl md:text-6xl">
-                            What works today, and <br/><span className="text-sky-300">what doesn&apos;t yet.</span>
+                            What works today, and <br className="max-sm:hidden"/><span className="text-sky-300">what doesn&apos;t yet.</span>
                         </h1>
                         <p className="mt-8 max-w-2xl text-base leading-8 text-zinc-300 sm:text-lg">
                             Prismio is in active development. This isn&apos;t a release calendar. It lists what the
@@ -167,7 +167,7 @@ export default function RoadmapPage() {
                             href="https://docs.prismio.org/roadmap"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-indigo-400 transition-colors hover:text-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                            className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-indigo-400 transition-colors hover:text-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 max-md:mt-2 max-md:min-h-11"
                         >
                             Full feature-by-feature table
                             <ArrowUpRight size={14}/>
@@ -176,29 +176,29 @@ export default function RoadmapPage() {
                 </section>
 
                 {/* Next release */}
-                <section className="border-b border-white/[0.08] py-24" aria-labelledby="next-heading">
+                <section className="border-b border-white/[0.08] py-24 max-md:py-16" aria-labelledby="next-heading">
                     <NextRelease/>
                 </section>
 
                 {/* Works today */}
-                <section className="border-b border-white/[0.08] py-24" aria-labelledby="works-heading">
-                    <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+                <section className="border-b border-white/[0.08] py-24 max-md:py-16" aria-labelledby="works-heading">
+                    <div className="grid gap-12 lg:grid-cols-12 lg:gap-16 max-md:gap-8">
                         <div className="lg:col-span-4">
                             <h2 id="works-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
                                 Works today.
                             </h2>
-                            <p className="mt-4 text-sm leading-7 text-zinc-400">
+                            <p className="mt-4 text-sm leading-7 text-zinc-400 max-md:text-base">
                                 These are in {PRISMIO_VERSION} and you can use them now.
                             </p>
                         </div>
 
                         <ul className={`${CARD} divide-y divide-white/[0.08] lg:col-span-8`}>
                             {WORKS_TODAY.map((item) => (
-                                <li key={item.title} className="flex gap-4 px-7 py-5">
+                                <li key={item.title} className="flex gap-4 px-7 py-5 max-md:gap-3 max-md:px-5">
                                     <Check size={16} aria-hidden className="mt-1 shrink-0 text-emerald-400"/>
                                     <div>
                                         <h3 className="text-base font-semibold text-white">{item.title}</h3>
-                                        <p className="mt-1 text-sm leading-6 text-zinc-400">{renderCode(item.detail)}</p>
+                                        <p className="mt-1 text-sm leading-6 text-zinc-400 max-md:text-base max-md:leading-7">{renderCode(item.detail)}</p>
                                     </div>
                                 </li>
                             ))}
@@ -207,7 +207,7 @@ export default function RoadmapPage() {
                 </section>
 
                 {/* Experimental */}
-                <section className="border-b border-white/[0.08] py-24" aria-labelledby="experimental-heading">
+                <section className="border-b border-white/[0.08] py-24 max-md:py-16" aria-labelledby="experimental-heading">
                     <div className="max-w-3xl">
                         <h2 id="experimental-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
                             Experimental.
@@ -217,18 +217,18 @@ export default function RoadmapPage() {
                         </p>
                     </div>
 
-                    <div className="mt-12 grid gap-6 md:grid-cols-3">
+                    <div className="mt-12 grid gap-6 md:grid-cols-3 max-md:mt-8 max-md:gap-4">
                         {EXPERIMENTAL.map((item) => (
-                            <div key={item.title} className={`${CARD} p-7`}>
+                            <div key={item.title} className={`${CARD} p-7 max-md:p-6`}>
                                 <h3 className="text-lg font-semibold text-white">{item.title}</h3>
-                                <p className="mt-2 text-sm leading-7 text-zinc-400">{renderCode(item.detail)}</p>
+                                <p className="mt-2 text-sm leading-7 text-zinc-400 max-md:text-base">{renderCode(item.detail)}</p>
                             </div>
                         ))}
                     </div>
                 </section>
 
                 {/* Not yet */}
-                <section className="border-b border-white/[0.08] py-24" aria-labelledby="notyet-heading">
+                <section className="border-b border-white/[0.08] py-24 max-md:py-16" aria-labelledby="notyet-heading">
                     <div className="max-w-3xl">
                         <h2 id="notyet-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
                             Not yet.
@@ -239,14 +239,14 @@ export default function RoadmapPage() {
                         </p>
                     </div>
 
-                    <div className="mt-12 grid gap-6 md:grid-cols-2">
+                    <div className="mt-12 grid gap-6 md:grid-cols-2 max-md:mt-8 max-md:gap-4">
                         {NOT_YET.map((group) => (
-                            <div key={group.area} className={`${CARD} p-8`}>
+                            <div key={group.area} className={`${CARD} p-8 max-md:p-6`}>
                                 <h3 className="text-lg font-semibold text-white">{group.area}</h3>
                                 <ul className="mt-5 space-y-3">
                                     {group.items.map((item) => (
-                                        <li key={item} className="flex gap-3 text-sm leading-6 text-zinc-300">
-                                            <span aria-hidden className="mt-2.5 h-px w-3 shrink-0 bg-zinc-500"/>
+                                        <li key={item} className="flex gap-3 text-sm leading-6 text-zinc-300 max-md:text-base max-md:leading-7">
+                                            <span aria-hidden className="mt-2.5 h-px w-3 shrink-0 bg-zinc-500 max-md:mt-3.5"/>
                                             <span>{renderCode(item)}</span>
                                         </li>
                                     ))}
@@ -255,12 +255,12 @@ export default function RoadmapPage() {
                         ))}
                     </div>
 
-                    <p className="mt-8 text-sm leading-7 text-zinc-400">
+                    <p className="mt-8 text-sm leading-7 text-zinc-400 max-md:text-base">
                         The benchmark suite shows the same gaps from the other side: {stats.unsupported} workloads
                         are marked unsupported instead of being faked.{" "}
                         <Link
                             href="/benchmarks"
-                            className="inline-flex items-center gap-1 font-medium text-indigo-400 transition-colors hover:text-indigo-300"
+                            className="inline-flex items-center gap-1 font-medium text-indigo-400 transition-colors hover:text-indigo-300 max-md:min-h-11"
                         >
                             See the benchmark coverage
                             <ArrowRight size={14}/>
@@ -269,26 +269,26 @@ export default function RoadmapPage() {
                 </section>
 
                 {/* Blocked */}
-                <section className="pt-24" aria-labelledby="blocked-heading">
-                    <div className={`${CARD} grid gap-6 border-rose-500/20 p-8 md:grid-cols-12 md:gap-10 md:p-10`}>
+                <section className="pt-24 max-md:pt-16" aria-labelledby="blocked-heading">
+                    <div className={`${CARD} grid gap-6 border-rose-500/20 p-8 md:grid-cols-12 md:gap-10 md:p-10 max-md:gap-3 max-md:p-6`}>
                         <div className="md:col-span-4">
                             <p className="font-mono text-xs uppercase tracking-[0.14em] text-rose-300">Blocked</p>
                             <h2 id="blocked-heading" className="mt-4 text-2xl font-semibold tracking-[-0.03em] text-white">
                                 WebAssembly
                             </h2>
                         </div>
-                        <p className="text-sm leading-7 text-zinc-400 md:col-span-8">
+                        <p className="text-sm leading-7 text-zinc-400 md:col-span-8 max-md:text-base">
                             Prismio can emit WebAssembly code, but there is no C library for the WebAssembly target to
                             build the runtime against, so a working build can&apos;t be produced from this repository
                             yet. It is blocked, not in progress. Cross-compiling to other targets works.
                         </p>
                     </div>
 
-                    <p className="mt-10 text-sm text-zinc-400">
+                    <p className="mt-10 text-sm text-zinc-400 max-md:mt-8 max-md:text-base">
                         Want to help with any of this?{" "}
                         <Link
                             href="/community"
-                            className="inline-flex items-center gap-1 font-medium text-indigo-400 transition-colors hover:text-indigo-300"
+                            className="inline-flex items-center gap-1 font-medium text-indigo-400 transition-colors hover:text-indigo-300 max-md:min-h-11"
                         >
                             Start at the community page
                             <ArrowRight size={14}/>
