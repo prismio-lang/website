@@ -105,6 +105,10 @@ Prismio ${PRISMIO_VERSION} was released on 2026-11-10 and is pre-1.0 (0.3.0 is p
 - [Homebrew Tap](${siteConfig.homebrewTap}): macOS and Linux Homebrew formula repository
 - [FOSS United Grant](${siteConfig.fossUnitedGrant}): FOSS United Foundation development grant profile
 
+## Frequently asked questions
+
+${faqItems.map(({ question, answer }) => `- ${question} ${answer}`).join("\n")}
+
 ## Optional
 
 - [Machine-readable summary](${siteConfig.url}/ai/summary.json)
