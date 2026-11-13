@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Search, X } from "lucide-react";
+import { CornerDownLeft, Search, X } from "lucide-react";
 import { emitter } from "@prismio/ui";
 import type { DocRecord, DocSearchRecord, DocsSearchConfig } from "../../types";
 
@@ -19,6 +19,35 @@ function plainText(markdown: string) {
         .trim();
 }
 
+function escapeRegExp(value: string) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Wraps each place a query term appears, so the eye finds why a result matched. */
+function Highlight({ text, terms }: { text: string; terms: string[] }) {
+    if (terms.length === 0) return <>{text}</>;
+    const pattern = new RegExp(`(${terms.map(escapeRegExp).join("|")})`, "gi");
+    return (
+        <>
+            {text.split(pattern).map((part, index) =>
+                index % 2 === 1 ? (
+                    <mark
+                        key={index}
+                        className="bg-transparent font-semibold text-violet-700 dark:text-violet-300"
+                    >
+                        {part}
+                    </mark>
+                ) : (
+                    <span key={index}>{part}</span>
+                )
+            )}
+        </>
+    );
+}
+
+const KBD =
+    "rounded bg-zinc-100 px-1.5 py-0.5 font-sans text-[0.6875rem] font-medium leading-4 text-zinc-600 ring-1 ring-zinc-900/10 dark:bg-white/[0.06] dark:text-zinc-300 dark:ring-white/[0.1]";
+
 export function DocsSearchModal({ docs, config }: DocsSearchModalProps) {
     const router = useRouter();
     const inputRef = useRef<HTMLInputElement>(null);
@@ -27,6 +56,7 @@ export function DocsSearchModal({ docs, config }: DocsSearchModalProps) {
     const [activeIndex, setActiveIndex] = useState(0);
     const [searchDocs, setSearchDocs] = useState<DocSearchRecord[]>(docs ?? []);
     const [isLoading, setIsLoading] = useState(false);
+    const [entered, setEntered] = useState(false);
 
     const {
         categories,
@@ -78,11 +108,35 @@ export function DocsSearchModal({ docs, config }: DocsSearchModalProps) {
     }, []);
 
     useEffect(() => {
+        if (!isOpen) {
+            setEntered(false);
+            return;
+        }
+        const frame = requestAnimationFrame(() => setEntered(true));
+        return () => cancelAnimationFrame(frame);
+    }, [isOpen]);
+
+    useEffect(() => {
         const handler = (event: KeyboardEvent) => {
             if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
                 event.preventDefault();
                 setIsOpen(true);
                 requestAnimationFrame(() => inputRef.current?.focus());
+                return;
+            }
+            // "/" opens search from anywhere that is not a place to type.
+            if (event.key === "/" && !event.metaKey && !event.ctrlKey && !event.altKey) {
+                const target = event.target as HTMLElement | null;
+                const typing =
+                    target &&
+                    (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
+                if (!typing) {
+                    event.preventDefault();
+                    setIsOpen(true);
+                    setQuery("");
+                    setActiveIndex(0);
+                    requestAnimationFrame(() => inputRef.current?.focus());
+                }
             }
         };
         window.addEventListener("keydown", handler);
@@ -140,6 +194,8 @@ export function DocsSearchModal({ docs, config }: DocsSearchModalProps) {
             .slice(0, 10);
     }, [searchDocs, query]);
 
+    const terms = useMemo(() => query.trim().toLowerCase().split(/\s+/).filter(Boolean), [query]);
+
     const navigate = useCallback(
         (slug: string) => {
             setIsOpen(false);
@@ -184,18 +240,22 @@ export function DocsSearchModal({ docs, config }: DocsSearchModalProps) {
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-start justify-center bg-zinc-950/55 px-4 pt-[10vh] backdrop-blur-sm"
+            className={`fixed inset-0 z-[100] flex items-start justify-center bg-zinc-950/50 px-3 pt-[8vh] backdrop-blur-sm transition-opacity duration-150 sm:px-4 sm:pt-[12vh] ${
+                entered ? "opacity-100" : "opacity-0"
+            }`}
             onMouseDown={(event) => event.currentTarget === event.target && setIsOpen(false)}
         >
             <div
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="search-title"
-                className="w-full max-w-2xl overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-[#101014]"
+                className={`w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl shadow-zinc-950/20 ring-1 ring-zinc-900/10 transition-[transform,opacity] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none dark:bg-[#0b0c10] dark:shadow-black/60 dark:ring-white/[0.1] ${
+                    entered ? "translate-y-0 scale-100 opacity-100" : "-translate-y-2 scale-[0.98] opacity-0"
+                }`}
             >
                 <h2 id="search-title" className="sr-only">Search documentation</h2>
-                <div className="flex items-center gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-                    <Search aria-hidden="true" size={20} className="shrink-0 text-zinc-500 dark:text-zinc-300" />
+                <div className="flex items-center gap-3 border-b border-zinc-200 px-4 dark:border-white/[0.08]">
+                    <Search aria-hidden="true" size={18} className="shrink-0 text-zinc-400 dark:text-zinc-500" />
                     <input
                         ref={inputRef}
                         value={query}
@@ -203,78 +263,97 @@ export function DocsSearchModal({ docs, config }: DocsSearchModalProps) {
                             setQuery(event.target.value);
                             setActiveIndex(0);
                         }}
+                        role="combobox"
+                        aria-expanded={results.length > 0}
                         aria-controls="search-results"
                         aria-activedescendant={results[activeIndex] ? `search-result-${activeIndex}` : undefined}
                         placeholder={placeholder}
-                        className="h-10 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-zinc-500 dark:placeholder:text-zinc-400"
+                        autoComplete="off"
+                        spellCheck={false}
+                        className="h-14 min-w-0 flex-1 bg-transparent text-base text-zinc-950 outline-none placeholder:text-zinc-400 dark:text-white dark:placeholder:text-zinc-500"
                     />
                     <button
                         type="button"
                         onClick={() => setIsOpen(false)}
                         aria-label="Close search"
-                        className="inline-flex size-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                        className="inline-flex shrink-0 items-center gap-1 rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/[0.08] dark:hover:text-white"
                     >
-                        <X aria-hidden="true" size={17} />
+                        <kbd className={`${KBD} hidden sm:inline`}>esc</kbd>
+                        <X aria-hidden="true" size={17} className="sm:hidden" />
                     </button>
                 </div>
 
-                <div id="search-results" role="listbox" className="max-h-[60vh] min-h-44 overflow-y-auto p-2">
+                <div id="search-results" role="listbox" aria-label="Results" className="max-h-[56vh] min-h-40 overflow-y-auto p-2">
                     {!query.trim() && (
-                        <p className="px-4 py-12 text-center text-sm text-zinc-500 dark:text-zinc-300">
-                            {emptyPrompt}
-                        </p>
+                        <div className="px-4 py-10 text-center">
+                            <p className="text-sm text-zinc-600 dark:text-zinc-300">{emptyPrompt}</p>
+                            <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+                                Press <kbd className={KBD}>/</kbd> anywhere in the docs to search.
+                            </p>
+                        </div>
                     )}
                     {query.trim() && results.length === 0 && (
-                        <p className="px-4 py-12 text-center text-sm text-zinc-500 dark:text-zinc-300">
-                            No documentation matched “{query}”.
+                        <p className="px-4 py-12 text-center text-sm text-zinc-600 dark:text-zinc-300" role="status">
+                            {isLoading ? "Loading the index…" : <>Nothing matched “{query}”. Try a shorter word, or an error code such as P1001.</>}
                         </p>
                     )}
-                    {results.map(({ doc, snippet }, index) => (
-                        <button
-                            key={doc.slug}
-                            id={`search-result-${index}`}
-                            type="button"
-                            role="option"
-                            aria-selected={index === activeIndex}
-                            onMouseEnter={() => setActiveIndex(index)}
-                            onClick={() => navigate(doc.slug)}
-                            className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left ${
-                                index === activeIndex
-                                    ? "bg-violet-50 dark:bg-violet-500/10"
-                                    : "hover:bg-zinc-50 dark:hover:bg-white/5"
-                            }`}
-                        >
-                            <FileText aria-hidden="true" size={17} className="mt-0.5 shrink-0 text-zinc-500 dark:text-zinc-300" />
-                            <span className="min-w-0 flex-1">
-                                <span className="flex flex-wrap items-center gap-2">
-                                    <span className="font-semibold text-zinc-950 dark:text-zinc-100">{doc.title}</span>
-                                    {doc.draft ? (
-                                        <span className="rounded bg-sky-50 px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-sky-700 dark:bg-sky-500/10 dark:text-sky-300">
-                                            Draft
+                    {results.map(({ doc, snippet }, index) => {
+                        const active = index === activeIndex;
+                        const badge = doc.draft
+                            ? { label: "Draft", cls: "bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300" }
+                            : doc.status === "experimental"
+                            ? { label: "Experimental", cls: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300" }
+                            : doc.status === "planned"
+                            ? { label: "Planned", cls: "bg-fuchsia-50 text-fuchsia-700 dark:bg-fuchsia-500/10 dark:text-fuchsia-300" }
+                            : null;
+                        return (
+                            <button
+                                key={doc.slug}
+                                id={`search-result-${index}`}
+                                type="button"
+                                role="option"
+                                aria-selected={active}
+                                onMouseEnter={() => setActiveIndex(index)}
+                                onClick={() => navigate(doc.slug)}
+                                className={`flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-left transition-colors ${
+                                    active ? "bg-zinc-100 dark:bg-white/[0.06]" : ""
+                                }`}
+                            >
+                                <span className="min-w-0 flex-1">
+                                    <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                                        <span className="font-semibold text-zinc-950 dark:text-zinc-50">
+                                            <Highlight text={doc.title} terms={terms} />
                                         </span>
-                                    ) : doc.status === "experimental" ? (
-                                        <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
-                                            Experimental
+                                        <span className="font-mono text-[0.6875rem] text-zinc-500 dark:text-zinc-400">
+                                            {categories[doc.slug.split("/")[0] ?? ""] ?? "Reference"} · v{doc.version}
                                         </span>
-                                    ) : doc.status === "planned" ? (
-                                        <span className="rounded bg-fuchsia-50 px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-fuchsia-700 dark:bg-fuchsia-500/10 dark:text-fuchsia-300">
-                                            Planned
-                                        </span>
-                                    ) : null}
+                                        {badge ? (
+                                            <span className={`rounded px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide ${badge.cls}`}>
+                                                {badge.label}
+                                            </span>
+                                        ) : null}
+                                    </span>
+                                    <span className="mt-1 block line-clamp-2 text-[0.8125rem] leading-5 text-zinc-600 dark:text-zinc-400">
+                                        <Highlight text={snippet} terms={terms} />
+                                    </span>
                                 </span>
-                                <span className="mt-1 block line-clamp-2 text-xs leading-5 text-zinc-500 dark:text-zinc-300">
-                                    {snippet}
-                                </span>
-                                <span className="mt-1 block text-[0.65rem] uppercase tracking-wide text-zinc-400 dark:text-zinc-400">
-                                    {categories[doc.slug.split("/")[0] ?? ""] ?? "Reference"} · v{doc.version}
-                                </span>
-                            </span>
-                        </button>
-                    ))}
+                                <CornerDownLeft
+                                    aria-hidden="true"
+                                    size={15}
+                                    className={`shrink-0 text-zinc-400 transition-opacity dark:text-zinc-500 ${active ? "opacity-100" : "opacity-0"}`}
+                                />
+                            </button>
+                        );
+                    })}
                 </div>
-                <div className="flex items-center justify-between border-t border-zinc-200 px-4 py-2.5 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-300">
-                    <span>↑↓ navigate · Enter open</span>
-                    <span>Esc close</span>
+                <div className="flex items-center justify-between gap-4 border-t border-zinc-200 px-4 py-2.5 text-xs text-zinc-500 dark:border-white/[0.08] dark:text-zinc-400">
+                    <span className="hidden items-center gap-3 sm:flex">
+                        <span className="flex items-center gap-1.5"><kbd className={KBD}>↑</kbd><kbd className={KBD}>↓</kbd> move</span>
+                        <span className="flex items-center gap-1.5"><kbd className={KBD}>↵</kbd> open</span>
+                    </span>
+                    <span aria-live="polite" className="sm:ml-auto">
+                        {query.trim() ? `${results.length} ${results.length === 1 ? "result" : "results"}` : "Titles, concepts and text"}
+                    </span>
                 </div>
             </div>
         </div>

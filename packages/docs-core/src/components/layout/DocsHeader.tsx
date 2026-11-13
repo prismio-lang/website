@@ -51,9 +51,9 @@ export function DocsHeader({
     return (
         <>
             <header className="sticky top-0 z-[80] h-16 border-b border-zinc-200/80 bg-white/90 backdrop-blur-xl dark:border-zinc-800/80 dark:bg-[#0b0b0d]/90">
-                <div className="relative flex h-full items-center justify-between px-5 sm:px-8">
+                <div className="flex h-full items-center justify-between px-5 sm:px-8">
                     {/* Left Section */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex shrink-0 items-center gap-4">
                         <div className="flex shrink-0 items-center gap-2">
                             <Logo />
                             {brandTag ? (
@@ -67,12 +67,12 @@ export function DocsHeader({
                     </div>
 
                     {/* Center Section (Search) */}
-                    <div className="absolute left-1/2 top-1/2 hidden w-full max-w-[400px] -translate-x-1/2 -translate-y-1/2 lg:block">
+                    <div className="hidden min-w-0 flex-1 justify-center px-8 lg:flex">
                         <DocsSearch emitter={emitter} />
                     </div>
 
                     {/* Right Section (Desktop) */}
-                    <div className="hidden items-center lg:flex">
+                    <div className="hidden shrink-0 items-center lg:flex">
                         <div className="flex items-center gap-1 pr-4">
                             <a
                                 href={siteConfig.links.github}

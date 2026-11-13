@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import defaultEmitter from "../lib/emitter";
-import { Kbd } from "@heroui/react/kbd";
 
 export interface DocsSearchProps {
     /**
@@ -19,7 +18,7 @@ export interface DocsSearchProps {
     onClick?: () => void;
     /**
      * Placeholder text displayed on the button.
-     * @default "Search concepts, errors, and examples"
+     * @default "Search the docs"
      */
     placeholder?: string;
     /**
@@ -31,7 +30,7 @@ export interface DocsSearchProps {
 export default function DocsSearch({
     emitter,
     onClick,
-    placeholder = "Search concepts, errors, and examples",
+    placeholder = "Search the docs",
     className = "",
 }: DocsSearchProps = {}) {
     const [isMac, setIsMac] = useState(true);
@@ -57,23 +56,21 @@ export default function DocsSearch({
             type="button"
             onClick={handleClick}
             aria-label={placeholder}
-            aria-keyshortcuts={isMac ? "Meta+K" : "Control+K"}
-            className={`group relative mx-auto hidden h-9 w-full max-w-md items-center gap-2.5 rounded-lg border border-zinc-200/80 bg-zinc-50/70 px-3 text-left text-sm text-zinc-500 backdrop-blur-xs transition-all duration-150 hover:border-zinc-300 hover:bg-zinc-100/80 hover:text-zinc-800 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400/50 lg:flex dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-200 dark:focus-visible:ring-zinc-600 ${className}`}
+            aria-keyshortcuts={isMac ? "Meta+K /" : "Control+K /"}
+            className={`group flex h-10 w-full max-w-md items-center gap-3 rounded-xl bg-zinc-100/80 px-3.5 text-left text-sm text-zinc-500 ring-1 ring-zinc-900/[0.07] transition-[background-color,box-shadow,color] duration-150 hover:bg-white hover:text-zinc-800 hover:ring-zinc-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 dark:bg-[#06070a] dark:text-zinc-400 dark:ring-white/[0.09] dark:hover:bg-[#0b0c10] dark:hover:text-zinc-200 dark:hover:ring-white/[0.2] dark:focus-visible:ring-violet-400 ${className}`}
         >
             <Search
                 aria-hidden="true"
-                size={15}
-                className="shrink-0 text-zinc-400 transition-colors duration-150 group-hover:text-zinc-600 dark:text-zinc-500 dark:group-hover:text-zinc-300"
+                size={16}
+                className="shrink-0 text-zinc-400 transition-colors duration-150 group-hover:text-zinc-700 dark:text-zinc-500 dark:group-hover:text-zinc-300"
             />
-            <span className="min-w-0 flex-1 truncate text-xs sm:text-sm font-normal text-zinc-500 transition-colors duration-150 group-hover:text-zinc-700 dark:text-zinc-400 dark:group-hover:text-zinc-200">
-                {placeholder}
-            </span>
-            <div className="ml-auto flex items-center gap-1 select-none">
-                <Kbd className="text-zinc-600 dark:text-zinc-300">
-                    <Kbd.Abbr keyValue={isMac ? "command" : "ctrl"} />
-                    <Kbd.Content>K</Kbd.Content>
-                </Kbd>
-            </div>
+            <span className="min-w-0 flex-1 truncate">{placeholder}</span>
+            <kbd
+                aria-hidden="true"
+                className="shrink-0 select-none rounded-md bg-white px-1.5 py-0.5 font-sans text-[0.6875rem] font-medium leading-4 text-zinc-500 ring-1 ring-zinc-900/10 dark:bg-white/[0.05] dark:text-zinc-400 dark:ring-white/[0.1]"
+            >
+                {isMac ? "⌘ K" : "Ctrl K"}
+            </kbd>
         </button>
     );
 }
