@@ -16,7 +16,7 @@ Use it for compiler/language development and controlled experiments. Pin the com
 
 ## Is the compiler really written in Prismio?
 
-Yes. A target-neutral LLVM IR seed, published as a release asset and fetched by the bootstrap script, breaks the initial bootstrapping cycle; subsequent generations compile the Prismio compiler source.
+Yes. A target-neutral LLVM IR seed, committed in the compiler repository as `bootstrap/seed.ll` and also attached to each release as `prismio-seed-<version>.ll`, breaks the initial bootstrapping cycle; subsequent generations compile the Prismio compiler source.
 
 The repository checks multiple generations and fixed points. Self-hosting proves the language/compiler can express and rebuild itself; it does not prove the compiler is bug-free.
 

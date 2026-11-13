@@ -3,7 +3,7 @@ title: Prismio glossary
 description: Canonical definitions for Prismio compiler, type-system, ownership, module, and AIF terminology.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-08-09"
+lastUpdated: "2026-11-13"
 tags: [glossary, terminology, definitions]
 related: [compiler/overview, aif/overview, llvm/overview]
 ---
@@ -50,7 +50,7 @@ related: [compiler/overview, aif/overview, llvm/overview]
 
 **region** — A lexical allocation scope, optionally constrained by a byte budget.
 
-**seed compiler** — Target-neutral LLVM IR, published with each release and fetched on demand, used to break the initial self-hosting cycle.
+**seed compiler** — Target-neutral LLVM IR, committed in the compiler repository as `bootstrap/seed.ll` and also attached to each release as `prismio-seed-<version>.ll`, used to break the initial self-hosting cycle.
 
 **sink parameter** — A parameter that consumes a move-only argument.
 

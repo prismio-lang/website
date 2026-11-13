@@ -3,7 +3,7 @@ title: Compiler architecture
 description: The self-hosted Prismio 0.2 pipeline from source and imports through semantics, AIF, LLVM IR, and native linking.
 status: stable
 version: "0.2.0"
-lastUpdated: "2026-11-10"
+lastUpdated: "2026-11-13"
 tags: [compiler, architecture, self-hosting, llvm]
 related: [compiler/bootstrap, compiler/aif, specification/conformance]
 ---
@@ -77,6 +77,6 @@ The reference compiler reports version `0.1.0`. Self-hosted does not mean compil
 
 ## Trust and fixed points
 
-A target-neutral seed, published as a release asset, breaks the initial self-hosting cycle. The seed builds a new compiler generation, which builds the next. Fixed-point comparison detects when successive generations disagree about the compiler source.
+A target-neutral seed, committed in the compiler repository as `bootstrap/seed.ll` and also attached to each release as `prismio-seed-<version>.ll`, breaks the initial self-hosting cycle. The seed builds a new compiler generation, which builds the next. Fixed-point comparison detects when successive generations disagree about the compiler source.
 
 CI combines that check with positive/negative programs, AIF oracle tests, generated-symbol checks, and multi-platform builds. See [bootstrapping](/compiler/bootstrap) for the exact operational model.

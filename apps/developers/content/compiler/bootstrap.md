@@ -3,12 +3,12 @@ title: Bootstrapping and fixed points
 description: Build Prismio compiler generations from the target-neutral seed or a trusted previous compiler.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-30"
+lastUpdated: "2026-11-13"
 tags: [compiler, bootstrap, self-hosting, reproducibility]
 related: [start/development-setup, start/local-compiler-loop, testing/fixed-point-verification]
 ---
 
-Self-hosting creates a cycle: Prismio source needs a Prismio compiler. The project breaks it with target-neutral LLVM IR for a seed compiler. The seed is `bootstrap/seed.ll`, a tracked file: there is no release asset, no SHA-256 pin and no downloader, and `--seed` reads the file. A refreshed seed is about 20 MB, so one is never staged or committed until the maintainer says so (`.githooks/pre-commit` refuses it; `PRISMIO_ALLOW_SEED_COMMIT=1` overrides, `git config core.hooksPath .githooks` enables the hook).
+Self-hosting creates a cycle: Prismio source needs a Prismio compiler. The project breaks it with target-neutral LLVM IR for a seed compiler. The seed is `bootstrap/seed.ll`, a tracked file, and the same seed is also attached to each release as `prismio-seed-<version>.ll`; there is no SHA-256 pin and no downloader, and `--seed` reads the committed file. A refreshed seed is about 20 MB, so one is never staged or committed until the maintainer says so (`.githooks/pre-commit` refuses it; `PRISMIO_ALLOW_SEED_COMMIT=1` overrides, `git config core.hooksPath .githooks` enables the hook).
 
 The seed is a trust anchor, not the preferred everyday implementation. Its job is to reconstruct a current compiler whose later generations can be checked against one another.
 
