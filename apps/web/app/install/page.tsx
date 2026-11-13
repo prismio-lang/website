@@ -3,7 +3,7 @@
 import React, {useEffect, useState} from 'react';
 import {ArrowUpRight, Check, Copy, Download, ExternalLink, Info} from 'lucide-react';
 import HeaderMain from '@/components/HeaderMain';
-import IntelliJPluginCard from '@/components/IntelliJPluginCard';
+import EditorInstall from '@/components/EditorInstall';
 import FooterMain from '@prismio/ui/FooterMain';
 import {LLVM_VERSION, PRISMIO_VERSION} from '@prismio/utils';
 
@@ -551,7 +551,7 @@ export default function InstallPage() {
                     <h2 id="editors-heading" className="mb-8 text-3xl font-semibold tracking-[-0.03em] text-white">
                         Editor support
                     </h2>
-                    <IntelliJPluginCard />
+                    <EditorInstall />
                 </section>
             </main>
 

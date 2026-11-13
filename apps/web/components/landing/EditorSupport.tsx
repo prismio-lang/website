@@ -1,5 +1,5 @@
 import React from 'react';
-import IntelliJPluginCard from '@/components/IntelliJPluginCard';
+import EditorSupportCard from '@/components/EditorSupportCard';
 
 export default function EditorSupport() {
     return (
@@ -9,11 +9,11 @@ export default function EditorSupport() {
                     Editor support
                 </h2>
                 <p className="mt-6 text-base leading-7 text-zinc-400">
-                    The compiler ships its own language server, so any editor can get errors as you type, completion, hover, and go to definition. JetBrains IDEs have an official plugin.
+                    The compiler ships its own language server, so any editor can get errors as you type, completion, hover, and go to definition. VS Code and the JetBrains IDEs have official extensions.
                 </p>
             </div>
 
-            <IntelliJPluginCard />
+            <EditorSupportCard />
         </section>
     );
 }
