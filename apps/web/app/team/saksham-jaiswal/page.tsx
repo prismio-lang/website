@@ -19,6 +19,8 @@ import LinkedinIcon from "@/components/icons/LinkedinIcon";
 import FooterMain from "@prismio/ui/FooterMain";
 import {DISCORD_INVITE_LINK} from "@prismio/utils";
 import {pageMetadata} from "@/lib/seo";
+import {JsonLd} from "@/components/json-ld";
+import {sakshamProfileData} from "@/config/structured-data";
 
 const kalam = localFont({
     src: [
@@ -69,6 +71,7 @@ export default function SakshamAuthorPage() {
             <div
                 className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,#000_70%,transparent_100%)]"/>
 
+            <JsonLd data={sakshamProfileData}/>
             <HeaderMain/>
 
             <main className="relative z-10 mx-auto max-w-7xl px-4 pb-0 pt-12 sm:px-5 md:pt-28">

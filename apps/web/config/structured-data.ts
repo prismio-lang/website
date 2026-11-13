@@ -2,6 +2,9 @@ import {faqItems} from "@/config/faq";
 import {siteConfig} from "@/config/site";
 import {PRISMIO_VERSION} from "@prismio/utils";
 
+/** schema.org versions are bare numbers; the shared constant is the tag name ("v0.2.0"). */
+const VERSION = PRISMIO_VERSION.replace(/^v/, "");
+
 export const PRISMIO_ORG_ID =
   "https://prismio.org/#organization";
 
@@ -36,6 +39,7 @@ export const prismioStructuredData = {
         siteConfig.githubOrg,
         siteConfig.homebrewTap,
         siteConfig.jetbrainsPlugin,
+        siteConfig.vscodeExtension,
         siteConfig.fossUnitedGrant,
         siteConfig.discord
       ]
@@ -54,6 +58,23 @@ export const prismioStructuredData = {
   ]
 };
 
+/** The creator, on the home page and on his own page. */
+const sakshamPerson = {
+  "@type": "Person",
+  "@id": SAKSHAM_PERSON_ID,
+  "name": "Saksham Jaiswal",
+  "url":
+    "https://prismio.org/team/saksham-jaiswal",
+  "jobTitle": "Creator & Lead Developer",
+  "worksFor": {
+    "@id": PRISMIO_ORG_ID
+  },
+  "sameAs": [
+    "https://github.com/saksham1319",
+    "https://www.linkedin.com/in/saksham6975/"
+  ]
+};
+
 /** The product, its source and its creator: on the home page, where they are described. */
 export const prismioEntityData = {
   "@context": "https://schema.org",
@@ -69,8 +90,9 @@ export const prismioEntityData = {
       "url": "https://prismio.org",
       "downloadUrl": "https://prismio.org/install",
       "license": "https://www.apache.org/licenses/LICENSE-2.0",
-      "softwareVersion": PRISMIO_VERSION,
-      "softwareRequirements": "LLVM 23, C toolchain",
+      "softwareVersion": VERSION,
+      // The toolchain carries its own LLVM; what the machine needs is the system linker and C library.
+      "softwareRequirements": "The platform's C linker and C library (Xcode Command Line Tools, a C development package, or the Visual Studio C++ workload)",
       "author": {
         "@id": SAKSHAM_PERSON_ID
       },
@@ -83,6 +105,7 @@ export const prismioEntityData = {
         siteConfig.github,
         siteConfig.homebrewTap,
         siteConfig.jetbrainsPlugin,
+        siteConfig.vscodeExtension,
         siteConfig.fossUnitedGrant
       ]
     },
@@ -92,8 +115,7 @@ export const prismioEntityData = {
       "name": "Prismio source code",
       "codeRepository": siteConfig.github,
       "programmingLanguage": "Prismio",
-      "runtimePlatform": `LLVM ${siteConfig.name} toolchain`,
-      "version": PRISMIO_VERSION,
+      "version": VERSION,
       "isPartOf": {
         "@id": PRISMIO_ORG_ID
       },
@@ -102,21 +124,7 @@ export const prismioEntityData = {
       },
       "license": "https://www.apache.org/licenses/LICENSE-2.0"
     },
-    {
-      "@type": "Person",
-      "@id": SAKSHAM_PERSON_ID,
-      "name": "Saksham Jaiswal",
-      "url":
-        "https://prismio.org/team/saksham-jaiswal",
-      "jobTitle": "Creator & Lead Developer",
-      "worksFor": {
-        "@id": PRISMIO_ORG_ID
-      },
-      "sameAs": [
-        "https://github.com/saksham1319",
-        "https://www.linkedin.com/in/saksham6975/"
-      ]
-    }
+    sakshamPerson
   ]
 };
 
@@ -131,4 +139,12 @@ export const faqStructuredData = {
       "text": answer
     }
   }))
+};
+
+/** The creator's own page. */
+export const sakshamProfileData = {
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  "url": "https://prismio.org/team/saksham-jaiswal",
+  "mainEntity": sakshamPerson
 };
