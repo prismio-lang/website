@@ -3,7 +3,7 @@ title: Set up your editor
 description: Get errors as you type, completion, hover, go to definition, rename and formatting in VS Code and the JetBrains IDEs.
 status: stable
 version: "0.2.0"
-lastUpdated: "2026-11-03"
+lastUpdated: "2026-11-13"
 tags: [guide, editor, lsp, vscode, intellij, formatting]
 related: [guides/intellij, start/installation, compiler/cli, compiler/diagnostics]
 ---
@@ -20,11 +20,13 @@ If it is not there, `prismio lsp` refuses to start and names what is missing (`P
 
 ## VS Code
 
-Install the **Prismio** extension from its `.vsix` (it is built from the `vscode-plugin` repository with `npm run package`; it is not on the Marketplace yet):
+Install the **Prismio** extension from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=Prismio.prismio): search for Prismio in the Extensions view, or run
 
 ```bash
-code --install-extension prismio-0.1.0.vsix
+code --install-extension Prismio.prismio
 ```
+
+It needs VS Code 1.100 or newer.
 
 Open a folder with a `build.ums` or any `.psm` file; `.psm` files carry the Prismio logo in the explorer and on their tabs, and `build.ums` the manifest's mark. The extension finds `prismio` on your `PATH`, then in `~/.prismio/bin`; to use another one, set `prismio.path`. After installing a newer toolchain, run **Prismio: Restart Language Server** from the command palette.
 
