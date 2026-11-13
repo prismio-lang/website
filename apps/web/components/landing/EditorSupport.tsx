@@ -3,8 +3,8 @@ import EditorSupportCard from '@/components/EditorSupportCard';
 
 export default function EditorSupport() {
     return (
-        <section aria-labelledby="editor-heading" className="mx-auto max-w-7xl px-6 py-24">
-            <div className="mb-12 max-w-2xl">
+        <section aria-labelledby="editor-heading" className="mx-auto max-w-7xl px-6 py-24 max-md:py-16">
+            <div className="mb-12 max-w-2xl max-md:mb-8">
                 <h2 id="editor-heading" className="text-4xl font-semibold tracking-[-0.035em] text-white md:text-5xl">
                     Editor support
                 </h2>

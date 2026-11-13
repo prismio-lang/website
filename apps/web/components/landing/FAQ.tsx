@@ -8,7 +8,7 @@ import {faqItems} from "@/config/faq";
 export default function FAQ() {
     return (
         <section aria-labelledby="faq-heading" className="mx-auto max-w-7xl px-6">
-            <div className="grid gap-12 border-t border-white/[0.1] pt-24 md:pt-28 lg:grid-cols-12 lg:gap-20">
+            <div className="grid gap-12 border-t border-white/[0.1] pt-24 md:pt-28 lg:grid-cols-12 lg:gap-20 max-md:gap-6 max-md:pt-16">
                 <div className="lg:col-span-4">
                     <h2 id="faq-heading" className="text-4xl font-semibold tracking-[-0.035em] text-white md:text-5xl">
                         Frequently asked questions
@@ -25,7 +25,7 @@ export default function FAQ() {
                     {faqItems.map(({question, answer}, index) => (
                         <Accordion.Item key={question} id={`faq-${index}`} className="border-b! border-solid! border-white/[0.1]! bg-transparent px-0 last:border-b-0!">
                             <Accordion.Heading>
-                                <Accordion.Trigger className="w-full justify-between gap-6 px-5 py-6 text-left text-lg font-semibold text-white transition-colors hover:text-indigo-200 focus-visible:ring-2 focus-visible:ring-indigo-400">
+                                <Accordion.Trigger className="w-full justify-between gap-6 px-5 py-6 max-md:gap-4 max-md:px-0 max-md:py-5 text-left text-lg font-semibold text-white transition-colors hover:text-indigo-200 focus-visible:ring-2 focus-visible:ring-indigo-400">
                                     {question}
                                     <Accordion.Indicator className="shrink-0 text-zinc-400">
                                         <ChevronDown size={20} />
@@ -33,7 +33,7 @@ export default function FAQ() {
                                 </Accordion.Trigger>
                             </Accordion.Heading>
                             <Accordion.Panel>
-                                <Accordion.Body className="max-w-3xl px-5 pb-7 pt-0 text-base leading-7 text-zinc-300">
+                                <Accordion.Body className="max-w-3xl px-5 pb-7 pt-0 max-md:px-0 max-md:pb-6 text-base leading-7 text-zinc-300">
                                     {answer}
                                 </Accordion.Body>
                             </Accordion.Panel>

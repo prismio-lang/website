@@ -26,7 +26,7 @@ const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:rin
 
 export default function CTA() {
     return (
-        <section aria-labelledby="status-heading" className="mx-auto max-w-7xl px-6 py-24">
+        <section aria-labelledby="status-heading" className="mx-auto max-w-7xl px-6 py-24 max-md:py-16">
             {/* Honest status */}
             <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
                 <div className="lg:col-span-5">
@@ -38,17 +38,17 @@ export default function CTA() {
                         and ships the core language, memory analysis, standard containers,
                         file and process APIs, async functions, typed channels, and a language server.
                     </p>
-                    <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3">
+                    <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 max-md:mt-4 max-md:flex-col max-md:items-start max-md:gap-y-0">
                         <Link
                             href="/roadmap"
-                            className={`inline-flex items-center gap-2 text-sm font-semibold text-indigo-300 transition-colors hover:text-indigo-200 ${FOCUS}`}
+                            className={`max-md:min-h-11 max-md:text-base inline-flex items-center gap-2 text-sm font-semibold text-indigo-300 transition-colors hover:text-indigo-200 ${FOCUS}`}
                         >
                             See the engineering roadmap
                             <ArrowRight size={15} />
                         </Link>
                         <Link
                             href="/benchmarks"
-                            className={`inline-flex items-center gap-2 text-sm font-medium text-zinc-300 transition-colors hover:text-white ${FOCUS}`}
+                            className={`max-md:min-h-11 max-md:text-base inline-flex items-center gap-2 text-sm font-medium text-zinc-300 transition-colors hover:text-white ${FOCUS}`}
                         >
                             Browse supported workloads
                             <ArrowRight size={14} />
@@ -56,12 +56,12 @@ export default function CTA() {
                     </div>
                 </div>
 
-                <div className="grid gap-12 sm:grid-cols-2 lg:col-span-7 lg:gap-10">
+                <div className="grid gap-12 sm:grid-cols-2 lg:col-span-7 lg:gap-10 max-md:gap-10">
                     <div>
                         <h3 className="border-b border-white/[0.1] pb-4 text-sm font-semibold text-emerald-300">Available today</h3>
                         <ul className="mt-5 space-y-3.5">
                             {AVAILABLE.map((item) => (
-                                <li key={item} className="flex gap-3 text-sm leading-6 text-zinc-200">
+                                <li key={item} className="flex gap-3 text-sm leading-6 text-zinc-200 max-md:text-base">
                                     <Check size={15} aria-hidden className="mt-1 shrink-0 text-emerald-300" />
                                     {item}
                                 </li>
@@ -72,7 +72,7 @@ export default function CTA() {
                         <h3 className="border-b border-white/[0.1] pb-4 text-sm font-semibold text-amber-200">Not yet supported</h3>
                         <ul className="mt-5 space-y-3.5">
                             {NOT_YET.map((item) => (
-                                <li key={item} className="flex gap-3 text-sm leading-6 text-zinc-300">
+                                <li key={item} className="flex gap-3 text-sm leading-6 text-zinc-300 max-md:text-base">
                                     <span aria-hidden className="mt-3 h-px w-3 shrink-0 bg-amber-200" />
                                     {item}
                                 </li>
@@ -83,7 +83,7 @@ export default function CTA() {
             </div>
 
             {/* Final call to action */}
-            <div className="mt-28 border-t border-white/[0.1] pt-20 text-center">
+            <div className="mt-28 border-t border-white/[0.1] pt-20 text-center max-md:mt-16 max-md:pt-14">
                 <h2 className="mx-auto max-w-3xl text-4xl font-semibold tracking-[-0.035em] text-white md:text-5xl">
                     Build a program. <span className="text-sky-300">Inspect what the compiler decided.</span>
                 </h2>
@@ -91,10 +91,10 @@ export default function CTA() {
                     Install Prismio, run an example, and ask AIF where each value lives and why.
                     The compiler, standard library, benchmark suite, and design evidence are open for inspection.
                 </p>
-                <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+                <div className="mt-9 flex flex-wrap items-center justify-center gap-3 max-md:mt-8 max-sm:flex-col max-sm:items-stretch">
                     <Link
                         href="/install"
-                        className={`inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 ${FOCUS}`}
+                        className={`max-md:h-12 max-md:justify-center max-md:text-base inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 ${FOCUS}`}
                     >
                         <Terminal size={16} />
                         Install Prismio
@@ -103,7 +103,7 @@ export default function CTA() {
                         href="https://docs.prismio.org"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`inline-flex h-11 items-center gap-2 rounded-xl border border-white/15 px-5 text-sm font-medium text-zinc-100 transition-colors hover:bg-white/[0.06] ${FOCUS}`}
+                        className={`max-md:h-12 max-md:justify-center max-md:text-base inline-flex h-11 items-center gap-2 rounded-xl border border-white/15 px-5 text-sm font-medium text-zinc-100 transition-colors hover:bg-white/[0.06] ${FOCUS}`}
                     >
                         <BookOpen size={16} />
                         Read the docs
@@ -113,7 +113,7 @@ export default function CTA() {
                         href="https://github.com/prismio-lang/prismio"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`inline-flex h-11 items-center gap-2 px-3 text-sm font-medium text-zinc-300 transition-colors hover:text-white ${FOCUS}`}
+                        className={`max-md:h-12 max-md:justify-center max-md:text-base inline-flex h-11 items-center gap-2 px-3 text-sm font-medium text-zinc-300 transition-colors hover:text-white ${FOCUS}`}
                     >
                         <GithubIcon size={16} />
                         View on GitHub

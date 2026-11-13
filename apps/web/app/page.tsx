@@ -47,7 +47,7 @@ export default function LandingPage() {
                 <AIReady />
                 <EditorSupport />
                 <CommunityNote />
-                <section aria-labelledby="next-heading" className="mx-auto max-w-7xl px-6 py-24">
+                <section aria-labelledby="next-heading" className="mx-auto max-w-7xl px-6 py-24 max-md:py-16">
                     <NextRelease />
                 </section>
                 <CTA />

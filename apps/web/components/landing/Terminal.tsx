@@ -23,7 +23,7 @@ export default function Terminal({lines, label}: {lines: TerminalLine[]; label?:
     return (
         <pre
             aria-label={label}
-            className="overflow-x-auto rounded-xl bg-[#06070a] p-4 font-mono text-[13px] leading-6 ring-1 ring-white/[0.08] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="overflow-x-auto rounded-xl bg-[#06070a] p-4 font-mono text-[13px] leading-6 ring-1 ring-white/[0.08] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-md:px-3.5 max-md:text-xs max-md:leading-6"
         >
             {lines.map((line, i) =>
                 line.kind === 'cmd' ? (

@@ -45,8 +45,8 @@ const FACTS = [
 
 export default function WhyPrismio() {
     return (
-        <section aria-labelledby="aif-heading" className="mx-auto max-w-7xl px-6 py-24">
-            <div className="grid gap-14 lg:grid-cols-12 lg:gap-20">
+        <section aria-labelledby="aif-heading" className="mx-auto max-w-7xl px-6 py-24 max-md:py-16">
+            <div className="grid gap-14 lg:grid-cols-12 lg:gap-20 max-md:grid-cols-1 max-md:gap-12">
                 <div className="lg:col-span-5">
                     <h2 id="aif-heading" className="max-w-xl text-4xl font-semibold tracking-[-0.035em] text-white md:text-5xl">
                         Memory decisions you can inspect, diff, and verify.
@@ -57,11 +57,11 @@ export default function WhyPrismio() {
                         placement and produces evidence for the decision.
                     </p>
 
-                    <p className="mt-10 max-w-lg text-xl leading-8 tracking-[-0.02em] text-sky-200">
+                    <p className="mt-10 max-w-lg text-xl leading-8 tracking-[-0.02em] text-sky-200 max-md:mt-8">
                         Inference is not a black box when its output affects performance.
                     </p>
 
-                    <dl className="mt-10 divide-y divide-white/[0.1] border-y border-white/[0.1]">
+                    <dl className="mt-10 max-md:mt-8 divide-y divide-white/[0.1] border-y border-white/[0.1]">
                         {FACTS.map((fact) => (
                             <div key={fact.term} className="grid gap-1 py-4 sm:grid-cols-[7.5rem_1fr] sm:gap-6">
                                 <dt className="font-mono text-sm font-semibold text-white">{fact.term}</dt>
@@ -74,7 +74,7 @@ export default function WhyPrismio() {
                 <div className="lg:col-span-7">
                     <ol className="space-y-10">
                         {STEPS.map((step, i) => (
-                            <li key={step.title} className="relative pl-14">
+                            <li key={step.title} className="relative pl-14 max-md:pl-12">
                                 <span
                                     aria-hidden
                                     className="absolute left-0 top-0 flex size-9 items-center justify-center rounded-full border border-indigo-400/40 bg-indigo-500/10 font-mono text-sm font-semibold text-indigo-100"
@@ -85,7 +85,7 @@ export default function WhyPrismio() {
                                     <span aria-hidden className="absolute bottom-[-2.5rem] left-[17px] top-11 w-px bg-white/[0.1]" />
                                 )}
                                 <h3 className="text-lg font-semibold text-white">{step.title}</h3>
-                                <p className="mt-1 max-w-2xl text-sm leading-6 text-zinc-400">{step.copy}</p>
+                                <p className="mt-1 max-w-2xl text-sm leading-6 text-zinc-400 max-md:text-base max-md:leading-7">{step.copy}</p>
                                 <div className="mt-4">
                                     <Terminal lines={step.lines} label={`Terminal: ${step.lines[0]?.text}`} />
                                 </div>

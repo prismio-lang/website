@@ -5,7 +5,7 @@ import Link from "next/link";
 import {usePathname} from "next/navigation";
 import {ArrowUpRight, Terminal} from "lucide-react";
 import {Cross as Hamburger} from "hamburger-react";
-import {AnimatePresence, motion} from "framer-motion";
+import {AnimatePresence, motion, useReducedMotion} from "framer-motion";
 import {Chip} from "@heroui/react";
 import Logo from "@prismio/ui/Logo";
 import Image from "next/image";
@@ -37,6 +37,7 @@ const HeaderMain: React.FC = () => {
     const pathname = usePathname();
     const [scrolled, setScrolled] = useState(false);
     const [isOpen, setOpen] = useState(false);
+    const reduceMotion = useReducedMotion();
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 24);
@@ -78,7 +79,7 @@ const HeaderMain: React.FC = () => {
                         : "bg-transparent border-b border-transparent"
                 }`}>
 
-                <div className="relative px-5 md:px-10 h-17 flex items-center">
+                <div className="relative px-5 md:px-10 h-17 flex items-center max-md:pl-6 max-md:pr-3">
 
                     <div className="flex items-center gap-3 shrink-0">
                         <Logo/>
@@ -157,13 +158,13 @@ const HeaderMain: React.FC = () => {
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{opacity: 0, y: -12}}
+                        initial={reduceMotion ? {opacity: 0} : {opacity: 0, y: -12}}
                         animate={{opacity: 1, y: 0}}
-                        exit={{opacity: 0, y: -12}}
+                        exit={reduceMotion ? {opacity: 0} : {opacity: 0, y: -12}}
                         transition={{duration: 0.25, ease: "easeOut"}}
                         className="fixed inset-0 z-[70] bg-[#070709]/95 backdrop-blur-2xl px-6 pt-24 overflow-y-auto"
                     >
-                        <nav aria-label="Mobile" className="flex flex-col pb-12">
+                        <nav aria-label="Mobile" className="flex flex-col pb-[calc(3rem+env(safe-area-inset-bottom))]">
                             {/* Nav links */}
                             <div className="flex flex-col gap-1">
                                 {NAV_LINKS.map(({label, href, isExternal}) => (

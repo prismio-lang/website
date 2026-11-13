@@ -31,8 +31,8 @@ const FACTS = [
 
 export default function CommunityNote() {
     return (
-        <section aria-labelledby="community-heading" className="mx-auto max-w-7xl px-6 py-24">
-            <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+        <section aria-labelledby="community-heading" className="mx-auto max-w-7xl px-6 py-24 max-md:py-16">
+            <div className="grid gap-12 lg:grid-cols-12 lg:gap-16 max-md:gap-8">
                 <div className="lg:col-span-5">
                     <h2 id="community-heading" className="text-4xl font-semibold tracking-[-0.035em] text-white md:text-5xl">
                         <span>Developed in the{' '}</span> <span className={'text-green-300'}>open.</span>
@@ -55,14 +55,14 @@ export default function CommunityNote() {
                 <ul className="divide-y divide-white/[0.1] lg:col-span-7">
                     {LINKS.map((item) => {
                         const className =
-                            'group flex items-center justify-between gap-6 py-6 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-400';
+                            'group flex items-center justify-between gap-6 py-6 max-md:py-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-400';
                         const inner = (
                             <>
                                 <span>
                                     <span className="block text-lg font-semibold text-white transition-colors group-hover:text-indigo-200">
                                         {item.title}
                                     </span>
-                                    <span className="mt-1 block text-sm leading-6 text-zinc-400">{item.copy}</span>
+                                    <span className="mt-1 block text-sm leading-6 text-zinc-400 max-md:text-base">{item.copy}</span>
                                 </span>
                                 <ArrowUpRight size={18} className="shrink-0 text-zinc-400 transition-colors group-hover:text-indigo-300" />
                             </>

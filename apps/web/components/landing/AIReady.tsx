@@ -77,7 +77,7 @@ const TOOLING = [
 
 export default function AIReady() {
     return (
-        <section className="mx-auto max-w-7xl px-6 py-28 md:py-36">
+        <section className="mx-auto max-w-7xl px-6 py-28 md:py-36 max-md:py-16">
             <div className="max-w-4xl">
                 <h2 className="text-4xl font-semibold tracking-[-0.035em] text-white md:text-5xl">
                     One toolchain, from source file to self-hosted project.
@@ -91,13 +91,13 @@ export default function AIReady() {
             </div>
 
             <div
-                className="mt-14 grid overflow-hidden rounded-2xl bg-[#0b0c10] ring-1 ring-white/[0.09] lg:grid-cols-12">
-                <div className="border-b border-white/[0.07] p-6 sm:p-8 lg:col-span-5 lg:border-b-0 lg:border-r">
+                className="mt-14 max-md:mt-10 max-md:grid-cols-1 grid overflow-hidden rounded-2xl bg-[#0b0c10] ring-1 ring-white/[0.09] lg:grid-cols-12">
+                <div className="border-b border-white/[0.07] p-6 sm:p-8 lg:col-span-5 lg:border-b-0 lg:border-r max-sm:p-5">
                     <div className="flex items-center gap-3 text-zinc-200">
                         <Workflow size={18} className="text-indigo-300"/>
                         <h3 className="font-semibold">Unified Manifest System</h3>
                     </div>
-                    <p className="mt-4 text-sm leading-6 text-zinc-400">
+                    <p className="mt-4 text-sm leading-6 text-zinc-400 max-md:text-base max-md:leading-7">
                         <code className="text-zinc-200">build.ums</code> declares project metadata,
                         executable and test targets, dependencies, native link inputs, and
                         project-defined commands. Prismio finds the nearest manifest and writes
@@ -115,7 +115,7 @@ export default function AIReady() {
                         </div>
 
                         <pre
-                            className="overflow-x-auto p-4 sm:p-5 font-mono text-[11px] leading-5 sm:text-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                            className="max-sm:px-3.5 overflow-x-auto p-4 sm:p-5 font-mono text-[11px] leading-5 sm:text-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                             {UMS_LINES.map((line, i) => (
                                 <div key={i} className="flex">
                                     <span
@@ -129,22 +129,22 @@ export default function AIReady() {
 
                 <div className="lg:col-span-7">
                     <div className="grid border-b border-white/[0.07] sm:grid-cols-2">
-                        <article className="border-b border-white/[0.07] p-6 sm:border-b-0 sm:border-r sm:p-8">
+                        <article className="border-b border-white/[0.07] p-6 sm:border-b-0 sm:border-r sm:p-8 max-sm:p-5">
                             <div className="flex items-center gap-3 text-zinc-200">
                                 <Binary size={18} className="text-emerald-300"/>
                                 <h3 className="font-semibold">Self-hosted by design</h3>
                             </div>
-                            <p className="mt-4 text-sm leading-6 text-zinc-400">
+                            <p className="mt-4 text-sm leading-6 text-zinc-400 max-md:text-base max-md:leading-7">
                                 A release seed builds the first local generation. Later generations
                                 compile themselves, and the build checks that the compiler reproduces its own output.
                             </p>
                         </article>
-                        <article className="p-6 sm:p-8">
+                        <article className="p-6 sm:p-8 max-sm:p-5">
                             <div className="flex items-center gap-3 text-zinc-200">
                                 <Link2 size={18} className="text-sky-300"/>
                                 <h3 className="font-semibold">Direct C interoperability</h3>
                             </div>
-                            <p className="mt-4 text-sm leading-6 text-zinc-400">
+                            <p className="mt-4 text-sm leading-6 text-zinc-400 max-md:text-base max-md:leading-7">
                                 Declare C functions with <code className="text-zinc-200">extern fn</code>.
                                 Ownership contracts such as borrow, consume, produce, and alias keep
                                 the foreign boundary visible to memory analysis.
@@ -152,22 +152,22 @@ export default function AIReady() {
                         </article>
                     </div>
 
-                    <div className="p-6 sm:p-8">
+                    <div className="p-6 sm:p-8 max-sm:p-5">
                         <h3 className="text-xl font-semibold tracking-[-0.02em] text-white">
                             Reliable interfaces for editors, CI, and coding agents.
                         </h3>
-                        <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">
+                        <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-400 max-md:text-base max-md:leading-7">
                             Tools consume structured compiler output instead of scraping terminal prose.
                         </p>
 
                         <div className="mt-6 divide-y divide-white/[0.07]">
                             {TOOLING.map(({icon: Icon, title, copy}) => (
                                 <article key={title}
-                                         className="grid gap-3 py-5 first:pt-0 last:pb-0 sm:grid-cols-[2.25rem_1fr]">
+                                         className="grid gap-3 py-5 first:pt-0 last:pb-0 sm:grid-cols-[2.25rem_1fr] max-sm:grid-cols-[1.75rem_1fr] max-sm:gap-x-1 max-sm:gap-y-0">
                                     <Icon size={17} className="mt-0.5 text-indigo-300"/>
                                     <div>
-                                        <h4 className="text-sm font-semibold text-zinc-200">{title}</h4>
-                                        <p className="mt-1.5 text-sm leading-6 text-zinc-500">{copy}</p>
+                                        <h4 className="text-sm font-semibold text-zinc-200 max-md:text-base">{title}</h4>
+                                        <p className="mt-1.5 text-sm leading-6 text-zinc-500 max-md:text-base max-md:leading-7 max-md:text-zinc-400">{copy}</p>
                                     </div>
                                 </article>
                             ))}

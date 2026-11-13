@@ -43,8 +43,8 @@ export default function BenchmarkTeaser() {
     ];
 
     return (
-        <section aria-labelledby="bench-heading" className="mx-auto max-w-7xl px-6 py-24">
-            <div className="grid items-end gap-8 lg:grid-cols-12">
+        <section aria-labelledby="bench-heading" className="mx-auto max-w-7xl px-6 py-24 max-md:py-16">
+            <div className="grid items-end gap-8 lg:grid-cols-12 max-md:gap-3">
                 <div className="lg:col-span-8">
                     <h2 id="bench-heading" className="text-4xl font-semibold tracking-[-0.035em] text-white md:text-5xl">
                         Performance claims with receipts.
@@ -59,7 +59,7 @@ export default function BenchmarkTeaser() {
                 <div className="lg:col-span-4 lg:text-right">
                     <Link
                         href="/benchmarks"
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-300 transition-colors hover:text-indigo-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                        className="max-md:min-h-11 max-md:text-base inline-flex items-center gap-2 text-sm font-semibold text-indigo-300 transition-colors hover:text-indigo-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                     >
                         Open the complete benchmark report
                         <ArrowRight size={15} />
@@ -68,11 +68,11 @@ export default function BenchmarkTeaser() {
             </div>
 
             {/* Headline ratios */}
-            <div className="mt-14 grid divide-y divide-white/[0.1] border-y border-white/[0.1] md:grid-cols-2 md:divide-x md:divide-y-0">
+            <div className="mt-14 max-md:mt-8 grid divide-y divide-white/[0.1] border-y border-white/[0.1] md:grid-cols-2 md:divide-x md:divide-y-0">
                 {arms.map((arm) => {
                     const faster = arm.speedupPct >= 0;
                     return (
-                        <div key={arm.key} className="py-9 md:px-10 md:first:pl-0 md:last:pr-0">
+                        <div key={arm.key} className="py-9 md:px-10 md:first:pl-0 md:last:pr-0 max-md:py-8">
                             <div className={`flex items-center gap-2.5 text-sm font-medium ${arm.tone}`}>
                                 <span aria-hidden className={`size-2 rounded-full ${arm.dot}`} />
                                 {arm.label}
