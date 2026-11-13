@@ -68,9 +68,9 @@ export default function SponsorsPage() {
 
             <HeaderMain />
 
-            <main className="relative z-10 mx-auto max-w-7xl px-6 pt-20 pb-0 md:pt-28 md:pb-0">
+            <main className="relative z-10 mx-auto max-w-7xl px-6 pt-20 pb-0 md:pt-28 md:pb-0 max-md:px-5 max-md:pt-12">
                 {/* Hero */}
-                <section className="grid items-start gap-12 border-b border-white/[0.08] pb-20 lg:grid-cols-12 lg:gap-16">
+                <section className="grid items-start gap-12 border-b border-white/[0.08] pb-20 lg:grid-cols-12 lg:gap-16 max-md:gap-10 max-md:pb-16">
                     <div className="lg:col-span-8">
                         <h1 className="max-w-4xl text-4xl font-semibold leading-[1.05] tracking-[-0.04em] text-white sm:text-5xl md:text-6xl">
                             Support <span className="text-sky-300">Prismio.</span>
@@ -83,14 +83,14 @@ export default function SponsorsPage() {
                         <div className="mt-8 flex flex-wrap items-center gap-3">
                             <a
                                 href={sponsorMail("Prismio sponsorship")}
-                                className={`inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 ${FOCUS}`}
+                                className={`inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 max-sm:h-12 max-sm:w-full max-sm:justify-center ${FOCUS}`}
                             >
                                 <Mail size={16} />
                                 Sponsor by bank transfer
                             </a>
                             <a
                                 href={sponsorMail("Prismio sponsorship question")}
-                                className={`inline-flex h-11 items-center gap-2 rounded-xl border border-white/15 px-5 text-sm font-medium text-zinc-100 transition-colors hover:bg-white/[0.06] ${FOCUS}`}
+                                className={`inline-flex h-11 items-center gap-2 rounded-xl border border-white/15 px-5 text-sm font-medium text-zinc-100 transition-colors hover:bg-white/[0.06] max-sm:h-12 max-sm:w-full max-sm:justify-center ${FOCUS}`}
                             >
                                 Ask a question first
                             </a>
@@ -99,7 +99,7 @@ export default function SponsorsPage() {
 
                     <aside className={`${CARD} p-6 lg:col-span-4`}>
                         <h2 className="text-sm font-semibold text-white">Our commitment</h2>
-                        <p className="mt-3 text-sm leading-7 text-zinc-400">
+                        <p className="mt-3 text-sm leading-7 text-zinc-400 max-md:text-base">
                             Prismio stays free and Apache-2.0 licensed. Sponsorship pays for infrastructure and focused
                             development time.
                         </p>
@@ -107,13 +107,13 @@ export default function SponsorsPage() {
                 </section>
 
                 {/* Where funding would go */}
-                <section className="border-b border-white/[0.08] py-24" aria-labelledby="funding-heading">
-                    <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+                <section className="border-b border-white/[0.08] py-24 max-md:py-16" aria-labelledby="funding-heading">
+                    <div className="grid gap-12 lg:grid-cols-12 lg:gap-16 max-md:gap-8">
                         <div className="lg:col-span-4">
                             <h2 id="funding-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
                                 Where funding would go.
                             </h2>
-                            <p className="mt-4 text-sm leading-7 text-zinc-400">
+                            <p className="mt-4 text-sm leading-7 text-zinc-400 max-md:text-base">
                                 No funding is in place yet. This is what it would pay for.
                             </p>
                         </div>
@@ -130,20 +130,20 @@ export default function SponsorsPage() {
                 </section>
 
                 {/* How to sponsor */}
-                <section className="border-b border-white/[0.08] pt-24" aria-labelledby="how-heading">
-                    <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+                <section className="border-b border-white/[0.08] pt-24 max-md:pt-16" aria-labelledby="how-heading">
+                    <div className="grid gap-12 lg:grid-cols-12 lg:gap-16 max-md:gap-8">
                         <div className="lg:col-span-4">
                             <h2 id="how-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
                                 How to sponsor.
                             </h2>
-                            <p className="mt-4 text-sm leading-7 text-zinc-400">
+                            <p className="mt-4 text-sm leading-7 text-zinc-400 max-md:text-base">
                                 Sponsorship is by bank transfer. There is no platform in between.
                             </p>
                         </div>
 
                         <ol className="space-y-9 lg:col-span-8">
                             {STEPS.map((step, i) => (
-                                <li key={step.title} className="relative pl-14">
+                                <li key={step.title} className="relative pl-14 max-md:pl-12">
                                     <span
                                         aria-hidden
                                         className="absolute left-0 top-0 flex size-9 items-center justify-center rounded-full border border-indigo-400/40 bg-indigo-500/10 font-mono text-sm font-semibold text-indigo-100"
@@ -154,21 +154,21 @@ export default function SponsorsPage() {
                                         <span aria-hidden className="absolute bottom-[-2.25rem] left-[17px] top-11 w-px bg-white/[0.1]" />
                                     )}
                                     <h3 className="text-lg font-semibold text-white">{step.title}</h3>
-                                    <p className="mt-1 max-w-2xl text-sm leading-7 text-zinc-400">{step.detail}</p>
+                                    <p className="mt-1 max-w-2xl text-sm leading-7 text-zinc-400 max-md:text-base">{step.detail}</p>
                                 </li>
                             ))}
                         </ol>
                     </div>
 
-                    <p className="mt-14 max-w-3xl border-t border-white/[0.1] py-8 text-sm leading-7 text-zinc-300">
+                    <p className="mt-14 max-w-3xl border-t border-white/[0.1] py-8 text-sm leading-7 text-zinc-300 max-md:mt-10 max-md:text-base">
                         Sponsors who want it are credited by name or logo on this page and in the release notes.
                         Staying anonymous is fine.
                     </p>
                 </section>
 
                 {/* Principles */}
-                <section className="border-b border-white/[0.08] py-24" aria-labelledby="principles-heading">
-                    <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+                <section className="border-b border-white/[0.08] py-24 max-md:py-16" aria-labelledby="principles-heading">
+                    <div className="grid gap-12 lg:grid-cols-12 lg:gap-16 max-md:gap-8">
                         <div className="lg:col-span-4">
                             <h2 id="principles-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
                                 What sponsorship does not change.
@@ -187,28 +187,28 @@ export default function SponsorsPage() {
                 </section>
 
                 {/* Supporters */}
-                <section className="pt-24" aria-labelledby="supporters-heading">
-                    <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+                <section className="pt-24 max-md:pt-16" aria-labelledby="supporters-heading">
+                    <div className="grid gap-12 lg:grid-cols-12 lg:gap-16 max-md:gap-8">
                         <div className="lg:col-span-4">
                             <h2 id="supporters-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
                                 Supporters.
                             </h2>
-                            <p className="mt-4 text-sm leading-7 text-zinc-400">
+                            <p className="mt-4 text-sm leading-7 text-zinc-400 max-md:text-base">
                                 Individuals and teams who contribute to Prismio development and infrastructure.
                             </p>
                         </div>
 
                         <div className="lg:col-span-8">
-                            <div className={`${CARD} p-8 md:p-10`}>
+                            <div className={`${CARD} p-8 md:p-10 max-md:p-6`}>
                                 <h3 className="text-lg font-semibold text-white">No sponsors yet</h3>
-                                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                                <p className="mt-2 text-sm leading-7 text-zinc-400 max-md:text-base">
                                     Prismio is funded directly by community contributions with no corporate or venture backing.
                                     Sponsors are credited here, in the repository, and in compiler release notes. Staying anonymous is always an option.
                                 </p>
                                 <div className="mt-6">
                                     <a
                                         href={sponsorMail("Prismio sponsorship")}
-                                        className={`inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 ${FOCUS}`}
+                                        className={`inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 max-sm:h-12 max-sm:w-full max-sm:justify-center ${FOCUS}`}
                                     >
                                         <Mail size={15} />
                                         Sponsor Prismio

@@ -43,7 +43,7 @@ export function DocsLayout({ config, docs, children }: DocsLayoutProps) {
                 <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-1/6 shrink-0 overflow-y-auto no-scrollbar border-r border-zinc-200 px-3 py-5 lg:block dark:border-zinc-800/80">
                     <DocsNav navList={config.navigation} className="w-full pb-12" />
                 </aside>
-                <main id="main-content" className="min-w-0 flex-1 px-5 pb-20 pt-8 sm:px-8 lg:px-8">
+                <main id="main-content" className="min-w-0 flex-1 px-5 pb-20 pt-8 sm:px-8 lg:px-8 max-md:pb-16 max-md:pt-4">
                     {children}
                 </main>
             </div>

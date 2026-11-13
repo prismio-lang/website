@@ -17,6 +17,7 @@ export const siteConfig = {
   rosettaCode: "https://rosettacode.org/wiki/Category:Prismio",
   homebrewTap: "https://github.com/prismio-lang/homebrew-tap",
   jetbrainsPlugin: "https://plugins.jetbrains.com/plugin/34672-prismio/",
+  vscodeExtension: "https://marketplace.visualstudio.com/items?itemName=Prismio.prismio",
   fossUnitedGrant: "https://fossunited.org/grants/prismio",
   releasesFeed: "https://github.com/prismio-lang/prismio/releases.atom",
   discord: DISCORD_INVITE_LINK,

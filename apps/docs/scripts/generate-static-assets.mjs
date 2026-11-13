@@ -70,7 +70,9 @@ try {
     const linksText = curatedLinks.map((link) => `- ${link.title}: ${link.href}`).join("\n");
     const summary = `Canonical reference for Prismio ${site.currentVersion}, derived from the self-hosted compiler and regression suite. Pages marked Planned describe unimplemented roadmap features and must not be presented as accepted syntax.`;
 
-    const llmsTxt = `# ${site.name}\n\n> ${summary}\n\n- Current version: ${site.currentVersion}\n- Full Markdown corpus: ${site.siteUrl}/llms-full.txt\n${linksText ? linksText + "\n" : ""}\n${sections}\n`;
+    // What Prismio is, in the docs' own words, before anything about this site.
+    const definition = `Prismio is a statically typed systems language that compiles through LLVM, and its compiler is written in Prismio (self-hosted). Version ${site.currentVersion} is an active-development release, not a compatibility promise: "implemented" means the feature exists in the audited ${site.currentVersion} compiler, not that the syntax or ABI is stable.`;
+    const llmsTxt = `# ${site.name}\n\n> ${summary}\n\n${definition}\n\n- Current version: ${site.currentVersion}\n- Full Markdown corpus: ${site.siteUrl}/llms-full.txt\n${linksText ? linksText + "\n" : ""}\n${sections}\n`;
     writeFileSync(join(publicDir, "llms.txt"), llmsTxt);
     console.log(`[static-assets] Generated public/llms.txt (${(llmsTxt.length / 1024).toFixed(2)} KB)`);
 

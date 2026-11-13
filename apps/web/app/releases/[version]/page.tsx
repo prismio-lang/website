@@ -22,6 +22,7 @@ export async function generateMetadata({params}: {params: Promise<Params>}): Pro
         description: release.summary,
         path: `/releases/${release.version}`,
         type: "article",
+        publishedTime: release.date,
     });
 }
 

@@ -123,26 +123,26 @@ export default function Hero() {
     };
 
     return (
-        <section className="relative mx-auto max-w-7xl px-6 pb-28 pt-14 md:pb-36 md:pt-20">
-            <div className="grid items-start gap-14 lg:grid-cols-12 lg:gap-20">
+        <section className="relative mx-auto max-w-7xl px-6 pb-28 pt-14 md:pb-36 md:pt-20 max-md:pb-16 max-md:pt-8">
+            <div className="grid items-start gap-14 lg:grid-cols-12 lg:gap-20 max-md:grid-cols-1 max-md:gap-12">
                 <div className="lg:col-span-7 lg:pt-2">
-                    <h1 className="max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.04em] text-white sm:text-6xl lg:text-[4rem]">
+                    <h1 className="max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.04em] text-white sm:text-6xl lg:text-[4rem] max-md:text-[clamp(2.25rem,11vw,3rem)] max-md:leading-[1.02]">
                         Serious performance.
-                        <span className="block mt-2 opacity-50">
+                        <span className="block mt-2 opacity-50 max-md:mt-1">
                             Friendly design.
                         </span>
                     </h1>
 
-                    <p className="mt-8 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg sm:leading-8">
+                    <p className="mt-8 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg sm:leading-8 max-md:mt-5">
                         Prismio is a statically typed systems programming language that compiles to native
                         machine code through LLVM. Its experimental Adaptive Inference Framework analyzes
                         where values live and explains each decision.
                     </p>
 
-                    <div className="mt-9 flex flex-wrap items-center gap-3">
+                    <div className="mt-9 flex flex-wrap items-center gap-3 max-md:mt-7 max-sm:flex-col max-sm:items-stretch">
                         <Link
                             href="/install"
-                            className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                            className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 max-md:h-12 max-md:justify-center max-md:text-base"
                         >
                             <Terminal size={16}/>
                             Install Prismio
@@ -151,19 +151,29 @@ export default function Hero() {
                             href="https://docs.prismio.org"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-5 text-sm font-medium text-zinc-200 transition-colors hover:border-white/20 hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                            className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-5 text-sm font-medium text-zinc-200 transition-colors hover:border-white/20 hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 max-md:h-12 max-md:justify-center max-md:text-base"
                         >
                             Read the language guide
                             <ArrowRight size={15}/>
                         </a>
                     </div>
 
-                    <div className="mt-9 max-w-2xl border-t border-white/[0.08] pt-6">
-                        <div className="mb-3 flex items-center justify-between text-xs text-zinc-500">
+                    <div className="mt-9 max-w-2xl border-t border-white/[0.08] pt-6 max-md:hidden">
+                        <div className="mb-3 flex items-center justify-between text-xs text-zinc-500 max-md:mb-1">
                             <span>Install Prismio</span>
+                            {/* Phones: the copy control moves up here, so the command gets the box's full width. */}
+                            <button
+                                type="button"
+                                onClick={copyQuickstart}
+                                className="-mr-3 inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg px-3 text-sm text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 md:hidden"
+                                aria-label="Copy quickstart command"
+                            >
+                                {copied ? <Check size={15} className="text-emerald-400"/> : <Copy size={15}/>}
+                                <span className="font-medium">{copied ? 'Copied' : 'Copy'}</span>
+                            </button>
                         </div>
                         <div className="flex items-center justify-between gap-4 rounded-xl bg-[#0c0d11] px-4 py-3 ring-1 ring-white/[0.08] transition-colors hover:ring-white/[0.14]">
-                            <code className="min-w-0 overflow-x-auto whitespace-nowrap font-mono text-xs sm:text-sm">
+                            <code className="min-w-0 overflow-x-auto whitespace-nowrap font-mono text-xs sm:text-sm max-md:text-[13px] max-md:leading-6 max-md:whitespace-normal max-md:[overflow-wrap:anywhere]">
                                 <span className="mr-2 select-none font-bold text-indigo-400">$</span>
                                 <span className="font-semibold text-white">curl</span>
                                 {' '}
@@ -178,7 +188,7 @@ export default function Hero() {
                             <button
                                 type="button"
                                 onClick={copyQuickstart}
-                                className="inline-flex cursor-pointer shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                                className="inline-flex cursor-pointer shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 max-md:hidden"
                                 aria-label="Copy quickstart command"
                             >
                                 {copied ? <Check size={14} className="text-emerald-400"/> : <Copy size={14}/>}
@@ -187,10 +197,10 @@ export default function Hero() {
                         </div>
                     </div>
 
-                    <dl className="mt-10 grid max-w-2xl grid-cols-2 gap-5 text-sm sm:grid-cols-3">
-                        <div>
+                    <dl className="mt-10 grid max-w-2xl grid-cols-2 gap-5 text-sm sm:grid-cols-3 max-md:mt-8 max-sm:grid-cols-1 max-sm:gap-0 max-sm:divide-y max-sm:divide-white/[0.08] max-sm:border-y max-sm:border-white/[0.08]">
+                        <div className="max-sm:flex max-sm:items-baseline max-sm:justify-between max-sm:gap-4 max-sm:py-3">
                             <dt className="text-zinc-500">Platforms</dt>
-                            <dd className="mt-1 font-medium text-zinc-200">
+                            <dd className="mt-1 font-medium text-zinc-200 max-sm:mt-0 max-sm:text-right">
                                 {PLATFORMS.map((name, i) => (
                                     <React.Fragment key={name}>
                                         {i > 0 && <span aria-hidden className="mx-1.5 font-normal text-zinc-600">/</span>}
@@ -199,13 +209,13 @@ export default function Hero() {
                                 ))}
                             </dd>
                         </div>
-                        <div>
+                        <div className="max-sm:flex max-sm:items-baseline max-sm:justify-between max-sm:gap-4 max-sm:py-3">
                             <dt className="text-zinc-500">Backend</dt>
-                            <dd className="mt-1 font-medium text-zinc-200">{`LLVM ${LLVM_VERSION} AOT + JIT`}</dd>
+                            <dd className="mt-1 font-medium text-zinc-200 max-sm:mt-0 max-sm:text-right">{`LLVM ${LLVM_VERSION} AOT + JIT`}</dd>
                         </div>
-                        <div>
+                        <div className="max-sm:flex max-sm:items-baseline max-sm:justify-between max-sm:gap-4 max-sm:py-3">
                             <dt className="text-zinc-500">Interop</dt>
-                            <dd className="mt-1 font-medium text-zinc-200">Direct C ABI</dd>
+                            <dd className="mt-1 font-medium text-zinc-200 max-sm:mt-0 max-sm:text-right">Direct C ABI</dd>
                         </div>
                     </dl>
                 </div>

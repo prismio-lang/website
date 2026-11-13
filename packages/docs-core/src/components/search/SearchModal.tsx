@@ -240,7 +240,7 @@ export function DocsSearchModal({ docs, config }: DocsSearchModalProps) {
 
     return (
         <div
-            className={`fixed inset-0 z-[100] flex items-start justify-center bg-zinc-950/50 px-3 pt-[8vh] transition-opacity duration-150 sm:px-4 sm:pt-[12vh] ${
+            className={`fixed inset-0 z-[100] flex items-start justify-center bg-zinc-950/50 px-3 pt-[8vh] transition-opacity duration-150 sm:px-4 sm:pt-[12vh] max-md:items-stretch max-md:px-0 max-md:pt-0 ${
                 entered ? "opacity-100" : "opacity-0"
             }`}
             onMouseDown={(event) => event.currentTarget === event.target && setIsOpen(false)}
@@ -249,12 +249,12 @@ export function DocsSearchModal({ docs, config }: DocsSearchModalProps) {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="search-title"
-                className={`w-full max-w-2xl overflow-hidden rounded-2xl border border-zinc-200 bg-white transition-[transform,opacity] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none dark:border-zinc-800 dark:bg-[#0b0c10] ${
+                className={`w-full max-w-2xl overflow-hidden rounded-2xl border border-zinc-200 bg-white max-md:flex max-md:h-dvh max-md:max-w-none max-md:flex-col max-md:rounded-none max-md:border-0 transition-[transform,opacity] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none dark:border-zinc-800 dark:bg-[#0b0c10] ${
                     entered ? "translate-y-0 scale-100 opacity-100" : "-translate-y-2 scale-[0.98] opacity-0"
                 }`}
             >
                 <h2 id="search-title" className="sr-only">Search documentation</h2>
-                <div className="flex items-center gap-3 border-b border-zinc-200 px-4 dark:border-white/[0.08]">
+                <div className="flex items-center gap-3 border-b border-zinc-200 px-4 max-md:shrink-0 max-md:gap-2 max-md:pt-[env(safe-area-inset-top)] max-md:pr-1.5 dark:border-white/[0.08]">
                     <Search aria-hidden="true" size={18} className="shrink-0 text-zinc-400 dark:text-zinc-500" />
                     <input
                         ref={inputRef}
@@ -270,24 +270,24 @@ export function DocsSearchModal({ docs, config }: DocsSearchModalProps) {
                         placeholder={placeholder}
                         autoComplete="off"
                         spellCheck={false}
-                        className="h-14 min-w-0 flex-1 bg-transparent text-base text-zinc-950 outline-none placeholder:text-zinc-400 dark:text-white dark:placeholder:text-zinc-500"
+                        className="h-14 min-w-0 flex-1 bg-transparent text-base text-zinc-950 max-md:h-16 max-md:text-[1.0625rem] outline-none placeholder:text-zinc-400 dark:text-white dark:placeholder:text-zinc-500"
                     />
                     <button
                         type="button"
                         onClick={() => setIsOpen(false)}
                         aria-label="Close search"
-                        className="inline-flex shrink-0 items-center gap-1 rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/[0.08] dark:hover:text-white"
+                        className="inline-flex shrink-0 items-center gap-1 rounded-lg p-1.5 max-md:size-11 max-md:justify-center text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/[0.08] dark:hover:text-white"
                     >
                         <kbd className={`${KBD} hidden sm:inline`}>esc</kbd>
-                        <X aria-hidden="true" size={17} className="sm:hidden" />
+                        <X aria-hidden="true" size={17} className="sm:hidden max-md:size-5" />
                     </button>
                 </div>
 
-                <div id="search-results" role="listbox" aria-label="Results" className="max-h-[56vh] min-h-40 overflow-y-auto p-2">
+                <div id="search-results" role="listbox" aria-label="Results" className="max-h-[56vh] min-h-40 overflow-y-auto p-2 max-md:max-h-none max-md:min-h-0 max-md:flex-1 max-md:overscroll-contain max-md:px-1.5">
                     {!query.trim() && (
                         <div className="px-4 py-10 text-center">
                             <p className="text-sm text-zinc-600 dark:text-zinc-300">{emptyPrompt}</p>
-                            <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+                            <p className="mt-3 text-xs text-zinc-500 max-md:hidden dark:text-zinc-400">
                                 Press <kbd className={KBD}>/</kbd> anywhere in the docs to search.
                             </p>
                         </div>
@@ -315,7 +315,7 @@ export function DocsSearchModal({ docs, config }: DocsSearchModalProps) {
                                 aria-selected={active}
                                 onMouseEnter={() => setActiveIndex(index)}
                                 onClick={() => navigate(doc.slug)}
-                                className={`flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-left transition-colors ${
+                                className={`flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-left transition-colors max-md:py-3.5 ${
                                     active ? "bg-zinc-100 dark:bg-white/[0.06]" : ""
                                 }`}
                             >
@@ -340,13 +340,13 @@ export function DocsSearchModal({ docs, config }: DocsSearchModalProps) {
                                 <CornerDownLeft
                                     aria-hidden="true"
                                     size={15}
-                                    className={`shrink-0 text-zinc-400 transition-opacity dark:text-zinc-500 ${active ? "opacity-100" : "opacity-0"}`}
+                                    className={`shrink-0 text-zinc-400 transition-opacity max-md:hidden dark:text-zinc-500 ${active ? "opacity-100" : "opacity-0"}`}
                                 />
                             </button>
                         );
                     })}
                 </div>
-                <div className="flex items-center justify-between gap-4 border-t border-zinc-200 px-4 py-2.5 text-xs text-zinc-500 dark:border-white/[0.08] dark:text-zinc-400">
+                <div className="flex items-center justify-between gap-4 border-t border-zinc-200 px-4 py-2.5 text-xs text-zinc-500 max-md:shrink-0 max-md:pb-[max(0.625rem,env(safe-area-inset-bottom))] dark:border-white/[0.08] dark:text-zinc-400">
                     <span className="hidden items-center gap-3 sm:flex">
                         <span className="flex items-center gap-1.5"><kbd className={KBD}>↑</kbd><kbd className={KBD}>↓</kbd> move</span>
                         <span className="flex items-center gap-1.5"><kbd className={KBD}>↵</kbd> open</span>

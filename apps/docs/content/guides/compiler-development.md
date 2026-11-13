@@ -3,7 +3,7 @@ title: Develop the self-hosted compiler
 description: Work on Prismio's self-hosted compiler with generation builds, fixed-point checks, and the regression suite.
 status: stable
 version: "0.2.0"
-lastUpdated: "2026-11-10"
+lastUpdated: "2026-11-13"
 tags: [guide, compiler, self-hosting, testing]
 related: [compiler/overview, compiler/bootstrap, specification/conformance]
 ---
@@ -13,9 +13,9 @@ Compiler changes are written in Prismio under `src/`. A trusted seed or previous
 ## Build generations
 
 ```bash
-tools/bootstrap.sh --seed --out build/gen0
-tools/bootstrap.sh --compiler build/gen0 --out build/gen1
-tools/bootstrap.sh --compiler build/gen1 --out build/gen2
+python3 tools/bootstrap.py --seed --out build/gen0
+python3 tools/bootstrap.py --compiler build/gen0 --out build/gen1
+python3 tools/bootstrap.py --compiler build/gen1 --out build/gen2
 python3 tools/package.py --compiler build/gen2 --out build/dist
 python3 tools/run_suite.py --compiler build/dist/bin/prismio
 ```
@@ -38,7 +38,7 @@ Do not run `prismio build`, or edit `src/`, while the suite is running: one of i
 Name generation outputs explicitly for bootstrap and fixed-point checks. A stale
 compiler on `PATH` can make those failures look nondeterministic.
 
-The sequence starts from the release seed (downloaded, checked against a pinned SHA-256 and cached), builds `gen0`, then asks each
+The sequence starts from the seed (`bootstrap/seed.ll`, committed in the repository and also attached to each release), builds `gen0`, then asks each
 generation to compile the same source into `gen1` and `gen2`. The test command
 exercises `gen2` explicitly, never a globally installed compiler.
 

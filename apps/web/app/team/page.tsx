@@ -65,9 +65,9 @@ export default function TeamPage() {
 
             <HeaderMain />
 
-            <main className="relative z-10 mx-auto max-w-7xl px-6 py-20 md:py-28">
+            <main className="relative z-10 mx-auto max-w-7xl px-6 py-20 md:py-28 max-md:px-5 max-md:pb-16 max-md:pt-12">
                 {/* Hero */}
-                <section className="border-b border-white/[0.08] pb-20">
+                <section className="border-b border-white/[0.08] pb-20 max-md:pb-16">
                     <div className="grid items-end gap-8 lg:grid-cols-12 lg:gap-16">
                         <div className="lg:col-span-8">
                             <h1 className="max-w-4xl text-4xl font-semibold leading-[1.05] tracking-[-0.04em] text-white sm:text-5xl md:text-6xl">
@@ -87,7 +87,7 @@ export default function TeamPage() {
                                 href={DISCORD_INVITE_LINK}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#5865F2] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#4752c4]"
+                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#5865F2] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#4752c4] max-sm:min-h-12"
                             >
                                 <DiscordIcon size={16} />
                                 Join Discord
@@ -97,7 +97,7 @@ export default function TeamPage() {
                                 href="https://github.com/prismio-lang/prismio"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-white/[0.06]"
+                                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-white/[0.06] max-sm:min-h-12"
                             >
                                 <GithubIcon size={16} />
                                 GitHub
@@ -108,8 +108,8 @@ export default function TeamPage() {
                 </section>
 
                 {/* Creator */}
-                <section className="border-b border-white/[0.08] py-24">
-                    <div className={`${CARD} p-8 md:p-12`}>
+                <section className="border-b border-white/[0.08] py-24 max-md:py-16">
+                    <div className={`${CARD} p-8 md:p-12 max-md:p-6`}>
                         <div className="grid gap-8 lg:grid-cols-12 lg:gap-14">
                             <div className="space-y-1.5 lg:col-span-4">
                                 <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
@@ -131,21 +131,21 @@ export default function TeamPage() {
                                     </p>
                                 </div>
 
-                                <div className="flex flex-col items-start gap-3 pt-1">
+                                <div className="flex flex-col items-start gap-3 pt-1 max-sm:items-stretch">
                                     <Link
                                         href="/team/saksham-jaiswal"
-                                        className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200"
+                                        className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 max-sm:min-h-12 max-sm:w-full max-sm:justify-center"
                                     >
                                         Read the personal note
                                         <ArrowRight size={14} />
                                     </Link>
 
-                                    <div className="flex flex-wrap items-center gap-2">
+                                    <div className="flex flex-wrap items-center gap-2 max-sm:grid max-sm:grid-cols-2">
                                         <a
                                             href="https://github.com/saksham1319"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
+                                            className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white max-sm:min-h-11 max-sm:justify-center"
                                         >
                                             <GithubIcon size={14} />
                                             GitHub
@@ -155,7 +155,7 @@ export default function TeamPage() {
                                             href="https://www.linkedin.com/in/saksham6975"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
+                                            className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white max-sm:min-h-11 max-sm:justify-center"
                                         >
                                             <LinkedinIcon size={14} className="text-[#70b5f9]" />
                                             LinkedIn
@@ -165,7 +165,7 @@ export default function TeamPage() {
                                             href="https://saksham1319.vercel.app"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
+                                            className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white max-sm:min-h-11 max-sm:justify-center"
                                         >
                                             <FileUser size={14} className="text-teal-400" />
                                             Portfolio
@@ -173,7 +173,7 @@ export default function TeamPage() {
                                         </a>
                                         <a
                                             href="mailto:saksham6975@gmail.com"
-                                            className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
+                                            className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white max-sm:min-h-11 max-sm:justify-center"
                                         >
                                             <Mail size={14} className="text-sky-400" />
                                             Contact
@@ -186,7 +186,7 @@ export default function TeamPage() {
                 </section>
 
                 {/* Where the work is */}
-                <section className="border-b border-white/[0.08] py-24">
+                <section className="border-b border-white/[0.08] py-24 max-md:py-16">
                     <div className="max-w-3xl">
                         <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
                             Where the work is.
@@ -198,7 +198,7 @@ export default function TeamPage() {
                         </p>
                     </div>
 
-                    <div className={`${CARD} mt-12 overflow-hidden`}>
+                    <div className={`${CARD} mt-12 overflow-hidden max-md:mt-8`}>
                         <div className="hidden grid-cols-12 gap-8 border-b border-white/[0.08] px-8 py-4 text-xs font-medium uppercase tracking-wider text-zinc-400 md:grid">
                             <span className="col-span-3">Area</span>
                             <span className="col-span-5">What exists</span>
@@ -207,18 +207,18 @@ export default function TeamPage() {
 
                         <dl className="divide-y divide-white/[0.08]">
                             {AREAS.map(({area, today, missing, tone}) => (
-                                <div key={area} className="grid gap-3 px-8 py-6 md:grid-cols-12 md:gap-8">
-                                    <dt className="flex items-start gap-2.5 text-sm font-semibold text-white md:col-span-3">
-                                        <span aria-hidden className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${tone}`} />
+                                <div key={area} className="grid gap-3 px-8 py-6 md:grid-cols-12 md:gap-8 max-md:px-5">
+                                    <dt className="flex items-start gap-2.5 text-sm font-semibold text-white md:col-span-3 max-md:text-base">
+                                        <span aria-hidden className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full max-md:mt-2 ${tone}`} />
                                         {area}
                                     </dt>
-                                    <dd className="text-sm leading-6 text-zinc-300 md:col-span-5">
+                                    <dd className="text-sm leading-6 text-zinc-300 md:col-span-5 max-md:text-base max-md:leading-7">
                                         <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-zinc-400 md:hidden">
                                             What exists
                                         </span>
                                         {renderCode(today)}
                                     </dd>
-                                    <dd className="text-sm leading-6 text-zinc-400 md:col-span-4">
+                                    <dd className="text-sm leading-6 text-zinc-400 md:col-span-4 max-md:text-base max-md:leading-7">
                                         <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-zinc-400 md:hidden">
                                             What&apos;s missing
                                         </span>
@@ -231,7 +231,7 @@ export default function TeamPage() {
                 </section>
 
                 {/* CTA */}
-                <section className="pt-20 md:pt-28 text-center">
+                <section className="pt-20 md:pt-28 text-center max-md:pt-16">
                     <div className="mx-auto max-w-3xl space-y-6">
                         <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
                             Join the Prismio community today.
@@ -241,12 +241,12 @@ export default function TeamPage() {
                             sponsor CI hardware, you&apos;re welcome here.
                         </p>
 
-                        <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+                        <div className="flex flex-wrap items-center justify-center gap-4 pt-4 max-sm:gap-3">
                             <a
                                 href={DISCORD_INVITE_LINK}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 rounded-xl bg-[#5865F2] px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#4752c4]"
+                                className="inline-flex items-center gap-2 rounded-xl bg-[#5865F2] px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#4752c4] max-sm:w-full max-sm:justify-center"
                             >
                                 <DiscordIcon size={16} />
                                 Join the Discord
@@ -254,7 +254,7 @@ export default function TeamPage() {
 
                             <Link
                                 href="/community"
-                                className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-7 py-3.5 text-sm font-medium text-white transition-colors hover:bg-white/[0.06]"
+                                className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-7 py-3.5 text-sm font-medium text-white transition-colors hover:bg-white/[0.06] max-sm:w-full max-sm:justify-center"
                             >
                                 Community Hub
                                 <ArrowRight size={14} />
@@ -262,7 +262,7 @@ export default function TeamPage() {
 
                             <Link
                                 href="/sponsors"
-                                className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-7 py-3.5 text-sm font-medium text-white transition-colors hover:bg-white/[0.06]"
+                                className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-7 py-3.5 text-sm font-medium text-white transition-colors hover:bg-white/[0.06] max-sm:w-full max-sm:justify-center"
                             >
                                 <Heart size={16} className="text-rose-400" />
                                 Sponsor Infrastructure

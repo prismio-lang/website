@@ -24,9 +24,9 @@ export default function ComingSoon() {
                 <HeaderMini />
 
                 {/* ── Main Hero ── */}
-                <main className="flex-1 flex flex-col items-center">
-                    <section className="w-full max-w-4xl mx-auto px-6 pt-20 sm:pt-28 pb-16 text-center">
-                        <h1 className="text-3xl sm:text-6xl md:text-6xl pt-20 font-bold tracking-tight text-white leading-[1.08] max-w-3xl mx-auto mb-10">
+                <main className="flex-1 flex flex-col items-center max-md:justify-center">
+                    <section className="w-full max-w-4xl mx-auto px-6 pt-20 sm:pt-28 pb-16 text-center max-md:pt-10! max-md:pb-14 max-md:px-5">
+                        <h1 className="text-3xl sm:text-6xl md:text-6xl pt-20 font-bold tracking-tight text-white leading-[1.08] max-w-3xl mx-auto mb-10 max-md:pt-0 max-md:mb-6 max-md:text-balance">
                             The interactive playground for{" "}
                             <span className="relative inline-block whitespace-nowrap">
                                 <span className="relative z-10">Prismio</span>
@@ -38,17 +38,17 @@ export default function ComingSoon() {
                             is coming soon.
                         </h1>
 
-                        <p className="text-base sm:text-lg text-zinc-400 leading-relaxed max-w-xl mx-auto mb-12">
+                        <p className="text-base sm:text-lg text-zinc-400 leading-relaxed max-w-xl mx-auto mb-12 max-md:mb-9 max-md:text-pretty">
                             The official interactive compiler workspace for writing, testing, inspecting AIF memory placement, and analyzing LLVM IR for Prismio.
                         </p>
 
                         {/* CTAs */}
-                        <div className="flex flex-wrap items-center justify-center gap-3.5">
+                        <div className="flex flex-wrap items-center justify-center gap-3.5 max-md:flex-col max-md:items-stretch max-md:gap-3 max-md:max-w-xs max-md:mx-auto">
                             <Link
                                 href="https://github.com/prismio-lang/prismio"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white hover:bg-zinc-200 text-zinc-950 font-medium text-sm transition-colors shadow-xs"
+                                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white hover:bg-zinc-200 text-zinc-950 font-medium text-sm transition-colors shadow-xs max-md:justify-center max-md:h-12 max-md:py-0"
                             >
                                 <Image
                                     src="/icons/github-mark.svg"
@@ -63,7 +63,7 @@ export default function ComingSoon() {
                                 href="https://prismio.org/"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="group inline-flex items-center gap-2 px-6 py-3 rounded-full border border-white/15 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/25 text-zinc-200 hover:text-white font-medium text-sm transition-all shadow-none"
+                                className="group inline-flex items-center gap-2 px-6 py-3 rounded-full border border-white/15 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/25 text-zinc-200 hover:text-white font-medium text-sm transition-all shadow-none max-md:justify-center max-md:h-12 max-md:py-0"
                             >
                                 <span>Back to Prismio</span>
                                 <ArrowUpRight

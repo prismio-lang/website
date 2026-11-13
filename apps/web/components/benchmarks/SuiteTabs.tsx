@@ -103,7 +103,7 @@ export default function SuiteTabs({hosted, freestanding, counts}: SuiteTabsProps
                                 disabled={!enabled}
                                 title={enabled ? undefined : 'No freestanding results in the checked-in file'}
                                 onClick={() => select(tab.key)}
-                                className={`relative z-10 flex items-center justify-center gap-2.5 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-40 ${
+                                className={`relative z-10 flex items-center justify-center gap-2.5 rounded-lg px-4 py-2.5 text-sm font-semibold max-md:min-h-11 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-40 ${
                                     selected ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
                                 }`}
                             >
@@ -132,7 +132,7 @@ export default function SuiteTabs({hosted, freestanding, counts}: SuiteTabsProps
                 role="tabpanel"
                 aria-labelledby="bench-tab-hosted"
                 hidden={active !== 'hosted'}
-                className="bench-panel mt-12 space-y-20"
+                className="bench-panel mt-12 space-y-20 max-md:mt-10 max-md:space-y-14"
             >
                 {hosted}
             </div>
@@ -142,7 +142,7 @@ export default function SuiteTabs({hosted, freestanding, counts}: SuiteTabsProps
                     role="tabpanel"
                     aria-labelledby="bench-tab-freestanding"
                     hidden={active !== 'freestanding'}
-                    className="bench-panel mt-12 space-y-20"
+                    className="bench-panel mt-12 space-y-20 max-md:mt-10 max-md:space-y-14"
                 >
                     {freestanding}
                 </div>

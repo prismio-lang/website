@@ -3,7 +3,7 @@ title: Install the Prismio compiler
 description: Install Prismio 0.2 on macOS, Linux or Windows from a release archive, verify the download, upgrade or remove it, or build the compiler from source.
 status: stable
 version: "0.2.0"
-lastUpdated: "2026-11-10"
+lastUpdated: "2026-11-13"
 tags: [installation, install-script, archives, checksums, bootstrap, llvm]
 related: [start/hello-world, compiler/bootstrap, compiler/targets, releases/0.2.0]
 ---
@@ -137,11 +137,11 @@ If you are using a source archive or an existing checkout, verify that it corres
 
 ```bash
 python3 tools/setup.py
-tools/bootstrap.sh --seed --out build/prismio
+python3 tools/bootstrap.py --seed --out build/prismio
 ./build/prismio --version
 ```
 
-`tools/setup.py` first checks the machine: your Python, the free disk space, and the system C toolchain, which it tests by compiling and linking a small program rather than looking for a file name. It then runs `tools/setup_llvm.py`, which downloads the pinned LLVM into `third_party/llvm` and prepares it. The archive is over a gigabyte, and it is downloaded once: running the script again finds the prepared copy and does nothing. Python is the one prerequisite you install yourself. If the C toolchain is missing, the script says what to install, and `python3 tools/setup.py --install-system-deps` installs it for you after asking (`--yes` skips the question; `--check` only reports). `tools/bootstrap.sh --seed` begins with the release seed (downloaded once, checked against a pinned SHA-256, and cached in `bootstrap/`) and writes a self-hosted compiler to the requested output path.
+`tools/setup.py` first checks the machine: your Python, the free disk space, and the system C toolchain, which it tests by compiling and linking a small program rather than looking for a file name. It then runs `tools/setup_llvm.py`, which downloads the pinned LLVM into `third_party/llvm` and prepares it. The archive is over a gigabyte, and it is downloaded once: running the script again finds the prepared copy and does nothing. Python is the one prerequisite you install yourself. If the C toolchain is missing, the script says what to install, and `python3 tools/setup.py --install-system-deps` installs it for you after asking (`--yes` skips the question; `--check` only reports). `tools/bootstrap.py --seed` begins with the seed, target-neutral LLVM IR for the compiler committed in the compiler repository as `bootstrap/seed.ll` and also attached to each release as `prismio-seed-<version>.ll`, and writes a self-hosted compiler to the requested output path.
 
 The output path may be absolute or repository-relative. Keep generation binaries under `build/` while developing so they remain separate from source.
 
@@ -159,11 +159,11 @@ Assemble the toolchain to fix that.
 
 ```powershell
 python tools/setup.py
-./tools/bootstrap.ps1 -Seed -Out build/prismio.exe
+python tools/bootstrap.py --seed --out build/prismio.exe
 ./build/prismio.exe --version
 ```
 
-Run the commands from PowerShell. The repository provides a PowerShell bootstrap path so you do not need to translate the shell script manually.
+Run the commands from PowerShell. `tools/bootstrap.py` is the same script on every platform.
 
 An installed binary should report Prismio `0.2.0` and LLVM `23.1.5`.
 
@@ -212,7 +212,7 @@ During compiler development, prefer an explicit path such as `./build/prismio`. 
 Build a second generation with the compiler you just created. A successful self-host confirms that the executable can compile the current source tree.
 
 ```bash
-tools/bootstrap.sh --compiler build/prismio --out build/prismio-next
+python3 tools/bootstrap.py --compiler build/prismio --out build/prismio-next
 ```
 
 Then compile a minimal program with the **packaged** compiler. Write the program from [Hello, Prismio](/start/hello-world) to a local `.psm` file first:

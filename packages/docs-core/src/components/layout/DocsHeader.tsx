@@ -51,13 +51,13 @@ export function DocsHeader({
     return (
         <>
             <header className="sticky top-0 z-[80] h-16 border-b border-zinc-200/80 bg-white/90 backdrop-blur-xl dark:border-zinc-800/80 dark:bg-[#0b0b0d]/90">
-                <div className="flex h-full items-center justify-between px-5 sm:px-8">
+                <div className="flex h-full items-center justify-between px-5 sm:px-8 max-[359px]:px-4">
                     {/* Left Section */}
                     <div className="flex shrink-0 items-center gap-4">
-                        <div className="flex shrink-0 items-center gap-2">
-                            <Logo />
+                        <div className="flex shrink-0 items-center gap-2 max-[359px]:gap-1.5">
+                            <Logo className="max-[359px]:gap-2 max-[359px]:[&>span]:text-lg" />
                             {brandTag ? (
-                                <span className={`text-xl ${brandTagClass}`}>{brandTag}</span>
+                                <span className={`text-xl max-[359px]:text-lg ${brandTagClass}`}>{brandTag}</span>
                             ) : null}
                         </div>
 
@@ -114,12 +114,12 @@ export function DocsHeader({
                     </div>
 
                     {/* Right Section (Mobile) */}
-                    <div className="flex items-center gap-2 lg:hidden">
+                    <div className="flex items-center gap-2 lg:hidden max-md:-mr-2 max-md:gap-0.5">
                         <button
                             type="button"
                             onClick={() => emitter.emit("openSearchModal")}
                             aria-label="Search documentation"
-                            className="inline-flex size-9 items-center justify-center rounded-lg text-zinc-600 transition-all hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-white/[0.08]"
+                            className="inline-flex size-9 items-center justify-center rounded-lg text-zinc-600 transition-all hover:bg-zinc-100 max-md:size-11 dark:text-zinc-400 dark:hover:bg-white/[0.08]"
                         >
                             <Search aria-hidden="true" size={18} />
                         </button>
@@ -129,7 +129,7 @@ export function DocsHeader({
                             aria-expanded={isOpen}
                             aria-controls="mobile-docs-nav"
                             aria-label={isOpen ? "Close navigation" : "Open navigation"}
-                            className="inline-flex size-9 items-center justify-center rounded-lg text-zinc-600 transition-all hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-white/[0.08]"
+                            className="inline-flex size-9 items-center justify-center rounded-lg text-zinc-600 transition-all hover:bg-zinc-100 max-md:size-11 dark:text-zinc-400 dark:hover:bg-white/[0.08]"
                         >
                             {isOpen ? <X aria-hidden="true" size={19} /> : <Menu aria-hidden="true" size={19} />}
                         </button>
@@ -140,16 +140,16 @@ export function DocsHeader({
             {isOpen && (
                 <div
                     id="mobile-docs-nav"
-                    className="fixed inset-x-0 bottom-0 top-16 z-[70] overflow-y-auto no-scrollbar bg-white px-5 py-6 lg:hidden dark:bg-[#0b0b0d]"
+                    className="fixed inset-x-0 bottom-0 top-16 z-[70] overflow-y-auto no-scrollbar bg-white px-5 py-6 lg:hidden max-md:overscroll-contain max-md:px-3 max-md:pb-[max(1.5rem,env(safe-area-inset-bottom))] max-md:pt-3 dark:bg-[#0b0b0d]"
                 >
-                    <div className="mb-5 flex items-center justify-between gap-3 border-b border-zinc-200 pb-5 dark:border-zinc-800">
+                    <div className="mb-5 flex items-center justify-between gap-3 border-b border-zinc-200 pb-5 max-md:mb-3 max-md:px-2 max-md:pb-3 dark:border-zinc-800">
                         {showInstall && installUrl ? (
                             <Link
                                 href={installUrl}
                                 target="_blank"
                                 rel="noreferrer"
                                 onClick={() => setOpen(false)}
-                                className="flex items-center gap-1.5 text-sm font-semibold text-zinc-900 hover:underline dark:text-white"
+                                className="flex items-center gap-1.5 text-sm font-semibold text-zinc-900 hover:underline max-md:min-h-11 max-md:gap-2 max-md:text-[0.9375rem] dark:text-white"
                             >
                                 <Terminal size={14} />
                                 <span>Install compiler</span>
@@ -157,13 +157,16 @@ export function DocsHeader({
                         ) : (
                             <div />
                         )}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 max-md:gap-1">
+                            <span className="rounded-md bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-600 sm:hidden dark:bg-zinc-900 dark:text-zinc-300">
+                                v{siteConfig.currentVersion}
+                            </span>
                             <a
                                 href={siteConfig.links.github}
                                 target="_blank"
                                 rel="noreferrer"
                                 aria-label="Prismio on GitHub"
-                                className="inline-flex size-9 items-center justify-center rounded-full transition-all hover:bg-zinc-100 dark:hover:bg-white/[0.08]"
+                                className="inline-flex size-9 items-center justify-center rounded-full transition-all max-md:size-11 hover:bg-zinc-100 dark:hover:bg-white/[0.08]"
                             >
                                 <Image
                                     src="/icons/github-mark.svg"

@@ -46,7 +46,7 @@ export default function ToolchainMetrics({ toolchain, totalWorkloads, cachedBuil
                     <h2 className="text-xl font-semibold tracking-[-0.02em] text-white">
                         Toolchain &amp; Binary Footprint
                     </h2>
-                    <p className="text-xs text-zinc-400">
+                    <p className="text-xs text-zinc-400 max-md:mt-1 max-md:text-sm">
                         Wall-clock compilation speed and final stripped binary size across the full {totalWorkloads}-workload suite.
                     </p>
                 </div>
@@ -54,7 +54,7 @@ export default function ToolchainMetrics({ toolchain, totalWorkloads, cachedBuil
 
             <div className="grid gap-6 md:grid-cols-2">
                 {/* Card 1: Compilation Speed */}
-                <div className="rounded-2xl border border-white/10 bg-[#0b0c10] p-6 space-y-5">
+                <div className="rounded-2xl border border-white/10 bg-[#0b0c10] p-6 space-y-5 max-md:p-5">
                     <div className="flex items-center justify-between text-xs text-zinc-400">
                         <div className="flex items-center gap-2">
                             <Timer size={15} className="text-zinc-300" />
@@ -74,11 +74,11 @@ export default function ToolchainMetrics({ toolchain, totalWorkloads, cachedBuil
                         </span>
                     </div>
 
-                    <p className="text-xs leading-5 text-zinc-400">
+                    <p className="text-xs leading-5 text-zinc-400 max-md:text-sm max-md:leading-6">
                         Full compilation through the self-hosted frontend, AIF escape inference, and LLVM backend.
                     </p>
                     {(cachedNames.length > 0 || prismioProfile) && (
-                        <p className="text-xs leading-5 text-zinc-400">
+                        <p className="text-xs leading-5 text-zinc-400 max-md:text-sm max-md:leading-6">
                             {cachedNames.length > 0 &&
                                 `${cachedNames.join(' and ')} times are from an earlier build; Prismio is rebuilt every run. `}
                             {prismioProfile && `Prismio was compiled by a ${prismioProfile} build of the compiler.`}
@@ -132,7 +132,7 @@ export default function ToolchainMetrics({ toolchain, totalWorkloads, cachedBuil
                 </div>
 
                 {/* Card 2: Binary Size */}
-                <div className="rounded-2xl border border-white/10 bg-[#0b0c10] p-6 space-y-5">
+                <div className="rounded-2xl border border-white/10 bg-[#0b0c10] p-6 space-y-5 max-md:p-5">
                     <div className="flex items-center justify-between text-xs text-zinc-400">
                         <div className="flex items-center gap-2">
                             <HardDrive size={15} className="text-zinc-300" />
@@ -152,7 +152,7 @@ export default function ToolchainMetrics({ toolchain, totalWorkloads, cachedBuil
                         </span>
                     </div>
 
-                    <p className="text-xs leading-5 text-zinc-400">
+                    <p className="text-xs leading-5 text-zinc-400 max-md:text-sm max-md:leading-6">
                         Self-contained binary containing embedded AIF memory runtime, allocators, and stdlib routines.
                     </p>
 

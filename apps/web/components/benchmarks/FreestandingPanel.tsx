@@ -97,9 +97,9 @@ export default function FreestandingPanel({data}: FreestandingPanelProps) {
         <>
             <section className="grid gap-10 border-b border-white/[0.09] pb-16 lg:grid-cols-12 lg:gap-16">
                 <div className="lg:col-span-8">
-                    <h1 className="max-w-4xl text-5xl font-semibold leading-[0.98] tracking-[-0.04em] text-white md:text-6xl">
+                    <h2 className="max-w-4xl text-5xl font-semibold leading-[0.98] tracking-[-0.04em] text-white md:text-6xl">
                         No operating system. The same programs.
-                    </h1>
+                    </h2>
                     <p className="mt-7 max-w-3xl text-base leading-7 text-zinc-300 md:text-lg md:leading-8">
                         Prismio against C (clang -O3) and Rust (<code className="font-mono text-emerald-300">no_std</code>, opt-level 3)
                         on bare-metal AArch64: no C library, no allocator, no startup files. One shared boot harness links into all
@@ -134,7 +134,7 @@ export default function FreestandingPanel({data}: FreestandingPanelProps) {
             <section aria-label="Freestanding overall results">
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {cards.map((card) => (
-                        <div key={card.key} className="space-y-5 rounded-2xl border border-white/10 bg-[#0b0c10] p-7">
+                        <div key={card.key} className="space-y-5 rounded-2xl border border-white/10 bg-[#0b0c10] p-7 max-md:p-6">
                             <div className="flex items-center justify-between text-sm">
                                 <h2 className="font-medium text-zinc-200">{card.title}</h2>
                                 <span className={`font-mono text-xs ${card.armTone}`}>{card.arm}</span>
@@ -151,7 +151,7 @@ export default function FreestandingPanel({data}: FreestandingPanelProps) {
                                         : `${Math.abs(card.delta).toFixed(1)}% more instructions`}
                                 </span>
                             </div>
-                            <p className="text-sm leading-6 text-zinc-400">
+                            <p className="text-sm leading-6 text-zinc-400 max-md:text-[15px]">
                                 Geometric mean of Prismio&apos;s instruction count over the other arm&apos;s, across {stats.count} workloads.
                                 Below 1.00× is fewer instructions.
                             </p>
@@ -173,7 +173,7 @@ export default function FreestandingPanel({data}: FreestandingPanelProps) {
                             </div>
                         </div>
                     ))}
-                    <div className="space-y-5 rounded-2xl border border-white/10 bg-[#0b0c10] p-7">
+                    <div className="space-y-5 rounded-2xl border border-white/10 bg-[#0b0c10] p-7 max-md:p-6">
                         <div className="flex items-center justify-between text-sm">
                             <h2 className="font-medium text-zinc-200">Repeatable</h2>
                             <span className="font-mono text-xs text-orange-300" title={data.machine}>QEMU -icount</span>
@@ -184,7 +184,7 @@ export default function FreestandingPanel({data}: FreestandingPanelProps) {
                                 {data.runs} boots agree
                             </span>
                         </div>
-                        <p className="text-sm leading-6 text-zinc-400">
+                        <p className="text-sm leading-6 text-zinc-400 max-md:text-[15px]">
                             The virtual clock advances one nanosecond per instruction, so a timer tick is {data.tickInstructions} instructions
                             and a repeat boot returns the same count.
                         </p>
@@ -197,12 +197,12 @@ export default function FreestandingPanel({data}: FreestandingPanelProps) {
                     <h2 id="fs-footprint-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white">
                         Build &amp; code footprint
                     </h2>
-                    <p className="mt-3 max-w-3xl text-sm text-zinc-400">
+                    <p className="mt-3 max-w-3xl text-sm text-zinc-400 max-md:text-base max-md:leading-7">
                         Time to build the suite, and the machine code each compiler produced for it.
                     </p>
                 </div>
                 <div className="grid gap-6 lg:grid-cols-2">
-                    <div className="space-y-5 rounded-2xl border border-white/10 bg-[#0b0c10] p-7">
+                    <div className="space-y-5 rounded-2xl border border-white/10 bg-[#0b0c10] p-7 max-md:p-6">
                         <div className="flex items-center justify-between text-sm">
                             <h3 className="font-medium text-zinc-200">Compilation speed</h3>
                             <span className="font-mono text-xs text-zinc-400">compile and link</span>
@@ -211,17 +211,17 @@ export default function FreestandingPanel({data}: FreestandingPanelProps) {
                             values={{prismio: data.compile.prismio.raw, c: data.compile.c.raw, rust: data.compile.rust.raw}}
                             format={(value) => `${(value / 1e6).toFixed(0)} ms`}
                         />
-                        <p className="text-xs leading-5 text-zinc-400">
+                        <p className="text-xs leading-5 text-zinc-400 max-md:text-sm max-md:leading-6">
                             Each arm is built from source and linked with the shared harness. Prismio compiles the whole suite as one program.
                         </p>
                     </div>
-                    <div className="space-y-5 rounded-2xl border border-white/10 bg-[#0b0c10] p-7">
+                    <div className="space-y-5 rounded-2xl border border-white/10 bg-[#0b0c10] p-7 max-md:p-6">
                         <div className="flex items-center justify-between text-sm">
                             <h3 className="font-medium text-zinc-200">Image size</h3>
                             <span className="font-mono text-xs text-zinc-400">.text of the image</span>
                         </div>
                         <Bars values={data.codeBytes} format={formatBytes} />
-                        <p className="text-xs leading-5 text-zinc-400">
+                        <p className="text-xs leading-5 text-zinc-400 max-md:text-sm max-md:leading-6">
                             Executable code, including {formatBytes(data.harnessBytes)} of harness common to all three.
                         </p>
                     </div>
@@ -233,8 +233,8 @@ export default function FreestandingPanel({data}: FreestandingPanelProps) {
                     <h2 id="fs-matrix-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white md:text-4xl">
                         All freestanding workloads
                     </h2>
-                    <p className="mt-3 max-w-3xl text-sm text-zinc-400">
-                        Guest instructions per workload. Click any row to see the checksum all three arms returned and each arm&apos;s exact count.
+                    <p className="mt-3 max-w-3xl text-sm text-zinc-400 max-md:text-base max-md:leading-7">
+                        Guest instructions per workload. <span className="max-md:hidden">Click any row to see the checksum all three arms returned and each arm&apos;s exact count.</span><span className="md:hidden">Tap any row to see the checksum all three arms returned and each arm&apos;s exact count.</span>
                     </p>
                 </div>
                 <FreestandingMatrix benchmarks={data.benchmarks} categories={data.categories} />
@@ -245,13 +245,13 @@ export default function FreestandingPanel({data}: FreestandingPanelProps) {
                     <h2 id="fs-notes-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white">
                         How to read this
                     </h2>
-                    <p className="mt-3 text-sm text-zinc-400">What the number is, what it leaves out, and what is held equal.</p>
+                    <p className="mt-3 text-sm text-zinc-400 max-md:text-base">What the number is, what it leaves out, and what is held equal.</p>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
                     {notes.map(([heading, body]) => (
                         <div key={heading} className="rounded-xl border border-white/[0.07] bg-[#0b0c10] p-5">
                             <h3 className="mb-1 text-sm font-semibold text-white">{heading}</h3>
-                            <p className="text-sm leading-6 text-zinc-400">{body}</p>
+                            <p className="text-sm leading-6 text-zinc-400 max-md:text-[15px]">{body}</p>
                         </div>
                     ))}
                     <div className="rounded-xl border border-white/[0.07] bg-[#0b0c10] p-5 md:col-span-2">

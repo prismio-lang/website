@@ -3,7 +3,7 @@ title: Frequently asked questions
 description: Concise answers about Prismio 0.2 stability, self-hosting, memory, platforms, packages, and documentation status.
 status: stable
 version: "0.2.0"
-lastUpdated: "2026-11-10"
+lastUpdated: "2026-11-13"
 tags: [faq, support, status]
 related: [start/overview, roadmap, compiler/targets]
 ---
@@ -16,7 +16,7 @@ Use it for compiler/language development and controlled experiments. Pin the com
 
 ## Is the compiler really written in Prismio?
 
-Yes. A target-neutral LLVM IR seed, published as a release asset and fetched by the bootstrap script, breaks the initial bootstrapping cycle; subsequent generations compile the Prismio compiler source.
+Yes. A target-neutral LLVM IR seed, committed in the compiler repository as `bootstrap/seed.ll` and also attached to each release as `prismio-seed-<version>.ll`, breaks the initial bootstrapping cycle; subsequent generations compile the Prismio compiler source.
 
 The repository checks multiple generations and fixed points. Self-hosting proves the language/compiler can express and rebuild itself; it does not prove the compiler is bug-free.
 
@@ -94,4 +94,4 @@ Yes, for the cases the project tests. A `--freestanding` build links no C librar
 
 ## Does Prismio have an editor language server?
 
-Yes. `prismio lsp` serves diagnostics, hover, go to definition, completion and semantic tokens over LSP 3.17, and `prismio fmt` formats source. The JetBrains plugin is a client of the server; see [editors](/guides/editors).
+Yes. `prismio lsp` serves diagnostics, hover, go to definition, completion and semantic tokens over LSP 3.17, and `prismio fmt` formats source. The VS Code extension and the JetBrains plugin, both on their marketplaces, are clients of the server; see [editors](/guides/editors).

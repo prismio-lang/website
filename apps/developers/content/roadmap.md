@@ -10,7 +10,7 @@ related: [start, releases/0.2.0, performance/investigation-method]
 ---
 
 This roadmap distinguishes shipped behavior, measured problems, and proposed engineering work. It
-assigns no dates to features. The one date is the next release's target, 0.3.0 on 5 January 2027, which is a target and not a commitment.
+assigns no dates to features. The one date is the next release's target, 0.3.0 on 10 December 2026, which is a target and not a commitment.
 
 ## Established baseline
 

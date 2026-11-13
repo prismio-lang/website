@@ -30,8 +30,8 @@ const LANGUAGE_FEATURES = [
 
 export default function Principles() {
     return (
-        <section aria-labelledby="language-heading" className="mx-auto max-w-7xl px-6 py-24">
-            <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+        <section aria-labelledby="language-heading" className="mx-auto max-w-7xl px-6 py-24 max-md:py-16">
+            <div className="grid gap-12 lg:grid-cols-12 lg:gap-16 max-md:gap-10">
                 <div className="lg:col-span-4">
                     <h2 id="language-heading" className="text-4xl font-semibold tracking-[-0.035em] text-white md:text-5xl">
                         High-level expression.
@@ -50,7 +50,7 @@ export default function Principles() {
                     {LANGUAGE_FEATURES.map(({title, copy, detail}) => (
                         <article key={title} className="py-8 first:pt-0 last:pb-0">
                             <h3 className="text-xl font-semibold tracking-[-0.02em] text-white">{title}</h3>
-                            <p className="mt-3 max-w-3xl text-sm leading-7 text-zinc-300 sm:text-base">{copy}</p>
+                            <p className="mt-3 max-w-3xl text-sm leading-7 text-zinc-300 sm:text-base max-md:text-base">{copy}</p>
                             <p className="mt-3 text-sm leading-6 text-zinc-400">{detail}</p>
                         </article>
                     ))}

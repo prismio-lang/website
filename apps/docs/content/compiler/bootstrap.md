@@ -3,41 +3,41 @@ title: Bootstrapping and fixed points
 description: Build Prismio compiler generations from the target-neutral seed or a trusted previous compiler.
 status: stable
 version: "0.2.0"
-lastUpdated: "2026-09-30"
+lastUpdated: "2026-11-13"
 tags: [compiler, bootstrap, self-hosting, reproducibility]
 related: [start/installation, guides/compiler-development, specification/conformance]
 ---
 
-Self-hosting creates a cycle: Prismio source needs a Prismio compiler. The project breaks it with target-neutral LLVM IR for a seed compiler. The seed is a release asset (`prismio-seed-<version>.ll`), not a tracked file: `bootstrap/seed.json` pins its version and SHA-256, `tools/fetch_seed.py` downloads and checks it, and `--seed` runs that for you.
+Self-hosting creates a cycle: Prismio source needs a Prismio compiler. The project breaks it with target-neutral LLVM IR for a seed compiler. The seed is `bootstrap/seed.ll`, committed in the compiler repository, and the same seed is also attached to each release as `prismio-seed-<version>.ll`. `--seed` reads the committed file; pass a path after it to use another.
 
 The seed is a trust anchor, not the preferred everyday implementation. Its job is to reconstruct a current compiler whose later generations can be checked against one another.
 
 ## Generation workflow
 
 ```bash
-tools/bootstrap.sh --seed --out build/gen0
-tools/bootstrap.sh --compiler build/gen0 --out build/gen1
-tools/bootstrap.sh --compiler build/gen1 --out build/gen2
+python3 tools/bootstrap.py --seed --out build/gen0
+python3 tools/bootstrap.py --compiler build/gen0 --out build/gen1
+python3 tools/bootstrap.py --compiler build/gen1 --out build/gen2
 ```
 
 Conceptually:
 
-- the pinned release seed produces `gen0` for the host;
+- the committed seed produces `gen0` for the host;
 - `gen0` compiles the current Prismio compiler source into `gen1`;
 - `gen1` compiles the same source into `gen2`; and
 - fixed-point checks compare the relevant `gen1` and `gen2` outputs.
 
 Use explicit paths for every compiler generation so an unrelated `prismio` on `PATH` cannot enter the chain.
 
-PowerShell provides the corresponding Windows workflow. Each generation compiles `src/main.psm`, lowers the resulting IR with Clang, rebuilds runtime/backend C sources from the current tree, and links LLVM C API support.
+`tools/bootstrap.py` is the same script on Windows. Each generation compiles `src/main.psm`, lowers the resulting IR with Clang, rebuilds runtime/backend C sources from the current tree, and links LLVM C API support.
 
-The scripts also coordinate the pinned LLVM line and platform-specific executable naming/link requirements. Use them instead of manually reproducing their link command when validating self-hosting.
+The script also coordinates the pinned LLVM line and platform-specific executable naming/link requirements. Use it instead of manually reproducing its link command when validating self-hosting.
 
 ## Why the runtime and backend C sources come from the working tree
 
-The compiler is not only Prismio code. Its runtime and its LLVM backend bridge are C, and a change to either has to reach the next generation. This repository's `build.ums` lists those files as `native` sources of its `prismio` target, so `prismio build` compiles them from the working tree on every build (through a cache keyed by their content) and links them into the new compiler. Nothing about them is built into the compiler doing the building. An older generation, the installed compiler and the project's own host all produce a compiler with the current C, and `tools/bootstrap.sh` does the same when no compiler exists yet.
+The compiler is not only Prismio code. Its runtime and its LLVM backend bridge are C, and a change to either has to reach the next generation. This repository's `build.ums` lists those files as `native` sources of its `prismio` target, so `prismio build` compiles them from the working tree on every build (through a cache keyed by their content) and links them into the new compiler. Nothing about them is built into the compiler doing the building. An older generation, the installed compiler and the project's own host all produce a compiler with the current C, and `tools/bootstrap.py` does the same when no compiler exists yet.
 
-Two things are still true. The frontend source must be parseable by the compiler doing the build, which is what the pinned seed has to stay able to do. And the programs a compiler builds link the runtime library installed beside it, so a runtime edit needs that library re-emitted: a compiler with a source tree beside it refuses to build with a library made from different runtime sources (`P1004`) rather than link a stale one.
+Two things are still true. The frontend source must be parseable by the compiler doing the build, which is what the committed seed has to stay able to do. And the programs a compiler builds link the runtime library installed beside it, so a runtime edit needs that library re-emitted: a compiler with a source tree beside it refuses to build with a library made from different runtime sources (`P1004`) rather than link a stale one.
 
 ## Fixed-point meaning
 

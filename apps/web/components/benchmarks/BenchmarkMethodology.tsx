@@ -22,7 +22,7 @@ export default function BenchmarkMethodology({
                 <h2 id="methodology-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white md:text-4xl">
                     Test Environment &amp; Benchmark Methodology
                 </h2>
-                <p className="text-sm leading-relaxed text-zinc-400">
+                <p className="text-sm leading-relaxed text-zinc-400 max-md:text-base">
                     Exact host hardware specifications, compiler toolchains,
                     and harness parameters used for the latest checked-in benchmark run.
                 </p>
@@ -37,7 +37,7 @@ export default function BenchmarkMethodology({
                             <Cpu size={14} className="text-zinc-300" />
                             Host Hardware &amp; OS
                         </div>
-                        <dl className="space-y-3 text-xs">
+                        <dl className="space-y-3 text-xs max-md:text-[13px]">
                             <div className="flex items-baseline justify-between gap-4">
                                 <dt className="text-zinc-400">Processor</dt>
                                 <dd className="font-mono text-zinc-200">{environment.processor ?? 'Apple M5 (10 cores)'}</dd>
@@ -67,7 +67,7 @@ export default function BenchmarkMethodology({
                             <Layers size={14} className="text-zinc-300" />
                             Toolchains &amp; Compilers
                         </div>
-                        <dl className="space-y-3 text-xs">
+                        <dl className="space-y-3 text-xs max-md:text-[13px]">
                             <div className="flex items-baseline justify-between gap-4">
                                 <dt className="text-zinc-400">Prismio</dt>
                                 <dd className="font-mono text-purple-300 font-medium">
@@ -115,7 +115,7 @@ export default function BenchmarkMethodology({
                             <Gauge size={14} className="text-zinc-300" />
                             Measurement Parameters
                         </div>
-                        <dl className="space-y-3 text-xs">
+                        <dl className="space-y-3 text-xs max-md:text-[13px]">
                             <div className="flex items-baseline justify-between gap-4">
                                 <dt className="text-zinc-400">Sampling</dt>
                                 <dd className="font-mono text-zinc-200">{runs} independent runs / arm</dd>
@@ -142,14 +142,14 @@ export default function BenchmarkMethodology({
             </div>
 
             {/* Run & Reproduce Locally Section */}
-            <div className="rounded-xl border border-white/[0.08] bg-[#090a0e] p-6 space-y-4">
+            <div className="rounded-xl border border-white/[0.08] bg-[#090a0e] p-6 space-y-4 max-md:p-5">
                 <div className="flex items-center gap-2 text-zinc-200">
                     <Terminal size={15} className="text-zinc-300" />
                     <h3 className="text-sm font-semibold text-white">
                         Run &amp; Reproduce Locally
                     </h3>
                 </div>
-                <p className="text-xs text-zinc-400 max-w-2xl leading-relaxed">
+                <p className="text-xs text-zinc-400 max-w-2xl leading-relaxed max-md:text-sm">
                     The harness (<code className="text-zinc-300">benchmarks/run.py</code>), benchmark sources, and checked-in results
                     are part of the open-source repository. To build and execute the entire differential suite locally:
                 </p>

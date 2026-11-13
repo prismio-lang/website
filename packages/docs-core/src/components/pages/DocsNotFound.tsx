@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BookOpen, Home, Search } from "lucide-react";
+import { ArrowRight, Search } from "lucide-react";
 import { emitter } from "@prismio/ui";
 
 export interface DocsNotFoundProps {
@@ -9,55 +10,66 @@ export interface DocsNotFoundProps {
     startLabel?: string;
 }
 
+const ROW =
+    "group flex w-full items-baseline gap-4 px-6 py-2.5 text-left transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-400 sm:px-8 max-md:items-center max-md:gap-3 max-md:px-5 max-md:py-3.5";
+
 export function DocsNotFound({
     startHref = "/start/overview",
     startLabel = "Getting started",
 }: DocsNotFoundProps) {
+    // A static 404 does not know the address until the browser does, so it starts generic.
+    const [path, setPath] = useState<string | null>(null);
+
+    useEffect(() => {
+        const current = window.location.pathname;
+        if (current && current !== "/404" && current !== "/404/") setPath(current);
+    }, []);
+
     const handleOpenSearch = () => {
         emitter.emit("openSearchModal");
     };
 
     return (
-        <div className="flex min-h-[65vh] flex-col items-center justify-center px-4 py-16 text-center">
-            <div className="mx-auto flex max-w-lg flex-col items-center gap-5">
-                <span className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-violet-700 dark:border-violet-900/60 dark:bg-violet-950/40 dark:text-violet-300">
-                    Error 404
-                </span>
-                <h1 className="text-4xl font-bold tracking-tight text-zinc-950 sm:text-5xl dark:text-white">
-                    Page not found
-                </h1>
-                <p className="max-w-md text-base leading-7 text-zinc-600 dark:text-zinc-400">
-                    Maybe you&apos;re looking for something else? The documentation page you requested could not be found or has moved.
-                </p>
+        <div className="mx-auto flex min-h-[65vh] w-full max-w-2xl flex-col justify-center px-4 py-16 max-md:min-h-0 max-md:px-0 max-md:py-10">
+            <h1 className="text-4xl font-semibold tracking-[-0.03em] text-zinc-950 sm:text-5xl max-md:text-balance dark:text-white">
+                That page isn&apos;t in the docs.
+            </h1>
+            <p className="mt-4 max-w-md text-base leading-7 text-zinc-600 dark:text-zinc-400">
+                The link may be old, or the page may have moved. Search, or start from one of these.
+            </p>
 
-                <div className="w-full max-w-md">
-                    <button
-                        type="button"
-                        onClick={handleOpenSearch}
-                        className="flex h-11 w-full items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50 px-4 text-sm text-zinc-500 transition-colors hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:bg-zinc-900"
-                    >
-                        <span className="flex items-center gap-2.5">
-                            <Search aria-hidden="true" size={16} />
-                            <span>Search documentation…</span>
-                        </span>
-                        <kbd className="rounded border border-zinc-200 bg-white px-2 py-0.5 font-mono text-[0.7rem] text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-                            ⌘K
-                        </kbd>
-                    </button>
+            {/* Written the way the compiler would say it. */}
+            <div className="mt-8 overflow-hidden rounded-2xl bg-zinc-950 ring-1 ring-zinc-900/10 dark:bg-[#0b0c10] dark:ring-white/[0.09]">
+                <div className="px-6 pt-6 font-mono text-sm leading-7 sm:px-8 sm:pt-8 max-md:px-5 max-md:pt-5">
+                    <p className="text-white">
+                        <span className="font-semibold text-rose-400">error[404]</span>
+                        <span className="font-semibold">: cannot find page </span>
+                        <span className="break-all font-semibold">{path ?? "this address"}</span>
+                    </p>
+                    <p className="mt-5">
+                        <span className="font-semibold text-emerald-400">help</span>
+                        <span className="text-zinc-300">: these exist</span>
+                    </p>
                 </div>
 
-                <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-                    <Link
-                        href="/"
-                        className="inline-flex h-10 items-center gap-2 rounded-lg bg-zinc-950 px-4 text-xs font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
-                    >
-                        <Home aria-hidden="true" size={14} /> Back to docs home
+                <div className="mt-3 pb-3 font-mono text-sm">
+                    <button type="button" onClick={handleOpenSearch} className={ROW}>
+                        <span className="w-28 shrink-0 font-medium text-indigo-300 max-md:w-[5.5rem] transition-colors group-hover:text-indigo-200">Search</span>
+                        <span className="flex min-w-0 flex-1 items-center gap-2 truncate font-sans max-md:whitespace-normal text-sm text-zinc-400 transition-colors group-hover:text-zinc-200">
+                            <Search aria-hidden="true" size={14} className="shrink-0" />
+                            Search the documentation
+                        </span>
+                        <kbd className="shrink-0 rounded border border-white/15 px-1.5 py-0.5 font-mono text-[0.7rem] text-zinc-400 max-md:hidden">⌘K</kbd>
+                    </button>
+                    <Link href={startHref} className={ROW}>
+                        <span className="w-28 shrink-0 font-medium text-indigo-300 max-md:w-[5.5rem] transition-colors group-hover:text-indigo-200">Start</span>
+                        <span className="min-w-0 flex-1 truncate font-sans max-md:whitespace-normal text-sm text-zinc-400 transition-colors group-hover:text-zinc-200">{startLabel}</span>
+                        <ArrowRight aria-hidden="true" size={14} className="shrink-0 text-zinc-600 transition-all group-hover:translate-x-0.5 group-hover:text-zinc-300" />
                     </Link>
-                    <Link
-                        href={startHref}
-                        className="inline-flex h-10 items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                    >
-                        <BookOpen aria-hidden="true" size={14} /> {startLabel}
+                    <Link href="/" className={ROW}>
+                        <span className="w-28 shrink-0 font-medium text-indigo-300 max-md:w-[5.5rem] transition-colors group-hover:text-indigo-200">Docs home</span>
+                        <span className="min-w-0 flex-1 truncate font-sans max-md:whitespace-normal text-sm text-zinc-400 transition-colors group-hover:text-zinc-200">The front page of the docs</span>
+                        <ArrowRight aria-hidden="true" size={14} className="shrink-0 text-zinc-600 transition-all group-hover:translate-x-0.5 group-hover:text-zinc-300" />
                     </Link>
                 </div>
             </div>

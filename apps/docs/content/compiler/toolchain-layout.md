@@ -3,7 +3,7 @@ title: Toolchain layout
 description: What an installed Prismio toolchain contains, why a compiler is a directory rather than a file, and how to read a missing-module error.
 status: stable
 version: "0.2.0"
-lastUpdated: "2026-11-10"
+lastUpdated: "2026-11-13"
 tags: [installation, packaging, runtime, stdlib]
 related: [start/installation, compiler/overview, compiler/bootstrap, stdlib]
 ---
@@ -63,7 +63,7 @@ ERROR: Prismio installation is incomplete or corrupted.
 The message names the exact file the compiler looked for, relative to the prefix. In practice it means one of three things:
 
 - **The binary was copied out of its prefix.** Point at the original, or copy the whole directory.
-- **The toolchain was never assembled.** A binary straight out of `tools/bootstrap.sh` is a compiler that can build compilers and nothing else. Run `tools/package.py` — see [Installation](/start/installation).
+- **The toolchain was never assembled.** A binary straight out of `tools/bootstrap.py` is a compiler that can build compilers and nothing else. Run `tools/package.py` — see [Installation](/start/installation).
 - **The build names a target that was not packaged.** Cross builds look under `lib/runtime/<triple>/`, and a prefix only carries the targets it was packaged for.
 
 `prismio --version` prints the compiler and standard-library directories it resolved, which distinguishes "wrong prefix" from "incomplete prefix" immediately.

@@ -3,7 +3,7 @@
 import React, {useEffect, useState} from 'react';
 import {ArrowUpRight, Check, Copy, Download, ExternalLink, Info} from 'lucide-react';
 import HeaderMain from '@/components/HeaderMain';
-import IntelliJPluginCard from '@/components/IntelliJPluginCard';
+import EditorInstall from '@/components/EditorInstall';
 import FooterMain from '@prismio/ui/FooterMain';
 import {LLVM_VERSION, PRISMIO_VERSION} from '@prismio/utils';
 
@@ -56,13 +56,13 @@ function stepsFor(os: OS): Step[] {
         },
         {
             title: 'Build the first compiler',
-            note: 'Built from the LLVM IR seed of the pinned release, downloaded and checked for you, so a machine with no Prismio can start.',
-            commands: [win ? 'tools\\bootstrap.ps1 -Out build\\gen0' : 'tools/bootstrap.sh --seed --out build/gen0'],
+            note: 'Built from the seed, LLVM IR for the compiler committed as bootstrap/seed.ll (and attached to each release), so a machine with no Prismio can start.',
+            commands: [win ? 'python tools\\bootstrap.py --seed --out build\\gen0' : 'python3 tools/bootstrap.py --seed --out build/gen0'],
         },
         {
             title: 'Rebuild it with itself',
             note: 'The compiler compiles its own source. This is the one you will use.',
-            commands: [win ? 'tools\\bootstrap.ps1 -Compiler build\\gen0 -Out build\\gen1' : 'tools/bootstrap.sh --compiler build/gen0 --out build/gen1'],
+            commands: [win ? 'python tools\\bootstrap.py --compiler build\\gen0 --out build\\gen1' : 'python3 tools/bootstrap.py --compiler build/gen0 --out build/gen1'],
         },
         win
             ? {
@@ -241,7 +241,7 @@ export default function InstallPage() {
 
             <HeaderMain />
 
-            <main className="relative z-10 mx-auto max-w-4xl py-20 md:py-28">
+            <main className="relative z-10 mx-auto max-w-4xl py-20 md:py-28 max-md:px-5 max-md:pb-20 max-md:pt-12">
                 {/* Hero */}
                 <section className="text-center">
                     <h1 className="text-5xl font-semibold tracking-[-0.045em] text-white sm:text-6xl">
@@ -253,15 +253,15 @@ export default function InstallPage() {
 
                     {/* At a glance */}
                     <dl className="mx-auto mt-10 grid max-w-3xl divide-y divide-white/[0.08] overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0c0c0e]/70 text-left sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-                        <div className="px-5 py-4">
+                        <div className="px-5 py-4 max-sm:flex max-sm:items-baseline max-sm:justify-between max-sm:gap-4 max-sm:py-3">
                             <dt className="text-xs text-zinc-400">Version</dt>
-                            <dd className="mt-1 font-mono text-sm text-white">
+                            <dd className="mt-1 font-mono text-sm text-white max-sm:mt-0">
                                 {PRISMIO_VERSION} <span className="text-zinc-400">· LLVM {LLVM_VERSION}</span>
                             </dd>
                         </div>
-                        <div className="px-5 py-4">
+                        <div className="px-5 py-4 max-sm:flex max-sm:items-baseline max-sm:justify-between max-sm:gap-4 max-sm:py-3">
                             <dt className="text-xs text-zinc-400">Platforms</dt>
-                            <dd className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-sm">
+                            <dd className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-sm max-sm:mt-0 max-sm:justify-end">
                                 {(['macOS', 'Linux', 'Windows'] as OS[]).map((name) => (
                                     <span key={name} className={`inline-flex items-center gap-1.5 ${detected === name ? 'text-white' : 'text-zinc-400'}`}>
                                         {detected === name && <span aria-hidden className="size-1.5 rounded-full bg-[#47d7b5]" />}
@@ -270,14 +270,14 @@ export default function InstallPage() {
                                 ))}
                             </dd>
                         </div>
-                        <div className="px-5 py-4">
+                        <div className="px-5 py-4 max-sm:flex max-sm:items-baseline max-sm:justify-between max-sm:gap-4 max-sm:py-3">
                             <dt className="text-xs text-zinc-400">You need</dt>
-                            <dd className="mt-1 font-mono text-sm text-white">A C toolchain</dd>
+                            <dd className="mt-1 font-mono text-sm text-white max-sm:mt-0">A C toolchain</dd>
                         </div>
                     </dl>
 
                     {/* Method selector */}
-                    <div role="tablist" aria-label="Installation method" className="mx-auto mt-8 grid max-w-3xl gap-3 sm:grid-cols-3">
+                    <div role="tablist" aria-label="Installation method" className="mx-auto mt-8 grid max-w-3xl gap-3 sm:grid-cols-3 max-sm:gap-2">
                         {MODES.map(({id, label, status, ready}) => {
                             const active = mode === id;
                             return (
@@ -287,14 +287,14 @@ export default function InstallPage() {
                                     role="tab"
                                     aria-selected={active}
                                     onClick={() => setMode(id)}
-                                    className={`rounded-2xl border px-5 py-4 text-left transition-colors ${FOCUS} ${
+                                    className={`rounded-2xl border px-5 py-4 text-left transition-colors max-sm:flex max-sm:min-h-14 max-sm:items-center max-sm:justify-between max-sm:gap-3 max-sm:py-3 ${FOCUS} ${
                                         active
                                             ? 'border-indigo-400/50 bg-indigo-500/15'
                                             : 'border-white/[0.08] bg-[#0c0c0e]/70 hover:border-white/20 hover:bg-white/[0.04]'
                                     }`}
                                 >
                                     <span className="block text-sm font-semibold text-white">{label}</span>
-                                    <span className={`mt-1.5 flex items-center gap-2 font-mono text-xs ${ready ? 'text-emerald-300' : 'text-zinc-400'}`}>
+                                    <span className={`mt-1.5 flex items-center gap-2 font-mono text-xs max-sm:mt-0 ${ready ? 'text-emerald-300' : 'text-zinc-400'}`}>
                                         <span aria-hidden className={`size-1.5 rounded-full ${ready ? 'bg-emerald-400' : 'bg-zinc-500'}`} />
                                         {status}
                                     </span>
@@ -311,11 +311,11 @@ export default function InstallPage() {
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                                 <div>
                                     <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white">Build from source</h2>
-                                    <p className="mt-2 max-w-lg text-sm leading-7 text-zinc-400">
+                                    <p className="mt-2 max-w-lg text-sm leading-7 text-zinc-400 max-md:text-base">
                                         Five steps, and everything lands in the folder you clone into.
                                     </p>
                                 </div>
-                                <div className="flex shrink-0 items-center gap-3">
+                                <div className="flex shrink-0 items-center gap-3 max-sm:flex-wrap">
                                     <div role="group" aria-label="Operating system" className="flex rounded-lg border border-white/[0.08] bg-black/40 p-1">
                                         {(['macOS', 'Linux', 'Windows'] as OS[]).map((name) => (
                                             <button
@@ -323,7 +323,7 @@ export default function InstallPage() {
                                                 type="button"
                                                 aria-pressed={os === name}
                                                 onClick={() => setOs(name)}
-                                                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${FOCUS} ${
+                                                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors max-md:min-h-10 max-md:px-3.5 max-md:text-sm ${FOCUS} ${
                                                     os === name ? 'bg-indigo-500/25 font-semibold text-indigo-100' : 'text-zinc-400 hover:text-zinc-200'
                                                 }`}
                                             >
@@ -334,7 +334,7 @@ export default function InstallPage() {
                                     <button
                                         type="button"
                                         onClick={() => copy(allCommands, 'all')}
-                                        className={`inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-200 transition-colors hover:bg-white/[0.08] hover:text-white ${FOCUS}`}
+                                        className={`inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-200 transition-colors hover:bg-white/[0.08] hover:text-white max-md:min-h-11 max-md:px-3.5 max-md:text-sm ${FOCUS}`}
                                     >
                                         {copied === 'all' ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
                                         {copied === 'all' ? 'Copied' : 'Copy all'}
@@ -351,7 +351,7 @@ export default function InstallPage() {
 
                             <ol className="mt-10 space-y-8">
                                 {steps.map((step, i) => (
-                                    <li key={step.title} className="relative pl-14">
+                                    <li key={step.title} className="relative pl-14 max-md:pl-12">
                                         <span
                                             aria-hidden
                                             className="absolute left-0 top-0 flex size-9 items-center justify-center rounded-full border border-indigo-400/40 bg-indigo-500/10 font-mono text-sm font-semibold text-indigo-100"
@@ -361,11 +361,11 @@ export default function InstallPage() {
                                         {i < steps.length - 1 && <span aria-hidden className="absolute bottom-[-2rem] left-[17px] top-11 w-px bg-white/[0.1]" />}
 
                                         <h3 className="text-lg font-semibold text-white">{step.title}</h3>
-                                        <p className="mt-1 max-w-2xl text-sm leading-6 text-zinc-400">{step.note}</p>
+                                        <p className="mt-1 max-w-2xl text-sm leading-6 text-zinc-400 max-md:text-base max-md:leading-7">{step.note}</p>
 
                                         {step.commands && (
                                             <div className="group relative mt-4 overflow-hidden rounded-xl bg-[#06070a] ring-1 ring-white/[0.08]">
-                                                <pre className="overflow-x-auto py-3.5 pl-4 pr-14 font-mono text-sm leading-relaxed">
+                                                <pre className="overflow-x-auto py-3.5 pl-4 pr-14 font-mono text-sm leading-relaxed max-md:whitespace-pre-wrap max-md:break-all">
                                                     {step.commands.map((command, j) => (
                                                         <div key={j}>
                                                             <span className="mr-3 select-none text-indigo-400">{prompt}</span>
@@ -377,7 +377,7 @@ export default function InstallPage() {
                                                     type="button"
                                                     aria-label={`Copy step ${i + 1}`}
                                                     onClick={() => copy(step.commands!.join('\n'), `step-${i}`)}
-                                                    className={`absolute right-2.5 top-2.5 inline-flex size-8 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/[0.08] hover:text-white sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 ${FOCUS}`}
+                                                    className={`absolute right-2.5 top-2.5 inline-flex size-8 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/[0.08] hover:text-white sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 max-md:right-1.5 max-md:top-1.5 max-md:size-10 max-md:bg-[#06070a] max-md:opacity-100! ${FOCUS}`}
                                                 >
                                                     {copied === `step-${i}` ? <Check size={15} className="text-emerald-400" /> : <Copy size={15} />}
                                                 </button>
@@ -394,7 +394,7 @@ export default function InstallPage() {
                         <div className="space-y-6">
                             <div>
                                 <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white">Install script</h2>
-                                <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-400">
+                                <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-400 max-md:text-base">
                                     One command downloads the archive for your platform, checks its SHA-256 against the one published beside it, and
                                     installs into <code className="font-mono text-zinc-200">~/.prismio</code>. It then adds that directory to your PATH in{' '}
                                     <code className="font-mono text-zinc-200">.zshrc</code>, <code className="font-mono text-zinc-200">.bashrc</code> or the
@@ -410,11 +410,11 @@ export default function InstallPage() {
                                     onCopy={() => copy('curl -fsSL https://prismio.org/install.sh | sh', 'script')}
                                 />
                             </div>
-                            <p className="max-w-xl text-sm leading-7 text-zinc-400">
+                            <p className="max-w-xl text-sm leading-7 text-zinc-400 max-md:text-base">
                                 <span className="font-semibold text-zinc-200">Windows:</span> download the <code className="font-mono text-zinc-200">.zip</code> from
                                 the Prebuilt binaries tab, unpack it, and put its <code className="font-mono text-zinc-200">bin</code> directory on your PATH.
                             </p>
-                            <p className="max-w-3xl text-sm leading-7 text-zinc-400">
+                            <p className="max-w-3xl text-sm leading-7 text-zinc-400 max-md:text-base">
                                 Set <code className="font-mono text-zinc-200">PRISMIO_VERSION</code> to install a specific release,{' '}
                                 <code className="font-mono text-zinc-200">PRISMIO_INSTALL</code> to choose the directory, and{' '}
                                 <code className="font-mono text-zinc-200">PRISMIO_NO_MODIFY_PATH=1</code> to leave your shell profile alone. The
@@ -431,7 +431,7 @@ export default function InstallPage() {
                                 <>
                                     <div>
                                         <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white">Prebuilt binaries</h2>
-                                        <p className="mt-2 text-sm text-zinc-400">
+                                        <p className="mt-2 text-sm text-zinc-400 max-md:text-base">
                                             {release.version}, published {release.date}.
                                         </p>
                                     </div>
@@ -457,13 +457,13 @@ export default function InstallPage() {
                             ) : (
                                 <div>
                                     <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white">Prebuilt binaries</h2>
-                                    <p className="mt-2 max-w-xl text-sm leading-7 text-zinc-400">
+                                    <p className="mt-2 max-w-xl text-sm leading-7 text-zinc-400 max-md:text-base">
                                         Archives for macOS, Linux and Windows are on GitHub Releases, named{' '}
                                         <code className="font-mono text-zinc-200">prismio-&lt;version&gt;-&lt;os&gt;-&lt;arch&gt;</code>.
                                     </p>
                                 </div>
                             )}
-                            <p className="max-w-xl text-sm leading-7 text-zinc-400">
+                            <p className="max-w-xl text-sm leading-7 text-zinc-400 max-md:text-base">
                                 Every archive has a <code className="font-mono text-zinc-200">.sha256</code> beside it. The archives are{' '}
                                 <span className="font-semibold text-zinc-200">not signed</span>: the checksum shows the download is intact, not who
                                 made it, so take both from the release page. The ARM64 builds for Linux and Windows are built and tested on virtual
@@ -473,7 +473,7 @@ export default function InstallPage() {
                                 href={`${REPO}/releases`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className={`inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/[0.1] ${FOCUS}`}
+                                className={`inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/[0.1] max-md:min-h-11 ${FOCUS}`}
                             >
                                 GitHub Releases
                                 <ExternalLink size={13} />
@@ -483,11 +483,11 @@ export default function InstallPage() {
                 </section>
 
                 {/* Check it works */}
-                <section className="mt-28" aria-labelledby="verify-heading">
+                <section className="mt-28 max-md:mt-20" aria-labelledby="verify-heading">
                     <h2 id="verify-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white">
                         Check it works.
                     </h2>
-                    <p className="mt-2 max-w-lg text-sm leading-7 text-zinc-400">
+                    <p className="mt-2 max-w-lg text-sm leading-7 text-zinc-400 max-md:text-base">
                         Three commands to run once the toolchain is on your PATH. This is what the compiler prints.
                     </p>
 
@@ -499,7 +499,7 @@ export default function InstallPage() {
                                     type="button"
                                     aria-pressed={verifyTab === key}
                                     onClick={() => setVerifyTab(key)}
-                                    className={`rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${FOCUS} ${
+                                    className={`rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors max-md:min-h-10 max-md:flex-1 max-md:px-1.5 max-md:text-[13px] ${FOCUS} ${
                                         verifyTab === key ? 'bg-indigo-500/25 font-semibold text-indigo-100' : 'text-zinc-400 hover:text-zinc-200'
                                     }`}
                                 >
@@ -507,7 +507,7 @@ export default function InstallPage() {
                                 </button>
                             ))}
                         </div>
-                        <pre className="min-h-[15rem] overflow-x-auto p-6 font-mono text-sm leading-relaxed">
+                        <pre className="min-h-[15rem] overflow-x-auto p-6 font-mono text-sm leading-relaxed max-md:p-4 max-md:text-[13px]">
                             {verify.lines.map((line, i) =>
                                 line.kind === 'cmd' ? (
                                     <div key={i} className="mt-4 first:mt-0">
@@ -525,7 +525,7 @@ export default function InstallPage() {
                 </section>
 
                 {/* Next */}
-                <section className="mt-28" aria-labelledby="next-heading">
+                <section className="mt-28 max-md:mt-20" aria-labelledby="next-heading">
                     <h2 id="next-heading" className="text-3xl font-semibold tracking-[-0.03em] text-white">
                         Then write something.
                     </h2>
@@ -547,11 +547,11 @@ export default function InstallPage() {
                 </section>
 
                 {/* Editors */}
-                <section className="mt-28" aria-labelledby="editors-heading">
+                <section className="mt-28 max-md:mt-20" aria-labelledby="editors-heading">
                     <h2 id="editors-heading" className="mb-8 text-3xl font-semibold tracking-[-0.03em] text-white">
                         Editor support
                     </h2>
-                    <IntelliJPluginCard />
+                    <EditorInstall />
                 </section>
             </main>
 
@@ -576,20 +576,20 @@ function Preview({
     return (
         <div className="rounded-xl border border-white/[0.08] bg-[#06070a] p-4">
             <div className="flex items-center justify-between gap-3">
-                <p className="text-xs text-zinc-400">{label}</p>
+                <p className="text-xs text-zinc-400 max-md:text-sm">{label}</p>
                 {onCopy && (
                     <button
                         type="button"
                         aria-label="Copy install command"
                         onClick={onCopy}
-                        className={`inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white ${FOCUS}`}
+                        className={`inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white max-md:-my-1.5 max-md:min-h-10 max-md:px-3.5 max-md:text-sm ${FOCUS}`}
                     >
                         {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
                         <span className={copied ? 'text-emerald-400' : ''}>{copied ? 'Copied' : 'Copy'}</span>
                     </button>
                 )}
             </div>
-            <code className="mt-3 block overflow-x-auto whitespace-nowrap font-mono text-sm">
+            <code className="mt-3 block overflow-x-auto whitespace-nowrap font-mono text-sm max-md:whitespace-pre-wrap max-md:break-all">
                 <span className="mr-3 select-none text-indigo-400">{prompt}</span>
                 <Command text={command} />
             </code>

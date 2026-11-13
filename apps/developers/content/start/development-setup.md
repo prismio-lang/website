@@ -3,13 +3,13 @@ title: Development environment
 description: Prepare a Prismio compiler checkout with its pinned LLVM, platform tools, Python, and a known compiler generation.
 status: stable
 version: "0.1.0"
-lastUpdated: "2026-09-30"
+lastUpdated: "2026-11-13"
 tags: [setup, llvm, toolchain]
 related: [compiler/bootstrap, start/local-compiler-loop, tooling/debugging-targets-and-build-tracing]
 ---
 
 Compiler development requires the checkout's pinned LLVM, a C toolchain, Python for the test harness, and either an
-installed Prismio compiler or the release bootstrap seed (fetched for you). Run setup commands from the compiler
+installed Prismio compiler or the bootstrap seed (`bootstrap/seed.ll`, in the checkout). Run setup commands from the compiler
 repository root: the bootstrap scripts resolve `src`, `runtime`, `bootstrap`, and
 `third_party/llvm-paths.json` relative to that checkout.
 
@@ -58,7 +58,7 @@ The test runner honors `PRISMIO` before `PATH`. Point it at the generation you i
 PRISMIO=$PWD/.prismio/build/debug/prismio python3 tests/test_runner.py
 ```
 
-If no installed compiler is available, build the first generation from the release IR seed (fetched and checked on first use), then
+If no installed compiler is available, build the first generation from the committed IR seed, `bootstrap/seed.ll`, then
 build two self-hosted generations:
 
 ```bash

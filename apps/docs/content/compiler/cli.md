@@ -3,7 +3,7 @@ title: Compiler command-line reference
 description: Complete Prismio 0.2 build, run, AST, AIF, target, optimization, and verification command reference.
 status: stable
 version: "0.2.0"
-lastUpdated: "2026-11-12"
+lastUpdated: "2026-11-13"
 tags: [compiler, cli, flags, commands]
 related: [start/build-and-run, compiler/aif, compiler/targets]
 ---
@@ -80,7 +80,7 @@ prismio run components/main.psm
 prismio run components/main.psm -- --port 8080
 ```
 
-There is no `bootstrap` command. The Prismio compiler is built from its repository's `build.ums`, which names its C sources like any other project's, and `tools/bootstrap.sh` (`tools/bootstrap.ps1` on Windows) builds one from the release seed, which it fetches and checks first, on a machine with no Prismio at all.
+There is no `bootstrap` command. The Prismio compiler is built from its repository's `build.ums`, which names its C sources like any other project's, and `tools/bootstrap.py` (the same script on every platform) builds one from the committed seed, `bootstrap/seed.ll`, on a machine with no Prismio at all.
 
 ## Inspection commands
 

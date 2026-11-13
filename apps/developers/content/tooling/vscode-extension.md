@@ -3,7 +3,7 @@ title: The VS Code extension
 description: How the Prismio extension for VS Code is built, why it stays a thin client of the language server, how its grammars are generated or held to the compiler, and how to test it in a real VS Code.
 status: stable
 version: "0.2.0"
-lastUpdated: "2026-11-11"
+lastUpdated: "2026-11-13"
 tags: [vscode, editor, lsp, tooling]
 related: [tooling/language-server, tooling/ide-protocol, tooling/intellij-plugin, compiler/cli]
 ---
@@ -98,4 +98,5 @@ A TextMate grammar cannot see context, so a contextual keyword is coloured only 
 - `pnpm run package` builds `prismio-vscode-<version>.vsix`: esbuild bundles the extension and `vscode-languageclient` into `out/extension.js`, and `vsce package --no-dependencies` ships that one file and no `node_modules` (vsce cannot list a pnpm `node_modules`, and a bundle loads faster). The repository is its own pnpm workspace root (`pnpm-workspace.yaml`), so pnpm never joins a workspace file further up the tree. The identifier is `Prismio.prismio`: the Marketplace accepts an upload only when the manifest's `publisher` is the publisher ID it is uploaded under; `test/package.test.mjs` holds what it ships to an allowlist (an IDE's `.idea/workspace.xml`, with local paths, once slipped in).
 - `test/runTests.ts` uses the installed VS Code (`VSCODE_PATH` names another) with `--disable-extensions`. It opens copies of `test/fixtures/demo` and `test/fixtures/second` as one two-folder workspace and writes `prismio.path` into the workspace file (a window setting, which a folder's settings cannot set in a multi-root workspace), so the test needs `PRISMIO`, not a `prismio` on `PATH`.
 - Position encoding is negotiated by the client library; the server converts between the compiler's byte columns and it in one module.
-- Not done: publishing to the Marketplace (an account and a token the maintainer holds; the `.vsix` is on the GitHub release), and the extension itself on Windows (the server it starts has been run there, see [the language server](/tooling/language-server#windows)). The end-to-end suite is automated and also runs against the unpacked `.vsix`, so what ships is what was tested.
+- Published on the Visual Studio Marketplace as `Prismio.prismio`; publishing needs the maintainer's account and token.
+- Not done: the extension itself on Windows (the server it starts has been run there, see [the language server](/tooling/language-server#windows)). The end-to-end suite is automated and also runs against the unpacked `.vsix`, so what ships is what was tested.

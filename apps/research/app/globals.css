@@ -211,6 +211,72 @@ main { display: block; }
 .cite p { margin: 0.5rem 0; font-size: 1rem; }
 .pager { display: flex; flex-wrap: wrap; gap: 0.5rem 2rem; font: 500 0.875rem var(--sans); }
 
+/* ---- Phones (below 768px): the same paper and serif, sized for a thumb ----
+   Nothing here reaches 768px and up. The header scrolls away so a long paper keeps the whole screen; every link the
+   chrome offers is a 44px target; tables either scroll inside a full-bleed strip or, when their cells are sentences
+   (Prose marks those `table-stack`), become one labelled block per row. */
+@media (max-width: 767px) {
+    html { scroll-padding-top: 1rem; }
+    .site-header { position: relative; }
+    .brand { padding: 0.75rem 0 0.25rem; }
+    .site-nav { padding: 0; gap: 0 1.35rem; }
+    .site-nav > a:not(.icon-link) { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0; }
+    .site-nav .icon-link { width: 2.75rem; height: 2.75rem; margin-right: -0.75rem; }
+
+    .masthead { padding: 2.25rem 0 1.5rem; }
+    .masthead h1 { margin-bottom: 1rem; }
+    .section-title { margin-top: 2rem; }
+    .entry { padding: 1.4rem 0; }
+
+    /* Small inline links get a taller hit area without moving the line they sit on. */
+    .crumbs a, .meta a { display: inline-block; padding: 0.7rem 0; margin: -0.7rem 0; }
+    .article-head { padding: 1.5rem 0 1.25rem; }
+    .abstract { padding: 1rem 1.1rem 1.15rem; border-radius: 10px; }
+    .findings ol { padding-left: 1.35rem; }
+    .toc-inline { padding: 0.25rem 0; }
+    .toc-inline summary { padding: 0.65rem 0; }
+    .toc-inline ol { margin: 0 0 0.5rem; }
+    .toc-inline li { margin: 0; }
+    .toc-inline li.sub { padding-left: 1rem; }
+    .toc-inline a { display: block; padding: 0.5rem 0; }
+
+    .prose h2 { font-size: 1.625rem; margin-top: 2.1em; }
+    .prose h3 { margin-top: 1.7em; }
+    .prose ul, .prose ol { padding-left: 1.35rem; }
+    .prose pre { padding: 0.9rem 1rem; font-size: 0.8125rem; }
+
+    /* A table that scrolls runs to the screen's edges, so what is cut off is visibly cut off by the screen, and a
+       code name in a cell stays whole instead of breaking a letter at a time. */
+    .table-wrap { max-width: none; margin-left: calc(-1 * var(--pad)); margin-right: calc(-1 * var(--pad)); padding: 0 var(--pad); }
+    .prose td code, .prose th code { white-space: nowrap; overflow-wrap: normal; }
+    .prose thead th { padding-right: 1.1rem; }
+    .prose tbody td { padding-right: 1.1rem; }
+
+    /* A table of sentences: each row a block, the first cell its title, every other cell under its column's name. */
+    .table-stack { margin-left: 0; margin-right: 0; padding: 0; overflow: visible; }
+    .table-stack table, .table-stack tbody { display: block; width: 100%; }
+    .table-stack thead { display: none; }
+    .table-stack tbody { border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+    /* Short values sit side by side; a sentence is wider than what is left of the line, so it takes a line of its own. */
+    .table-stack tbody tr { display: flex; flex-wrap: wrap; column-gap: 1.5rem; padding: 0.85rem 0 0.9rem; border-bottom: 1px solid var(--rule); }
+    .table-stack td { display: block; min-width: 0; }
+    .table-stack td:first-child { flex: 1 0 100%; }
+    .table-stack tbody tr:last-child { border-bottom: 0; }
+    .prose .table-stack tbody td, .prose .table-stack tbody tr:last-child td { padding: 0.2rem 0 0.25rem; border: 0; text-align: left !important; font-size: 0.9375rem; line-height: 1.5; }
+    .prose .table-stack tbody td:first-child { font-weight: 650; font-size: 1rem; padding-bottom: 0.35rem; }
+    .prose .table-stack tbody td code { white-space: normal; overflow-wrap: anywhere; }
+    .table-stack td:not(:first-child)::before { content: attr(data-label); display: block; font: 600 0.75rem/1.4 var(--sans); color: var(--ink-faint); letter-spacing: 0.01em; }
+    .table-stack td:empty { display: none; }
+
+    .aside-block { margin-top: 2.5rem; }
+    .aside-block li { margin: 0.55em 0; }
+
+    .site-footer { margin-top: 3.5rem; padding: 1.75rem 0 2.5rem; font-size: 0.875rem; }
+    .site-footer-inner { gap: 1rem; }
+    .site-footer ul { gap: 0 1.5rem; }
+    .site-footer ul a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+}
+
 /* ---- Print: a paper gets printed or saved to PDF ---- */
 @media print {
     html, body { background: #fff; font-size: 11pt; }

@@ -66,14 +66,14 @@ export function DocsNav({ navList, className, onItemClick }: DocsNavProps) {
                                     onClick={() => toggle(key)}
                                     className={`group flex w-full items-center gap-2 rounded-lg text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 ${
                                         depth === 0
-                                            ? "min-h-9 px-2.5 text-[0.8125rem] font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-white/5 dark:hover:text-white"
-                                            : "min-h-8 px-2.5 text-[0.8125rem] font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-white/5 dark:hover:text-white"
+                                            ? "min-h-9 px-2.5 text-[0.8125rem] font-semibold max-md:min-h-11 max-md:text-[0.9375rem] text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-white/5 dark:hover:text-white"
+                                            : "min-h-8 px-2.5 text-[0.8125rem] font-medium max-md:min-h-11 max-md:text-[0.9375rem] text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-white/5 dark:hover:text-white"
                                     }`}
                                 >
                                     <ChevronRight
                                         aria-hidden="true"
                                         size={13}
-                                        className={`shrink-0 transition-transform duration-150 ${
+                                        className={`shrink-0 transition-transform duration-150 max-md:size-4 ${
                                             isOpen ? "rotate-90" : ""
                                         }`}
                                     />
@@ -82,7 +82,7 @@ export function DocsNav({ navList, className, onItemClick }: DocsNavProps) {
                                 {isOpen && (
                                     <div
                                         id={controlId}
-                                        className="ml-3 mt-1 border-l border-zinc-200/80 py-1 pl-2 dark:border-zinc-800"
+                                        className="ml-3 mt-1 border-l border-zinc-200/80 py-1 pl-2 max-md:ml-[1.125rem] max-md:mt-0 max-md:py-0.5 dark:border-zinc-800"
                                     >
                                         {renderNodes(node.items ?? [], labels, depth + 1)}
                                     </div>
@@ -94,7 +94,7 @@ export function DocsNav({ navList, className, onItemClick }: DocsNavProps) {
                                 href={node.href}
                                 onClick={onItemClick}
                                 aria-current={isActive ? "page" : undefined}
-                                className={`block rounded-md px-2.5 py-1.5 text-[0.8125rem] font-medium leading-5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 ${
+                                className={`block rounded-md px-2.5 py-1.5 text-[0.8125rem] font-medium leading-5 max-md:py-3 max-md:text-[0.9375rem] max-md:leading-5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 ${
                                     isActive
                                         ? "bg-violet-50 font-semibold text-violet-800 dark:bg-violet-500/15 dark:text-violet-100"
                                         : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-white/5 dark:hover:text-white"

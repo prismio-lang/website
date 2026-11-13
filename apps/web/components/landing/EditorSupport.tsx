@@ -1,19 +1,19 @@
 import React from 'react';
-import IntelliJPluginCard from '@/components/IntelliJPluginCard';
+import EditorSupportCard from '@/components/EditorSupportCard';
 
 export default function EditorSupport() {
     return (
-        <section aria-labelledby="editor-heading" className="mx-auto max-w-7xl px-6 py-24">
-            <div className="mb-12 max-w-2xl">
+        <section aria-labelledby="editor-heading" className="mx-auto max-w-7xl px-6 py-24 max-md:py-16">
+            <div className="mb-12 max-w-2xl max-md:mb-8">
                 <h2 id="editor-heading" className="text-4xl font-semibold tracking-[-0.035em] text-white md:text-5xl">
                     Editor support
                 </h2>
                 <p className="mt-6 text-base leading-7 text-zinc-400">
-                    The compiler ships its own language server, so any editor can get errors as you type, completion, hover, and go to definition. JetBrains IDEs have an official plugin.
+                    The compiler ships its own language server, so any editor can get errors as you type, completion, hover, and go to definition. VS Code and the JetBrains IDEs have official extensions.
                 </p>
             </div>
 
-            <IntelliJPluginCard />
+            <EditorSupportCard />
         </section>
     );
 }

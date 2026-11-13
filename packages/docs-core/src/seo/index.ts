@@ -21,7 +21,8 @@ export function generateDocsRootMetadata(siteConfig: DocsSiteConfig): Metadata {
         applicationName: siteConfig.name,
         authors: [{ name: siteConfig.author, url: siteConfig.authorURL }],
         creator: siteConfig.author,
-        alternates: { canonical: "/" },
+        // No canonical, og:url or robots here: a layout's are inherited by every page that sets none, the 404
+        // page included. The home page sets its own (generateDocsHomeMetadata).
         icons: {
             icon: [
                 { url: "/favicon.ico", sizes: "32x32" },
@@ -31,7 +32,6 @@ export function generateDocsRootMetadata(siteConfig: DocsSiteConfig): Metadata {
         },
         openGraph: {
             type: "website",
-            url: "/",
             title: home,
             description: siteConfig.description,
             siteName: siteConfig.name,
@@ -44,7 +44,33 @@ export function generateDocsRootMetadata(siteConfig: DocsSiteConfig): Metadata {
                 },
             ],
         },
-        robots: { index: true, follow: true },
+    };
+}
+
+/** The site's front page: its own title and description, as the canonical and as Open Graph. */
+export function generateDocsHomeMetadata(
+    siteConfig: DocsSiteConfig,
+    { title, description }: { title: string; description: string }
+): Metadata {
+    return {
+        title,
+        description,
+        alternates: { canonical: "/" },
+        openGraph: {
+            type: "website",
+            url: "/",
+            title,
+            description,
+            siteName: siteConfig.name,
+            images: [
+                {
+                    url: "/icons/og-card.jpg",
+                    width: 1200,
+                    height: 630,
+                    alt: `${siteConfig.name} logo`,
+                },
+            ],
+        },
     };
 }
 

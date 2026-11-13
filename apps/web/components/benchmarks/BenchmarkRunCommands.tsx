@@ -27,7 +27,7 @@ export default function BenchmarkRunCommands() {
                     <button
                         type="button"
                         onClick={handleCopy}
-                        className="inline-flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-xs text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-white"
+                        className="inline-flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-xs text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-white max-md:-my-1.5 max-md:-mr-2 max-md:min-h-10 max-md:px-3"
                         aria-label="Copy benchmark build commands"
                     >
                         <span aria-live="polite" className="sr-only">{copied ? 'Copied to clipboard' : ''}</span>
@@ -55,7 +55,7 @@ export default function BenchmarkRunCommands() {
                     </div>
                 </div>
             </div>
-            <p className="text-xs leading-5 text-zinc-400">
+            <p className="text-xs leading-5 text-zinc-400 max-md:text-sm max-md:leading-6">
                 That&apos;s all. The Prismio CLI handles compiling the suite, invoking comparative baselines,
                 sampling iterations, and validating checksums.
             </p>
