@@ -58,40 +58,8 @@ const sitePages = [
     { path: "/team/saksham-jaiswal", priority: 0.4, changeFrequency: "monthly", lastmod: lastChanged("app/team/saksham-jaiswal") },
 ];
 
-const faqItems = [
-    {
-        question: "What is Prismio?",
-        answer: "Prismio is a self-hosted, statically typed systems programming language. It compiles to native machine code through LLVM, uses the Adaptive Inference Framework (AIF) to decide and explain where values live in memory, and calls C directly without wrapper glue.",
-    },
-    {
-        question: "Is Prismio production-ready?",
-        answer: "No. Version 0.2 is active compiler development. Implemented features are tested, but syntax, runtime contracts, AIF policy and ABI details may change. Use it for compiler and language development and controlled experiments.",
-    },
-    {
-        question: "Is the Prismio compiler written in Prismio?",
-        answer: "Yes. A committed LLVM IR seed breaks the initial bootstrapping cycle, and later generations compile the Prismio compiler source. The repository checks multiple generations and fixed points.",
-    },
-    {
-        question: "Does Prismio use garbage collection?",
-        answer: "There is no single implicit tracing-GC model. The compiler enforces moves and borrows for move-only values, while the experimental AIF classifies allocations across stack, region, unique, reference-counted and cycle-aware tiers.",
-    },
-    {
-        question: "How do I install Prismio?",
-        answer: "Run curl -fsSL https://prismio.org/install.sh | sh, or build from source at github.com/prismio-lang/prismio. The install page lists supported platforms.",
-    },
-    {
-        question: "Does Prismio interoperate with C?",
-        answer: "Yes. Prismio code can call C functions and pass C structs directly, and a build.ums manifest can compile your own C sources and link libraries into a program.",
-    },
-    {
-        question: "Which platforms does Prismio run on?",
-        answer: "macOS on Apple silicon, Linux on x64 and ARM64, and Windows on x64 and ARM64. CI builds and tests macOS arm64, Linux x64 and Windows x64; the two ARM64 archives are built and tested on virtual machines. Windows is the least exercised platform.",
-    },
-    {
-        question: "Can I write a kernel or bare-metal code in Prismio?",
-        answer: "Yes, for the cases the project tests. A --freestanding build links no C library and no startup files, and std.syscall reaches the operating system directly. The test suite boots small kernels written in Prismio under QEMU on AArch64 and 32-bit x86.",
-    },
-];
+// The landing page's FAQ, the same file config/faq.ts gives the page and its FAQPage JSON-LD.
+const faqItems = JSON.parse(readFileSync(join(rootDir, "config", "faq.json"), "utf8"));
 
 try {
     mkdirSync(publicDir, { recursive: true });
