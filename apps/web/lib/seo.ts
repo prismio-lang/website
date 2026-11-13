@@ -16,16 +16,20 @@ export function pageMetadata({
     description,
     path,
     type = "website",
+    publishedTime,
 }: {
     title: string;
     description: string;
     path: string;
     type?: "website" | "article";
+    /** An article's date (YYYY-MM-DD), as article:published_time. */
+    publishedTime?: string;
 }): Metadata {
+    const openGraph = {siteName: siteConfig.name, locale: "en_US", title, description, url: path, images: IMAGES};
     return {
         title,
         description,
         alternates: {canonical: path},
-        openGraph: {type, siteName: siteConfig.name, locale: "en_US", title, description, url: path, images: IMAGES},
+        openGraph: type === "article" ? {...openGraph, type, publishedTime} : {...openGraph, type},
     };
 }
