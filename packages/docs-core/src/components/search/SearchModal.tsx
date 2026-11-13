@@ -46,7 +46,7 @@ function Highlight({ text, terms }: { text: string; terms: string[] }) {
 }
 
 const KBD =
-    "rounded bg-zinc-100 px-1.5 py-0.5 font-sans text-[0.6875rem] font-medium leading-4 text-zinc-600 ring-1 ring-zinc-900/10 dark:bg-white/[0.06] dark:text-zinc-300 dark:ring-white/[0.1]";
+    "rounded border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 font-sans text-[0.6875rem] font-medium leading-4 text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300";
 
 export function DocsSearchModal({ docs, config }: DocsSearchModalProps) {
     const router = useRouter();
@@ -240,7 +240,7 @@ export function DocsSearchModal({ docs, config }: DocsSearchModalProps) {
 
     return (
         <div
-            className={`fixed inset-0 z-[100] flex items-start justify-center bg-zinc-950/50 px-3 pt-[8vh] backdrop-blur-sm transition-opacity duration-150 sm:px-4 sm:pt-[12vh] ${
+            className={`fixed inset-0 z-[100] flex items-start justify-center bg-zinc-950/50 px-3 pt-[8vh] transition-opacity duration-150 sm:px-4 sm:pt-[12vh] ${
                 entered ? "opacity-100" : "opacity-0"
             }`}
             onMouseDown={(event) => event.currentTarget === event.target && setIsOpen(false)}
@@ -249,7 +249,7 @@ export function DocsSearchModal({ docs, config }: DocsSearchModalProps) {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="search-title"
-                className={`w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl shadow-zinc-950/20 ring-1 ring-zinc-900/10 transition-[transform,opacity] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none dark:bg-[#0b0c10] dark:shadow-black/60 dark:ring-white/[0.1] ${
+                className={`w-full max-w-2xl overflow-hidden rounded-2xl border border-zinc-200 bg-white transition-[transform,opacity] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none dark:border-zinc-800 dark:bg-[#0b0c10] ${
                     entered ? "translate-y-0 scale-100 opacity-100" : "-translate-y-2 scale-[0.98] opacity-0"
                 }`}
             >
