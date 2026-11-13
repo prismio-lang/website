@@ -4,7 +4,7 @@ import React, {useState, useEffect} from "react";
 import Link from "next/link";
 import {ArrowUpRight, Terminal} from "lucide-react";
 import {Cross as Hamburger} from "hamburger-react";
-import {AnimatePresence, motion} from "framer-motion";
+import {AnimatePresence, motion, useReducedMotion} from "framer-motion";
 import {Button, Chip} from "@heroui/react";
 import Logo from "@prismio/ui/Logo";
 import Image from "next/image";
@@ -20,6 +20,22 @@ const HeaderMini: React.FC = () => {
 
     const [scrolled, setScrolled] = useState(false);
     const [isOpen, setOpen] = useState(false);
+    const reduceMotion = useReducedMotion();
+
+    // The phone menu closes on Escape, and the page under it does not scroll while it is open.
+    useEffect(() => {
+        if (!isOpen) return;
+        const onKey = (event: KeyboardEvent) => {
+            if (event.key === "Escape") setOpen(false);
+        };
+        const overflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        window.addEventListener("keydown", onKey);
+        return () => {
+            document.body.style.overflow = overflow;
+            window.removeEventListener("keydown", onKey);
+        };
+    }, [isOpen]);
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 24);
@@ -90,7 +106,7 @@ const HeaderMini: React.FC = () => {
 
                     {/* MOBILE HAMBURGER */}
                     <div className="ml-auto md:hidden z-[90]">
-                        <Hamburger toggled={isOpen} toggle={setOpen} size={22} color="#18181b"/>
+                        <Hamburger toggled={isOpen} toggle={setOpen} size={22} color="#18181b" label={isOpen ? "Close menu" : "Open menu"}/>
                     </div>
                 </div>
             </header>
@@ -99,16 +115,27 @@ const HeaderMini: React.FC = () => {
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{opacity: 0, y: -12}}
+                        initial={{opacity: 0, y: reduceMotion ? 0 : -12}}
                         animate={{opacity: 1, y: 0}}
-                        exit={{opacity: 0, y: -12}}
-                        transition={{duration: 0.25, ease: "easeOut"}}
-                        className="fixed inset-0 z-[70] bg-white/95 backdrop-blur-2xl px-6 pt-24 overflow-y-auto"
+                        exit={{opacity: 0, y: reduceMotion ? 0 : -12}}
+                        transition={{duration: reduceMotion ? 0 : 0.25, ease: "easeOut"}}
+                        className="fixed inset-0 z-[70] bg-white/95 backdrop-blur-2xl px-6 pt-24 overflow-y-auto md:hidden"
                     >
-                        <div className="flex flex-col pb-12">
+                        <div className="flex flex-col pb-[max(3rem,env(safe-area-inset-bottom))]">
                             {/* Nav links */}
                             <div className="flex flex-col gap-1">
-                             </div>
+                                <a
+                                    href="https://github.com/prismio-lang/prismio"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={() => setOpen(false)}
+                                    className="flex h-14 items-center gap-3 border-b border-zinc-200 text-zinc-900 hover:text-zinc-950 text-base font-medium"
+                                >
+                                    <Image src={"/icons/github-mark.svg"} alt="" height={20} width={20}/>
+                                    <span className="flex-1">GitHub repository</span>
+                                    <ArrowUpRight size={16} className="text-zinc-500"/>
+                                </a>
+                            </div>
 
                             {/* Mobile Dual Developer CTAs */}
                             <div className="pt-8 flex flex-col gap-3">
@@ -123,11 +150,11 @@ const HeaderMini: React.FC = () => {
                                     <ArrowUpRight size={15}/>
                                 </a>
 
-                                <Link href="https://prismio.org/install" onClick={() => setOpen(false)}>
-                                    <button
-                                        className="w-full h-12 rounded-full bg-zinc-950 text-white font-semibold text-sm hover:bg-zinc-800 transition-all">
-                                        Install Prismio
-                                    </button>
+                                <Link
+                                    href="https://prismio.org/install"
+                                    onClick={() => setOpen(false)}
+                                    className="w-full h-12 rounded-full bg-zinc-950 text-white font-semibold text-sm hover:bg-zinc-800 transition-all flex items-center justify-center">
+                                    Install Prismio
                                 </Link>
                             </div>
                         </div>
