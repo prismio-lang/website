@@ -97,9 +97,9 @@ export default function FreestandingPanel({data}: FreestandingPanelProps) {
         <>
             <section className="grid gap-10 border-b border-white/[0.09] pb-16 lg:grid-cols-12 lg:gap-16">
                 <div className="lg:col-span-8">
-                    <h1 className="max-w-4xl text-5xl font-semibold leading-[0.98] tracking-[-0.04em] text-white md:text-6xl">
+                    <h2 className="max-w-4xl text-5xl font-semibold leading-[0.98] tracking-[-0.04em] text-white md:text-6xl">
                         No operating system. The same programs.
-                    </h1>
+                    </h2>
                     <p className="mt-7 max-w-3xl text-base leading-7 text-zinc-300 md:text-lg md:leading-8">
                         Prismio against C (clang -O3) and Rust (<code className="font-mono text-emerald-300">no_std</code>, opt-level 3)
                         on bare-metal AArch64: no C library, no allocator, no startup files. One shared boot harness links into all

@@ -25,7 +25,7 @@ export default function FooterMain() {
 
                 {/* Column — Ecosystem */}
                 <div className="space-y-3 md:pl-4">
-                    <h5 className="font-medium text-zinc-900 dark:text-gray-200 tracking-tight">Ecosystem</h5>
+                    <p className="font-medium text-zinc-900 dark:text-gray-200 tracking-tight">Ecosystem</p>
                     <FooterLink href="/install">Install</FooterLink>
                     <FooterLink href="https://docs.prismio.org" external>Documentation</FooterLink>
                     <FooterLink href="https://developers.prismio.org" external>Developers</FooterLink>
@@ -35,7 +35,7 @@ export default function FooterMain() {
 
                 {/* Column — Project */}
                 <div className="space-y-3 md:pl-4">
-                    <h5 className="font-medium text-zinc-900 dark:text-gray-200 tracking-tight">Project</h5>
+                    <p className="font-medium text-zinc-900 dark:text-gray-200 tracking-tight">Project</p>
                     <FooterLink href="/about">About</FooterLink>
                     <FooterLink href="/team">Team</FooterLink>
                     <FooterLink href="/benchmarks">Benchmarks</FooterLink>
@@ -48,7 +48,7 @@ export default function FooterMain() {
 
                 {/* Column — Community */}
                 <div className="space-y-3 md:pl-4">
-                    <h5 className="font-medium text-zinc-900 dark:text-gray-200 tracking-tight">Community</h5>
+                    <p className="font-medium text-zinc-900 dark:text-gray-200 tracking-tight">Community</p>
                     <FooterLink href="/community">Community</FooterLink>
                     <FooterLink href="/sponsors">Sponsors</FooterLink>
                     <FooterLink href={DISCORD_INVITE_LINK} external>Discord</FooterLink>
