@@ -16,6 +16,7 @@ export * from "./components/theme/ThemeSwitch";
 
 // TOC & Search
 export * from "./components/toc/DocsToc";
+export * from "./components/toc/DocsTocMobile";
 export * from "./components/search/SearchModal";
 
 // MDX & Diagrams

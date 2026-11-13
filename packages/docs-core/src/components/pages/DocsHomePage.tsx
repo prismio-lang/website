@@ -11,7 +11,7 @@ export interface DocsHomePageProps {
 
 function StatusFact({ icon, value, detail }: { icon: React.ReactNode; value: string; detail: string }) {
     return (
-        <div className="min-h-36 bg-white p-6 dark:bg-[#0b0b0d]">
+        <div className="min-h-36 bg-white p-6 max-md:min-h-0 max-md:px-0 max-md:py-5 dark:bg-[#0b0b0d]">
             <div className="flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 {icon}
                 {value}
@@ -58,34 +58,34 @@ export function DocsHomePage({ config, docs, docsCount }: DocsHomePageProps) {
     };
 
     return (
-        <div className="mx-auto max-w-6xl pb-16 pt-4 sm:pt-10">
+        <div className="mx-auto max-w-6xl pb-16 pt-4 sm:pt-10 max-md:pb-10">
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
-            <section className="border-b border-zinc-200 pb-16 dark:border-zinc-800">
+            <section className="border-b border-zinc-200 pb-16 max-md:pb-10 dark:border-zinc-800">
                 {home.badge ? (
-                    <div className="mb-7 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.13em] text-violet-700 dark:text-violet-300">
+                    <div className="mb-7 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.13em] text-violet-700 max-md:mb-5 max-md:gap-x-2 max-md:gap-y-1 dark:text-violet-300">
                         <span>{home.badge.versionText}</span>
                         <span aria-hidden="true" className="text-zinc-300 dark:text-zinc-700">/</span>
                         <span className="text-zinc-500 dark:text-zinc-400">{home.badge.tagline}</span>
                     </div>
                 ) : null}
-                <h1 className="max-w-4xl text-balance text-5xl font-bold tracking-[-0.055em] text-zinc-950 sm:text-7xl dark:text-white">
+                <h1 className="max-w-4xl text-balance text-5xl font-bold tracking-[-0.055em] text-zinc-950 sm:text-7xl max-md:text-[2.75rem] max-md:leading-[1.05] max-[359px]:text-[2.375rem] dark:text-white">
                     {home.hero.title}
                 </h1>
-                <p className="mt-7 max-w-2xl text-pretty text-lg leading-8 text-zinc-600 sm:text-xl dark:text-zinc-300">
+                <p className="mt-7 max-w-2xl text-pretty text-lg leading-8 text-zinc-600 sm:text-xl max-md:mt-5 max-md:text-[1.0625rem] max-md:leading-7 dark:text-zinc-300">
                     {home.hero.description}
                 </p>
-                <div className="mt-9 flex flex-wrap gap-3">
+                <div className="mt-9 flex flex-wrap gap-3 max-md:mt-7 max-md:flex-col">
                     <Link
                         href={home.hero.primaryCta.href}
-                        className="inline-flex h-11 items-center gap-2 rounded-lg bg-zinc-950 px-5 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+                        className="inline-flex h-11 items-center gap-2 rounded-lg bg-zinc-950 max-md:h-12 max-md:justify-center px-5 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
                     >
                         {home.hero.primaryCta.text} <ArrowRight aria-hidden="true" size={16} />
                     </Link>
                     {home.hero.secondaryCta ? (
                         <Link
                             href={home.hero.secondaryCta.href}
-                            className="inline-flex h-11 items-center rounded-lg border border-zinc-300 px-5 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                            className="inline-flex h-11 items-center rounded-lg border border-zinc-300 max-md:h-12 max-md:justify-center px-5 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
                         >
                             {home.hero.secondaryCta.text}
                         </Link>
@@ -113,13 +113,13 @@ export function DocsHomePage({ config, docs, docsCount }: DocsHomePageProps) {
             {home.foundations?.items?.length ? (
                 <section
                     aria-labelledby="path-heading"
-                    className="grid gap-10 border-b border-zinc-200 py-16 lg:grid-cols-[0.7fr_1.3fr] dark:border-zinc-800"
+                    className="grid gap-10 border-b border-zinc-200 py-16 lg:grid-cols-[0.7fr_1.3fr] max-md:gap-4 max-md:py-12 dark:border-zinc-800"
                 >
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.13em] text-violet-700 dark:text-violet-300">
                             {home.foundations.sectionLabel}
                         </p>
-                        <h2 id="path-heading" className="mt-3 text-3xl font-bold tracking-tight">
+                        <h2 id="path-heading" className="mt-3 text-3xl font-bold tracking-tight max-md:text-[1.75rem] max-md:leading-tight">
                             {home.foundations.title}
                         </h2>
                         <p className="mt-4 max-w-md leading-7 text-zinc-600 dark:text-zinc-300">
@@ -131,7 +131,7 @@ export function DocsHomePage({ config, docs, docsCount }: DocsHomePageProps) {
                             <li key={item.href}>
                                 <Link
                                     href={item.href}
-                                    className="group grid grid-cols-[2.25rem_1fr_auto] items-start gap-4 py-5"
+                                    className="group grid grid-cols-[2.25rem_1fr_auto] items-start gap-4 py-5 max-md:grid-cols-[1.75rem_1fr_auto] max-md:gap-3"
                                 >
                                     <span className="font-mono text-sm text-zinc-400">0{index + 1}</span>
                                     <span>
@@ -155,13 +155,13 @@ export function DocsHomePage({ config, docs, docsCount }: DocsHomePageProps) {
             ) : null}
 
             {home.reference?.items?.length ? (
-                <section aria-labelledby="reference-heading" className="py-16">
-                    <div className="mb-8 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+                <section aria-labelledby="reference-heading" className="py-16 max-md:py-12">
+                    <div className="mb-8 flex flex-col justify-between gap-3 sm:flex-row sm:items-end max-md:mb-6">
                         <div>
                             <p className="text-xs font-semibold uppercase tracking-[0.13em] text-violet-700 dark:text-violet-300">
                                 {home.reference.sectionLabel}
                             </p>
-                            <h2 id="reference-heading" className="mt-3 text-3xl font-bold tracking-tight">
+                            <h2 id="reference-heading" className="mt-3 text-3xl font-bold tracking-tight max-md:text-[1.75rem] max-md:leading-tight">
                                 {home.reference.title}
                             </h2>
                         </div>
@@ -172,10 +172,10 @@ export function DocsHomePage({ config, docs, docsCount }: DocsHomePageProps) {
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className="group min-h-44 border-b border-r border-zinc-200 p-6 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-white/[0.025]"
+                                className="group min-h-44 border-b border-r border-zinc-200 p-6 max-md:min-h-0 max-md:p-5 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-white/[0.025]"
                             >
                                 <GitBranch aria-hidden="true" size={18} className="text-violet-700 dark:text-violet-300" />
-                                <h3 className="mt-8 text-lg font-semibold group-hover:text-violet-700 dark:group-hover:text-violet-300">
+                                <h3 className="mt-8 text-lg font-semibold max-md:mt-4 group-hover:text-violet-700 dark:group-hover:text-violet-300">
                                     {item.label}
                                 </h3>
                                 <p className="mt-2 max-w-sm text-sm leading-6 text-zinc-500 dark:text-zinc-300">
@@ -189,16 +189,16 @@ export function DocsHomePage({ config, docs, docsCount }: DocsHomePageProps) {
 
             <footer className="flex flex-col justify-between gap-4 border-t border-zinc-200 pt-8 text-sm text-zinc-500 sm:flex-row dark:border-zinc-800 dark:text-zinc-300">
                 <p>{home.footer.tagline}</p>
-                <div className="flex gap-5">
+                <div className="flex gap-5 max-md:-my-2 max-md:gap-1 max-md:-ml-2">
                     {home.footer.links?.map((link) => (
-                        <Link key={link.href} href={link.href} className="hover:text-zinc-950 dark:hover:text-white">
+                        <Link key={link.href} href={link.href} className="hover:text-zinc-950 max-md:px-2 max-md:py-2.5 dark:hover:text-white">
                             {link.label}
                         </Link>
                     )) ?? (
                         <>
-                            <Link href="/glossary" className="hover:text-zinc-950 dark:hover:text-white">Glossary</Link>
-                            <Link href="/faq" className="hover:text-zinc-950 dark:hover:text-white">FAQ</Link>
-                            <Link href="/roadmap" className="hover:text-zinc-950 dark:hover:text-white">Roadmap</Link>
+                            <Link href="/glossary" className="hover:text-zinc-950 max-md:px-2 max-md:py-2.5 dark:hover:text-white">Glossary</Link>
+                            <Link href="/faq" className="hover:text-zinc-950 max-md:px-2 max-md:py-2.5 dark:hover:text-white">FAQ</Link>
+                            <Link href="/roadmap" className="hover:text-zinc-950 max-md:px-2 max-md:py-2.5 dark:hover:text-white">Roadmap</Link>
                         </>
                     )}
                 </div>

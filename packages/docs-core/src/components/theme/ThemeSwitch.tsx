@@ -12,7 +12,7 @@ export function ThemeSwitch() {
             onClick={toggleTheme}
             aria-label={isDark ? "Use light theme" : "Use dark theme"}
             title={isDark ? "Use light theme" : "Use dark theme"}
-            className="inline-flex size-9 items-center justify-center rounded-full text-zinc-600 transition-all hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/[0.08] dark:hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400"
+            className="inline-flex size-9 max-md:size-11 items-center justify-center rounded-full text-zinc-600 transition-all hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/[0.08] dark:hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400"
         >
             {isDark ? (
                 <Sun aria-hidden="true" size={18} className="transition-transform duration-200 hover:rotate-45" />

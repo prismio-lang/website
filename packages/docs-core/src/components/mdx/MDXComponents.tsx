@@ -35,7 +35,7 @@ const CopyButton: React.FC<{ text: string }> = ({ text }) => {
     return (
         <button
             onClick={handleCopy}
-            className="inline-flex size-7 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-200/80 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+            className="inline-flex size-7 items-center justify-center rounded-md max-md:-my-2 max-md:-mr-2.5 max-md:size-11 text-zinc-500 transition-colors hover:bg-zinc-200/80 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
             title="Copy code"
             aria-label="Copy code"
         >
@@ -90,7 +90,7 @@ const Th: React.FC<React.ThHTMLAttributes<HTMLTableCellElement>> = ({
     return (
         <th
             className={cn(
-                "px-4 py-3 text-sm font-semibold text-zinc-900 dark:text-zinc-100",
+                "px-4 py-3 text-sm font-semibold text-zinc-900 max-md:min-w-[8.5rem] max-md:px-3 max-md:py-2.5 dark:text-zinc-100",
                 alignClass,
                 className
             )}
@@ -115,7 +115,7 @@ const Tcol: React.FC<React.TdHTMLAttributes<HTMLTableCellElement>> = ({
     return (
         <td
             className={cn(
-                "px-4 py-3 text-sm align-top whitespace-normal break-words text-zinc-700 dark:text-zinc-300",
+                "px-4 py-3 text-sm align-top whitespace-normal break-words text-zinc-700 max-md:min-w-[8.5rem] max-md:px-3 max-md:py-2.5 dark:text-zinc-300",
                 alignClass,
                 isRight && "tabular-nums",
                 className
@@ -191,14 +191,14 @@ const Pre: React.FC<React.HTMLAttributes<HTMLPreElement>> = ({ children, classNa
     });
 
     return (
-        <div className="my-6 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
+        <div className="my-6 overflow-hidden rounded-xl border border-zinc-200 max-md:my-5 dark:border-zinc-800">
             <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-100/90 px-4 py-2 text-xs font-mono text-zinc-600 dark:border-zinc-800 dark:bg-[#161a20] dark:text-zinc-300">
                 <span className="font-semibold uppercase tracking-wider">{lang}</span>
                 <CopyButton text={codeText} />
             </div>
             <pre
                 {...props}
-                className={cn("overflow-x-auto p-4 font-mono text-sm leading-relaxed", className)}
+                className={cn("overflow-x-auto p-4 font-mono text-sm leading-relaxed max-md:overscroll-x-contain max-md:text-[0.8125rem]", className)}
                 style={style}
             >
                 <InPreContext.Provider value={true}>{children}</InPreContext.Provider>
@@ -212,7 +212,7 @@ const Code: React.FC<React.HTMLAttributes<HTMLElement>> = ({ children, className
 
     if (inPre) {
         return (
-            <code className={cn("font-mono text-sm", className)} {...props}>
+            <code className={cn("font-mono text-sm max-md:text-[0.8125rem]", className)} {...props}>
                 {children}
             </code>
         );
@@ -221,7 +221,7 @@ const Code: React.FC<React.HTMLAttributes<HTMLElement>> = ({ children, className
     return (
         <code
             className={cn(
-                "px-1.5 py-0.5 rounded-md text-sm font-mono text-red-600 dark:bg-zinc-800 dark:text-red-400",
+                "px-1.5 py-0.5 rounded-md text-sm font-mono text-red-600 max-md:break-words max-md:[box-decoration-break:clone] dark:bg-zinc-800 dark:text-red-400",
                 className
             )}
             {...props}
@@ -241,8 +241,8 @@ export const baseMDXComponents = {
     pre: Pre,
     code: Code,
     p: (props: any) => <p className="my-4 leading-7 text-zinc-700 dark:text-zinc-200" {...props} />,
-    ul: (props: any) => <ul className="my-4 list-disc space-y-2 pl-6 text-zinc-700 dark:text-zinc-200" {...props} />,
-    ol: (props: any) => <ol className="my-4 list-decimal space-y-2 pl-6 text-zinc-700 dark:text-zinc-200" {...props} />,
+    ul: (props: any) => <ul className="my-4 list-disc space-y-2 pl-6 text-zinc-700 max-md:pl-5 dark:text-zinc-200" {...props} />,
+    ol: (props: any) => <ol className="my-4 list-decimal space-y-2 pl-6 text-zinc-700 max-md:pl-5 dark:text-zinc-200" {...props} />,
     li: (props: any) => <li className="leading-7" {...props} />,
     a: ({ href, ...props }: any) => {
         const isExternal = typeof href === "string" && /^https?:\/\//.test(href);
@@ -272,14 +272,14 @@ export const baseMDXComponents = {
     h2: (props: React.HTMLAttributes<HTMLElement>) => (
         <LinkedHeading
             as="h2"
-            className="text-2xl font-semibold mt-8 mb-4 border-b border-zinc-100 dark:border-zinc-800/80 pb-2 text-zinc-900 dark:text-zinc-100"
+            className="text-2xl font-semibold mt-8 mb-4 border-b border-zinc-100 dark:border-zinc-800/80 pb-2 text-zinc-900 max-md:mt-10 max-md:text-[1.375rem] max-md:leading-snug max-md:break-words dark:text-zinc-100"
             {...props}
         />
     ),
     h3: (props: React.HTMLAttributes<HTMLElement>) => (
         <LinkedHeading
             as="h3"
-            className="text-xl font-semibold mt-6 mb-3 text-zinc-900 dark:text-zinc-200"
+            className="text-xl font-semibold mt-6 mb-3 text-zinc-900 max-md:mt-8 max-md:text-lg max-md:leading-snug max-md:break-words dark:text-zinc-200"
             {...props}
         />
     ),
@@ -300,7 +300,7 @@ export const baseMDXComponents = {
         />
     ),
     table: ({ className, ...props }: React.TableHTMLAttributes<HTMLTableElement>) => (
-        <div className="overflow-x-auto my-6 rounded-lg border border-zinc-200 dark:border-zinc-800">
+        <div className="overflow-x-auto my-6 rounded-lg border border-zinc-200 max-md:my-5 max-md:overscroll-x-contain dark:border-zinc-800">
             <table className={cn("w-full border-collapse", className)} {...props} />
         </div>
     ),
