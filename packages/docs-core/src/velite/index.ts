@@ -5,7 +5,10 @@ import prismioGrammar from "./prismio.tmLanguage.json" with { type: "json" };
 import { bundledThemes } from "shiki";
 
 // The code-block themes: GitHub's light and dark, with Prismio's own colours on
-// top. Every override names a `.prismio` scope (prismio.tmLanguage.json), and a
+// top. The two modes are tuned separately: dark keeps GitHub's classic dark
+// palette, and light uses GitHub's current light palette (github-light-default),
+// whose deeper shades keep at least 4.5:1 against the white block, where the
+// classic light palette's pale olive and teal read as washed out. Every override names a `.prismio` scope (prismio.tmLanguage.json), and a
 // TextMate selector that names more of a scope wins, so C, Rust, LLVM IR and
 // the shell keep GitHub's colours exactly and only Prismio blocks change.
 //
@@ -16,40 +19,40 @@ import { bundledThemes } from "shiki";
 // PrismioDarcula). The shades are GitHub's own (the classic github-light and
 // github-dark palette the base themes use), so a Prismio block sits beside a C
 // or shell block without a second red or a second blue; magenta, teal and gold
-// are the three it adds.
+// are the three it adds. Light-mode shades are chosen for contrast on white.
 
 type Shade = { light: string; dark: string; fontStyle?: string };
 
 const PALETTE: Array<[string[], Shade]> = [
     [["keyword.control.flow.prismio", "keyword.control.import.prismio", "keyword.operator.word.prismio"],
-        { light: "#D73A49", dark: "#F97583" }],
+        { light: "#CF222E", dark: "#F97583" }],
     [["storage.type.prismio", "storage.type.function.prismio"],
-        { light: "#6F42C1", dark: "#B392F0" }],
+        { light: "#8250DF", dark: "#B392F0" }],
     [["storage.modifier.prismio"],
-        { light: "#B35000", dark: "#FFAB70" }],
+        { light: "#BC4C00", dark: "#FFAB70" }],
     [["keyword.other.concurrency.prismio"],
         { light: "#BF3989", dark: "#F778BA" }],
     [["support.type.primitive.prismio"],
-        { light: "#22863A", dark: "#85E89D" }],
+        { light: "#116329", dark: "#85E89D" }],
     [["support.type.std.prismio", "entity.name.type.prismio"],
-        { light: "#1B7C83", dark: "#56D4DD" }],
+        { light: "#0E7490", dark: "#56D4DD" }],
     [["constant.language.prismio", "constant.numeric.hex.prismio", "constant.numeric.binary.prismio",
         "constant.numeric.octal.prismio", "constant.numeric.float.prismio",
         "constant.numeric.integer.prismio", "variable.other.constant.prismio",
         "constant.character.escape.prismio"],
-        { light: "#005CC5", dark: "#79B8FF" }],
+        { light: "#0550AE", dark: "#79B8FF" }],
     [["variable.language.self.prismio"],
-        { light: "#B35000", dark: "#FFAB70", fontStyle: "italic" }],
+        { light: "#BC4C00", dark: "#FFAB70", fontStyle: "italic" }],
     [["entity.name.function.declaration.prismio"],
-        { light: "#675A00", dark: "#E3C46A", fontStyle: "bold" }],
+        { light: "#8A5A00", dark: "#E3C46A", fontStyle: "bold" }],
     [["entity.name.function.call.prismio", "entity.name.function.method.prismio"],
-        { light: "#806C00", dark: "#C6B86A" }],
+        { light: "#9A6700", dark: "#C6B86A" }],
     [["entity.name.label.prismio"],
-        { light: "#6A737D", dark: "#959DA5", fontStyle: "italic" }],
+        { light: "#6E7781", dark: "#959DA5", fontStyle: "italic" }],
     [["punctuation.section.interpolation.begin.prismio", "punctuation.section.interpolation.end.prismio"],
-        { light: "#D73A49", dark: "#F97583" }],
+        { light: "#CF222E", dark: "#F97583" }],
     [["comment.line.documentation.prismio"],
-        { light: "#6A737D", dark: "#959DA5", fontStyle: "italic" }],
+        { light: "#6E7781", dark: "#959DA5", fontStyle: "italic" }],
 ];
 
 async function withPrismio(base: string, mode: "light" | "dark"): Promise<any> {
@@ -68,7 +71,7 @@ async function withPrismio(base: string, mode: "light" | "dark"): Promise<any> {
     };
 }
 
-const prismioLight: any = await withPrismio("github-light", "light");
+const prismioLight: any = await withPrismio("github-light-default", "light");
 const prismioDark: any = await withPrismio("github-dark", "dark");
 
 // For a site that is light only and wants Prismio's highlighting without the dual-theme setup.
