@@ -1,72 +1,101 @@
-'use client';
-
 import React from "react";
 import Link from "next/link";
-import {
-    House,
-    Users,
-    Terminal,
-    Package,
-    BookOpen,
-    Download,
-    ArrowRight,
-} from "lucide-react";
+import {ArrowRight} from "lucide-react";
 import Logo from "@prismio/ui/Logo";
+import type {Metadata} from "next";
+import RequestedPath from "../components/not-found/RequestedPath";
 
-const navLinks = [
-    { title: "Home",        icon: House,     href: "/",           desc: "Back to the main page" },
-    { title: "Community",   icon: Users,     href: "/community",  desc: "Join the conversation" },
-    { title: "Playground",  icon: Terminal,  href: "/playground", desc: "Try Prismio in browser" },
-    { title: "Packages",    icon: Package,   href: "/packages",   desc: "Browse the ecosystem" },
-    { title: "Docs",        icon: BookOpen,  href: "/docs",       desc: "Read the documentation" },
-    { title: "Install",     icon: Download,  href: "/install",    desc: "Get Prismio locally" },
+// Next adds `noindex` to this page itself.
+export const metadata: Metadata = {
+    title: "Page not found · Prismio Packages",
+};
+
+const FOCUS = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400";
+
+const HELP = [
+    {name: "Packages", href: "/", desc: "The package registry, coming soon"},
+    {name: "Home", href: "https://prismio.org", desc: "The Prismio front page"},
+    {name: "Docs", href: "https://docs.prismio.org", desc: "Read the documentation"},
+    {name: "Install", href: "https://prismio.org/install", desc: "Get Prismio locally"},
+    {name: "Playground", href: "https://play.prismio.org", desc: "Try Prismio in the browser"},
+    {name: "Community", href: "https://prismio.org/community", desc: "Ask, or follow along"},
 ];
 
 export default function NotFound() {
     return (
-        <div className="relative min-h-screen bg-[#070709] text-white flex flex-col overflow-x-clip">
-            {/* Background glow */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-950/20 via-[#070709]/60 to-[#070709] pointer-events-none z-0" />
-
-            {/* Minimal header */}
-            <header className="relative z-10 px-6 h-16 flex items-center border-b border-white/[0.06]">
+        <div className="flex min-h-screen flex-col bg-[#070709] text-white">
+            <header className="flex h-16 items-center border-b border-white/[0.06] px-6">
                 <Logo />
             </header>
 
-            {/* Content */}
-            <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-16 text-center">
-
-                {/* 404 indicator */}
-                <span className="font-mono text-sm font-semibold tracking-[0.3em] text-indigo-400 uppercase mb-3 block">
-                    404
-                </span>
-
-                {/* Heading */}
-                <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-4">
-                    Nothing here.
-                </h1>
-                <p className="text-gray-400 text-sm md:text-base leading-relaxed mb-12">
-                    The page you are looking for does not exist or may <br className={"hidden md:block"}/> have been moved. Here are some places to go:
-                </p>
-
-                {/* Link grid */}
-                <div className="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {navLinks.map(({ title, icon: Icon, href, desc }) => (
+            <main className="mx-auto grid w-full max-w-6xl flex-1 content-center gap-12 px-6 py-16 lg:grid-cols-12 lg:gap-16 lg:py-24">
+                <div className="min-w-0 lg:col-span-5">
+                    <h1 className="text-5xl font-semibold tracking-[-0.035em] text-white md:text-6xl">
+                        That page isn&apos;t here.
+                    </h1>
+                    <p className="mt-6 max-w-md text-base leading-7 text-zinc-400">
+                        The link may be old, or the page may have moved. Pick up from one of the places on the right.
+                    </p>
+                    <div className="mt-8 flex flex-wrap items-center gap-3">
                         <Link
-                            key={href}
-                            href={href}
-                            className="group flex items-center gap-4 p-4 rounded-2xl border border-white/[0.07] bg-white/[0.02] hover:bg-white/[0.05] hover:border-indigo-500/25 transition-all duration-200 text-left"
+                            href="/"
+                            className={`inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 ${FOCUS}`}
                         >
-                            <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center shrink-0 group-hover:border-indigo-500/30 transition-colors">
-                                <Icon size={18} strokeWidth={1.5} className="text-zinc-400 group-hover:text-indigo-400 transition-colors" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-white">{title}</p>
-                                <p className="text-xs text-zinc-500 truncate">{desc}</p>
-                            </div>
-                            <ArrowRight size={14} strokeWidth={1.5} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+                            Back to Packages
+                            <ArrowRight size={14} />
                         </Link>
-                    ))}
+                        <a
+                            href="https://docs.prismio.org"
+                            className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-white/15 transition-colors hover:bg-white/[0.06] ${FOCUS}`}
+                        >
+                            Read the docs
+                        </a>
+                    </div>
+                </div>
+
+                {/* Written the way the compiler would say it. */}
+                <div className="min-w-0 lg:col-span-7">
+                    <div className="overflow-hidden rounded-2xl bg-[#0b0c10] ring-1 ring-white/[0.09]">
+                        <div className="px-6 pt-6 font-mono text-sm leading-7 sm:px-8 sm:pt-8">
+                            <p>
+                                <span className="font-semibold text-rose-400">error[404]</span>
+                                <span className="font-semibold text-white">: cannot find page </span>
+                                <span className="font-semibold text-white">
+                                    <RequestedPath fallback="this address" />
+                                </span>
+                            </p>
+                            <p className="mt-1 text-zinc-500">
+                                <span className="select-none">&nbsp;&nbsp;--&gt; </span>
+                                <span className="text-zinc-400">packages.prismio.org</span>
+                            </p>
+                            <p className="mt-5">
+                                <span className="font-semibold text-emerald-400">help</span>
+                                <span className="text-zinc-300">: these exist</span>
+                            </p>
+                        </div>
+
+                        <ul className="mt-3 pb-3 font-mono text-sm">
+                            {HELP.map((item) => (
+                                <li key={item.href}>
+                                    <a
+                                        href={item.href}
+                                        className={`group flex items-baseline gap-4 px-6 py-2.5 transition-colors hover:bg-white/[0.04] focus-visible:ring-inset sm:px-8 ${FOCUS}`}
+                                    >
+                                        <span className="w-24 shrink-0 font-medium text-indigo-300 transition-colors group-hover:text-indigo-200">
+                                            {item.name}
+                                        </span>
+                                        <span className="min-w-0 flex-1 truncate font-sans text-sm text-zinc-500 transition-colors group-hover:text-zinc-300">
+                                            {item.desc}
+                                        </span>
+                                        <ArrowRight
+                                            size={14}
+                                            className="shrink-0 text-zinc-600 transition-all group-hover:translate-x-0.5 group-hover:text-zinc-300"
+                                        />
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 </div>
             </main>
         </div>
