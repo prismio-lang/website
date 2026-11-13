@@ -329,6 +329,15 @@ error[P4001]: `strFromScalar` is declared in `std.string`, which this file does 
         module that imports it is not enough
 ```
 
+A library function that nothing in the program imports gets the same answer. The compiler looks the name up in the standard library, so a file that calls `println` with no `import std.io` at all is told which import to add, and an editor offers it as a quick fix:
+
+```text
+error[P4001]: `println` is declared in `std.io`, which this file does not import
+  note: add `import std.io`
+```
+
+When two library modules declare the name and neither imports the other (`min` is in `std.math` and `std.vec`), the error lists both and offers no fix, since only you know which one you mean.
+
 What a file can call is what that file's own imports say it can, which is readable from the top of the file rather than from its dependencies' dependencies. Two things are deliberately outside the rule, because no import could ever have made them legal:
 
 - **Methods.** A method comes with its receiver's type, so `"a".concat(b)` needs no import of `std.string` — the same way an inherent method in Rust or a member function in Kotlin comes with the type.

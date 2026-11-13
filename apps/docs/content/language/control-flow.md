@@ -277,6 +277,7 @@ Without a range operator, `for` visits the elements of a collection:
 | `Slice<T>` | each element of the view | index, element |
 | `Array<T, N>`, `[T]` with a known length | each element | index, element |
 | `HashMap<K, V>` | each key, in insertion order | key, value |
+| `HashSet<K>` | each key, in position order (insertion order until the first removal) | — |
 | a type implementing [`Iterator`](/language/traits) | each `next()` | — |
 
 <!-- prismio-check: pass -->

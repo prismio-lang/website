@@ -321,8 +321,8 @@ enum Level { Low, Mid, High }
 
 fn main() -> Int {
     let counts = mapNew<Level, Int>()
-    mapSet(counts, Level.High, 3)
-    if (mapGetOr(counts, Level.High, 0) == 3 and mapHas(counts, Level.Low) == false) { return 0 }
+    counts.set(Level.High, 3)
+    if (counts.getOr(Level.High, 0) == 3 and counts.contains(Level.Low) == false) { return 0 }
     return 1
 }
 ```

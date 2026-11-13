@@ -37,10 +37,33 @@ why capacity and arena high-water measurement matter.
 
 ## Maps
 
-The current map is an open-addressed hash table with insertion, overwrite, lookup, and iteration.
-Key support is bound by the compiler and standard traits. Deletion is not part of the supported
-surface, and the benchmark catalog records that absence rather than implementing a private
-substitute.
+`HashMap<K, V>` is written in Prismio (`std/map.psm`), not in the runtime: two dense parallel `Vec`s of
+keys and values in insertion order, and an open-addressed table of indices into them with triangular
+probing and tombstones. Removal swap-removes the dense entry. `K: Key + Copy` and `V: Copy` are bounds the
+compiler checks at the instantiation.
+
+**Ownership of what it holds.** The map stores `copyOf` of every key and value it is given, releases them
+with the table, and answers a copy from every reader (`get`, `getOr`, `m[k]`, `take`, `set`'s previous value,
+`getOrInsert*`, `values()`, `valueAt`). The point of that rule is the escape analysis: it declines to release
+a container whose element list it has seen returned, and a reader that returned `list_get(m.entryValues, i)`
+made the analysis give up on the whole table (the 2026-08-29 attempt at `V: Copy` leaked every value for this
+reason). A copy leaves the table; the element does not. For a scalar `copyOf` is the identity, so the update
+and removal loops are unchanged.
+
+**Release at the store.** A displaced or removed element is released at once only when the checker can show no
+view of an element is live (`src/ir/overwrites.psm`, `semaRemovalVerdict`), which it can for a fresh local `Vec`
+and not for a field. The map's two columns are the exception it is told about, `nodeIsMapColumn` in
+`src/ast/types.psm`, on a promise `std/map.psm` keeps: no view of a column element outlives the statement that took
+it, and none reaches user code, so `keyAt` and `valueAt` answer copies and `update` and `retain` hand their closures
+copies. Twenty thousand replacements of one `String` value peak at 552 bytes, against 749 KB when the element is parked
+with its container. The promise is a name the checker trusts, not a proof, and a method that bound or returned a view of
+a column would read freed memory; extending the local-`Vec` proof to a field whose type never lends an element out is
+the way to make it checked (`HASHMAP_API_PLAN.md`). `HashSet`'s columns still park.
+
+**A map literal that owns something is a producer.** `{ word(1): word(2) }` lowers to `mapEntriesN(k0, v0, ...)`
+for up to twelve entries (`src/sema/maps.psm`), as a Vec literal is one `vecOf`: every key and value is an argument,
+so each temporary is released after the call, and the function builds the map it returns. The `mapPut` chain it
+replaced passed the map through, and a pass-through's result in a struct field or a `return` is never released.
 
 ## Views
 

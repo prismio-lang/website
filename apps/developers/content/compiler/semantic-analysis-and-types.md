@@ -285,7 +285,8 @@ the refused half.
 | Collection | Becomes |
 | --- | --- |
 | String, `Vec<T>`, `Slice<T>`, `Array<T, N>` | `for $x in 0..<length { let x = c[$x]  … }` — the length is `strLength`, `list_len`, `slice_len`, or the literal `N` |
-| `HashMap<K, V>` (a `HashMap$…` instantiation, with std.map imported) | `for $k in 0..<mapLen(m) { let k = mapKeyAt(m, $k)  … }`, and `let v = mapValueAt(m, $k)` for a pair |
+| `HashMap<K, V>` (a `HashMap$…` instantiation, with std.map imported) | `for $k in 0..<count(m) { let k = keyAt(m, $k)  … }`, and `let v = valueAt(m, $k)` for a pair — the map's own `count`, `keyAt` and `valueAt`, so a `for` loop and a hand-written one walk the same API |
+| `HashSet<K>` (a `HashSet$…` instantiation, with std.map imported) | `for $k in 0..<count(s) { let k = hashSetKeyAt(s, $k)  … }`. A set has no positional method, so `hashSetKeyAt` is a free function in std.map that exists only as this lowering's target; one name is all a pair-less loop needs |
 | a struct implementing `Iterator` | `while (hasNext(it)) { let x = next(it)  … }` — the node becomes a WHILE_STATEMENT |
 
 The element read is an INDEX_EXPR rather than a direct call so that it re-enters the indexing arm and gets its bookkeeping — `ir_unmark_list_exclusive` for a Vec. A pair `(i, x)` makes the first name the loop variable itself, so no hidden index is needed.

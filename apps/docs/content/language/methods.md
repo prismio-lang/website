@@ -236,7 +236,7 @@ fn main() -> Int {
     let empty: HashMap<String, Int> = HashMap()       // <String, Int> from the annotation
     let mut words = Vec<String>()             // an empty Vec, as `[]` is
     words.push("hi")
-    println(p.x + p.y + seen.length + empty.length + words.length)   // 8
+    println(p.x + p.y + seen.count + empty.count + words.length)   // 8
     return 0
 }
 ```
@@ -385,7 +385,7 @@ A struct can be indexed like a `Vec` by giving it two methods:
 | `x[i]` | `x.at(i)` |
 | `x[i] = v` | `x.set(i, v)` |
 
-`set` changes the value, so it takes `inout self`, and the struct has to be in a `let mut`. A struct with an `at` and no `set` can be read by index but not assigned to: `x[i] = v` is an error that says to write a `set`. The index can be any type the method takes, which is how `m["key"]` reads a [`HashMap`](/stdlib/map). A generic struct's `set` is not reached this way yet, so a `HashMap` is still written with `m.set(key, value)`.
+`set` changes the value, so it takes `inout self`, and the struct has to be in a `let mut`. A struct with an `at` and no `set` can be read by index but not assigned to: `x[i] = v` is an error that says to write a `set`. The index can be any type the method takes, which is how `m["key"]` reads a [`HashMap`](/stdlib/map). A generic struct's `set` is reached the same way, which is how `m["key"] = value` stores into a [`HashMap`](/stdlib/map).
 
 <!-- prismio-check: pass -->
 ```prismio

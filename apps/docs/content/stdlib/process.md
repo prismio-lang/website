@@ -126,7 +126,7 @@ uname said Darwin, exit status 0
 **A Vec literal needs `import std.vec`**, even though the program only means to use `std.process`. Without it:
 
 ```text
-error[P4001]: `vecOf$String` is declared in `std.vec`, which this file does not import
+error[P4001]: `vecOf` is declared in `std.vec`, which this file does not import
  --> novec.psm:7:20
   |
 7 |     p.arguments = ["-s"]
