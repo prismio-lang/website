@@ -46,6 +46,6 @@ The comparison with `none` does not itself narrow `node.next`; the explicit `exp
 - `return node.next.value` fails because `Node?` does not have direct struct-member access.
 - `Int?` cannot replace the optional struct link: it is a number that may be absent, not a reference to another `Node`.
 - Reading `tail` after it has moved into `head.next` is use after move.
-- Optional chaining and `if let` syntax are not part of 0.1.
+- Optional chaining is not part of the language; `if let n = node.next { ... }` takes the link out when there is one ([control flow](/language/control-flow#if-let-and-let--else)).
 
 Use this shape for linked optional ownership when a reference may be absent: `T?` costs nothing, because absence is the null pointer. A number's `T?` is a present flag beside the value, which costs nothing either, so a link, a lookup result and a parsed number are all the same `T?`.

@@ -289,6 +289,14 @@ arms all diverge diverges, so it can end a value-returning function, and the
 unreachable-code check rejects a statement after it. The fallback `return`
 that the old analysis needed after such a match is now that error.
 
+`_` has to be the last arm: an arm after it can never run, and codegen put a terminator in the middle of a block for one, so
+`semaMatchWildcardLast` (called from `semaMatchStatement` and `semaMatchPayloadArms`) rejects it.
+
+A guard, a range, a string, or a pattern inside a pattern is not checked here at all: the parser (`parse/arm_tests.psm`) has already
+turned the arm into an `if` chain, or into a pair of ordinary `match`es with hidden names, so what reaches this section is the same
+`MATCH_STATEMENT` with plain arms. That is also why a `match` that uses them ends in `_`: the parser does not know the scrutinee's type,
+so it cannot ask which variants the arms cover. See [the frontend page](/compiler/frontend).
+
 ### LLVM lowering and teardown
 
 `generateStatement` emits a switch on the hidden tag (or, for an eligible null
