@@ -582,6 +582,15 @@ An optional's value is `expect($x)`, an alias of the optional's own pointer, so 
 a bare return of `q`, and `generateReturn` keeps `q`'s slot on that path (and `q` is released on the others). Before that `q` was
 released at the `return` that handed its payload out (use after free; `?` on an optional followed by `return s` had the same bug).
 
+**Match arms that test: guards, ranges, strings.** `parse/arm_tests.psm`. `parseArmHead` reads an arm's pattern and marks it (`i1`: 1 `lo..hi`,
+2 `lo..<hi`, 3 a string literal, 4 a bare name followed by `if`; `i2`: has a guard; the range's end, the guard and the name are in a carrier
+node in `child3`), and a `match` where any arm is marked goes through `lowerTestedMatch` instead of being left alone, so an ordinary `match`
+and its IR are untouched. The scrutinee is read in place when it is a path and held in `$mN` otherwise, and the arms are an `if`/`else` chain:
+`armChain` turns a test arm into `if test { body } else { the rest }` (a binding's `let x = $mN` goes ahead of its `if`), and a run of plain
+patterns into one `match` whose `_` arm is the rest. A guard on a *pattern* cannot be a test, since the pattern binds first and the arms after it must still be tried, so its pattern is matched twice (`armCloneChain` copies it): `let mut $bN = false; match root { P => { $bN = guard }, _ => {} }`, then `if $bN { match root { P => body, _ => { unreachable() } } } else { the rest }`, inside the `_` arm that ends the plain arms before it. Nothing is run twice, the rest is one copy, and `if`/`else` is what flow analysis already understands (definite assignment for a value `match`, divergence for returns). The last arm must be an unguarded `_`, which is what makes the chain total without an
+exhaustiveness proof. `parseMatchExpr` queues the chain behind the value's temporary (`finishValueChain`); guards and range ends are read with
+`noHoist` raised, since they run only when the arm is tried.
+
 **`match` syntax.** `parseScrutinee` reads the expression as a condition is read (no struct literal at the top level), so
 parentheses are not needed; `parseArmBody` reads `{ ... }` as a block, nothing before `}` or `,` as an empty block, and anything
 else as one statement through `parseBlockOf(single: true)`, the block parser run for exactly one statement so that `if` expressions,

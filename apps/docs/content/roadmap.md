@@ -65,6 +65,7 @@ This page distinguishes shipped compiler behavior from intent. It assigns no dat
 | Descending ranges (`10..0` counts down) | Implemented |
 | `if`/`match` as expressions: `let x = if c { 1 } else { 2 }`, `match (e) { A => 1, _ => 2 }` | Implemented (a branch is one expression) |
 | `if let`, `while let`, `let ... else` (a name for an optional, a variant for an enum) | Implemented |
+| `match` arms with a guard (`x if x > 2`), a range (`1..9`, `1..<9`) or a string (`"stop"`) | Implemented (a `match` that has them ends in `_`) |
 | `break` with a value | Coming Soon |
 | Payload enums and `Result` | Implemented |
 | Scalar optionals (`Int?`, `Float?`, an enum's `T?`) by value, in containers | Implemented |

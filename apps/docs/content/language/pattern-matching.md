@@ -1,6 +1,6 @@
 ---
 title: Pattern matching
-description: Match integer and fieldless enum values with literal and wildcard arms in Prismio 0.2.
+description: Match integer, string, and enum values with literal, range, string, guarded and wildcard arms.
 status: stable
 version: "0.2.0"
 lastUpdated: "2026-11-10"
@@ -106,7 +106,7 @@ fn category(code: Int) -> Int {
 fn main() -> Int { return category(1) - 20 }
 ```
 
-String patterns, structural patterns, range patterns, and user-defined equality are not implemented.
+[Ranges](#range-string-and-guarded-arms) and string patterns are arms that test; structural patterns and user-defined equality are not implemented.
 
 ## Wildcard arm
 
@@ -162,7 +162,7 @@ fn main() -> Int {
 }
 ```
 
-Strings are not supported match scrutinees in 0.1. Use string operations or map the input into a fieldless enum first.
+A string is matched by [string patterns](#range-string-and-guarded-arms), which need a `_` arm; a `match` with only `_` has nothing to test.
 
 ## Variant patterns
 
@@ -205,6 +205,62 @@ A second arm for a variant an earlier arm already matches is rejected as unreach
 
 Exhaustiveness applies to **payload** enums only. A fieldless enum still matches as an integer, where the scrutinee is not confined to the declared variants, so matching a subset stays legal there.
 
-Guards, ranges, string patterns and nested destructuring are not implemented. A `match` can give a value: see [`if` and `match` as values](/language/control-flow#if-and-match-as-values).
+## Range, string and guarded arms
 
-Future pattern syntax is intentionally not specified here. When those features exist, this page will define their precedence, binding ownership, exhaustiveness rules, and diagnostics from compiler-tested behavior.
+Three more kinds of arm *test* the value instead of naming it:
+
+| Arm | Takes the value when |
+| --- | --- |
+| `1..9`, `1..<9` | it is from 1 to 9 (end included), or from 1 up to but not including 9 |
+| `"stop"` | it equals the string |
+| `x if x < 0`, `_ if cond` | the guard holds; a bare name before `if` binds the value |
+| `Shape.Circle(r) if r > 10` | it is that variant and the guard holds (the guard sees `r`) |
+
+<!-- prismio-check: pass -->
+```prismio
+import std.string
+
+enum Shape { Circle(Int), Rect(Int, Int), Empty }
+
+fn bucket(n: Int) -> String {
+    match n {
+        0 => { return "zero" }
+        1..9 => { return "small" }
+        10..<100 => { return "medium" }
+        x if x < 0 => { return "negative" }
+        _ => { return "large" }
+    }
+}
+
+fn command(s: String) -> Int {
+    match s {
+        "start" => { return 1 }
+        "stop" => { return 2 }
+        _ => { return 0 }
+    }
+}
+
+fn size(s: Shape) -> String {
+    return match s {
+        Shape.Circle(r) if r > 10 => "big circle",
+        Shape.Circle(r) => "circle",
+        Shape.Rect(w, h) if w == h => "square",
+        _ => "other"
+    }
+}
+
+fn main() -> Int {
+    if bucket(5) != "small" or bucket(-3) != "negative" { return 1 }
+    if command("stop") != 2 { return 2 }
+    if size(Shape.Circle(20)) != "big circle" or size(Shape.Rect(3, 3)) != "square" { return 3 }
+    return 0
+}
+```
+
+Arms are tried in order, and a guard that fails goes on to the next arm. A `match` that has any of these arms **ends in an unguarded `_`**: a range or a guard may leave values over, and the compiler does not try to prove which. The value is evaluated once, and the arms work in `match` expressions too ([`if` and `match` as values](/language/control-flow#if-and-match-as-values)).
+
+How it is read: a range, a string and a guard on a name or `_` are an `if`/`else` chain over the value, with the arms after each as its `else`. A guard on a *variant* has to bind first and still fall through, so its pattern is matched twice, once to find out whether the guard holds and once to run the arm; the guard runs once, and only when the pattern matched. Either way a function whose every arm returns still returns on every path.
+
+A bare name before `if` is always a binding, even when a variable of that name is in scope: `limit if n > 3` binds a new `limit`. Arms are not yet nested (`Outer.A(Inner.B(v))`) and there is no `|` between patterns.
+
+Nested patterns and alternatives are not specified here. When they exist, this page will define their precedence, binding ownership, exhaustiveness rules, and diagnostics from compiler-tested behavior.
