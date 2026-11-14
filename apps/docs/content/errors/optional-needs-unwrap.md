@@ -16,7 +16,7 @@ The same principle applies to other operations that require the underlying refer
 
 ## Why it happens
 
-Comparing a value with `none` does not flow-narrow it in 0.1. Syntax such as optional chaining, postfix force unwrap, or `if let` is not implemented, so code copied from another language will not remove `?`.
+Comparing a value with `none` does not flow-narrow it in 0.1. Optional chaining and a postfix force unwrap are not implemented, so code copied from another language will not remove `?`. `if let h = x { ... }` and `let h = x else { return }` take the value out of an optional.
 
 ## Invalid code
 

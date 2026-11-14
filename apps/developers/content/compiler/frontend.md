@@ -563,6 +563,25 @@ owned payload owned: the compiler moves a pattern binding on into what is built 
 outlives the arm (`plainTemp` in the 2026-11-11 session, recorded in KNOWN_ISSUES). For an optional, sema moves the rest across to
 the `if`'s success branch, after `let $vN = expect($qN)`.
 
+**`if let`, `while let`, `let ... else`.** `parse/let_forms.psm`. The parser knows no types, so the pattern's *shape* decides: a bare
+name (`letPatternKind` 1) is an optional's value, and `Name.Variant` or `Name.Variant(p)` (2) is an enum's. A variant pattern is a
+`match` with the pattern's arm and a `_`; the `_` arm comes last, because an arm after `_` was invalid IR (it is now
+`semaMatchWildcardLast`'s error). A name is `if $x != none { let h = expect($x) ... }`, where `$x` is the operand's own path when
+it has one (`patternPath`, so the operand is read in place and `if let x = x` shadows) and else a hidden `$qN` queued ahead of the
+statement. `parseElse` is the `else` of every `if` now: an `else if let` is a one-statement block (`parseBlockOf(true)`), so what it holds
+ahead of itself runs only on that branch. `while let` is a `loop` (not a `while true`) whose first statements test and bind, so
+`continue` re-reads the operand; a label lands on the loop's body as for any loop (`loopBodyOf`). `let ... else` tags the lowered
+statement `s1 == "$letelse"` and `nestTries` nests the rest of the block in its success branch, like a `$try` marker. Sema
+(`sema/let_forms.psm`, called from `semaStatement`) tags an optional `if let` `$iflet` and checks both: a name pattern needs an optional
+operand (`semaExpr` on the held name, with a note pointing at the variant spelling for an enum or a `Result`), and a `let ... else`'s
+`else` must satisfy `semaBlockDiverges`. A refused statement counts as a `?` failure (`semaTryNoteFailure`) so the missing-`return`
+check does not add a second message.
+
+An optional's value is `expect($x)`, an alias of the optional's own pointer, so `return s` after `let s = expect(q)` has to keep `q`:
+`irUnwrapSource` (`ir/expr.psm`) names `q` for a binding that is only `expect(q)`, `nodeReturnsAliasBeyondBare` counts that `return` as
+a bare return of `q`, and `generateReturn` keeps `q`'s slot on that path (and `q` is released on the others). Before that `q` was
+released at the `return` that handed its payload out (use after free; `?` on an optional followed by `return s` had the same bug).
+
 **`match` syntax.** `parseScrutinee` reads the expression as a condition is read (no struct literal at the top level), so
 parentheses are not needed; `parseArmBody` reads `{ ... }` as a block, nothing before `}` or `,` as an empty block, and anything
 else as one statement through `parseBlockOf(single: true)`, the block parser run for exactly one statement so that `if` expressions,

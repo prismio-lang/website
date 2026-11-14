@@ -110,7 +110,7 @@ String patterns, structural patterns, range patterns, and user-defined equality 
 
 ## Wildcard arm
 
-`_` matches any value that reaches it. Put it last for a conventional fallback. Since arms are tested in source order, an earlier wildcard makes every following arm unreachable in behavior even though the compiler may not diagnose the coverage.
+`_` matches any value that reaches it, so it goes last: an arm after it could never run, and the compiler rejects it ("comes after `_`").
 
 ## Exhaustiveness and duplicates
 

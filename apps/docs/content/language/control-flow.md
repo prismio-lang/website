@@ -107,6 +107,8 @@ Where a value is wanted, `if` and `match` give one:
 
 <!-- prismio-check: pass -->
 ```prismio
+import std.string
+
 enum Color { Red, Green, Blue }
 
 fn label(c: Color) -> String {
@@ -133,6 +135,89 @@ This is not a conditional operator in the C sense. The compiler runs the `if` or
 - in a global `let`, which has no statements.
 
 A block of several statements as a branch (`if c { let t = f(); t + 1 } else { 0 }`) is not supported; bind the value above, or write the `if` as a statement.
+
+### `if let` and `let ... else`
+
+To test a value and take it apart in one step, put the pattern after `let`. A **name** is an optional's value, when it has one; a **variant** is an enum's payload, when it is that variant:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.string
+import std.option
+
+enum Shape { Circle(Int), Rect(Int, Int), Empty }
+
+fn find(k: Int) -> Int? {
+    if k > 0 { return k * 10 }
+    return none
+}
+
+fn area(s: Shape) -> Int {
+    if let Shape.Circle(r) = s {
+        return r * r * 3
+    } else if let Shape.Rect(w, h) = s {
+        return w * h
+    }
+    return 0
+}
+
+fn main() -> Int {
+    let mut total = 0
+    if let v = find(3) { total = total + v } else { total = -1 }
+    if let v = find(0) { total = total + v } else { total = total + 1 }
+    return total + area(Shape.Rect(2, 3)) - 37
+}
+```
+
+The `else` is optional, and `else if let` mixes with a plain `else if`. The value is `expect`ed inside the branch, so an owned `String` payload is released once, and `if let x = x` shadows the optional with the value it holds (a variable or a field path is read in place, so it is still usable afterwards).
+
+`let ... else` is the early-exit form. The rest of the block runs only when the pattern matched, with its names in scope, and the `else` has to leave the block (`return`, `break`, `continue`, or a call that does not return, such as `panic`); the compiler checks that, because a fall-through would silently skip everything after it:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.string
+import std.option
+
+fn name(k: Int) -> String? {
+    if k > 0 { return "item".concat(k.toString()) }
+    return none
+}
+
+fn shout(k: Int) -> String {
+    let n = name(k) else { return "none" }
+    return n.concat("!")
+}
+
+fn main() -> Int {
+    if shout(2) != "item2!" { return 1 }
+    if shout(0) != "none" { return 2 }
+    return 0
+}
+```
+
+`while let` tests again on every pass, and stops at the first value that does not match. `continue` goes back to the test, and a labelled `continue` or `break` works as in any loop:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.option
+
+fn countdown(i: Int) -> Int? {
+    if i > 0 { return i }
+    return none
+}
+
+fn main() -> Int {
+    let mut i = 3
+    let mut sum = 0
+    while let v = countdown(i) {
+        sum = sum + v
+        i = i - 1
+    }
+    return sum - 6
+}
+```
+
+A pattern is a name (`h`, with `mut` if you assign to it) or a variant (`Result.Ok(v)`, `Shape.Rect(w, h)`); `_` and a type annotation on a `let ... else` are refused. A name needs an optional: on any other value the compiler says so, and for an enum or a `Result` points at the variant spelling.
 
 ## `while`
 
@@ -391,4 +476,5 @@ This conservative restriction prevents a path that succeeds once and becomes a u
 | **A `break` that carries a value** out of a `loop` | assign into a `let mut` declared before the loop, then `break` |
 | **`for` over a `[T]` parameter**, whose length is not known | pass the length and write `for i in 0..<n` |
 | **`(key, value)` from an `Iterator`** | return a struct from `next()` and read its fields |
-| **`defer`**, exceptions, and conditional binding syntax (`if let`) | release explicitly on each path; compare an optional with `none` and read it with `expect` |
+| **`defer`** and exceptions | release explicitly on each path |
+| **Guards, range patterns and string patterns** in a `match` (`n if n > 3`, `1..5`, `"a"`), and nested patterns inside a variant | an `if` inside the arm; `if let` for one variant |

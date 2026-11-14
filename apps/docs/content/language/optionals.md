@@ -241,6 +241,20 @@ fn main() -> Int {
 
 Creating `optional` moves `item`; the later read of `item` is refused.
 
+## Taking the value out
+
+`if let` and `let ... else` test an optional and name the value in one step, with no `expect` to write and no way to read an absent one:
+
+```prismio
+fn describe(k: Int) -> String {
+    let n = name(k) else { return "none" }      // the rest runs only when there is a name
+    if let m = nickname(k) { return n.concat(" (", m, ")") }
+    return n
+}
+```
+
+See [control flow](/language/control-flow#if-let-and-let--else) for the forms, `while let`, and the rule that a `let ... else`'s `else` has to leave the block.
+
 ## Results, and where `T?` stops
 
 A `T?` says a value may be absent and not why. When the reason matters, return a
@@ -252,8 +266,8 @@ A `T?` says a value may be absent and not why. When the reason matters, return a
 - optional chaining such as `value?.field`: test with `!= none` and read through
   `expect`, or use `??`;
 - a postfix force-unwrap such as `value!`: use `expect`;
-- `if let`, flow narrowing after a comparison, and `match` on a `T?`: compare with
-  `none` and read the value with `expect(o)`;
+- flow narrowing after a comparison, and `match` on a `T?`: compare with `none` and read the
+  value with `expect(o)`, or take it out with [`if let`](/language/control-flow#if-let-and-let--else);
 - `T??`, and `Channel<Int?>`: a channel carries references;
 - a `HashMap` whose value is an owned `T?` (`String?`), for the reason a `HashMap`'s
   value may not be an owned type yet.

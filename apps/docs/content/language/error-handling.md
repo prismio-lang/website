@@ -141,6 +141,17 @@ The function has to be able to carry what `?` hands back: a `Result` with the sa
 - in a loop header, the right side of `and`, `or` and `??`, an `else if` condition and a closure's expression body;
 - outside a function.
 
+## Handling the error where it happens
+
+`?` hands the error on unchanged. To deal with it where it occurs, match one variant and leave through the other: `if let` for one arm, `let ... else` when the rest of the block needs the value:
+
+```prismio
+fn lengthOf(text: String) -> Int {
+    let Result.Ok(n) = parse(text) else { return -1 }   // the `else` has to leave the block
+    return n * 2
+}
+```
+
 ## Limits in 0.2
 
 - **No bare `unwrap`.** [`unwrapOr`](/stdlib/option) takes a fallback, so the absent case is handled at the use site, and `expect(message)` stops the program with a message you had to write. There is deliberately no accessor that does either silently.
