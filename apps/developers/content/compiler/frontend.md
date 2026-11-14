@@ -591,6 +591,14 @@ patterns into one `match` whose `_` arm is the rest. A guard on a *pattern* cann
 exhaustiveness proof. `parseMatchExpr` queues the chain behind the value's temporary (`finishValueChain`); guards and range ends are read with
 `noHoist` raised, since they run only when the arm is tried.
 
+**Patterns inside a pattern.** The same file. `parseArmHead` marks an arm `i1 == 5` when a value in its variant pattern is a call, a member
+access or a literal (`armHasNested`). That arm is a guarded pattern with the guard `true`: `armNestedMatch` writes the pattern out twice (the
+copy is `armCloneNode`), the values that are patterns bound to hidden `$pN` names and matched in turn inside, a literal as `if $pN == lit`,
+every level's failure a `_` (empty while finding out, `unreachable()` while running, so the `if` on `$bN` has two sides). `lowerNestedLet`
+gives `if let`, `while let` and `let ... else` the same lowering by building the two-arm `match` they are; a nested `let ... else` is tagged
+`$letelsedeep` on the last statement of the chain, `nestTries` puts the rest of the block in the innermost body (`armInnermost`), and sema
+checks its `else` as for `$letelse`. `src/index/walk.psm` stopped reporting `_` in a pattern as an unresolved name.
+
 **`match` syntax.** `parseScrutinee` reads the expression as a condition is read (no struct literal at the top level), so
 parentheses are not needed; `parseArmBody` reads `{ ... }` as a block, nothing before `}` or `,` as an empty block, and anything
 else as one statement through `parseBlockOf(single: true)`, the block parser run for exactly one statement so that `if` expressions,

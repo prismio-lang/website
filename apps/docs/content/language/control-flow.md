@@ -477,4 +477,4 @@ This conservative restriction prevents a path that succeeds once and becomes a u
 | **`for` over a `[T]` parameter**, whose length is not known | pass the length and write `for i in 0..<n` |
 | **`(key, value)` from an `Iterator`** | return a struct from `next()` and read its fields |
 | **`defer`** and exceptions | release explicitly on each path |
-| **Nested patterns** inside a variant (`Outer.A(Inner.B(v))`), and `\|` between patterns | `if let` or a second `match` in the arm |
+| **`\|` between patterns**, and a struct or tuple pattern inside a variant's | a second `match` or an `if let` in the arm |

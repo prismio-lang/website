@@ -261,6 +261,42 @@ Arms are tried in order, and a guard that fails goes on to the next arm. A `matc
 
 How it is read: a range, a string and a guard on a name or `_` are an `if`/`else` chain over the value, with the arms after each as its `else`. A guard on a *variant* has to bind first and still fall through, so its pattern is matched twice, once to find out whether the guard holds and once to run the arm; the guard runs once, and only when the pattern matched. Either way a function whose every arm returns still returns on every path.
 
-A bare name before `if` is always a binding, even when a variable of that name is in scope: `limit if n > 3` binds a new `limit`. Arms are not yet nested (`Outer.A(Inner.B(v))`) and there is no `|` between patterns.
+A bare name before `if` is always a binding, even when a variable of that name is in scope: `limit if n > 3` binds a new `limit`. There is no `|` between patterns.
 
-Nested patterns and alternatives are not specified here. When they exist, this page will define their precedence, binding ownership, exhaustiveness rules, and diagnostics from compiler-tested behavior.
+## Patterns inside a pattern
+
+What a variant carries can itself be matched: a variant pattern, or a number or text to compare with, in place of a name. Any depth, and `_` skips a value:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.string
+
+enum Inner { A(Int), B(String), None }
+
+enum Outer { Wrap(Inner), Two(Inner, Int), Plain(Int) }
+
+fn describe(o: Outer) -> String {
+    match o {
+        Outer.Wrap(Inner.A(v)) => { return "A ".concat(v.toString()) }
+        Outer.Wrap(Inner.B(s)) => { return "B ".concat(s) }
+        Outer.Two(Inner.A(v), 0) => { return "zero" }
+        Outer.Two(Inner.A(v), n) if n > 5 => { return "big" }
+        Outer.Two(_, n) => { return "two" }
+        Outer.Plain(7) => { return "seven" }
+        _ => { return "else" }
+    }
+}
+
+fn wrap(v: Int) -> Outer { return Outer.Wrap(Inner.A(v)) }
+
+fn main() -> Int {
+    if describe(wrap(3)) != "A 3" { return 1 }
+    return 0
+}
+```
+
+Arms are tried in order, and an arm whose inner pattern does not match goes on to the next, as a guard that fails does. A guard sees every name in the pattern. It works in `match` statements and expressions, in [`if let`, `while let` and `let ... else`](/language/control-flow#if-let-and-let--else) (`let Outer.Wrap(Inner.B(s)) = o else { return }`), and the same rule holds: a `match` with a pattern inside a pattern ends in an unguarded `_`.
+
+A `String` or a struct held in the inner value is released once, as with any pattern. A binding is a borrow of the value that was matched.
+
+Not built: `|` between patterns, and a struct pattern (`Point { x, y }`) or a tuple pattern inside a variant's pattern.
