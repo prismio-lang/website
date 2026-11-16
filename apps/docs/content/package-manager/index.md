@@ -1,14 +1,14 @@
 ---
 title: Package manager
-description: The UMS manifest, project commands, path dependencies and the lockfile in Prismio 0.2, and what a registry would still add.
+description: The UMS manifest, project commands, path dependencies and the lockfile in Prismio 0.3, and what a registry would still add.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-12"
 tags: [package-manager, registry, dependencies, manifest, lockfile]
 related: [language/modules, guides/modules, roadmap]
 ---
 
-Prismio 0.2 has a **manifest**, a **lockfile**, and **local path dependencies**. It has **no registry**, so a dependency that does not name a local path cannot be fetched.
+Prismio 0.3 has a **manifest**, a **lockfile**, and **local path dependencies**. It has **no registry**, so a dependency that does not name a local path cannot be fetched.
 
 ## Commands
 

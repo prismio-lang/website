@@ -5,7 +5,7 @@ export const docsConfig: DocsAppConfig = {
         name: "Prismio Documentation",
         shortName: "Prismio",
         description: "Canonical documentation for the self-hosted Prismio systems language and compiler.",
-        currentVersion: "0.2.0",
+        currentVersion: "0.3.0",
         author: "Saksham Jaiswal",
         authorURL: "https://saksham1319.vercel.app",
         email: "saksham6975@gmail.com",
@@ -38,7 +38,7 @@ export const docsConfig: DocsAppConfig = {
     },
     home: {
         badge: {
-            versionText: "Prismio 0.2.0",
+            versionText: "Prismio 0.3.0",
             tagline: "Compiler-audited reference",
         },
         hero: {
@@ -49,8 +49,8 @@ export const docsConfig: DocsAppConfig = {
                 href: "/start/overview",
             },
             secondaryCta: {
-                text: "Read the 0.2.0 release notes",
-                href: "/releases/0.2.0",
+                text: "Read the 0.3.0 release notes",
+                href: "/releases/0.3.0",
             },
         },
         statusFacts: [
@@ -79,7 +79,7 @@ export const docsConfig: DocsAppConfig = {
             ],
         },
         footer: {
-            tagline: "Canonical for Prismio 0.2.0 · Released 10 Nov 2026",
+            tagline: "Canonical for Prismio 0.3.0 · Released 10 Dec 2026",
             links: [
                 { href: "/glossary", label: "Glossary" },
                 { href: "/faq", label: "FAQ" },
@@ -91,7 +91,7 @@ export const docsConfig: DocsAppConfig = {
         {
             label: "Getting started",
             items: [
-                { label: "Prismio 0.2 overview", href: "/start/overview" },
+                { label: "Prismio 0.3 overview", href: "/start/overview" },
                 { label: "Installation", href: "/start/installation" },
                 { label: "Hello, Prismio", href: "/start/hello-world" },
                 { label: "Build and run", href: "/start/build-and-run" },
@@ -296,6 +296,7 @@ export const docsConfig: DocsAppConfig = {
             items: [
                 { label: "Migration guides", href: "/migration" },
                 { label: "Releases and versions", href: "/releases" },
+                { label: "Prismio 0.3.0", href: "/releases/0.3.0" },
                 { label: "Prismio 0.2.0", href: "/releases/0.2.0" },
                 { label: "Prismio 0.1.0", href: "/releases/0.1.0" },
                 { label: "Glossary", href: "/glossary" },

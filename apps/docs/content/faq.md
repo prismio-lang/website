@@ -1,8 +1,8 @@
 ---
 title: Frequently asked questions
-description: Concise answers about Prismio 0.2 stability, self-hosting, memory, platforms, packages, and documentation status.
+description: Concise answers about Prismio 0.3 stability, self-hosting, memory, platforms, packages, and documentation status.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-13"
 tags: [faq, support, status]
 related: [start/overview, roadmap, compiler/targets]
@@ -10,7 +10,7 @@ related: [start/overview, roadmap, compiler/targets]
 
 ## Is Prismio production-ready?
 
-No. Version 0.2 is active compiler development. Implemented features are tested, but syntax, runtime contracts, AIF policy, and ABI details may change.
+No. Version 0.3 is active compiler development. Implemented features are tested, but syntax, runtime contracts, AIF policy, and ABI details may change.
 
 Use it for compiler/language development and controlled experiments. Pin the compiler revision for any persistent project and keep upgrade tests around ownership, FFI, and generated artifacts.
 
@@ -42,13 +42,13 @@ Concurrency is not one of them, and that is not an omission: `spawn`, `join`, `T
 
 Not yet, in the sense that matters: there is no registry and nothing to fetch from one.
 
-Prismio 0.2 has a `build.ums` manifest and a lockfile, and dependencies may name a local path. There is no registry and no dependency solver: a version constraint is recorded, not satisfied, and a dependency without a local path cannot be fetched. A resolved path is not yet on the import search either, so vendor source below the entry root and pin external revisions through source control. A manifest can also compile C sources of your own into a program and link libraries: see [Calling C from Prismio](/guides/calling-c) and the [package manager](/package-manager).
+Prismio 0.3 has a `build.ums` manifest and a lockfile, and dependencies may name a local path. There is no registry and no dependency solver: a version constraint is recorded, not satisfied, and a dependency without a local path cannot be fetched. A resolved path is not yet on the import search either, so vendor source below the entry root and pin external revisions through source control. A manifest can also compile C sources of your own into a program and link libraries: see [Calling C from Prismio](/guides/calling-c) and the [package manager](/package-manager).
 
 ## Why does a keyword appear in highlighting but fail to compile?
 
 Lexer or editor vocabulary can precede parser and semantic support. Only features marked Implemented or Experimental on this site should be expected to compile.
 
-`throw` is a concrete example: the lexer reserves it, but 0.2 does not parse a feature for it.
+`throw` is a concrete example: the lexer reserves it, but 0.3 does not parse a feature for it.
 
 ## Are ordinary function parameters moved?
 
@@ -56,7 +56,7 @@ Not for move-only values. An ordinary string, Vec, or struct parameter borrows b
 
 ## Does Prismio have references and lifetime syntax?
 
-No general source-level `&` reference or user-written lifetime parameter exists in 0.2. The compiler still enforces call-scoped borrow modes, moves, scope, loop restrictions, and local-array escape checks.
+No general source-level `&` reference or user-written lifetime parameter exists in 0.3. The compiler still enforces call-scoped borrow modes, moves, scope, loop restrictions, and local-array escape checks.
 
 ## Why does `Int` not accept every integer operation?
 
@@ -82,11 +82,11 @@ As values. There are no exceptions, `try`, `catch` or propagation operator: a fu
 
 ## Are documentation error IDs compiler codes?
 
-Not the same thing. URLs such as `/errors/use-after-move` are permanent documentation keys for one rule. Compiler 0.2 also prints a permanent code, such as `error[P4001]`, but most semantic errors share one, so the code names the stage and the page names the rule. See [compiler diagnostics](/compiler/diagnostics).
+Not the same thing. URLs such as `/errors/use-after-move` are permanent documentation keys for one rule. Compiler 0.3 also prints a permanent code, such as `error[P4001]`, but most semantic errors share one, so the code names the stage and the page names the rule. See [compiler diagnostics](/compiler/diagnostics).
 
 ## Which documentation should I trust?
 
-A page's `version` is the compiler it was last checked against. Use pages whose status is Implemented or Experimental for current code, and prefer a page marked `0.2.0` when two disagree. The draft specification is canonical prose; tested reference-compiler behavior is the executable oracle. Coming Soon pages are non-normative.
+A page's `version` is the compiler it was last checked against. Use pages whose status is Implemented or Experimental for current code, and prefer a page marked `0.3.0` when two disagree. The draft specification is canonical prose; tested reference-compiler behavior is the executable oracle. Coming Soon pages are non-normative.
 
 ## Can I write a kernel or bare-metal code in Prismio?
 

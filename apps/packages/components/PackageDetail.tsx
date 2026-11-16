@@ -1,237 +1,123 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import {
-    BadgeCheck,
-    Copy,
-    Terminal,
-    ExternalLink,
-    Download,
-    Star,
-    Clock,
-    Scale,
-    Check,
-} from "lucide-react";
-import { useState } from "react";
+import {useState} from "react";
+import Link from "next/link";
+import {ArrowLeft, Check, Copy, Terminal} from "lucide-react";
+import {PRISMIO_VERSION} from "@prismio/utils";
+import {ABI_LABEL, MEMORY_LABEL, type PackageMeta} from "@/lib/packages";
 
-export function PackageDetail() {
-    const params = useParams();
-    const rawName = params?.name;
-    const name = Array.isArray(rawName) ? rawName[0] : (rawName as string) || "package";
+const FOCUS = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500";
+
+function CopyCommand({text}: { text: string }) {
     const [copied, setCopied] = useState(false);
-    const [activeTab, setActiveTab] = useState("readme");
+    return (
+        <div className="flex w-full max-w-md items-center justify-between gap-3 rounded-xl bg-zinc-950 py-2 pl-4 pr-2 ring-1 ring-zinc-800">
+            <code className="min-w-0 overflow-x-auto whitespace-nowrap font-mono text-sm text-zinc-100">
+                <Terminal size={14} className="mr-2 inline text-zinc-500"/>
+                {text}
+            </code>
+            <button
+                type="button"
+                aria-label="Copy install command"
+                onClick={async () => {
+                    try {
+                        await navigator.clipboard.writeText(text);
+                    } catch {
+                        return;
+                    }
+                    setCopied(true);
+                    window.setTimeout(() => setCopied(false), 1600);
+                }}
+                className={`flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg text-zinc-400 transition-[color,background-color,transform] duration-100 hover:bg-white/10 hover:text-white active:scale-[0.94] ${FOCUS}`}
+            >
+                {copied ? <Check size={15} className="text-emerald-400"/> : <Copy size={15}/>}
+            </button>
+        </div>
+    );
+}
 
-    const handleCopy = () => {
-        navigator.clipboard.writeText(`prism add ${name}`);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
+export function PackageDetail({pkg}: { pkg: PackageMeta }) {
+    const minor = PRISMIO_VERSION.replace(/^v/, "").split(".").slice(0, 2).join(".");
 
     return (
-        <div className="w-full max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row gap-12 text-zinc-900">
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col min-w-0">
-                <div className="flex flex-col gap-6 mb-10">
-                    <div className="flex items-start justify-between">
+        <div className="mx-auto w-full max-w-6xl px-6 pb-16 pt-10 text-zinc-900 md:pt-14">
+            <Link href="/" className={`inline-flex items-center gap-1.5 rounded text-sm text-zinc-500 transition-colors hover:text-zinc-950 ${FOCUS}`}>
+                <ArrowLeft size={14}/>
+                All packages
+            </Link>
+
+            <div className="mt-8 grid gap-12 lg:grid-cols-12 lg:gap-16">
+                <div className="min-w-0 lg:col-span-8">
+                    <h1 className="break-words font-mono text-3xl font-semibold tracking-[-0.02em] text-zinc-950 md:text-4xl">
+                        {pkg.name}
+                        <span className="ml-3 align-middle text-base font-normal text-zinc-500">{pkg.version}</span>
+                    </h1>
+                    <p className="mt-4 max-w-2xl text-lg leading-8 text-zinc-600">{pkg.description}</p>
+
+                    <div className="mt-8">
+                        <CopyCommand text={`prismio add ${pkg.name}`}/>
+                    </div>
+
+                    <h2 className="mt-14 text-xl font-semibold tracking-[-0.02em] text-zinc-950">Use it</h2>
+                    <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-600">
+                        Add the package to the <code className="rounded bg-zinc-950/[0.05] px-1.5 py-0.5 font-mono text-[0.85em]">dependencies</code> block of your project&apos;s <code className="rounded bg-zinc-950/[0.05] px-1.5 py-0.5 font-mono text-[0.85em]">build.ums</code>.
+                    </p>
+                    <pre className="mt-5 overflow-x-auto rounded-2xl bg-[#0c0d11] p-5 font-mono text-[13px] leading-7 text-zinc-300 ring-1 ring-zinc-800">
+                        <code>{`project {
+    name = "app"
+    version = "0.1.0"
+    prismio = "${minor}"
+}
+
+dependencies {
+    implementation("${pkg.name}", "${pkg.version}")
+}`}</code>
+                    </pre>
+
+                    <h2 className="mt-14 text-xl font-semibold tracking-[-0.02em] text-zinc-950">What it guarantees</h2>
+                    <dl className="mt-4 divide-y divide-zinc-200 border-y border-zinc-200 text-sm">
+                        <div className="grid gap-1 py-4 sm:grid-cols-[10rem_1fr] sm:gap-6">
+                            <dt className="font-medium text-zinc-950">Interface</dt>
+                            <dd className="text-zinc-600">{ABI_LABEL[pkg.abi]}</dd>
+                        </div>
+                        <div className="grid gap-1 py-4 sm:grid-cols-[10rem_1fr] sm:gap-6">
+                            <dt className="font-medium text-zinc-950">Memory</dt>
+                            <dd className="text-zinc-600">{MEMORY_LABEL[pkg.aifMemory]}, as reported by the compiler&apos;s allocation analysis.</dd>
+                        </div>
+                        <div className="grid gap-1 py-4 sm:grid-cols-[10rem_1fr] sm:gap-6">
+                            <dt className="font-medium text-zinc-950">Install</dt>
+                            <dd className="text-zinc-600">Declared in the manifest. Installing never runs a script.</dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <aside className="lg:col-span-4">
+                    <div className="sticky top-24 flex flex-col gap-6 rounded-2xl p-6 ring-1 ring-zinc-200">
+                        <dl className="flex flex-col gap-4 text-sm">
+                            {[
+                                ["Weekly downloads", pkg.downloads],
+                                ["Stars", pkg.stars],
+                                ["Updated", pkg.updatedAt],
+                                ["Maintainer", pkg.author],
+                                ["License", "Apache-2.0 OR MIT"],
+                            ].map(([k, v]) => (
+                                <div key={k} className="flex items-baseline justify-between gap-4">
+                                    <dt className="text-zinc-500">{k}</dt>
+                                    <dd className="text-right font-medium text-zinc-900">{v}</dd>
+                                </div>
+                            ))}
+                        </dl>
+                        <div className="h-px bg-zinc-200"/>
                         <div>
-                            <div className="flex items-center gap-3 mb-2">
-                                <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
-                                    {name}
-                                </h1>
-                                <BadgeCheck className="w-6 h-6 text-indigo-600" />
-                            </div>
-                            <p className="text-base text-zinc-600">
-                                A robust, highly concurrent library module designed for the Prismio compiler and runtime ecosystem.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 bg-zinc-100 border border-zinc-300 p-1.5 rounded-xl w-max">
-                        <div className="flex items-center gap-2 pl-3 pr-4 py-1.5 font-mono text-xs text-zinc-900 font-semibold">
-                            <Terminal className="w-4 h-4 text-zinc-500" />
-                            <code>prism add {name}</code>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={handleCopy}
-                            className="p-2 hover:bg-white rounded-lg border border-transparent hover:border-zinc-300 transition-all text-zinc-600 hover:text-zinc-950 focus:outline-none cursor-pointer"
-                            aria-label="Copy command"
-                        >
-                            {copied ? (
-                                <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 px-1">
-                                    <Check size={13} />
-                                    Copied!
-                                </span>
-                            ) : (
-                                <Copy className="w-4 h-4" />
-                            )}
-                        </button>
-                    </div>
-                </div>
-
-                {/* Tabs */}
-                <div className="flex items-center gap-6 border-b border-zinc-200 mb-8 overflow-x-auto">
-                    {["readme", "documentation", "api", "versions", "dependencies"].map((tab) => (
-                        <button
-                            key={tab}
-                            type="button"
-                            onClick={() => setActiveTab(tab)}
-                            className={`pb-3 text-sm font-medium capitalize border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
-                                activeTab === tab
-                                    ? "border-zinc-900 text-zinc-950 font-bold"
-                                    : "border-transparent text-zinc-500 hover:text-zinc-900"
-                            }`}
-                        >
-                            {tab}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Tab Content */}
-                <div className="text-zinc-700 leading-relaxed text-sm">
-                    {activeTab === "readme" && (
-                        <div className="space-y-6">
-                            <h2 className="text-xl font-bold text-zinc-900 tracking-tight">
-                                Getting Started
-                            </h2>
-                            <p className="text-zinc-600">
-                                The <code className="bg-zinc-100 border border-zinc-200 px-1.5 py-0.5 rounded text-zinc-900 font-mono text-xs">{name}</code> package provides a highly optimized,
-                                type-safe API. It is designed to integrate directly with Prismio's Adaptive Inference Framework and native LLVM code generation.
-                            </p>
-                            <div className="space-y-4">
-                                <span className="text-xs font-mono font-bold text-zinc-500 uppercase tracking-wider block">Usage Example</span>
-                                <pre className="bg-zinc-950 border border-zinc-800 text-zinc-100 p-4 rounded-xl text-xs font-mono overflow-x-auto">
-                                    <code>{`// Import native module into your source
-import { Client, Request, Response } from "${name}"
-
-fn executeTask(endpoint: &str) -> Result<Response, Error> {
-    let client = Client.new()
-    let response = client.request(endpoint)?
-    return Ok(response)
-}`}</code>
-                                </pre>
-
-                                <span className="text-xs font-mono font-bold text-zinc-500 uppercase tracking-wider block pt-2">Manifest Declaration (`build.ums`)</span>
-                                <pre className="bg-zinc-950 border border-zinc-800 text-zinc-100 p-4 rounded-xl text-xs font-mono overflow-x-auto">
-                                    <code>{`// Add to dependencies block in build.ums
-dependencies: {
-    "${name}": "^1.0.0"
-}`}</code>
-                                </pre>
-                            </div>
-
-                            <h3 className="text-lg font-bold text-zinc-900 tracking-tight pt-2">
-                                Technical Specifications & Guarantees
-                            </h3>
-                            <ul className="list-disc pl-5 space-y-2 text-zinc-600">
-                                <li><strong>Target ABI:</strong> Native Direct C ABI (<code className="font-mono text-xs">c-direct</code>) with zero FFI marshaling penalties.</li>
-                                <li><strong>Memory Assurance:</strong> Verified by the Adaptive Inference Framework for zero-leak stack preservation.</li>
-                                <li><strong>Compilation:</strong> Statically linkable into single-binary LLVM AOT distributions.</li>
-                                <li><strong>Hermetic Isolation:</strong> No dynamic post-install shell script execution.</li>
-                            </ul>
-                        </div>
-                    )}
-                    {activeTab !== "readme" && (
-                        <div className="py-12 text-center border border-dashed border-zinc-300 rounded-xl bg-zinc-50">
-                            <p className="text-zinc-500 font-medium text-xs font-mono">
-                                Technical documentation for {activeTab} is generated directly from source docstrings.
-                            </p>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Sidebar */}
-            <div className="w-full md:w-80 shrink-0">
-                <div className="sticky top-24 flex flex-col gap-6 rounded-xl border border-zinc-300 bg-white p-6">
-                    <div className="flex flex-col gap-3.5">
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 font-mono">Registry Metadata</h3>
-
-                        <div className="flex items-center gap-2.5 text-xs">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="15"
-                                height="15"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="text-zinc-400"
-                            >
-                                <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.02c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A4.8 4.8 0 0 0 8 18v4" />
-                                <path d="M9 18c-4.51 2-5-2-7-2" />
-                            </svg>
-                            <a href="#" className="text-indigo-600 hover:underline font-medium font-mono text-xs">
-                                prismio-core/{name}
-                            </a>
-                        </div>
-                        <div className="flex items-center gap-2.5 text-xs">
-                            <ExternalLink className="w-4 h-4 text-zinc-400" />
-                            <a href="#" className="text-indigo-600 hover:underline font-medium font-mono text-xs">
-                                packages.prismio.org/{name}
-                            </a>
-                        </div>
-                        <div className="flex items-center gap-2.5 text-xs">
-                            <Scale className="w-4 h-4 text-zinc-400" />
-                            <span className="text-zinc-600 font-mono text-xs">Apache-2.0 OR MIT</span>
-                        </div>
-                    </div>
-
-                    <div className="h-px w-full bg-zinc-200" />
-
-                    <div className="flex flex-col gap-2.5 text-xs font-mono">
-                        <span className="text-[11px] text-zinc-400 uppercase font-bold tracking-wider">Compiler Targets</span>
-                        <div className="flex flex-wrap gap-1.5">
-                            <span className="px-2 py-0.5 rounded bg-zinc-100 border border-zinc-200 text-zinc-700 text-[10px]">x86_64</span>
-                            <span className="px-2 py-0.5 rounded bg-zinc-100 border border-zinc-200 text-zinc-700 text-[10px]">aarch64</span>
-                            <span className="px-2 py-0.5 rounded bg-zinc-100 border border-zinc-200 text-zinc-700 text-[10px]">wasm32</span>
-                        </div>
-                    </div>
-
-                    <div className="h-px w-full bg-zinc-200" />
-
-                    <div className="flex flex-col gap-3">
-                        <div className="flex justify-between items-center text-xs">
-                            <span className="text-zinc-500 flex items-center gap-2">
-                                <Download className="w-3.5 h-3.5 text-zinc-400" /> Weekly Downloads
-                            </span>
-                            <span className="font-semibold text-zinc-900 font-mono">345,120</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                            <span className="text-zinc-500 flex items-center gap-2">
-                                <Star className="w-3.5 h-3.5 text-zinc-400" /> GitHub Stars
-                            </span>
-                            <span className="font-semibold text-zinc-900 font-mono">4,520</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                            <span className="text-zinc-500 flex items-center gap-2">
-                                <Clock className="w-3.5 h-3.5 text-zinc-400" /> Last Published
-                            </span>
-                            <span className="font-medium text-zinc-700">2 days ago</span>
-                        </div>
-                    </div>
-
-                    <div className="h-px w-full bg-zinc-100" />
-
-                    <div className="flex flex-col gap-3">
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Maintainers</h3>
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-teal-400 p-[1px]">
-                                <div className="w-full h-full bg-white rounded-full flex items-center justify-center font-bold text-[10px] text-indigo-700">
-                                    PC
-                                </div>
-                            </div>
-                            <div>
-                                <div className="text-xs font-semibold text-zinc-900">
-                                    prismio-core
-                                </div>
-                                <div className="text-[11px] text-zinc-400">Core Team</div>
+                            <p className="text-sm text-zinc-500">Targets</p>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                                {["x86_64", "aarch64", "wasm32"].map((t) => (
+                                    <span key={t} className="rounded-md bg-zinc-950/[0.04] px-2 py-1 font-mono text-xs text-zinc-700 ring-1 ring-zinc-200">{t}</span>
+                                ))}
                             </div>
                         </div>
                     </div>
-                </div>
+                </aside>
             </div>
         </div>
     );

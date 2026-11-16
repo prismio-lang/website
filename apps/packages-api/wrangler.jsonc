@@ -1,0 +1,19 @@
+{
+  // The only server code behind Prismio Packages. The website is static; the command line calls this to publish.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "packages-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-03",
+  "compatibility_flags": ["nodejs_compat"],
+  "routes": [{ "pattern": "registry.prismio.org", "custom_domain": true }],
+  "vars": {
+    "R2_BUCKET": "prismio-packages",
+    "SUPABASE_URL": "https://akthkfhyyymqaxiyujww.supabase.co",
+    "PUBLIC_CDN_URL": "https://cdn.prismio.org",
+    // Hard stop before R2's 10 GB free tier, in bytes.
+    "R2_MAX_STORAGE_BYTES": "9663676416"
+  },
+  "observability": { "enabled": true }
+  // Secrets, set with `wrangler secret put <NAME>` (never in this file):
+  //   R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, SUPABASE_PUBLISHABLE_KEY
+}

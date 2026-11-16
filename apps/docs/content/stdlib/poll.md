@@ -2,7 +2,7 @@
 title: Waiting on several things
 description: The std.poll module — wait on standard input and a child's pipes at once, with a timeout, so one thread can serve a client and supervise a program.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-10-25"
 tags: [standard-library, poll, process, input, timeout]
 related: [stdlib/process, stdlib/input, stdlib/time, stdlib/concurrency]

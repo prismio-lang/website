@@ -2,7 +2,7 @@
 title: Standard input
 description: The std.input module — reading what is piped into a program as lines, tokens or bytes, one at a time or all at once, with one cursor under all of them.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [standard-library, input, io, lines, tokens, bytes, readLine, readToken]
 related: [stdlib/io, stdlib/filesystem, stdlib/option, cookbook/cli-arguments]

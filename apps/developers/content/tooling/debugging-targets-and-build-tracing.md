@@ -20,6 +20,7 @@ Choose the inspection boundary that can still reproduce the failure.
 | Which native build stage is slow? | `PRISMIO_BUILD_TRACE=1` (then `PRISMIO_SAVE_IR=<file>` to time `opt`/`llc` on the exact module) |
 | Which frontend phase is slow? | `PRISMIO_PHASE_TIMES=1` |
 | Which float sums may be reordered? | `PRISMIO_REDUCTION_TRACE=1` prints each [loop reduction](/compiler/float-reductions) as `file:line` |
+| Why does a `Vec` field park what a store displaces? | `PRISMIO_COLUMN_TRACE=1` prints each private `Vec` field's verdict, `closed` or the first use that kept it open, as `column Type.field: ...` |
 | What does unused standard library still cost? | `PRISMIO_PRUNE=0` turns off unreachable-function pruning, for an A/B |
 | Is a parallel-codegen partition malformed? | `PRISMIO_CODEGEN_VERIFY=1`, or `PRISMIO_CODEGEN_THREADS=1` to emit whole |
 | Do source-level debugger views match? | Build with `-g`, then use LLDB or GDB |

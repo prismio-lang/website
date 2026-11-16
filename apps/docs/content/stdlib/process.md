@@ -2,7 +2,7 @@
 title: Process and arguments
 description: The std.process module — command-line arguments, environment variables, the process id, starting other programs and talking to them through pipes.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [standard-library, process, arguments, ffi]
 related: [stdlib, stdlib/platform, stdlib/filesystem, cookbook/cli-arguments, language/ffi]

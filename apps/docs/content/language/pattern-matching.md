@@ -2,7 +2,7 @@
 title: Pattern matching
 description: Match integer, string, and enum values with literal, range, string, guarded and wildcard arms.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [match, patterns, enums, control-flow]
 related: [language/enums, language/control-flow, specification/evaluation]
@@ -66,7 +66,7 @@ Because `match` is a statement, `score` stores the selected number in a mutable 
 
 ## Enum patterns
 
-Use a qualified `Enum.Variant` pattern. Qualification identifies the enum declaration and validates the variant name, even though the resulting 0.2 value uses `Int` compatibility.
+Use a qualified `Enum.Variant` pattern. Qualification identifies the enum declaration and validates the variant name, even though the resulting 0.3 value uses `Int` compatibility.
 
 ```prismio
 enum Direction { North, East, South, West }

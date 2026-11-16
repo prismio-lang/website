@@ -2,7 +2,7 @@
 title: Variadics, packs and typelists
 description: How the compiler turns a function with a pack parameter into an ordinary function per call shape, and which module owns each step.
 status: experimental
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-10-22"
 tags: [variadics, packs, typelist, monomorphization]
 related: [compiler/generics-and-monomorphization, compiler/semantic-analysis-and-types, compiler/frontend]

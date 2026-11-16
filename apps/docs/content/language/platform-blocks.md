@@ -2,7 +2,7 @@
 title: Platform blocks
 description: linux { }, macos { } and windows { } — code that exists only when the target operating system is the one named.
 status: experimental
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-03"
 tags: [language, platform, conditional, syscall]
 related: [stdlib/platform, stdlib/syscall, guides/freestanding, language/low-level]

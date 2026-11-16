@@ -2,7 +2,7 @@
 title: The VS Code extension
 description: How the Prismio extension for VS Code is built, why it stays a thin client of the language server, how its grammars are generated or held to the compiler, and how to test it in a real VS Code.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-13"
 tags: [vscode, editor, lsp, tooling]
 related: [tooling/language-server, tooling/ide-protocol, tooling/intellij-plugin, compiler/cli]

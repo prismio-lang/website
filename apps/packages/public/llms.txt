@@ -1,0 +1,28 @@
+# Prismio Packages
+
+> The package registry for Prismio, a statically typed systems language that compiles through LLVM. Browse libraries and publish from the Prismio command line. Preview: the registry is under development and the packages listed are examples.
+
+Status: Preview. Prismio 0.3 has no package registry; the packages listed on the site are examples and are not published libraries.
+Applies to Prismio 0.3.0.
+
+## Start here
+
+- [Registry home](https://packages.prismio.org): What the registry is and how publishing will work
+- [Package manager guide](https://docs.prismio.org/package-manager): The build.ums manifest, project commands and local path dependencies that exist today
+- [Prismio](https://prismio.org): The language, install instructions and roadmap
+- [Source code](https://github.com/prismio-lang/prismio): Compiler, standard library and tooling
+
+## Frequently asked questions
+
+- What is Prismio Packages? Prismio Packages is the registry for Prismio libraries. A package is described by its build.ums manifest and is installed and published from the Prismio command line.
+- Is the registry live yet? It is a preview. Prismio 0.3 builds projects from a build.ums manifest and local path dependencies, and has no registry or version solver yet. The packages listed on this site are examples, not published libraries.
+- How do I publish a package? Publishing is command line only; the website has no upload form. You sign in, and the command line sends a checked package archive to the registry. The publish commands are in development.
+- Does installing a package run scripts? No. A package declares what it needs in its manifest, so installing it never runs an arbitrary script.
+- Where are package files stored? Package archives are served from cdn.prismio.org, one immutable file per name and version.
+- Which languages and licenses are supported? Packages are Prismio libraries, and may bind C code through the C ABI. The registry itself is open source under Apache-2.0.
+
+## Optional
+
+- [Machine-readable summary](https://packages.prismio.org/ai/summary.json)
+- [FAQ as JSON](https://packages.prismio.org/ai/faq.json)
+- [Main site index for LLMs](https://prismio.org/llms.txt)

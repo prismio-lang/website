@@ -2,13 +2,13 @@
 title: Methods and impl blocks
 description: Method call syntax and concrete or generic impl blocks in Prismio -- x.f(a) is f(x, a), and an impl block is where the free function is written.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [methods, impl, receiver, self, overloads]
 related: [language/functions, language/traits, language/structs]
 ---
 
-Prismio 0.2 has method call syntax and `impl` blocks. It does not have dynamic
+Prismio 0.3 has method call syntax and `impl` blocks. It does not have dynamic
 dispatch, and the two facts are connected: a method call is rewritten into an
 ordinary call before overload resolution runs, so there is only one dispatch
 mechanism in the language and it is the one [overloads](/language/functions) already use.
@@ -441,7 +441,7 @@ than an overload.
 ## Chained calls and temporaries
 
 Chaining works, and one wrinkle is worth knowing about: an intermediate result in a
-chain is an owned temporary passed straight into the next call, and Prismio 0.2
+chain is an owned temporary passed straight into the next call, and Prismio 0.3
 releases it once that call has read it: `a.toUpper().reverse()` allocates a string for
 `toUpper` and frees it after `reverse` has run (`--verify` reports 0 leaked).
 

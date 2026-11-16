@@ -2,15 +2,15 @@
 title: Roadmap and feature status
 description: Implementation status for current and planned Prismio language, tooling, platform, and library capabilities.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-12"
 tags: [roadmap, status, coming-soon]
-related: [start/overview, releases/0.2.0, faq]
+related: [start/overview, releases/0.3.0, faq]
 ---
 
 This page distinguishes shipped compiler behavior from intent. It assigns no dates to features. The one date is the next release's target: **0.3.0 is planned for 10 December 2026**, a target and not a promise.
 
-| Area | 0.2 status |
+| Area | 0.3 status |
 | --- | --- |
 | Self-hosted frontend and LLVM backend | Implemented |
 | Native Windows, macOS, and Linux CI | Implemented |
@@ -52,7 +52,7 @@ This page distinguishes shipped compiler behavior from intent. It assigns no dat
 | Arrays returned by value (`-> Array<T, N>`) and stored in struct fields | Implemented |
 | Fixed-length array parameters, compiled once per length; array fields in generic structs and enum payloads | Coming Soon |
 | Chunked `Vec<T, N>` and `Vec<T, Chunk>`, slices of arrays | Coming Soon |
-| `HashSet<K>` (`insert`, `contains`, `remove`) | Implemented |
+| `HashSet<K>` (`insert`, `contains`, `remove`, `get`, `take`, `for key in set`, the set algebra, `shrinkToFit`); `HashMap` `upsert`, `modify`, `getOrInsertDefault`; `Hash` and `Hasher` for composite keys | Implemented |
 | More collections: `VecDeque<T>`, a sorted map, a priority queue, a linked list | Coming Soon |
 | Nested structs: `field: struct { … }` and `struct Name { … }` inside a struct, reached as `Outer.field` / `Outer.Name`; `{ … }` as a struct literal where the type is known | Implemented (not inside a generic struct) |
 | Destructuring `let`: `let Point { x, y: b, .. } = p`, nested patterns, `mut` and `_` | Implemented (not in `match` arms or parameters) |

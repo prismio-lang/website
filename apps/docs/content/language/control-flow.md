@@ -2,7 +2,7 @@
 title: Control flow
 description: Branch with if and else if, loop with while, loop, repeat and for over ranges and collections, and leave nested loops with labels.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [control-flow, if, loops, ranges, labels, return]
 related: [language/pattern-matching, language/functions, language/arrays-and-lists, specification/evaluation]

@@ -2,7 +2,7 @@
 title: JSON
 description: The std.json module — reading a JSON document without building a tree, and writing one with the commas and escapes done for you.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-10-25"
 tags: [standard-library, json, parsing, serialization]
 related: [stdlib/strings, stdlib/option, stdlib/input]

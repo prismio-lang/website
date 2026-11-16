@@ -2,7 +2,7 @@
 title: Variadic parameters and typelists
 description: Take any number of arguments with a pack parameter, and say which types it accepts with a typelist, as an unordered set or an ordered sequence.
 status: experimental
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-10-22"
 tags: [functions, variadics, typelist, packs]
 related: [language/functions, language/generics, language/traits, stdlib/io]

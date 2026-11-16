@@ -1,15 +1,15 @@
 ---
 title: Conformance and versioning
-description: What it means to conform to the Prismio 0.2 draft specification and how future documentation versions will coexist.
+description: What it means to conform to the Prismio 0.3 draft specification and how future documentation versions will coexist.
 status: stable
 draft: true
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [specification, conformance, versioning, compatibility]
 related: [releases/0.1.0, migration, roadmap]
 ---
 
-A Prismio 0.2 compiler conforms when it accepts valid programs described by this specification, rejects required static errors, and preserves the observable semantics covered here for supported targets.
+A Prismio 0.3 compiler conforms when it accepts valid programs described by this specification, rejects required static errors, and preserves the observable semantics covered here for supported targets.
 
 Conformance is version-specific. Claiming conformance to “Prismio” without a language version is insufficient while the language is pre-1.0.
 

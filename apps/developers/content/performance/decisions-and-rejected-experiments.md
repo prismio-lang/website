@@ -467,6 +467,25 @@ C++, 0.576× of Rust) and `hashmap_insert_lookup` 6.959 to 4.484 ms. A short Str
 inline by `__builtin_string_hash`; the inline and runtime halves must answer identically because a five-byte
 view and a five-byte inline string are the same key, and `test_147` pins every length across the boundary.
 
+### A `Hasher` costs nothing, and a set that owns its keys is not worth its API
+
+The HashMap review asked for two things behind a measurement: a `Hash`/`Hasher` split in place of `Key.hash` folded by hand, and a
+`HashSet<K: Hash + Eq>` that owns its keys so `get` and `take` hand back the stored object. Measured 2026-11-14.
+
+**The state argument is free.** One million three-field keys hashed and counted into a 2^20-bucket table, five passes (best of seven):
+6 ms folded by hand, 6 ms through a concrete `Hasher` threaded with `inout`, 6 ms through a generic `K: Hash`. The `Hasher` is a struct that
+does not escape, so it is not allocated and the calls inline. End to end, a `HashMap` of 360,000 two-field keys, built and then read
+1,800,000 times: 51 ms with a hand-written `Key.hash`, 51 ms with `hashOf`. Folding each word in as `state * 31 + mix(word)` from a state
+of zero leaves a single word as `mix(word)`, so `hashOf(7)` is `keyMixInt(7)` and the identity locality below 2^16 is untouched.
+Built, additive: `Hasher`, `Hash`, `hashOf` in `std/key.psm`; `Key` is unchanged.
+
+**Owning the keys saves one allocation per insert and nothing else the language can express.** Moving an owned `String` into a container
+through a `sink` parameter works (0 leaked, 0 violations), and against copying it in, 300,000 inserts of a 33-byte key cost 1.5 ms
+against 3 ms: about 4 ns an insert, under a tenth of the hash and probe an insert already pays. The other half of the idea, `get`
+returning the stored object so two holders share it, is not a smaller version of that: it is shared ownership, and a reader that returns a
+view of a column element is exactly what `src/ir/columns.psm` refuses to prove closed. Dropping `Copy` from `HashSet`'s bound would also
+remove the set algebra, `get` and `take`, which copy keys, or move them to free functions. Not built: a breaking bound change for 4 ns.
+
 ## Concurrency
 
 ### A lock per message was the pipeline's cost

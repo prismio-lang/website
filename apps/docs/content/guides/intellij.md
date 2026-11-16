@@ -2,7 +2,7 @@
 title: Use Prismio in IntelliJ
 description: Install the Prismio plugin for JetBrains IDEs, start a project, and write, navigate, run and check code from the editor.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [guide, intellij, editor, tooling]
 related: [start/installation, start/build-and-run, compiler/cli, stdlib/term]
@@ -30,7 +30,7 @@ Everything that needs to understand the language comes from the toolchain's lang
 
 **File | New | Project | Prismio** asks for a name and a location. It has two more options:
 
-- **Compiler**, filled in with the one the plugin found and the version shown under it: a green tick and `prismio 0.2.0`, or the reason it cannot be used. **Create** stays unavailable until the field holds a working compiler.
+- **Compiler**, filled in with the one the plugin found and the version shown under it: a green tick and `prismio 0.3.0`, or the reason it cannot be used. **Create** stays unavailable until the field holds a working compiler.
 - **Create Git repository**, as in other languages. It appears only when the IDE has its Git plugin.
 
 The dialog looks a little different in each IDE, but has the same options. In IntelliJ IDEA it shows Name, Location, the Git checkbox and Compiler. In CLion and the other IDEs, which show a Location field with no separate name, the plugin adds a **Name** field below it that follows the last folder of the location, so changing either one changes the other.

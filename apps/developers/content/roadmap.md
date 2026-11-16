@@ -3,10 +3,10 @@ title: Engineering roadmap
 description: Evidence-backed Prismio compiler, AIF, runtime, tooling, and standard-surface priorities without invented release dates.
 status: stable
 draft: true
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [roadmap, compiler, status]
-related: [start, releases/0.2.0, performance/investigation-method]
+related: [start, releases/0.3.0, performance/investigation-method]
 ---
 
 This roadmap distinguishes shipped behavior, measured problems, and proposed engineering work. It
@@ -61,7 +61,7 @@ self-hosting fixed-point agreement. Rejected candidates are recorded, with their
 ## Unsupported surface
 
 Chunked vectors (`Vec<T, N>`, `Vec<T, Chunk>`) are designed in the compiler repository's
-`COLLECTIONS.md` (step 4) and deliberately not started for 0.2; the parser refuses `Vec<T, N>` with
+`COLLECTIONS.md` (step 4) and deliberately not started for 0.3; the parser refuses `Vec<T, N>` with
 `P3006` until they exist. Of `Array<T, N>` (step 3), returns and struct fields are built; still
 open are `[T]` parameters compiled once per length, array fields in generic structs and enum
 payloads (refused in `semaCheckArrayLengthPositions`), and copies of nested or owning arrays.

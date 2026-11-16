@@ -1,8 +1,8 @@
 ---
 title: Build and run programs
-description: Use the Prismio 0.2 command line to run source, build native executables, or emit LLVM IR.
+description: Use the Prismio 0.3 command line to run source, build native executables, or emit LLVM IR.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-08-09"
 tags: [cli, build, run, llvm-ir]
 related: [compiler/cli, compiler/targets, compiler/aif]

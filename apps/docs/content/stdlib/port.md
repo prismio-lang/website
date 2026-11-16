@@ -2,7 +2,7 @@
 title: x86 port I/O
 description: The std.port module — the x86 in and out instructions as functions, for freestanding programs that talk to a device through an I/O port.
 status: experimental
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-10-14"
 tags: [standard-library, low-level, x86, freestanding, hardware]
 related: [stdlib, stdlib/raw, stdlib/asm, language/low-level, guides/freestanding]

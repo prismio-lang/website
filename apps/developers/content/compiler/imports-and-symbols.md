@@ -115,7 +115,7 @@ prismio --version
 ```
 
 ```text
-prismio 0.2.0
+prismio 0.3.0
 llvm 23.1.5
 compiler ~/prismio/.prismio/build/debug
 stdlib ./std

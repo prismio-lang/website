@@ -1,8 +1,8 @@
 ---
 title: Compiler targets and platforms
-description: Supported host platforms, LLVM target behavior, and experimental WebAssembly status for Prismio 0.2.
+description: Supported host platforms, LLVM target behavior, and experimental WebAssembly status for Prismio 0.3.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [compiler, targets, windows, macos, linux, wasm]
 related: [start/installation, compiler/cli, guides/freestanding, roadmap]

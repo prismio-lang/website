@@ -2,7 +2,7 @@
 title: The IntelliJ plugin
 description: How the Prismio plugin for JetBrains IDEs finds a compiler, talks to its language server, builds run configurations and creates projects, and the little that must change with the compiler.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [ide, intellij, plugin, tooling]
 related: [tooling/language-server, tooling/ide-protocol, tooling/ums-overview, tooling/compiler-host-and-promotion, compiler/diagnostics, start/repository-tour]

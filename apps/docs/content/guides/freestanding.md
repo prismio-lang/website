@@ -2,7 +2,7 @@
 title: Freestanding programs
 description: Build a Prismio kernel that runs with no operating system and no C library, write its boot code, serial output and panic hook in Prismio, declare it in build.ums, and boot it under QEMU.
 status: experimental
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [guide, freestanding, kernel, bare-metal, qemu, native, assembly, atomics]
 related: [guides/freestanding-benchmarks, language/low-level, guides/calling-c, language/ffi, compiler/cli, compiler/targets, package-manager]

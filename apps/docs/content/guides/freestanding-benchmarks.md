@@ -2,7 +2,7 @@
 title: Freestanding benchmarks
 description: How Prismio is measured against C and Rust on a machine with no operating system, why the unit is guest instructions and not time, and how to read the table.
 status: experimental
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-10-16"
 tags: [guide, freestanding, benchmarks, qemu, performance]
 related: [guides/freestanding, compiler/cli, language/low-level, compiler/targets]

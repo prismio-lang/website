@@ -1,8 +1,8 @@
 ---
 title: Hello, Prismio
-description: Compile and run a minimal Prismio 0.2 program.
+description: Compile and run a minimal Prismio 0.3 program.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [getting-started, hello-world, run]
 related: [start/build-and-run, language/functions, stdlib/io]

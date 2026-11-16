@@ -1,14 +1,14 @@
 ---
 title: Install the Prismio compiler
-description: Install Prismio 0.2 on macOS, Linux or Windows from a release archive, verify the download, upgrade or remove it, or build the compiler from source.
+description: Install Prismio 0.3 on macOS, Linux or Windows from a release archive, verify the download, upgrade or remove it, or build the compiler from source.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-13"
 tags: [installation, install-script, archives, checksums, bootstrap, llvm]
-related: [start/hello-world, compiler/bootstrap, compiler/targets, releases/0.2.0]
+related: [start/hello-world, compiler/bootstrap, compiler/targets, releases/0.3.0]
 ---
 
-Prismio 0.2.0 is installed from a release archive. On macOS and Linux one command downloads it, checks it and puts it on your `PATH`; on Windows you unpack a `.zip`. You can also build the compiler from source, which is covered [below](#build-from-source). There is no package-manager formula yet, and the archives are not code-signed (see [Verify your download](#verify-your-download)).
+Prismio 0.3.0 is installed from a release archive. On macOS and Linux one command downloads it, checks it and puts it on your `PATH`; on Windows you unpack a `.zip`. You can also build the compiler from source, which is covered [below](#build-from-source). There is no package-manager formula yet, and the archives are not code-signed (see [Verify your download](#verify-your-download)).
 
 ## What you need
 
@@ -30,21 +30,21 @@ The script picks the archive for your machine, downloads it from the [latest rel
 
 | Variable | Effect |
 |---|---|
-| `PRISMIO_VERSION` | install this release instead of the latest, for example `0.2.0` or `v0.2.0` |
+| `PRISMIO_VERSION` | install this release instead of the latest, for example `0.3.0` or `v0.3.0` |
 | `PRISMIO_INSTALL` | install into this directory instead of `~/.prismio` |
 | `PRISMIO_NO_MODIFY_PATH=1` | leave your shell profiles alone |
 | `PRISMIO_TARBALL` | install from a local archive; a `.sha256` beside it is checked when there is one |
 | `PRISMIO_DOWNLOAD_URL` | download an archive from this URL instead of GitHub |
 
 ```bash
-curl -fsSL https://prismio.org/install.sh | PRISMIO_VERSION=0.2.0 PRISMIO_INSTALL=$HOME/tools/prismio sh
+curl -fsSL https://prismio.org/install.sh | PRISMIO_VERSION=0.3.0 PRISMIO_INSTALL=$HOME/tools/prismio sh
 ```
 
 The script refuses, with a message, to install on an Intel Mac or a musl Linux, and it never guesses a version: if it cannot find the latest release (offline, or GitHub is rate limiting) it asks you to set `PRISMIO_VERSION`. A shell running under Rosetta on an Apple-silicon Mac gets the native arm64 build.
 
 ## Windows
 
-Download `prismio-0.2.0-windows-x64.zip` from the [release page](https://github.com/prismio-lang/prismio/releases/tag/v0.2.0), [verify it](#verify-your-download), unpack it somewhere you will keep it, and add its `bin` directory to your `PATH`:
+Download `prismio-0.3.0-windows-x64.zip` from the [release page](https://github.com/prismio-lang/prismio/releases/tag/v0.3.0), [verify it](#verify-your-download), unpack it somewhere you will keep it, and add its `bin` directory to your `PATH`:
 
 ```powershell
 [Environment]::SetEnvironmentVariable("Path", "$([Environment]::GetEnvironmentVariable('Path','User'));C:\prismio\bin", "User")
@@ -56,11 +56,11 @@ Open a new terminal afterwards. Keep `bin`, `lib` and `stdlib` together: the com
 
 | Platform | Archive |
 |---|---|
-| macOS, Apple silicon | `prismio-0.2.0-macos-arm64.tar.gz` |
-| Linux, x86-64 | `prismio-0.2.0-linux-x64.tar.gz` |
-| Windows, x86-64 | `prismio-0.2.0-windows-x64.zip` |
-| Linux, ARM64 | `prismio-0.2.0-linux-arm64.tar.gz` |
-| Windows, ARM64 | `prismio-0.2.0-windows-arm64.zip` |
+| macOS, Apple silicon | `prismio-0.3.0-macos-arm64.tar.gz` |
+| Linux, x86-64 | `prismio-0.3.0-linux-x64.tar.gz` |
+| Windows, x86-64 | `prismio-0.3.0-windows-x64.zip` |
+| Linux, ARM64 | `prismio-0.3.0-linux-arm64.tar.gz` |
+| Windows, ARM64 | `prismio-0.3.0-windows-arm64.zip` |
 
 The first three are built and tested by the project's CI. **The two ARM64 archives are built and tested on virtual machines instead**, and have had less use, so expect rougher edges there. There is no archive for Intel Macs. Each archive has a `.sha256` beside it, and the install script reads the same files.
 
@@ -69,16 +69,16 @@ The first three are built and tested by the project's CI. **The two ARM64 archiv
 The checksum shows that what you downloaded is what was published. **It does not show who published it: the archives are not signed.** Take the archive and its `.sha256` from the same release page, over HTTPS. On macOS and Linux:
 
 ```bash
-shasum -a 256 -c prismio-0.2.0-macos-arm64.tar.gz.sha256     # sha256sum -c on Linux
+shasum -a 256 -c prismio-0.3.0-macos-arm64.tar.gz.sha256     # sha256sum -c on Linux
 ```
 
 On Windows, compare the hash PowerShell prints with the one in the `.sha256` file:
 
 ```powershell
-Get-FileHash .\prismio-0.2.0-windows-x64.zip -Algorithm SHA256
+Get-FileHash .\prismio-0.3.0-windows-x64.zip -Algorithm SHA256
 ```
 
-Because the archives are unsigned, your operating system may warn about them. On macOS, an archive downloaded in a browser is quarantined by Gatekeeper; clear the flag from the unpacked folder with `xattr -dr com.apple.quarantine prismio-0.2.0-macos-arm64` (the install script downloads with `curl`, which does not set it). On Windows, SmartScreen may show an "unknown publisher" warning for `prismio.exe`; choose **More info**, then **Run anyway**, once you have checked the hash.
+Because the archives are unsigned, your operating system may warn about them. On macOS, an archive downloaded in a browser is quarantined by Gatekeeper; clear the flag from the unpacked folder with `xattr -dr com.apple.quarantine prismio-0.3.0-macos-arm64` (the install script downloads with `curl`, which does not set it). On Windows, SmartScreen may show an "unknown publisher" warning for `prismio.exe`; choose **More info**, then **Run anyway**, once you have checked the hash.
 
 ## Check that it works
 
@@ -87,7 +87,7 @@ prismio --version
 ```
 
 ```text
-prismio 0.2.0
+prismio 0.3.0
 llvm 23.1.5
 compiler /Users/you/.prismio/bin
 stdlib /Users/you/.prismio/stdlib
@@ -131,7 +131,7 @@ git clone https://github.com/prismio-lang/prismio.git prismio
 cd prismio
 ```
 
-If you are using a source archive or an existing checkout, verify that it corresponds to the documentation version shown at the top of this page. The `main` branch can move ahead of the 0.2.0 reference.
+If you are using a source archive or an existing checkout, verify that it corresponds to the documentation version shown at the top of this page. The `main` branch can move ahead of the 0.3.0 reference.
 
 ### macOS and Linux (from source)
 
@@ -165,7 +165,7 @@ python tools/bootstrap.py --seed --out build/prismio.exe
 
 Run the commands from PowerShell. `tools/bootstrap.py` is the same script on every platform.
 
-An installed binary should report Prismio `0.2.0` and LLVM `23.1.5`.
+An installed binary should report Prismio `0.3.0` and LLVM `23.1.5`.
 
 ### Assemble the toolchain
 

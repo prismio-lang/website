@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import {DISCORD_INVITE_LINK} from "@prismio/utils";
+import {DISCORD_INVITE_LINK, PRISMIO_VERSION} from "@prismio/utils";
 
 export default function FooterMain() {
     return (
@@ -50,7 +50,7 @@ export default function FooterMain() {
             </div>
 
             <div className="border-t border-zinc-200 px-8 py-6 text-center text-xs text-zinc-400">
-                © {new Date().getFullYear()} Prismio Language Contributors. Permissively licensed under Apache-2.0 / MIT.
+                © {new Date().getFullYear()} Prismio Language Contributors. Permissively licensed under Apache-2.0 / MIT. Prismio {PRISMIO_VERSION}.
             </div>
         </footer>
     );

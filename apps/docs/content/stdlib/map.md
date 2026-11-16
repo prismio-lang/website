@@ -2,7 +2,7 @@
 title: HashMap and HashSet
 description: The std.map hash table and the set built on it — creating one, map literals, its methods, O(1) removal, the Key bound its keys satisfy, and how a map owns its values.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [standard-library, map, set, hashmap, hashset, collections, generics, traits, hash]
 related: [stdlib/vec, language/generics, language/traits]
@@ -12,7 +12,9 @@ related: [stdlib/vec, language/generics, language/traits]
 
 Import it explicitly. So does `std.io`: there is no prelude, and every standard module is imported the same way.
 
-**Not available yet:** a sorted map; an `entry(key)` handle (`getOrInsert`, `getOrInsertWith` and `update` cover its common uses with one lookup each); changing a stored value in place (see [Owned values](#owned-values)); `shrinkToFit`; and a `Hash` trait that lets a composite key feed its fields to a hasher, in place of calling `keyMixInt` by hand. A sorted map is planned; sorting the keys gives a sorted traversal until then — see [what else is missing](/language/arrays-and-lists#not-available-yet). A set is [`HashSet`](#hashset), below.
+**Not available yet:** a sorted map. It is planned; sorting the keys gives a sorted traversal until then — see [what else is missing](/language/arrays-and-lists#not-available-yet). A set is [`HashSet`](#hashset), below.
+
+**Two things are deliberately not here.** There is no `entry(key)` handle: a handle would have to keep the map, and a parameter is a borrow that may not be kept, so the `entry` idioms are methods that look the key up once — `getOrInsert`, `getOrInsertWith`, `getOrInsertDefault`, `upsert`, `update` and `modify`. And a `HashSet` copies the keys it is given rather than owning them: moving a key in saves about 4 ns an insert, and handing back the stored object would be shared ownership, which the language does not have.
 
 <!-- prismio-check: pass -->
 ```prismio
@@ -127,11 +129,15 @@ A literal is sized once, for exactly its entries, so building it never grows the
 | `m.set(key, value)` | `V?`: stores unconditionally and answers the value it replaced, `none` when the key is new |
 | `m.getOrInsert(key, value)` | the value for `key`, storing `value` first when the key is absent; one lookup |
 | `m.getOrInsertWith(key, \|\| make())` | as `getOrInsert`, and `make` runs only when the key is absent |
+| `getOrInsertDefault(m, key)` | the value for `key`, storing the type's own `default` first when the key is absent: Rust's `or_default`. A free function over `V: Copy + Default` (call it `m.getOrInsertDefault(key)`); `Int`, `Float`, `Bool`, `Char`, `String` and `Vec<T>` have a default |
 | `m.update(key, \|v: Int\| v + 1)` | `Bool`: replaces an existing value with one lookup; the closure runs once on a hit and never on a miss |
+| `m.upsert(key, initial, \|v: Int\| v + 1)` | replaces an existing value with the closure's answer, or stores `initial` when the key is absent, with one lookup: the counting idiom |
+| `m.modify(key, \|inout v: Vec<Int>\| { v.push(1) })` | `Bool`: lends the **stored** value to the closure, so a `Vec` or a struct is changed where it is, with no copy; see [Changing a value in place](#changing-a-value-in-place) |
 | `m.remove(key)` | `Bool`: `true` if the key was there and is now gone |
 | `m.take(key)` | `V?`: removes the entry and answers its value, or `none` |
 | `m.retain(\|k: String, v: Int\| v > 10)` | removes the entries the closure rejects; the survivors keep their order |
 | `m.reserve(n)` | room for `n` **more** entries, so the inserts after it do not grow the table |
+| `m.shrinkToFit()` | gives back the room past what the map holds: the columns shrink to their length and the table to the smallest size that keeps the entries at or under half full; `capacity` reads what is left |
 | `m.clear()` | removes every entry and keeps the table's capacity |
 | `m.keys()` | `Vec<K>`: a copy of every key, in position order |
 | `m.values()` | `Vec<V>`: every value, in position order |
@@ -169,7 +175,7 @@ fn main() -> Int {
 }
 ```
 
-A `getOrInsertWith` factory must not touch the map it is filling; the key is looked up again after it returns, and a value the factory stored itself is the answer.
+A `getOrInsertWith` factory must not touch the map it is filling, nor an `upsert`, `update` or `modify` closure the map it changes; the key is looked up again after it returns, and a value the factory stored itself is the answer.
 
 There are no free-function twins: the `map*` functions that older code used (`mapSet`, `mapGetOr`, `mapHas`, `mapLen`, ...) are gone, and `m.length` and `m.has(key)` are now `m.count` and `m.contains(key)`.
 
@@ -239,9 +245,96 @@ fn main() -> Int {
 Each block is checked against its own trait, and the map's two explicit bounds
 require both implementations.
 
+### Hashing a composite key
+
+`keyMixInt(self.x * 31 + self.y)` is a hash a person has to get right. `Hash` is the other way to write `Key.hash`: the type feeds each field to a `Hasher` and does not choose how the words combine, so a struct whose fields have their own `Hash` is hashed by asking each one.
+
+<!-- prismio-check: pass -->
+```prismio
+import std.copy
+import std.io
+import std.key
+import std.map
+import std.string
+
+struct Point {
+    x: Int,
+    y: Int
+}
+
+impl Hash for Point {
+    fn hashInto(self, inout state: Hasher) {
+        state.writeInt(self.x)
+        state.writeInt(self.y)
+    }
+}
+
+impl Key for Point {
+    fn hash(self) -> Int { return hashOf(self) }
+    fn eq(self, other: Self) -> Bool { return self.x == other.x and self.y == other.y }
+}
+
+impl Copy for Point {
+    fn copyOf(self) -> Self { return Point { x: self.x, y: self.y } }
+}
+
+struct Place {
+    at: Point,
+    name: String
+}
+
+impl Hash for Place {
+    fn hashInto(self, inout state: Hasher) {
+        self.at.hashInto(state)                  // a field with its own Hash: ask it
+        state.writeString(self.name)
+    }
+}
+
+fn main() -> Int {
+    let places: HashMap<Point, String> = {}
+    places[Point { x: 1, y: 2 }] = "origin-adjacent"
+    println(places[Point { x: 1, y: 2 }])        // origin-adjacent
+    println(hashOf(7) == keyMixInt(7))           // true: one word hashes as it always did
+    println(hashOf(Place { at: Point { x: 1, y: 2 }, name: "here" }) >= 0)   // true
+    return 0
+}
+```
+
+`Hasher` has `writeInt`, `writeWide`, `writeBool`, `writeChar` and `writeString`; `std.key` implements `Hash` for the integer types, `Char`, `Bool` and `String`. `Hash` does not replace `Key`: equality is still `Key.eq`, and the table still asks `Key.hash`. It costs nothing over the hand-written fold (see the developer docs' performance decisions), and a key of a single word hashes exactly as before, so the table's locality for consecutive ids is untouched.
+
 **`Float` deliberately has no `Key` impl.** NaN is not equal to itself, so a NaN key could be
 inserted and never found again — a silently wrong answer. `HashMap<Float, V>` fails at the instantiation
 with `Float does not implement \`Key\``.
+
+## Changing a value in place
+
+`m[key].push(x)` reads a copy, pushes onto the copy and stores it back, which copies the `Vec` twice. `modify` hands the **stored** value to a closure whose parameter is `inout`, so nothing is copied:
+
+<!-- prismio-check: pass -->
+```prismio
+import std.io
+import std.map
+import std.string
+import std.vec
+
+fn main() -> Int {
+    let groups: HashMap<String, Vec<Int>> = {}
+    for i in 0..<10 {
+        let key = if (i % 2 == 0) { "even" } else { "odd" }
+        groups.getOrInsertDefault(key)                          // the empty Vec, stored when the key is new
+        groups.modify(key, |inout v: Vec<Int>| { v.push(i) })   // changed where it is stored
+    }
+    println(groups["even"].length)                              // 5
+    println(groups["odd"][4])                                   // 9
+
+    let counts: HashMap<String, Int> = {}
+    for word in ["a", "b", "a"] { counts.upsert(word, 1, |n: Int| n + 1) }
+    println(counts["a"])                                        // 2
+    return 0
+}
+```
+
+An `inout` parameter has to be a `Vec`, a struct, an array or a slice, so `modify` is for those; an `Int` or a `String` value is changed with `update`. The closure cannot capture the map it is lent from (a capture is a move or a copy), and it runs once, on a hit only.
 
 ## Owned values
 
@@ -288,8 +381,8 @@ fn main() -> Int {
 
 What that costs, and what to know:
 
-- **A read allocates a copy** of an owned value (a scalar's copy is free). `m[key]` of a `Vec` copies the whole `Vec`, so a value you change often is better kept small, or replaced whole: there is no `m[key].push(x)` — read the value, change the copy, store it back with `m[key] = copy`. An entry handle that reaches into the table is [planned](#operations).
-- **A replaced or removed entry is released at once.** `m[key] = value`, `set`, `remove`, `take`, `retain` and `clear` free what they displace at the store, so a loop that replaces one value 20 000 times holds one of them at a time, not all 20 000. A `HashSet` does not yet: it releases what it displaced when the set goes.
+- **A read allocates a copy** of an owned value (a scalar's copy is free). `m[key]` of a `Vec` copies the whole `Vec`, so a value you change often is better changed where it is stored with [`modify`](#changing-a-value-in-place), or kept small.
+- **A replaced or removed entry is released at once.** `m[key] = value`, `set`, `remove`, `take`, `retain` and `clear` free what they displace at the store, so a loop that replaces one value 20 000 times holds one of them at a time, not all 20 000. A `HashSet` does the same.
 - **Reading in place is fine.** `people["ada"].name != "x"`, `names["one"][1]`, `people["ada"].age > 3` — also on the right of `and`/`or` — copy nothing you keep and leak nothing. The copy is released once the comparison has read it.
 - **A struct written inline is fine**: `people["ada"] = Person { name: word(1), age: 36 }` stores a copy and releases the literal's `name`.
 - **A map literal with computed owned keys or values** (`{ word(1): word(2) }`) is one call up to twelve entries, and owned wherever it lands. Past twelve *computed* entries it falls back to a chain that leaks them; literals, names and numbers have no limit. Bind computed values first, or split the literal.
@@ -368,6 +461,7 @@ fn main() -> Int {
 | `s.toggle(key)` | `Bool`: adds an absent key, removes a present one, and answers whether it is in the set afterwards |
 | `s.retain(\|k: Int\| k > 0)` | removes the keys the closure rejects; the survivors keep their order |
 | `s.reserve(n)` | room for `n` **more** keys, so the inserts after it do not grow the table |
+| `s.shrinkToFit()` | gives back the room past what the set holds, as the map's does |
 | `s.clear()` | removes every key and keeps the table's capacity |
 | `for key in s` | visits every key once |
 | `a.union(b)`, `a.intersection(b)`, `a.difference(b)`, `a.symmetricDifference(b)` | a new `HashSet<K>`: A ∪ B, A ∩ B, A − B, A △ B. Both operands are left alone |

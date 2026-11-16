@@ -1,8 +1,8 @@
 ---
 title: Types
-description: Primitive, numeric, aggregate, optional, and inferred types in Prismio 0.2, including integers of any width and the five float types.
+description: Primitive, numeric, aggregate, optional, and inferred types in Prismio 0.3, including integers of any width and the five float types.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-12"
 tags: [types, integers, arbitrary-width, floats, bool, string]
 related: [stdlib/number-text, language/arrays-and-lists, language/structs, language/optionals, language/conversions, specification/type-system]
@@ -296,7 +296,7 @@ Two to four elements: past that, name the fields in a struct. There is no one-el
 
 ## Types not implemented
 
-Prismio 0.2 has no user-defined type aliases, union types, function types (a
+Prismio 0.3 has no user-defined type aliases, union types, function types (a
 [closure](/language/closures) is passed as a generic `F`), arbitrary reference types, or
 user-written lifetime types. An array's length is written on a local `let`, a return type or a
 struct field; a parameter of one fixed length (`xs: Array<Int, 4>`) is not available yet — a `[T]`

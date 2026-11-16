@@ -2,7 +2,7 @@
 title: Inline assembly
 description: The std.asm module — asm, asmRead and asmWrite, which run instructions where they are written, for boot stubs, system registers and barriers the language has no word for.
 status: experimental
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-10-14"
 tags: [standard-library, low-level, assembly, freestanding]
 related: [stdlib, stdlib/raw, stdlib/port, language/low-level, guides/freestanding]

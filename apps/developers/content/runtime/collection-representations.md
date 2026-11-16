@@ -51,19 +51,24 @@ reason). A copy leaves the table; the element does not. For a scalar `copyOf` is
 and removal loops are unchanged.
 
 **Release at the store.** A displaced or removed element is released at once only when the checker can show no
-view of an element is live (`src/ir/overwrites.psm`, `semaRemovalVerdict`), which it can for a fresh local `Vec`
-and not for a field. The map's two columns are the exception it is told about, `nodeIsMapColumn` in
-`src/ast/types.psm`, on a promise `std/map.psm` keeps: no view of a column element outlives the statement that took
-it, and none reaches user code, so `keyAt` and `valueAt` answer copies and `update` and `retain` hand their closures
-copies. Twenty thousand replacements of one `String` value peak at 552 bytes, against 749 KB when the element is parked
-with its container. The promise is a name the checker trusts, not a proof, and a method that bound or returned a view of
-a column would read freed memory; extending the local-`Vec` proof to a field whose type never lends an element out is
-the way to make it checked (`HASHMAP_API_PLAN.md`). `HashSet`'s columns still park.
+view of an element is live: `src/ir/overwrites.psm` and `semaRemovalVerdict` for a fresh local `Vec`, and, for a
+field, `src/ir/columns.psm`, which proves it per program. A private `Vec` field of owning elements is a **closed
+column** when every use of it in the module is a list builtin with the column as its first argument, every `list_get`
+of it is consumed where it stands (a `copyOf`; a call that answers a scalar or a new value and neither keeps the
+view nor can store into the column, by a call graph over the module; a scalar read; or a `let` with no store in its
+scope), and it is created fresh. A `HashMap`'s two columns, a `HashSet`'s and any struct's qualify the same way. Twenty
+thousand replacements of one `String` value peak at 552 bytes, against 749 KB when the element is parked with its
+container; `PRISMIO_COLUMN_TRACE=1` prints each column's verdict and the use that kept one open. `std/map.psm` is written
+to pass the proof, not to promise it: `keyAt`, `valueAt`, `keys()`, `values()`, `for key in set` and the `update`,
+`retain` and `modify` closures see copies or the stored value only where the closure cannot store into the map. A
+column used with a `std.vec` function (`pop`, `removeAt`, `sorted`) or declared `public` still parks.
 
-**A map literal that owns something is a producer.** `{ word(1): word(2) }` lowers to `mapEntriesN(k0, v0, ...)`
-for up to twelve entries (`src/sema/maps.psm`), as a Vec literal is one `vecOf`: every key and value is an argument,
-so each temporary is released after the call, and the function builds the map it returns. The `mapPut` chain it
-replaced passed the map through, and a pass-through's result in a struct field or a `return` is never released.
+**A map literal that owns something is a producer.** `{ word(1): word(2) }` lowers to `mapEntriesN(k0, v0, ...)` for
+each run of up to twelve entries, merged by `mapMerge` (`src/sema/maps.psm`), as a Vec literal is one `vecOf`: every
+key and value is an argument, so each temporary is released after the call, and each function builds the map it
+returns. The `mapPut` chain it replaced passed the map through, and a pass-through's result in a struct field or a
+`return` is never released; past twelve entries it was the fallback. The backend nests calls 64 deep, one `mapMerge`
+per run, so a literal holds 768 such entries.
 
 ## Views
 
@@ -129,6 +134,7 @@ by append and replacement.
 | --- | --- | --- |
 | `list_capacity` | `v.capacity` | the header's `cap` |
 | `list_reserve(l, n)` | `v.reserve(n)` | reallocates to exactly `n` slots when `n > cap`; growth past it still doubles |
+| `list_shrink_to_fit(l)` | `v.shrinkToFit()` | reallocates to exactly `len` slots; an empty list frees its storage; a fused (small) list and an arena's list keep their block |
 | `list_insert`, `list_insert_inline`, `list_insert_inline_scalar`, `list_insert_str` | `v.insert(i, x)` | the matching push, then the new last element is moved down to `i`; the index is checked before the push, so a bad one exits without taking the value |
 | `list_truncate(l, n, now)` | `v.truncate(n)`, `v.clear()`, `v.pop()` | discards slots `[n, len)` from the top; `n < 0` empties |
 | `list_remove_at(l, i, now)` | `v.removeAt(i)` | discards slot `i` and shifts the tail down; out of range is a `runtime error:` and exit 1, not a no-op |

@@ -2,7 +2,7 @@
 title: Raw memory and hardware access
 description: The std.raw module — volatile loads and stores, atomics on 8- to 64-bit words, a memory barrier, unaligned access, byte order, the conversions between a pointer and its address, and a Float's bits, with no C runtime under it.
 status: experimental
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-10-14"
 tags: [standard-library, low-level, volatile, atomics, freestanding, hardware]
 related: [stdlib, stdlib/mem, stdlib/port, stdlib/asm, language/low-level, language/pointers, guides/freestanding]

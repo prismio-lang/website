@@ -1,36 +1,49 @@
 {
   "name": "packages",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "type": "module",
   "private": true,
   "scripts": {
     "dev": "next dev --port 3003",
-    "build": "next build",
-    "start": "next start",
+    "build": "node scripts/generate-static-assets.mjs && next build",
     "lint": "eslint --max-warnings 0",
-    "check-types": "next typegen && tsc --noEmit"
+    "check-types": "next typegen && tsc --noEmit",
+    "build:vinext": "node scripts/generate-static-assets.mjs && vite build && node ../../scripts/finalize-static-site.mjs",
+    "dev:vinext": "vite dev --port 3003",
+    "start:vinext": "vite preview",
+    "deploy:vinext": "pnpm build:vinext && cf deploy --prebuilt"
   },
   "dependencies": {
+    "@heroui/react": "3.1.0",
+    "@heroui/styles": "3.1.0",
     "@prismio/ui": "workspace:*",
     "@prismio/utils": "workspace:*",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.119.0",
+    "framer-motion": "^12.40.0",
+    "hamburger-react": "^2.5.2",
+    "lucide-react": "1.17.0",
     "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "@heroui/react": "3.1.0",
-    "@heroui/styles": "3.1.0",
-    "framer-motion": "^12.40.0",
-    "hamburger-react": "^2.5.2",
-    "lucide-react": "1.17.0"
+    "@vinext/cloudflare": "^1.0.1",
+    "vinext": "^1.0.1",
+    "react-server-dom-webpack": "^19.3.0"
   },
   "devDependencies": {
     "@prismio/eslint-config": "workspace:*",
     "@prismio/typescript-config": "workspace:*",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "26.4.1",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",
     "eslint": "10.9.1",
+    "tailwindcss": "^4.3.0",
     "typescript": "7.0.2",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4.3.0"
+    "@cloudflare/vite-plugin": "2.0.0-beta.sha-52b0dc0e9",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vitejs/plugin-rsc": "^0.5.35",
+    "cf": "1.0.0-beta.12",
+    "vite": "8.3.0"
   }
 }

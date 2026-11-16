@@ -2,14 +2,15 @@
 title: Releases and documentation versions
 description: Prismio release notes, current language version, and architecture for retaining older documentation.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [releases, versioning, changelog]
-related: [releases/0.2.0, releases/0.1.0, migration, project/security-and-compatibility]
+related: [releases/0.3.0, releases/0.2.0, releases/0.1.0, migration, project/security-and-compatibility]
 ---
 
-**Current documented language and compiler version: 0.2.0.**
+**Current documented language and compiler version: 0.3.0.**
 
+- [Prismio 0.3.0](/releases/0.3.0) — published 2026-12-10
 - [Prismio 0.2.0](/releases/0.2.0) — published 2026-11-10
 - [Prismio 0.1.0](/releases/0.1.0) — the first release, published 2026-10-02
 

@@ -504,7 +504,7 @@ until a seed that does not reference them is published.
 | `str_with_capacity` | Internal allocation seam for `std.string` | `produce(rt_free)` |
 | `str_own` | Code generation only: a `String` entering a boxed container slot or leaving through an `alias` return | — |
 | `list_str_data` `list_str_word` `list_push_str` `list_set_str` | Code generation only: `Vec<String>` element access, where the element is the 16-byte pair | — |
-| `list_capacity` `list_reserve` | Code generation only: `v.capacity`, `v.reserve(n)` | — |
+| `list_capacity` `list_reserve` `list_shrink_to_fit` | Code generation only: `v.capacity`, `v.reserve(n)`, `v.shrinkToFit()` | — |
 | `list_insert` `list_insert_inline` `list_insert_inline_scalar` `list_insert_str` | Code generation only: `v.insert(i, x)`, one per push entry point; a bad index exits before the value is taken | — |
 | `list_truncate` `list_remove_at` | Code generation only: `v.truncate(n)`, `v.clear()`; `pop` and `removeAt` in `std.vec`. The trailing `now` argument is `0` (park) everywhere today | — |
 | `str_find_byte` `str_find_byte_pair` | Internal bounded-search accelerators | `borrow` |

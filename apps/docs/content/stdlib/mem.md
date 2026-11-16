@@ -2,7 +2,7 @@
 title: Memory and buffers
 description: The std.mem module — Buffer, a bounds-checked byte buffer with typed little- and big-endian reads and writes; alloc, realloc and free for memory a program manages itself; and Arena, a bump allocator you reset in one step.
 status: experimental
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-10-09"
 tags: [standard-library, memory, buffer, bytes, allocation, arena, manual-memory, binary-formats]
 related: [stdlib, stdlib/raw, guides/freestanding, language/low-level, language/ownership-and-borrowing, guides/memory-and-aif, stdlib/vec]

@@ -2,7 +2,7 @@
 title: Set up your editor
 description: Get errors as you type, completion, hover, go to definition, rename and formatting in VS Code and the JetBrains IDEs.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-13"
 tags: [guide, editor, lsp, vscode, intellij, formatting]
 related: [guides/intellij, start/installation, compiler/cli, compiler/diagnostics]

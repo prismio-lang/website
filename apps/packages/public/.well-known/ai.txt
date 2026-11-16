@@ -1,0 +1,12 @@
+# AI crawler policy for https://packages.prismio.org
+# Indexing, retrieval and citation of the registry home page are welcome.
+
+User-Agent: *
+Allow: /
+Disallow: /auth/
+
+Summary: https://packages.prismio.org/ai/summary.json
+FAQ: https://packages.prismio.org/ai/faq.json
+LLMs: https://packages.prismio.org/llms.txt
+Sitemap: https://packages.prismio.org/sitemap.xml
+Contact: https://github.com/prismio-lang/prismio/issues

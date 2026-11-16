@@ -1,24 +1,24 @@
 ---
-title: Prismio 0.2 overview
-description: What Prismio is, what the self-hosted 0.2 compiler implements, and which capabilities are still planned.
+title: Prismio 0.3 overview
+description: What Prismio is, what the self-hosted 0.3 compiler implements, and which capabilities are still planned.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [overview, status, compiler]
-related: [start/installation, language, compiler/overview, roadmap, releases/0.2.0]
+related: [start/installation, language, compiler/overview, roadmap, releases/0.3.0]
 ---
 
 Prismio is a statically typed systems language that compiles through LLVM. Its compiler is written in Prismio: the lexer, parser, semantic analysis, allocation inference, import resolver, and LLVM IR generator all live in `.psm` source.
 
-Version 0.2 is an active-development release, not a compatibility promise. “Implemented” on this site means the feature exists in the audited 0.2.0 compiler; it does not mean the syntax or ABI is stable.
+Version 0.3 is an active-development release, not a compatibility promise. “Implemented” on this site means the feature exists in the audited 0.3.0 compiler; it does not mean the syntax or ABI is stable.
 
-## What is new in 0.2
+## What is new in 0.3
 
-Prismio 0.2.0 adds `async fn`, `await`, `scope { }` and `spawn { }`; `prismio lsp` and `prismio fmt`; freestanding builds with `std.syscall`; integers of any width; and `std.json` and `HashSet`. `T?` replaces `Option<T>` and `HashMap` replaces `Map`. The [release notes](/releases/0.2.0) list everything, and [migrating from 0.1](/migration/0.1-to-0.2) lists what to change in an existing program.
+Prismio 0.3.0 makes ordinary code shorter to write. Structs nest, `let` destructures, tuples exist, and `if` and `match` are values. The `?` operator, `if let`, `while let` and `let ... else` handle optionals and `Result`s without a block of boilerplate, and `match` takes guards, range patterns, string patterns and patterns inside a variant. `HashMap` holds owned values and `HashSet` is a full set with its algebra. The [release notes](/releases/0.3.0) list everything, and [Migrating from 0.2 to 0.3](/migration/0.2-to-0.3) lists what to change in a program written for 0.2.
 
 ## Design at a glance
 
-Prismio combines explicit static types and predictable native compilation with ownership-aware handling of runtime data. Its source is intentionally small and statement-oriented in 0.2: declarations and control flow are conventional, while memory behavior is expressed at function boundaries with default borrows, `sink`, `inout`, and experimental allocation inference.
+Prismio combines explicit static types and predictable native compilation with ownership-aware handling of runtime data. Its source is intentionally small and statement-oriented in 0.3: declarations and control flow are conventional, while memory behavior is expressed at function boundaries with default borrows, `sink`, `inout`, and experimental allocation inference.
 
 The compiler pipeline is self-hosted. A trusted seed builds the Prismio source into a new compiler generation, and later generations are compared to establish a fixed point. This makes the compiler source an important part of the language's executable definition.
 
@@ -62,7 +62,7 @@ fn main() -> Int {
 
 `Counter` is a nominal, move-only struct. `increment` receives a mutable borrow, while the ordinary `read` parameter borrows read-only by default. The caller remains the owner through both calls.
 
-## Memory model in 0.2
+## Memory model in 0.3
 
 Integers, floats, booleans, byte characters, raw pointer values, fieldless enums, and arrays use copy behavior. Strings, vectors, and structs are move-only. Moving one of those values into a new owned location invalidates the source binding.
 

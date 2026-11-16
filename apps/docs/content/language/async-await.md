@@ -2,7 +2,7 @@
 title: Async and await
 description: "async fn, Future<T>, await, scope and spawn blocks -- lazy futures, and tasks that cannot outlive the block that started them."
 status: experimental
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-10-14"
 tags: [concurrency, async, await, future, scope, spawn, structured-concurrency]
 related: [language/concurrency, language/functions, language/closures, language/ownership-and-borrowing, stdlib/concurrency]

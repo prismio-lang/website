@@ -2,7 +2,7 @@
 title: Optionals
 description: T? is a T or none. A scalar's T? is a value that costs no allocation; a reference's is a nullable pointer. Testing, ??, expect, unwrapOr, containers and printing.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [optional, nullable, none, coalescing, expect, unwrapOr]
 related: [language/types, language/conversions, language/structs, errors/optional-needs-unwrap, stdlib/option]
@@ -261,7 +261,7 @@ A `T?` says a value may be absent and not why. When the reason matters, return a
 [`Result<T, E>`](/stdlib/option#result), and turn between the two with `ok()` and `err()` (a
 `Result` to an optional) and `okOr(error)` (an optional to a `Result`).
 
-## Not in 0.2
+## Not in 0.3
 
 - optional chaining such as `value?.field`: test with `!= none` and read through
   `expect`, or use `??`;

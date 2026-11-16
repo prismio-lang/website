@@ -2,7 +2,7 @@
 title: async, await and scope
 description: How async fn, Future<T>, await, scope and spawn blocks are lowered onto the task runtime, with no state machine and no new type.
 status: experimental
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-10-14"
 tags: [async, await, scope, tasks, futures, lowering]
 related: [runtime/tasks-and-channels, compiler/closures-and-captures, compiler/ownership-and-drop-lowering, aif/tiers-and-analysis-domains]

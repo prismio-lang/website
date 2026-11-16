@@ -2,7 +2,7 @@
 title: Vec
 description: Vec<T>, Prismio's growable vector — building one, its methods, what removing an element does to views of it, and the sorting and higher-order algorithms in std.vec.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-09-24"
 tags: [standard-library, vec, collections, ownership]
 related: [language/arrays-and-lists, language/ownership-and-borrowing, errors/container-ownership, stdlib/map]
@@ -124,6 +124,7 @@ Everything in this table changes the Vec, so the Vec has to be one the code may 
 | `v.truncate(n)` | keeps the first `n` elements |
 | `v.clear()` | removes every element |
 | `v.reserve(n)` | makes room for `n` elements in total |
+| `v.shrinkToFit()` | gives back the capacity past the length; an empty vector lets go of its storage, and a small one keeps its block |
 | `v.extend(other)` | appends a copy of every element of `other` |
 | `v.reverse()` | reverses the order in place |
 | `v.removeFirst()` | removes the first element and answers it as a `T?`, or `none` when empty |

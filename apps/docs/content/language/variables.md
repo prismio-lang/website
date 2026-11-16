@@ -1,8 +1,8 @@
 ---
 title: Variables and bindings
-description: Declare local and global bindings, type annotations, default values, mutability, shadowing, and initialization in Prismio 0.2.
+description: Declare local and global bindings, type annotations, default values, mutability, shadowing, and initialization in Prismio 0.3.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [variables, let, mutability, scope]
 related: [language/types, language/control-flow, errors/immutable-assignment]

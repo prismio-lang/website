@@ -2,7 +2,7 @@
 title: Stride tiling and square bounds
 description: How Prismio turns a plain sieve into a segmented one, why reordering its stores is legal, what LLVM needed to make the result fast, and what was measured and rejected on the way.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-10-14"
 tags: [compiler, loops, performance, codegen, vectorization, cache]
 related: [compiler/loop-guards, performance/decisions-and-rejected-experiments, performance/wrapping-integers-and-tight-loops]

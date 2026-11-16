@@ -1,14 +1,14 @@
 ---
 title: Concurrency library
-description: Prismio 0.2 ships no standard concurrency module; tasks and channels are language features rather than libraries.
+description: Prismio 0.3 ships no standard concurrency module; tasks and channels are language features rather than libraries.
 status: planned
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [standard-library, concurrency, threads, channels, coming-soon]
 related: [language/concurrency, stdlib, roadmap]
 ---
 
-Prismio 0.2 has **no standard concurrency module**. Mutexes, safe synchronization types and
+Prismio 0.3 has **no standard concurrency module**. Mutexes, safe synchronization types and
 scheduling APIs are Coming Soon. Raw pointer atomics with an explicit memory ordering exist in [`std.raw`](/stdlib/raw), for code that works with hardware.
 
 **Tasks and channels are not missing — they are language features rather than libraries.** `spawn`

@@ -1,8 +1,8 @@
 ---
 title: Functions and parameters
-description: Declare Prismio 0.2 functions, return values, overloads, and borrow, sink, or inout parameters.
+description: Declare Prismio 0.3 functions, return values, overloads, and borrow, sink, or inout parameters.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [functions, parameters, returns, overloads, cold, hot, inlining, noreturn, const]
 related: [language/ownership-and-borrowing, language/ffi, errors/wrong-arity]

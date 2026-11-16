@@ -1,8 +1,8 @@
 ---
 title: Memory annotations and regions
-description: Reference for unique, pin(Tn), named regions, region budgets, and AIF-related compiler directives in Prismio 0.2.
+description: Reference for unique, pin(Tn), named regions, region budgets, and AIF-related compiler directives in Prismio 0.3.
 status: experimental
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-08-09"
 tags: [annotations, unique, pin, region, aif]
 related: [guides/memory-and-aif, compiler/aif, specification/memory-model]

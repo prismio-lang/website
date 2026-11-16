@@ -2,7 +2,7 @@
 title: Pointers
 description: "Ptr<T>, the typed pointer: never null, read through by default, written only through Ptr<mut T>, with volatile and atomic access and explicit stepping."
 status: experimental
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-10-22"
 tags: [pointers, ptr, volatile, atomics, low-level, ffi, std.raw]
 related: [language/low-level, language/ffi, language/types, language/structs, language/generics, stdlib/raw, stdlib/mem, guides/freestanding]

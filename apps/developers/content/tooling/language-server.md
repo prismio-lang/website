@@ -2,7 +2,7 @@
 title: The language server
 description: How `prismio lsp` answers an editor from the compiler's own analysis, what it keeps in memory and why that is so little, and how to test and measure it.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-10-29"
 tags: [lsp, ide, tooling, memory]
 related: [tooling/ide-protocol, tooling/intellij-plugin, tooling/vscode-extension, compiler/cli]

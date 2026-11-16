@@ -1,0 +1,17 @@
+{
+  "name": "Prismio Packages",
+  "url": "https://packages.prismio.org",
+  "type": "package-registry",
+  "description": "The package registry for Prismio, a statically typed systems language that compiles through LLVM. Browse libraries and publish from the Prismio command line. Preview: the registry is under development and the packages listed are examples.",
+  "status": "Preview. Prismio 0.3 has no package registry; the packages listed on the site are examples and are not published libraries.",
+  "prismioVersion": "0.3.0",
+  "publishing": "command line only; no website upload",
+  "downloads": "https://cdn.prismio.org/packages/<name>/<version>/package.tar.gz",
+  "links": {
+    "main": "https://prismio.org",
+    "documentation": "https://docs.prismio.org/package-manager",
+    "source": "https://github.com/prismio-lang/prismio",
+    "issues": "https://github.com/prismio-lang/prismio/issues",
+    "llms": "https://packages.prismio.org/llms.txt"
+  }
+}

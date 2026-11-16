@@ -2,7 +2,7 @@
 title: System calls
 description: The std.syscall module — the raw system-call instruction, and the calls of Linux and macOS by name, with no C library underneath.
 status: experimental
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-03"
 tags: [standard-library, low-level, syscall, linux, macos, freestanding]
 related: [stdlib, stdlib/asm, stdlib/raw, stdlib/mem, language/platform-blocks, guides/freestanding]

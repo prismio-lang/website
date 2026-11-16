@@ -2,7 +2,7 @@
 title: Standard library status
 description: Prismio's shipped source standard library and the modules still planned.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [standard-library, runtime, status]
 related: [stdlib/io, stdlib/display, stdlib/number-text, stdlib/input, stdlib/strings, stdlib/math, stdlib/time, stdlib/filesystem, stdlib/vec, stdlib/map, stdlib/mem, stdlib/raw, stdlib/option, roadmap]
@@ -26,7 +26,7 @@ Prismio ships twenty-one standard-library modules:
 | [`std.time`](/stdlib/time) | `Instant`, `Duration`, `unixTime()`, `sleep` |
 | [`std.math`](/stdlib/math) | Float and integer math, and every numeric type's limits |
 | [`std.vec`](/stdlib/vec) | `Vec<T>`'s library methods and the Vec literal |
-| [`std.map`](/stdlib/map) | `HashMap<K, V>` |
+| [`std.map`](/stdlib/map) | `HashMap<K, V>` and `HashSet<K>` |
 | [`std.tuple`](/stdlib/tuple) | `Tuple2` to `Tuple4`, what `(a, b)` is; imported for you when a file writes a tuple |
 | [`std.mem`](/stdlib/mem) | `Buffer`, a byte buffer with typed reads and writes; `alloc`, `realloc` and `free`; `Arena` |
 | [`std.raw`](/stdlib/raw) | volatile and atomic access to an address, a memory barrier, unaligned access, byte order, a Float's bits; no C runtime |
@@ -93,11 +93,11 @@ element when the compiler can prove `items` is still an unobserved local Vec. A 
 Slice construction, or arbitrary borrowing call closes that capability. `items.set(index, value)`
 remains the general conservative replacement operation.
 
-[`HashMap<K, V>`](/stdlib/map) is defined in Prismio, in `std/map.psm`, as an open-addressed table over `Vec`. Its key type carries `Key + Copy` bounds: [`std.key`](/stdlib) supplies `hash` and `eq`, while `std.copy` supplies `copyOf` so the table can retain a key — therefore **`String` keys work**, and every integer width does. `Float` deliberately has no `impl Key`: NaN is not equal to itself, so a NaN key could be inserted and never found again.
+[`HashMap<K, V>`](/stdlib/map) is defined in Prismio, in `std/map.psm`, as an open-addressed table over `Vec`. Its key type carries `Key + Copy` bounds: [`std.key`](/stdlib) supplies `hash` and `eq`, while `std.copy` supplies `copyOf` so the table can retain a key (and `Hash`, `Hasher` and `hashOf` let a composite key feed its fields rather than fold them by hand) — therefore **`String` keys work**, and every integer width does. `Float` deliberately has no `impl Key`: NaN is not equal to itself, so a NaN key could be inserted and never found again.
 
 [`std.vec`](/stdlib/vec) gives `Vec<T>` its literals and methods — `push`, `insert`, `pop`, `removeAt`, `contains`, `indexOf`, `reverse`, `clone` and the rest — plus `sort` for a `T: Ord`, `sortBy` with a closure comparator, `binarySearch`, `filter`, `mapInto`, `countWhere`, `any` and `all`. `for x in v` and `for (i, x) in v` visit it, and [`std.iter`](/language/traits)'s `Iterator` lets a type of your own join a `for` loop; there are no lazy adapter chains (`v.iter().map(…)`) yet.
 
-**`Vec<T>` and `HashMap<K, V>` are the only collections in 0.1.** Not available yet, and planned: `VecDeque<T>`, sets, a sorted map, a priority queue, a linked list and the chunked `Vec<T, N>`. The fixed-length `Array<T, N>` is a language type rather than a library one. [What each missing collection is, and what to use until it ships](/language/arrays-and-lists#not-available-yet).
+**`Vec<T>`, `HashMap<K, V>` and `HashSet<K>` are the collections.** Not available yet, and planned: `VecDeque<T>`, a sorted map, a priority queue, a linked list and the chunked `Vec<T, N>`. The fixed-length `Array<T, N>` is a language type rather than a library one. [What each missing collection is, and what to use until it ships](/language/arrays-and-lists#not-available-yet).
 
 ## Memory primitives
 

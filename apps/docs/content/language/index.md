@@ -1,14 +1,14 @@
 ---
 title: Language reference
-description: Canonical reference for syntax and behavior accepted by the Prismio 0.2 compiler.
+description: Canonical reference for syntax and behavior accepted by the Prismio 0.3 compiler.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [language, reference, syntax]
 related: [specification, start/overview, examples]
 ---
 
-This reference describes the language accepted by Prismio 0.2.0. It is written from the compiler, runtime, and test suite rather than from proposals, so an example labeled as implemented is intended to compile with the released language surface.
+This reference describes the language accepted by Prismio 0.3.0. It is written from the compiler, runtime, and test suite rather than from proposals, so an example labeled as implemented is intended to compile with the released language surface.
 
 Every reference page carries a status:
 
@@ -53,7 +53,7 @@ fn main() -> Int {
 
 ## Implemented language areas
 
-Prismio 0.2 includes:
+Prismio 0.3 includes:
 
 - statically typed local and global bindings;
 - exact-width signed and unsigned integers, `Int<N>` and `UInt<N>` of any width, five float types, booleans, byte characters, strings, and raw pointers;

@@ -2,7 +2,7 @@
 title: Generics
 description: Generic functions and types in Prismio, type argument inference, and the monomorphization that makes them free at runtime.
 status: stable
-version: "0.2.0"
+version: "0.3.0"
 lastUpdated: "2026-11-10"
 tags: [generics, type-parameters, monomorphization]
 related: [language/traits, language/functions, language/structs, stdlib/map]
@@ -195,7 +195,7 @@ Recursion itself is fine — it is recursion that *grows the type* that cannot
 work. `fn count<T>(v: T, n: Int) -> Int` calling itself with the same `T`
 instantiates once.
 
-## Limits in 0.2
+## Limits in 0.3
 
 - Type parameters may carry one or more [trait bounds](/language/traits), joined
   with `+`, or after the signature in a `where` clause. See
